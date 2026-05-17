@@ -6057,8 +6057,15 @@ function _openDiceShortcuts(){
 function _diceNav(tab){
   _closeDiceShortcuts();
   const app=document.getElementById('app');
-  if(app&&app.style.display!=='none'){setTab(tab);}
-  else if(P()){showApp();setTimeout(()=>setTab(tab),0);}
+  if(app&&app.style.display!=='none'){
+    setTab(tab);
+  }else if(P()){
+    showApp();setTimeout(()=>setTab(tab),0);
+  }else if(currentTableId&&currentCampaignId&&!isMJ()){
+    enterCampaign(currentTableId,currentCampaignId).then(()=>{if(tab!=='perso')setTab(tab);}).catch(()=>{});
+  }else{
+    showToast('Ouvrez votre fiche depuis le Hub pour utiliser ce raccourci.');
+  }
 }
 function _closeDiceShortcuts(){const sp=document.getElementById('diceShortcuts');if(sp)sp.style.display='none';}
 function _closeDiceShortcutsOutside(e){
@@ -7386,6 +7393,10 @@ function mjOpenAddMonster(){
         <button class="btn bsm" onclick="mjToggleMonsterSubForm('mSpForm')">+ Ajouter</button>
       </div>
       <div id="mSpForm" style="display:none;background:var(--surface2);border-radius:8px;padding:10px;margin-bottom:8px">
+        <div style="position:relative;margin-bottom:8px">
+          <input class="fi" id="mjSpSearchQ" placeholder="🔍 Chercher dans le compendium..." oninput="_mjSpellSearch(this.value)" onfocus="_mjSpellSearch(this.value)" autocomplete="off" onblur="setTimeout(()=>{const r=document.getElementById('mjSpSearchRes');if(r)r.style.display='none';},150)">
+          <div id="mjSpSearchRes" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:200;background:var(--surface);border:1px solid rgba(200,168,75,.4);border-radius:0 0 6px 6px;max-height:200px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.5)"></div>
+        </div>
         <input class="fi" id="mSp_name" placeholder="Nom du sort (ex: Boule de feu)" style="margin-bottom:6px">
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px">
           <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Niveau sort</div><input class="fi" id="mSp_level" type="number" value="1" min="0" max="9"></div>
@@ -7455,9 +7466,17 @@ function mjFillMonster(idx){
   if(initEl)initEl.value=dexMod;
   // Auto-populate attacks from compendium acts field
   _mjNewMonsterAttacks=[];
+  const _specialActions=[];
   const acts=Array.isArray(m.acts)?m.acts:(m.acts?[m.acts]:[]);
   acts.forEach(act=>{
-    if(!act.atk)return;
+    if(!act.n)return;
+    // Ignorer les règles variantes (Variant: ...)
+    if(act.n.startsWith('Variant:'))return;
+    if(!act.atk){
+      // Action sans jet d'attaque → trait/action spéciale
+      _specialActions.push(act.n);
+      return;
+    }
     const parts=act.atk.split('|');
     if(parts.length<3)return;
     const bonus=parseInt(parts[1])||0;
@@ -7476,10 +7495,20 @@ function mjFillMonster(idx){
   if(m.sv&&m.sv.trim())_mjNewMonsterTraits.push({name:'Jets de sauvegarde',desc:m.sv});
   if(m.sk&&m.sk.trim())_mjNewMonsterTraits.push({name:'Compétences',desc:m.sk});
   if(m.spd&&m.spd.trim()&&m.spd!=='walk 30 ft.')_mjNewMonsterTraits.push({name:'Vitesse',desc:_feetToM(m.spd)});
-  mjRenderAttacksList();mjRenderTraitsList();
+  // Actions spéciales (actes sans jet d'attaque) → traits
+  _specialActions.forEach(n=>{
+    const lc=n.toLowerCase();
+    const desc=lc.includes('multiattack')||lc.includes('multiattaque')?'Effectue plusieurs attaques par action (voir manuel).':lc.includes('spellcasting')||lc.includes('innate')?'⚠ Lanceur de sorts — ajoutez les sorts manuellement ci-dessous.':'Action spéciale (voir manuel).';
+    _mjNewMonsterTraits.push({name:n,desc});
+  });
+  _mjNewMonsterSpells=[];
+  mjRenderAttacksList();mjRenderSpellsList();mjRenderTraitsList();
+  // Avertissement si le monstre semble être un lanceur de sorts
+  const likelyCaster=_specialActions.some(n=>/spellcast|innate|spell/i.test(n))||/mage|sorcier|lich|archimage|wizard|cleric|shaman|druid|warlock|witch|archmage/i.test(m.n+' '+m.t);
   const res=document.getElementById('monResults');
   const info=(_mjNewMonsterAttacks.length?_mjNewMonsterAttacks.length+' att.':'')+(_mjNewMonsterTraits.length?(_mjNewMonsterAttacks.length?' · ':'')+_mjNewMonsterTraits.length+' trait(s)':'');
-  if(res)res.innerHTML='<div style="font-size:11px;color:var(--cp);text-align:center;padding:4px">✅ "'+esc(m.n)+'" importé'+(info?' ('+info+')':'')+'</div>';
+  const spellWarn=likelyCaster?'<div style="font-size:10px;color:#ffd54f;text-align:center;margin-top:2px">⚠ Ce monstre a probablement des sorts — à ajouter manuellement.</div>':'';
+  if(res)res.innerHTML='<div style="font-size:11px;color:var(--cp);text-align:center;padding:4px">✅ "'+esc(m.n)+'" importé'+(info?' ('+info+')':'')+'</div>'+spellWarn;
 }
 
 function mjConfirmAddMonster(){
@@ -7577,6 +7606,46 @@ function mjConfirmAddFormSpell(){
 }
 
 function mjRemoveFormSpell(i){_mjNewMonsterSpells.splice(i,1);mjRenderSpellsList();}
+
+let _mjSpellHits=[];
+const _DMG_TYPE_FR={'fire damage':'feu','cold damage':'froid','lightning damage':'foudre','thunder damage':'tonnerre','poison damage':'poison','acid damage':'acide','radiant damage':'radiant','necrotic damage':'nécrotique','psychic damage':'psychique','force damage':'force','piercing damage':'perforant','slashing damage':'tranchant','bludgeoning damage':'contondant'};
+function _mjSpellSearch(q){
+  const res=document.getElementById('mjSpSearchRes');if(!res)return;
+  q=(q||'').trim().toLowerCase();
+  const db=getSpellsDB();
+  if(!db||!db.length){
+    res.style.display='block';
+    res.innerHTML='<div style="padding:8px;font-size:11px;color:var(--text3)">⏳ Chargement du compendium...</div>';
+    loadSpellsDB(()=>_mjSpellSearch(q));
+    return;
+  }
+  if(!q){
+    _mjSpellHits=db.slice(0,20);
+  }else{
+    _mjSpellHits=db.filter(s=>(s.name||'').toLowerCase().includes(q)||(s.nameEN||'').toLowerCase().includes(q)).slice(0,15);
+  }
+  if(!_mjSpellHits.length){res.style.display='block';res.innerHTML='<div style="padding:8px;font-size:11px;color:var(--text3);font-style:italic">Aucun sort trouvé.</div>';return;}
+  res.style.display='block';
+  res.innerHTML=_mjSpellHits.map((s,i)=>`<div onclick="_mjSpellFill(${i})" style="padding:7px 10px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.06)" onmouseenter="this.style.background='rgba(200,168,75,.1)'" onmouseleave="this.style.background=''"><div style="font-size:12px;font-weight:600;color:var(--text)">${esc(s.name)}</div><div style="font-size:10px;color:var(--text3)">${s.level===0?'Tour de magie':'Niveau '+(s.level||1)} · ${esc(s.school||'')}${s.damage?' · 🎲 '+s.damage:''}</div></div>`).join('');
+}
+function _mjSpellFill(i){
+  const s=_mjSpellHits[i];if(!s)return;
+  const nameEl=document.getElementById('mSp_name');
+  const levelEl=document.getElementById('mSp_level');
+  const diceEl=document.getElementById('mSp_dice');
+  const typeEl=document.getElementById('mSp_type');
+  const descEl=document.getElementById('mSp_desc');
+  if(nameEl)nameEl.value=s.name||'';
+  if(levelEl)levelEl.value=s.level||0;
+  if(diceEl)diceEl.value=s.damage||'';
+  if(typeEl){
+    if(s.rolls&&s.rolls[0]){const raw=(s.rolls[0][2]||'').toLowerCase();typeEl.value=_DMG_TYPE_FR[raw]||raw.replace(/ damage$/i,'');}
+    else typeEl.value='';
+  }
+  if(descEl)descEl.value=s.desc||'';
+  const searchEl=document.getElementById('mjSpSearchQ');if(searchEl)searchEl.value='';
+  const resEl=document.getElementById('mjSpSearchRes');if(resEl)resEl.style.display='none';
+}
 
 function mjRenderTraitsList(){
   const el=_mjFindListEl('mAdd_traitsList','mEd_traitsList');if(!el)return;
@@ -7819,6 +7888,10 @@ function mjOpenEditMonster(idx){
         <button class="btn bsm" onclick="mjToggleMonsterSubForm('mEdSpForm')">+ Ajouter</button>
       </div>
       <div id="mEdSpForm" style="display:none;background:var(--surface2);border-radius:8px;padding:10px;margin-bottom:8px">
+        <div style="position:relative;margin-bottom:8px">
+          <input class="fi" id="mjSpSearchQ" placeholder="🔍 Chercher dans le compendium..." oninput="_mjSpellSearch(this.value)" onfocus="_mjSpellSearch(this.value)" autocomplete="off" onblur="setTimeout(()=>{const r=document.getElementById('mjSpSearchRes');if(r)r.style.display='none';},150)">
+          <div id="mjSpSearchRes" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:200;background:var(--surface);border:1px solid rgba(200,168,75,.4);border-radius:0 0 6px 6px;max-height:200px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.5)"></div>
+        </div>
         <input class="fi" id="mSp_name" placeholder="Nom du sort" style="margin-bottom:6px">
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px">
           <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Niveau</div><input class="fi" id="mSp_level" type="number" value="1" min="0"></div>
@@ -8148,6 +8221,10 @@ function mjOpenNPCForm(editIdx){
         <button class="btn bsm" onclick="mjToggleMonsterSubForm('mSpForm')">+ Ajouter</button>
       </div>
       <div id="mSpForm" style="display:none;background:var(--surface2);border-radius:8px;padding:10px;margin-bottom:8px">
+        <div style="position:relative;margin-bottom:8px">
+          <input class="fi" id="mjSpSearchQ" placeholder="🔍 Chercher dans le compendium..." oninput="_mjSpellSearch(this.value)" onfocus="_mjSpellSearch(this.value)" autocomplete="off" onblur="setTimeout(()=>{const r=document.getElementById('mjSpSearchRes');if(r)r.style.display='none';},150)">
+          <div id="mjSpSearchRes" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:200;background:var(--surface);border:1px solid rgba(200,168,75,.4);border-radius:0 0 6px 6px;max-height:200px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.5)"></div>
+        </div>
         <input class="fi" id="mSp_name" placeholder="Nom du sort (ex: Boule de feu)" style="margin-bottom:6px">
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px">
           <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Niveau sort</div><input class="fi" id="mSp_level" type="number" value="1" min="0" max="9"></div>
