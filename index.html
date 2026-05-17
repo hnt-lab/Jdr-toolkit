@@ -614,7 +614,18 @@ function startMJPlayersListener(campaignId){
         }else if(change.type==='modified'){
           if(!change.doc.metadata.hasPendingWrites){
             const idx=_mjPlayersData.findIndex(p=>p.docId===change.doc.id);
-            if(idx>=0){_mjPlayersData[idx].charData=data.characterData||{};changed=true;}
+            if(idx>=0){
+              _mjPlayersData[idx].charData=data.characterData||{};
+              // Sync HP dans le tracker de combat si ce joueur est en combat
+              const newHp=data.characterData?.hp;
+              const newHpMax=data.characterData?.hpMax;
+              const combIdx=_mjCombatants.findIndex(cb=>cb.uid===uid&&cb.isPlayer);
+              if(combIdx>=0&&newHp!==undefined){
+                _mjCombatants[combIdx].hp=newHp;
+                if(newHpMax!==undefined)_mjCombatants[combIdx].hpMax=newHpMax;
+              }
+              changed=true;
+            }
           }
         }else if(change.type==='removed'){
           _mjPlayersData=_mjPlayersData.filter(p=>p.docId!==change.doc.id);changed=true;
@@ -5979,19 +5990,10 @@ let diceHistory=[];
 let _journalDraft={title:'',content:''};
 
 function createDiceButton(){
-  // Panel de raccourcis (appui long)
+  // Panel de raccourcis (appui long) — contenu reconstruit dynamiquement à l'ouverture
   const sp=document.createElement('div');
   sp.id='diceShortcuts';
   sp.style.cssText=`position:fixed;bottom:88px;right:24px;z-index:889;display:none;flex-direction:column;gap:10px;align-items:flex-end;`;
-  sp.innerHTML=`
-    <div style="display:flex;align-items:center;gap:8px">
-      <span style="font-size:12px;color:var(--cp);background:var(--surface);padding:4px 10px;border-radius:20px;border:1px solid var(--border);white-space:nowrap">Journal</span>
-      <button style="width:44px;height:44px;border-radius:50%;background:var(--surface);border:2px solid var(--cp);color:var(--cp);font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4)" onclick="setTab('journal');_closeDiceShortcuts()">📓</button>
-    </div>
-    <div style="display:flex;align-items:center;gap:8px">
-      <span style="font-size:12px;color:var(--cp);background:var(--surface);padding:4px 10px;border-radius:20px;border:1px solid var(--border);white-space:nowrap">Personnage</span>
-      <button style="width:44px;height:44px;border-radius:50%;background:var(--surface);border:2px solid var(--cp);color:var(--cp);font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4)" onclick="setTab('perso');_closeDiceShortcuts()">⚔</button>
-    </div>`;
   document.body.appendChild(sp);
 
   const btn=document.createElement('div');
@@ -6017,8 +6019,29 @@ function createDiceButton(){
 }
 function _openDiceShortcuts(){
   const sp=document.getElementById('diceShortcuts');if(!sp)return;
+  // Reconstruction à chaque ouverture pour avoir le portrait à jour
+  const p=P();
+  const portrait=p?.portrait||p?.equipPortrait;
+  const avatarEl=portrait
+    ?`<img src="${portrait}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block">`
+    :`<span style="font-size:20px">${currentUserData?.avatar||'⚔'}</span>`;
+  sp.innerHTML=`
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:12px;color:var(--cp);background:var(--surface);padding:4px 10px;border-radius:20px;border:1px solid var(--border);white-space:nowrap">Journal</span>
+      <button style="width:44px;height:44px;border-radius:50%;background:var(--surface);border:2px solid var(--cp);color:var(--cp);font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4)" onclick="_diceNav('journal')">📓</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:12px;color:var(--cp);background:var(--surface);padding:4px 10px;border-radius:20px;border:1px solid var(--border);white-space:nowrap">Personnage</span>
+      <button style="width:44px;height:44px;border-radius:50%;overflow:hidden;background:var(--surface);border:2px solid var(--cp);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4);padding:0" onclick="_diceNav('perso')">${avatarEl}</button>
+    </div>`;
   sp.style.display='flex';
   setTimeout(()=>document.addEventListener('click',_closeDiceShortcutsOutside,{once:true}),50);
+}
+function _diceNav(tab){
+  _closeDiceShortcuts();
+  const app=document.getElementById('app');
+  if(app&&app.style.display!=='none'){setTab(tab);}
+  else if(P()){showApp();setTimeout(()=>setTab(tab),0);}
 }
 function _closeDiceShortcuts(){const sp=document.getElementById('diceShortcuts');if(sp)sp.style.display='none';}
 function _closeDiceShortcutsOutside(e){
@@ -7850,7 +7873,7 @@ function _mjSyncPlayerHp(c){
   if(!c.isPlayer||!c.uid||!currentCampaignId)return;
   clearTimeout(_mjHpSyncTimers[c.uid]);
   _mjHpSyncTimers[c.uid]=setTimeout(async()=>{
-    try{await fbDb.collection('characters').doc(c.uid+'_'+currentCampaignId).update({hp:c.hp,hpMax:c.hpMax});}
+    try{await fbDb.collection('characters').doc(c.uid+'_'+currentCampaignId).update({'characterData.hp':c.hp,'characterData.hpMax':c.hpMax});}
     catch(e){}
     delete _mjHpSyncTimers[c.uid];
   },800);
@@ -7892,7 +7915,24 @@ function mjApplyHpModal(idx){
   closeModal();renderMJContent();
 }
 
-const MJ_CONDITIONS=['Charmé','Effrayé','Étourdi','Aveuglé','Sourd','Entravé','Paralysé','Empoisonné','Neutralisé','Épuisé','Invisible','Invisible','Renversé','Saisi'];
+const MJ_CONDITIONS=[
+  {n:'Aveuglé',d:'Ne peut pas voir. Attaques contre lui : avantage. Ses attaques : désavantage.'},
+  {n:'Charmé',d:'Ne peut pas attaquer le charmeur. Le charmeur a avantage aux interactions sociales.'},
+  {n:'Assourdi',d:'Ne peut pas entendre. Échoue automatiquement les JS liés à l\'ouïe.'},
+  {n:'Épouvanté',d:'Désavantage aux jets d\'attaque et caractéristiques si la source de peur est visible.'},
+  {n:'Agrippé',d:'Vitesse = 0. Condition retirée si hors de portée ou si incapacité.'},
+  {n:'Neutralisé',d:'Ne peut pas effectuer d\'actions ni de réactions.'},
+  {n:'Invisible',d:'Impossible à voir sans magie. Attaques contre lui : désavantage. Ses attaques : avantage.'},
+  {n:'Paralysé',d:'Neutralisé, ne peut bouger/parler. Attaques au corps à corps = coup critique automatique à moins de 1,5m.'},
+  {n:'Pétrifié',d:'Transformé en pierre. Neutralisé, résistance à tous les dégâts, immunité poison/maladie.'},
+  {n:'Empoisonné',d:'Désavantage aux jets d\'attaque et de caractéristique.'},
+  {n:'À terre',d:'Se relever coûte la moitié de la vitesse. Attaques au corps à corps contre lui : avantage. À distance : désavantage.'},
+  {n:'Entravé',d:'Vitesse = 0. Attaques contre lui : avantage. Ses attaques : désavantage. JS DEX : désavantage.'},
+  {n:'Étourdi',d:'Neutralisé, ne peut bouger. Attaques contre lui : avantage. Échoue automatiquement JS FOR/DEX.'},
+  {n:'Inconscient',d:'Neutralisé, tombe à terre, lâche tout. Attaques contre lui : avantage. Coup critique au corps à corps < 1,5m.'},
+  {n:'Épuisé',d:'Malus selon le niveau (1→désavantage jets compétences, 3→vitesse divisée par 2, 5→vitesse 0, 6→mort).'},
+  {n:'Concentration',d:'Le lanceur est en concentration. Un coup peut rompre la concentration (JS CON DD 10 ou moitié des dégâts).'},
+];
 
 function mjEditInitiative(idx){
   const c=_mjCombatants[idx];if(!c)return;
@@ -7923,21 +7963,26 @@ function mjRerollInitiative(idx){
 function mjOpenCondModal(idx){
   const c=_mjCombatants[idx];if(!c)return;
   const current=c.conditions||[];
-  openModal(`<div class="pt">⚠ Conditions — ${esc(c.name)}</div>
-    <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:14px">
-      ${MJ_CONDITIONS.map((cd,i)=>`<span class="cond-pill${current.includes(cd)?' on':''}" onclick="mjToggleCond(${idx},'${cd}',this)">${cd}</span>`).join('')}
+  openWideModal(`<div class="pt">⚠ Conditions — ${esc(c.name)}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px">
+      ${MJ_CONDITIONS.map((cd,mi)=>`<span class="cond-pill${current.includes(cd.n)?' on':''}" title="${esc(cd.d)}" onclick="mjToggleCond(${idx},${mi},this)">${cd.n}</span>`).join('')}
     </div>
+    <div id="condDesc" style="min-height:28px;font-size:11px;color:var(--text3);font-style:italic;padding:4px 2px;margin-bottom:10px">Survolez une condition pour voir sa description.</div>
     <div class="fl mb6">Condition personnalisée</div>
     <div style="display:flex;gap:6px;margin-bottom:14px">
-      <input class="fi" id="condCustom" placeholder="Ex: Maudit, Béni..." style="flex:1">
+      <input class="fi" id="condCustom" placeholder="Ex: Maudit, Béni, Rage..." style="flex:1">
       <button class="btn bsm" onclick="mjAddCustomCond(${idx})">Ajouter</button>
     </div>
     <div style="display:flex;justify-content:flex-end"><button class="btn bac" onclick="closeModal();renderMJContent()">Fermer</button></div>`);
+  // Hover descriptions
+  setTimeout(()=>{document.querySelectorAll('.cond-pill[title]').forEach(el=>{el.addEventListener('mouseenter',()=>{const d=document.getElementById('condDesc');if(d)d.textContent=el.title;});el.addEventListener('mouseleave',()=>{const d=document.getElementById('condDesc');if(d)d.textContent='Survolez une condition pour voir sa description.';});});},0);
 }
 
-function mjToggleCond(idx,cd,el){
+function mjToggleCond(idx,cdOrIdx,el){
   const c=_mjCombatants[idx];if(!c)return;
   if(!c.conditions)c.conditions=[];
+  const cd=typeof cdOrIdx==='number'?(MJ_CONDITIONS[cdOrIdx]?.n||''):cdOrIdx;
+  if(!cd)return;
   const i=c.conditions.indexOf(cd);
   if(i>=0){c.conditions.splice(i,1);el.classList.remove('on');}
   else{c.conditions.push(cd);el.classList.add('on');}
