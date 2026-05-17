@@ -320,8 +320,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--B);font-size:14px;
 #combatTurnBanner{display:none;background:linear-gradient(135deg,#6d28d9,#4338ca);color:white;padding:10px 14px;border-radius:8px;margin-bottom:10px;align-items:center;justify-content:space-between;gap:8px;animation:combatPulse 2s ease-in-out infinite;box-shadow:0 2px 14px rgba(109,40,217,.5)}
 @keyframes combatPulse{0%,100%{box-shadow:0 2px 14px rgba(109,40,217,.5)}50%{box-shadow:0 2px 22px rgba(109,40,217,.85)}}
 /* ===== POPUP COMBAT DÉBUT/FIN ===== */
-#combatPopup{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.68);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);align-items:center;justify-content:center;pointer-events:none}
-#combatPopup.show{display:flex}
+#combatPopup{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.68);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);align-items:center;justify-content:center;pointer-events:none;cursor:pointer}
+#combatPopup.show{display:flex;pointer-events:auto}
 .combat-popup-box{background:linear-gradient(135deg,rgba(26,14,46,.98),rgba(13,10,26,.98));border:2px solid rgba(167,139,250,.5);border-radius:20px;padding:36px 48px;text-align:center;box-shadow:0 0 80px rgba(109,40,217,.7);animation:combatPopupIn .45s cubic-bezier(.34,1.56,.64,1) both}
 .combat-popup-icon{font-size:60px;margin-bottom:14px;animation:combatIconPop .5s .1s cubic-bezier(.34,1.56,.64,1) both}
 .combat-popup-title{font-size:22px;font-weight:700;color:var(--cp);font-family:var(--F);letter-spacing:.06em;margin-bottom:6px}
@@ -485,12 +485,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--B);font-size:14px;
   <div class="tabs" id="tabBar"></div>
   <div id="tabContent"></div>
 </div>
-<!-- POPUP COMBAT DÉBUT/FIN -->
-<div id="combatPopup">
+<!-- POPUP COMBAT DÉBUT/FIN/TOUR -->
+<div id="combatPopup" onclick="this.className=''">
   <div class="combat-popup-box">
     <div class="combat-popup-icon" id="combatPopupIcon">⚔</div>
     <div class="combat-popup-title" id="combatPopupTitle">Le combat commence !</div>
     <div class="combat-popup-sub" id="combatPopupSub">Préparez-vous !</div>
+    <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:12px">Appuyer pour fermer</div>
   </div>
 </div>
 <div id="modal"></div>
@@ -566,6 +567,8 @@ let currentTableName='';
 let currentCampaignName='';
 let currentTableMjId=null;
 let _activeCombatState=null;
+let _combatListenerInitialized=false;
+let _prevCombatTurnUid=null;
 let _expandedCamp=null;
 // ═══ SYNC TEMPS RÉEL ═══
 let _unsubscribes=[];
@@ -680,25 +683,36 @@ function startCombatListener(campaignId,mjUid){
     },err=>console.warn('Combat listener error:',err));
   _unsubscribes.push(unsub);
 }
-function _showCombatPopup(icon,title,sub){
+function _showCombatPopup(icon,title,sub,duration=3400){
   const popup=document.getElementById('combatPopup');if(!popup)return;
   document.getElementById('combatPopupIcon').textContent=icon;
   document.getElementById('combatPopupTitle').textContent=title;
   document.getElementById('combatPopupSub').textContent=sub;
   const box=popup.querySelector('.combat-popup-box');
-  if(box){box.style.animation='none';box.offsetHeight;box.style.animation='';}
+  if(box){box.style.animation='none';void box.offsetHeight;box.style.animation='';}
   popup.className='show';
   clearTimeout(popup._timer);
-  popup._timer=setTimeout(()=>{popup.className='';},3400);
+  popup._timer=setTimeout(()=>{popup.className='';},duration);
 }
 function _updateCombatNotification(combatState){
-  const wasActive=_activeCombatState!==null&&!!(_activeCombatState?.active);
+  const wasActive=!!(_activeCombatState?.active);
   const isNowActive=!!(combatState?.active);
-  const isFirstCall=_activeCombatState===null;
+  const prevTurnUid=_prevCombatTurnUid;
+  const newTurnUid=isNowActive?(combatState?.currentTurnUid||null):null;
+  const isFirstCall=!_combatListenerInitialized;
+  _combatListenerInitialized=true;
+  _prevCombatTurnUid=newTurnUid;
   _activeCombatState=combatState;
   if(!isFirstCall){
-    if(!wasActive&&isNowActive)_showCombatPopup('⚔','Le combat commence !','Préparez-vous !');
-    else if(wasActive&&!isNowActive)_showCombatPopup('🏆','Combat terminé !','Bien joué à tous !');
+    const isMyTurn=isNowActive&&newTurnUid===currentUser?.uid;
+    const wasMyTurn=wasActive&&prevTurnUid===currentUser?.uid;
+    if(isMyTurn&&!wasMyTurn){
+      _showCombatPopup('⚡',"C'est ton tour !",'Prépare tes actions !',2800);
+    } else if(!wasActive&&isNowActive){
+      _showCombatPopup('⚔','Le combat commence !','Préparez-vous !');
+    } else if(wasActive&&!isNowActive){
+      _showCombatPopup('🏆','Combat terminé !','Bien joué à tous !');
+    }
   }
   const banner=document.getElementById('combatTurnBanner');
   if(banner){
@@ -1194,7 +1208,7 @@ async function joinGroupOnly(tableId,campaignId){
   currentTableName=tableData?.name||'';currentTableMjId=tableData?.mjId||null;
   _groupOnlyMode=true;
   stopAllListeners();
-  _groupData=[];_activeCombatState=null;
+  _groupData=[];_activeCombatState=null;_combatListenerInitialized=false;_prevCombatTurnUid=null;
   _groupHudOpen=true;
   const hud=document.getElementById('partyHud');
   const panel=document.getElementById('partyHudPanel');
@@ -1211,7 +1225,7 @@ async function joinGroupOnly(tableId,campaignId){
 }
 function showHub(){
   stopAllListeners();
-  _groupData=[];_activeCombatState=null;_groupHudOpen=false;_groupOnlyMode=false;_hideHudDetail();
+  _groupData=[];_activeCombatState=null;_combatListenerInitialized=false;_prevCombatTurnUid=null;_groupHudOpen=false;_groupOnlyMode=false;_hideHudDetail();
   const hud=document.getElementById('partyHud');if(hud)hud.style.display='none';
   const banner=document.getElementById('combatTurnBanner');if(banner)banner.style.display='none';
   const mjBadge=document.getElementById('hubMJBadge');if(mjBadge)mjBadge.style.display='none';
@@ -3415,7 +3429,7 @@ function tabPerso(p){
       <div class="g3 mt8">
         <div class="sb"><div class="sn">CA</div><div style="font-size:20px;font-weight:700;color:${caBonus?'var(--cp)':'var(--text)'}">${caDisplay}</div></div>
         <div class="sb"><div class="sn">Initiative</div><div class="sm" style="font-size:20px;font-weight:600">${fmt(dexM)}</div></div>
-        <div class="sb"><div class="sn">Vitesse (m)</div><div style="font-size:18px;font-weight:700">${p.speed}</div></div>
+        <div class="sb"><div class="sn">Vitesse (m)</div><input type="number" min="0" max="99" value="${p.speed||9}" oninput="P().speed=parseInt(this.value)||9;saveAll()" style="width:100%;text-align:center;font-size:18px;font-weight:700;background:transparent;border:none;color:var(--text);outline:none;padding:2px 0"></div>
       </div>
       <!-- Jets de mort -->
       <div style="margin-top:10px"><div class="fl mb6">Jets de mort</div>
@@ -4233,12 +4247,39 @@ function tabSorts(p){
     </div>`;
   }
 
+  // Emplacements de sorts dans l'onglet Sorts
+  const slots=calcSpellSlots(p);const slotsUsed=p.spellSlotsUsed||[];
+  const warlockSlots=getWarlockSlots(p);
+  const slotHtml=(()=>{
+    if(warlockSlots){
+      return`<div style="margin-bottom:10px;padding:10px;background:var(--surface2);border-radius:8px">
+        <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Magie de pacte — Niv.${warlockSlots[1]}</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="display:flex;gap:4px">${Array.from({length:warlockSlots[0]},(_,si)=>`<span class="slot-bubble${si<(slotsUsed[9]||0)?' used':''}" onclick="toggleWarlockSlot(${si},${warlockSlots[0]})" style="width:16px;height:16px"></span>`).join('')}</div>
+          <span style="font-size:11px;color:var(--text3)">${warlockSlots[0]-(slotsUsed[9]||0)}/${warlockSlots[0]}</span>
+          <button class="btn bsm" onclick="P().spellSlotsUsed=P().spellSlotsUsed||[];P().spellSlotsUsed[9]=0;render()">↺</button>
+        </div>
+      </div>`;
+    }
+    if(!slots)return'';
+    const rows=slots.map((total,ni)=>total?`<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+      <span style="font-size:11px;color:var(--text2);width:46px">Niv. ${ni+1}</span>
+      <div>${Array.from({length:total},(_,si)=>`<span class="slot-bubble${si<(slotsUsed[ni]||0)?' used':''}" onclick="toggleSlot(${ni},${si},${total})"></span>`).join('')}</div>
+      <span style="font-size:10px;color:var(--text3)">${slotsUsed[ni]||0}/${total}</span>
+    </div>`:''). join('');
+    return`<div style="margin-bottom:10px;padding:10px;background:var(--surface2);border-radius:8px">
+      <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Emplacements de sorts</div>
+      ${rows}
+      <button class="btn bsm" style="margin-top:4px" onclick="upd('spellSlotsUsed',[]);render()">↺ Récupérer tous (repos long)</button>
+    </div>`;
+  })();
   return`<div>
     ${subBar}
     <div class="panel">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
         <div class="pt" style="margin-bottom:0">Mes sorts (${knownCount})</div>
       </div>
+      ${slotHtml}
       ${prepInfo}
       ${renderSpellList(p, false)}
     </div>
@@ -7385,9 +7426,20 @@ function mjFillMonster(idx){
     if(!dmgMatch)return;
     _mjNewMonsterAttacks.push({name:act.n||parts[0]||'Attaque',atkBonus:bonus,dmgDice:dmgMatch[1],dmgBonus:parseInt(dmgMatch[2])||0,dmgType:'',range:''});
   });
-  mjRenderAttacksList();
+  // Auto-populate traits from monster JSON fields
+  _mjNewMonsterTraits=[];
+  const _feetToM=s=>s.replace(/(\d+) ft\./g,(_,n)=>Math.round(parseInt(n)*0.3)+'m');
+  if(m.res&&m.res.trim())_mjNewMonsterTraits.push({name:'Résistances',desc:m.res});
+  if(m.imm&&m.imm.trim())_mjNewMonsterTraits.push({name:'Immunités aux dégâts',desc:m.imm});
+  if(m.ci&&m.ci.trim())_mjNewMonsterTraits.push({name:'Immunités aux conditions',desc:m.ci});
+  if(m.sen&&m.sen.trim())_mjNewMonsterTraits.push({name:'Sens',desc:_feetToM(m.sen)});
+  if(m.sv&&m.sv.trim())_mjNewMonsterTraits.push({name:'Jets de sauvegarde',desc:m.sv});
+  if(m.sk&&m.sk.trim())_mjNewMonsterTraits.push({name:'Compétences',desc:m.sk});
+  if(m.spd&&m.spd.trim()&&m.spd!=='walk 30 ft.')_mjNewMonsterTraits.push({name:'Vitesse',desc:_feetToM(m.spd)});
+  mjRenderAttacksList();mjRenderTraitsList();
   const res=document.getElementById('monResults');
-  if(res)res.innerHTML='<div style="font-size:11px;color:var(--cp);text-align:center;padding:4px">✅ Formulaire rempli avec "'+esc(m.n)+(_mjNewMonsterAttacks.length?'" · '+_mjNewMonsterAttacks.length+' attaque(s) importée(s)':'"')+'</div>';
+  const info=(_mjNewMonsterAttacks.length?_mjNewMonsterAttacks.length+' att.':'')+(_mjNewMonsterTraits.length?(_mjNewMonsterAttacks.length?' · ':'')+_mjNewMonsterTraits.length+' trait(s)':'');
+  if(res)res.innerHTML='<div style="font-size:11px;color:var(--cp);text-align:center;padding:4px">✅ "'+esc(m.n)+'" importé'+(info?' ('+info+')':'')+'</div>';
 }
 
 function mjConfirmAddMonster(){
