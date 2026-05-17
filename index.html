@@ -622,9 +622,13 @@ function startMJPlayersListener(campaignId){
               const newHp=data.characterData?.hp;
               const newHpMax=data.characterData?.hpMax;
               const combIdx=_mjCombatants.findIndex(cb=>cb.uid===uid&&cb.isPlayer);
-              if(combIdx>=0&&newHp!==undefined){
-                _mjCombatants[combIdx].hp=newHp;
-                if(newHpMax!==undefined)_mjCombatants[combIdx].hpMax=newHpMax;
+              if(combIdx>=0){
+                if(newHp!==undefined){
+                  _mjCombatants[combIdx].hp=newHp;
+                  if(newHpMax!==undefined)_mjCombatants[combIdx].hpMax=newHpMax;
+                }
+                const newInit=data.characterData?.pendingInitiative;
+                if(newInit!==undefined)_mjCombatants[combIdx].initiative=newInit;
               }
               changed=true;
             }
@@ -707,6 +711,29 @@ function _showCombatPopup(icon,title,sub,duration=3400){
   clearTimeout(popup._timer);
   popup._timer=setTimeout(()=>{popup.className='';},duration);
 }
+function _showInitiativePopup(){
+  const p=P();
+  if(!p){_showCombatPopup('⚔','Le combat commence !','Préparez-vous !');return;}
+  const popup=document.getElementById('combatPopup');if(!popup)return;
+  document.getElementById('combatPopupIcon').textContent='⚔';
+  document.getElementById('combatPopupTitle').textContent='Le combat commence !';
+  document.getElementById('combatPopupSub').innerHTML='<button onclick="_rollMyInitiative();event.stopPropagation()" style="margin-top:10px;padding:12px 28px;background:var(--cp);color:#000;border:none;border-radius:10px;font-size:18px;font-weight:700;cursor:pointer;font-family:var(--F)">🎲 Lancer mon initiative</button>';
+  const box=popup.querySelector('.combat-popup-box');
+  if(box){box.style.animation='none';void box.offsetHeight;box.style.animation='';}
+  popup.className='show';
+}
+async function _rollMyInitiative(){
+  const p=P();if(!p||!currentUser||!currentCampaignId)return;
+  const dexVal=(p.abilities&&p.abilities[1]!==undefined)?p.abilities[1]:10;
+  const dexMod=Math.floor((dexVal-10)/2);
+  const d20=Math.ceil(Math.random()*20);
+  const total=d20+dexMod;
+  const sub=document.getElementById('combatPopupSub');
+  if(sub)sub.innerHTML=`<div style="font-size:52px;font-weight:800;color:var(--cp);font-family:var(--F);line-height:1">${total}</div><div style="font-size:13px;color:var(--text3);margin-top:4px">d20(${d20}) ${dexMod>=0?'+':''}${dexMod} DEX</div>`;
+  try{await fbDb.collection('characters').doc(currentUser.uid+'_'+currentCampaignId).update({'characterData.pendingInitiative':total});}catch(e){}
+  const popup=document.getElementById('combatPopup');
+  if(popup){clearTimeout(popup._timer);popup._timer=setTimeout(()=>{popup.className='';},3000);}
+}
 function _updateCombatNotification(combatState){
   const wasActive=!!(_activeCombatState?.active);
   const isNowActive=!!(combatState?.active);
@@ -722,7 +749,7 @@ function _updateCombatNotification(combatState){
     if(isMyTurn&&!wasMyTurn){
       _showCombatPopup('⚡',"C'est ton tour !",'Prépare tes actions !',2800);
     } else if(!wasActive&&isNowActive){
-      _showCombatPopup('⚔','Le combat commence !','Préparez-vous !');
+      _showInitiativePopup();
     } else if(wasActive&&!isNowActive){
       _showCombatPopup('🏆','Combat terminé !','Bien joué à tous !');
     }
@@ -741,8 +768,16 @@ async function playerEndTurn(){
     await fbDb.collection('characters').doc(currentUser.uid+'_'+currentCampaignId).update({turnDone:true});
     const banner=document.getElementById('combatTurnBanner');
     if(banner)banner.style.display='none';
-    showToast('⏩ Fin de tour signalée au MJ.');
+    showToast('⏩ Fin de tour signalée. <button onclick="_undoEndTurn()" style="margin-left:8px;padding:3px 10px;border:1px solid var(--cp);border-radius:6px;background:transparent;color:var(--cp);cursor:pointer;font-size:12px">Annuler</button>',6000);
   }catch(e){showToast('❌ Erreur : '+e.message);}
+}
+async function _undoEndTurn(){
+  if(!currentUser||!currentCampaignId)return;
+  try{
+    await fbDb.collection('characters').doc(currentUser.uid+'_'+currentCampaignId).update({turnDone:false});
+    const t=document.getElementById('toast');if(t)t.style.display='none';
+    showToast('↩ Tour annulé.');
+  }catch(e){}
 }
 function _togglePartyHud(){
   _groupHudOpen=!_groupHudOpen;
@@ -5962,7 +5997,7 @@ document.addEventListener('click',e=>{
   if(document.getElementById('modal')?.className==='open'&&e.target===document.getElementById('modal'))closeModal();
   ['classeDrop','bgDropPerso','bgDropCre'].forEach(id=>{const d=document.getElementById(id);if(d&&!d.contains(e.target))d.style.display='none';});
 });
-function showToast(html){let t=document.getElementById('toast');if(!t){t=document.createElement('div');t.id='toast';t.style.cssText='position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--surface2);border:1px solid var(--cp);border-radius:8px;padding:10px 18px;font-size:13px;color:var(--text);z-index:9999;max-width:400px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.5)';document.body.appendChild(t);}t.innerHTML=html;t.style.display='block';clearTimeout(t._timer);t._timer=setTimeout(()=>{t.style.display='none';},3000);}
+function showToast(html,duration=3000){let t=document.getElementById('toast');if(!t){t=document.createElement('div');t.id='toast';t.style.cssText='position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--surface2);border:1px solid var(--cp);border-radius:8px;padding:10px 18px;font-size:13px;color:var(--text);z-index:9999;max-width:400px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.5)';document.body.appendChild(t);}t.innerHTML=html;t.style.display='block';clearTimeout(t._timer);t._timer=setTimeout(()=>{t.style.display='none';},duration);}
 
 // ═══ DÉCLARATIONS ANTICIPÉES MJ (évite ReferenceError) ═══
 function openMJCreateItem(){mjModal('item');}
@@ -7229,13 +7264,14 @@ function mjTabCombat(){
     const isDead=c.hp<=0;
     const hpPct=c.hpMax?Math.max(0,Math.min(100,c.hp/c.hpMax*100)):0;
     const hpColor=hpPct>50?'#4caf50':hpPct>25?'#ff9800':'#e53935';
-    const condHtml=c.conditions&&c.conditions.length?`<div style="margin-top:4px">${c.conditions.map((cd,ci)=>`<span class="status-badge malus" style="cursor:pointer" onclick="mjRemoveCond(${realIdx},${ci})">⚠ ${esc(cd)} ✕</span>`).join('')}</div>`:'';
+    const condHtml=c.conditions&&c.conditions.length?`<div style="margin-top:3px">${c.conditions.map((cd,ci)=>`<span class="status-badge malus" style="cursor:pointer" onclick="mjRemoveCond(${realIdx},${ci})">⚠ ${esc(cd)} ✕</span>`).join('')}</div>`:'';
+    const speedHtml=c.speed?`<div style="font-size:10px;color:var(--text3);margin-top:1px">🚶 ${esc(c.speed)}</div>`:'';
     return`<div class="combat-row${isActive?' active-turn':''}${isDead?' dead':''}">
       ${_mjCombatStarted?`<div style="width:34px;text-align:center;cursor:pointer" title="Cliquer pour modifier" onclick="mjEditInitiative(${realIdx})"><span style="font-family:var(--F);font-size:14px;color:var(--cp);border-bottom:1px dashed rgba(200,168,75,.4)">${c.initiative||0}</span></div>`:''}
       <div style="width:26px;text-align:center;font-size:18px">${c.isPlayer?(c.avatar||'⚔'):'👾'}</div>
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:600;color:${isActive?'var(--cp)':'var(--text)'}">${esc(c.name)}${isActive?' ◀':''}</div>
-        ${condHtml}
+        ${speedHtml}${condHtml}
       </div>
       <div style="display:flex;align-items:center;gap:4px">
         <div style="text-align:center;min-width:60px">
@@ -7311,7 +7347,7 @@ function mjAddPlayerToCombat(idx){
   if(_mjCombatants.find(c=>c.uid===pp.uid)){showToast('Déjà dans le combat.');return;}
   const mods=(p.abilities||[0,0,0,0,0,0]).map(v=>Math.floor((v-10)/2));
   const {attacks,spells,traits}=_extractPlayerCombatData(p);
-  _mjCombatants.push({id:'player_'+pp.uid,name:p.charName||pp.playerName||'Joueur',hp:p.hp||p.hpMax||1,hpMax:p.hpMax||1,ac:p.ac||10,initiative:0,dexMod:mods[1]||0,conditions:[],isPlayer:true,avatar:pp.avatar||'⚔',uid:pp.uid,abilities:p.abilities||[10,10,10,10,10,10],attacks,spells,traits});
+  _mjCombatants.push({id:'player_'+pp.uid,name:p.charName||pp.playerName||'Joueur',hp:p.hp||p.hpMax||1,hpMax:p.hpMax||1,ac:p.ac||10,speed:p.speed||'',initiative:0,dexMod:mods[1]||0,conditions:[],isPlayer:true,avatar:pp.avatar||'⚔',uid:pp.uid,abilities:p.abilities||[10,10,10,10,10,10],attacks,spells,traits});
   _mjCombatLog.push(`⚔ ${esc(p.charName||pp.playerName)} ajouté au combat.`);
   renderMJContent();
 }
@@ -7701,13 +7737,34 @@ function mjNextTurn(){
 }
 
 function mjEndCombat(){
-  if(!confirm('Terminer le combat ? Les combattants restent dans la liste.'))return;
+  const survivors=_mjCombatants.filter(c=>c.hp>0);
+  const fallen=_mjCombatants.filter(c=>c.hp<=0);
+  const rounds=_mjRound;
+  openWideModal(`<div class="pt">🏁 Fin du combat</div>
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="font-size:36px;margin-bottom:6px">🏆</div>
+      <div style="font-size:14px;color:var(--text2)">${rounds} round${rounds>1?'s':''} de combat</div>
+    </div>
+    ${survivors.length?`<div style="margin-bottom:12px">
+      <div class="fl mb6" style="color:#4caf50">✅ Debout (${survivors.length})</div>
+      ${survivors.map(c=>`<div style="font-size:12px;padding:5px 10px;background:rgba(76,175,80,.08);border-radius:6px;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center"><span>${c.isPlayer?(c.avatar||'⚔')+' ':' 👾 '}${esc(c.name)}</span><span style="color:#4caf50;font-weight:600">${c.hp}/${c.hpMax} PV</span></div>`).join('')}
+    </div>`:''}
+    ${fallen.length?`<div style="margin-bottom:16px">
+      <div class="fl mb6" style="color:#e53935">💀 Hors combat (${fallen.length})</div>
+      ${fallen.map(c=>`<div style="font-size:12px;padding:5px 10px;background:rgba(229,57,53,.08);border-radius:6px;margin-bottom:4px">${c.isPlayer?(c.avatar||'⚔')+' ':' 👾 '}${esc(c.name)}</div>`).join('')}
+    </div>`:''}
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
+      <button class="btn bac" style="flex:2" onclick="_mjDoEndCombat()">🏁 Terminer le combat</button>
+    </div>`);
+}
+function _mjDoEndCombat(){
   _mjCombatStarted=false;_mjCurrentTurn=0;_mjRound=1;
   _mjCombatLog.push('🏁 Combat terminé.');
   if(currentUser&&currentCampaignId){
     fbDb.collection('characters').doc(currentUser.uid+'_'+currentCampaignId+'_mj').update({combatState:{active:false}}).catch(()=>{});
   }
-  renderMJContent();showToast('🏁 Combat terminé !');
+  closeModal();renderMJContent();showToast('🏁 Combat terminé !');
 }
 function mjResetCombat(){
   if(!confirm('Réinitialiser le combat ?'))return;
@@ -7845,9 +7902,26 @@ function mjRollSpell(cIdx,sIdx){
     dmgHtml=`<div style="font-size:13px;margin-top:6px">Dégâts : <span style="color:var(--text2)">${rolls.join('+')}</span> = <b style="color:var(--cp);font-size:16px">${totalDmg}</b> <span style="font-size:11px;color:var(--text3)">${esc(s.dmgType||'')}</span></div>`;
     logDmg=` / ${totalDmg} dégâts ${s.dmgType||''}`;
   }
+  const others=_mjCombatants.filter((_,i)=>i!==cIdx);
+  const saveTargetsHtml=s.saveStat&&s.saveDC&&others.length?`<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"><div style="font-size:11px;color:var(--text3);margin-bottom:5px">🎯 Lancer le JS ${esc(s.saveStat)} DD${s.saveDC} pour :</div><div style="display:flex;flex-wrap:wrap;gap:4px">${others.map(oc=>`<button class="btn bsm" style="font-size:10px" onclick="mjRollSaveFor(${_mjCombatants.indexOf(oc)},${cIdx},${sIdx})">${esc(oc.name)}</button>`).join('')}</div></div>`:'';
   const el=document.getElementById('mjDiceResult');
-  if(el){el.style.display='block';el.innerHTML=`<div style="font-size:12px;color:var(--text3);margin-bottom:4px">${esc(c.name)} — ${esc(s.name)}</div>${s.saveStat&&s.saveDC?`<div style="font-size:14px;margin-bottom:4px">JS <b>${esc(s.saveStat)}</b> DD <span style="font-size:22px;color:var(--cp);font-weight:800">${s.saveDC}</span></div>`:''}${dmgHtml||'<div style="color:var(--text3);font-size:12px">Sort d\'effet — pas de jets de dégâts</div>'}`;}
+  if(el){el.style.display='block';el.innerHTML=`<div style="font-size:12px;color:var(--text3);margin-bottom:4px">${esc(c.name)} — ${esc(s.name)}</div>${s.saveStat&&s.saveDC?`<div style="font-size:14px;margin-bottom:4px">JS <b>${esc(s.saveStat)}</b> DD <span style="font-size:22px;color:var(--cp);font-weight:800">${s.saveDC}</span></div>`:''}${dmgHtml||'<div style="color:var(--text3);font-size:12px">Sort d\'effet — pas de jets de dégâts</div>'}${saveTargetsHtml}`;}
   _mjCombatLog.push(`✦ ${esc(c.name)} — ${esc(s.name)}${s.saveDC?` DD${s.saveDC} ${s.saveStat}`:''}${logDmg}`);
+}
+const _SAVE_IDX={FOR:0,STR:0,DEX:1,CON:2,INT:3,SAG:4,WIS:4,CHA:5};
+function mjRollSaveFor(targetIdx,casterIdx,spellIdx){
+  const target=_mjCombatants[targetIdx];if(!target)return;
+  const caster=_mjCombatants[casterIdx];if(!caster)return;
+  const spell=(caster.spells||[])[spellIdx];if(!spell)return;
+  const statIdx=_SAVE_IDX[(spell.saveStat||'').toUpperCase()]??-1;
+  const abilityVal=(target.abilities&&statIdx>=0&&target.abilities[statIdx]!==undefined)?target.abilities[statIdx]:10;
+  const mod=Math.floor((abilityVal-10)/2);
+  const d20=Math.ceil(Math.random()*20);
+  const total=d20+mod;
+  const success=total>=spell.saveDC;
+  const el=document.getElementById('mjDiceResult');
+  if(el){el.innerHTML+=`<div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border);font-size:12px"><b>${esc(target.name)}</b> JS ${esc(spell.saveStat||'')} : d20(${d20})${mod>=0?'+':''}${mod} = <b style="color:${success?'#4caf50':'#e53935'};font-size:15px">${total}</b> ${success?'✅ Réussite':'❌ Échec'}</div>`;}
+  _mjCombatLog.push(`🎯 JS ${esc(spell.saveStat||'')} DD${spell.saveDC} — ${esc(target.name)} : ${total} (${success?'Réussite':'Échec'})`);
 }
 
 function mjOpenEditMonster(idx){
@@ -7952,6 +8026,7 @@ function mjCombatRollFree(idx,d){
 
 function mjRemoveCombatant(idx){
   const name=_mjCombatants[idx]?.name||'?';
+  if(!confirm(`Retirer "${name}" du combat ?`))return;
   _mjCombatants.splice(idx,1);
   _mjCombatLog.push(`✕ ${esc(name)} retiré du combat.`);
   if(_mjCurrentTurn>=_mjCombatants.length&&_mjCurrentTurn>0)_mjCurrentTurn--;
@@ -8153,9 +8228,16 @@ function mjNPCDetail(n,i){
     <div style="display:flex;gap:6px;flex-wrap:wrap">
       <button class="btn bsm bprimary" onclick="mjAddNPCToCombat(${i})">⚡ Ajouter au combat</button>
       <button class="btn bsm" onclick="mjEditNPC(${i})">✏ Modifier</button>
+      <button class="btn bsm" onclick="mjDuplicateNPC(${i})">📋 Dupliquer</button>
       <button class="btn bsm" style="color:#e53935;border-color:#e53935" onclick="mjDeleteNPC(${i})">🗑 Supprimer</button>
     </div>
   </div>`;
+}
+async function mjDuplicateNPC(i){
+  const n=_mjNPCs[i];if(!n)return;
+  const clone={...n,name:(n.name||'PNJ')+' (copie)',attacks:JSON.parse(JSON.stringify(n.attacks||[])),spells:JSON.parse(JSON.stringify(n.spells||[])),traits:JSON.parse(JSON.stringify(n.traits||[]))};
+  _mjNPCs.push(clone);_mjSelectedNPC=_mjNPCs.length-1;
+  await saveMJData();showToast('📋 PNJ dupliqué !');renderMJContent();
 }
 
 function mjNewNPC(){
@@ -8299,7 +8381,7 @@ function mjAddNPCToCombat(i){
   const traits=Array.isArray(n.traits)?[...n.traits]:[];
   if(typeof n.attacks==='string'&&n.attacks)traits.unshift({name:'Attaques',desc:n.attacks});
   if(n.notes)traits.push({name:'Notes',desc:n.notes});
-  _mjCombatants.push({id:'npc_'+i+'_'+Date.now(),name:n.name||'PNJ',hp:n.hp||10,hpMax:n.hp||10,ac:n.ac||13,initiative:0,dexMod,conditions:[],isPlayer:false,abilities:[...abilities],attacks,spells,traits});
+  _mjCombatants.push({id:'npc_'+i+'_'+Date.now(),name:n.name||'PNJ',hp:n.hp||10,hpMax:n.hp||10,ac:n.ac||13,speed:n.speed||'',initiative:0,dexMod,conditions:[],isPlayer:false,abilities:[...abilities],attacks,spells,traits});
   _mjCombatLog.push(`🐉 "${esc(n.name||'PNJ')}" ajouté au combat.`);
   setMJTab('combat');showToast('✅ Ajouté au combat !');
 }
