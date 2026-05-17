@@ -319,6 +319,15 @@ body{background:var(--bg);color:var(--text);font-family:var(--B);font-size:14px;
 /* ===== BANNIÈRE TOUR DE COMBAT ===== */
 #combatTurnBanner{display:none;background:linear-gradient(135deg,#6d28d9,#4338ca);color:white;padding:10px 14px;border-radius:8px;margin-bottom:10px;align-items:center;justify-content:space-between;gap:8px;animation:combatPulse 2s ease-in-out infinite;box-shadow:0 2px 14px rgba(109,40,217,.5)}
 @keyframes combatPulse{0%,100%{box-shadow:0 2px 14px rgba(109,40,217,.5)}50%{box-shadow:0 2px 22px rgba(109,40,217,.85)}}
+/* ===== POPUP COMBAT DÉBUT/FIN ===== */
+#combatPopup{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.68);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);align-items:center;justify-content:center;pointer-events:none}
+#combatPopup.show{display:flex}
+.combat-popup-box{background:linear-gradient(135deg,rgba(26,14,46,.98),rgba(13,10,26,.98));border:2px solid rgba(167,139,250,.5);border-radius:20px;padding:36px 48px;text-align:center;box-shadow:0 0 80px rgba(109,40,217,.7);animation:combatPopupIn .45s cubic-bezier(.34,1.56,.64,1) both}
+.combat-popup-icon{font-size:60px;margin-bottom:14px;animation:combatIconPop .5s .1s cubic-bezier(.34,1.56,.64,1) both}
+.combat-popup-title{font-size:22px;font-weight:700;color:var(--cp);font-family:var(--F);letter-spacing:.06em;margin-bottom:6px}
+.combat-popup-sub{font-size:13px;color:var(--text3)}
+@keyframes combatPopupIn{from{opacity:0;transform:scale(.7) translateY(24px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes combatIconPop{from{transform:scale(0) rotate(-20deg)}to{transform:scale(1) rotate(0)}}
 /* ===== RESPONSIVE MOBILE ===== */
 @media(max-width:640px){
   /* Espacement global */
@@ -475,6 +484,14 @@ body{background:var(--bg);color:var(--text);font-family:var(--B);font-size:14px;
   <div class="pbar" id="playerBar"></div>
   <div class="tabs" id="tabBar"></div>
   <div id="tabContent"></div>
+</div>
+<!-- POPUP COMBAT DÉBUT/FIN -->
+<div id="combatPopup">
+  <div class="combat-popup-box">
+    <div class="combat-popup-icon" id="combatPopupIcon">⚔</div>
+    <div class="combat-popup-title" id="combatPopupTitle">Le combat commence !</div>
+    <div class="combat-popup-sub" id="combatPopupSub">Préparez-vous !</div>
+  </div>
 </div>
 <div id="modal"></div>
 <script>
@@ -663,8 +680,26 @@ function startCombatListener(campaignId,mjUid){
     },err=>console.warn('Combat listener error:',err));
   _unsubscribes.push(unsub);
 }
+function _showCombatPopup(icon,title,sub){
+  const popup=document.getElementById('combatPopup');if(!popup)return;
+  document.getElementById('combatPopupIcon').textContent=icon;
+  document.getElementById('combatPopupTitle').textContent=title;
+  document.getElementById('combatPopupSub').textContent=sub;
+  const box=popup.querySelector('.combat-popup-box');
+  if(box){box.style.animation='none';box.offsetHeight;box.style.animation='';}
+  popup.className='show';
+  clearTimeout(popup._timer);
+  popup._timer=setTimeout(()=>{popup.className='';},3400);
+}
 function _updateCombatNotification(combatState){
+  const wasActive=_activeCombatState!==null&&!!(_activeCombatState?.active);
+  const isNowActive=!!(combatState?.active);
+  const isFirstCall=_activeCombatState===null;
   _activeCombatState=combatState;
+  if(!isFirstCall){
+    if(!wasActive&&isNowActive)_showCombatPopup('⚔','Le combat commence !','Préparez-vous !');
+    else if(wasActive&&!isNowActive)_showCombatPopup('🏆','Combat terminé !','Bien joué à tous !');
+  }
   const banner=document.getElementById('combatTurnBanner');
   if(banner){
     const isMyTurn=combatState&&combatState.active&&combatState.currentTurnUid===currentUser?.uid;
@@ -7108,7 +7143,7 @@ function mjTabCombat(){
     const hpColor=hpPct>50?'#4caf50':hpPct>25?'#ff9800':'#e53935';
     const condHtml=c.conditions&&c.conditions.length?`<div style="margin-top:4px">${c.conditions.map((cd,ci)=>`<span class="status-badge malus" style="cursor:pointer" onclick="mjRemoveCond(${realIdx},${ci})">⚠ ${esc(cd)} ✕</span>`).join('')}</div>`:'';
     return`<div class="combat-row${isActive?' active-turn':''}${isDead?' dead':''}">
-      ${_mjCombatStarted?`<div style="width:30px;text-align:center;font-family:var(--F);font-size:14px;color:var(--cp)">${c.initiative||0}</div>`:''}
+      ${_mjCombatStarted?`<div style="width:34px;text-align:center;cursor:pointer" title="Cliquer pour modifier" onclick="mjEditInitiative(${realIdx})"><span style="font-family:var(--F);font-size:14px;color:var(--cp);border-bottom:1px dashed rgba(200,168,75,.4)">${c.initiative||0}</span></div>`:''}
       <div style="width:26px;text-align:center;font-size:18px">${c.isPlayer?(c.avatar||'⚔'):'👾'}</div>
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:600;color:${isActive?'var(--cp)':'var(--text)'}">${esc(c.name)}${isActive?' ◀':''}</div>
@@ -7140,6 +7175,7 @@ function mjTabCombat(){
       <button class="btn bsm bprimary" onclick="mjOpenAddMonster()">🐉 Ajouter monstre</button>
       ${!_mjCombatStarted&&_mjCombatants.length?`<button class="btn bsm" style="border-color:#ffd54f;color:#ffd54f" onclick="mjStartCombat()">🎲 Lancer l'initiative</button>`:''}
       ${_mjCombatStarted?`<button class="btn bsm" style="border-color:var(--cp);color:var(--cp)" onclick="mjNextTurn()">▶ Tour suivant</button>
+        <button class="btn bsm" style="border-color:#4caf50;color:#4caf50" onclick="mjEndCombat()">🏁 Fin du combat</button>
         <div style="display:flex;align-items:center;gap:6px;padding:4px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:12px">
           🔄 Round <strong style="color:var(--cp)">${_mjRound}</strong>
           ${currentC?` — Tour de <strong style="color:var(--cp)">${esc(currentC.name)}</strong>`:''}
@@ -7204,9 +7240,11 @@ function mjFillFromNPC(idx){
   if(nameEl)nameEl.value=n.name||'';
   if(hpEl)hpEl.value=n.hp||10;
   if(acEl)acEl.value=n.ac||13;
-  _mjNewMonsterAttacks=[];_mjNewMonsterSpells=[];_mjNewMonsterTraits=[];
-  if(n.attacks)_mjNewMonsterTraits.push({name:'Attaques',desc:n.attacks});
-  if(n.notes)_mjNewMonsterTraits.push({name:'Notes',desc:n.notes});
+  _mjNewMonsterAttacks=Array.isArray(n.attacks)?n.attacks.map(a=>({...a})):[];
+  _mjNewMonsterSpells=Array.isArray(n.spells)?n.spells.map(s=>({...s})):[];
+  _mjNewMonsterTraits=Array.isArray(n.traits)?n.traits.map(t=>({...t})):[];
+  if(typeof n.attacks==='string'&&n.attacks)_mjNewMonsterTraits.unshift({name:'Attaques',desc:n.attacks});
+  if(n.notes&&!Array.isArray(n.traits))_mjNewMonsterTraits.push({name:'Notes',desc:n.notes});
   mjRenderAttacksList();mjRenderSpellsList();mjRenderTraitsList();
   showToast('✓ '+esc(n.name)+' chargé — ajustez si besoin.');
 }
@@ -7501,6 +7539,15 @@ function mjNextTurn(){
   renderMJContent();
 }
 
+function mjEndCombat(){
+  if(!confirm('Terminer le combat ? Les combattants restent dans la liste.'))return;
+  _mjCombatStarted=false;_mjCurrentTurn=0;_mjRound=1;
+  _mjCombatLog.push('🏁 Combat terminé.');
+  if(currentUser&&currentCampaignId){
+    fbDb.collection('characters').doc(currentUser.uid+'_'+currentCampaignId+'_mj').update({combatState:{active:false}}).catch(()=>{});
+  }
+  renderMJContent();showToast('🏁 Combat terminé !');
+}
 function mjResetCombat(){
   if(!confirm('Réinitialiser le combat ?'))return;
   _mjCombatants=[];_mjCombatStarted=false;_mjCurrentTurn=0;_mjRound=1;_mjCombatLog=[];
@@ -7746,10 +7793,21 @@ function mjRemoveCombatant(idx){
   renderMJContent();
 }
 
+let _mjHpSyncTimers={};
+function _mjSyncPlayerHp(c){
+  if(!c.isPlayer||!c.uid||!currentCampaignId)return;
+  clearTimeout(_mjHpSyncTimers[c.uid]);
+  _mjHpSyncTimers[c.uid]=setTimeout(async()=>{
+    try{await fbDb.collection('characters').doc(c.uid+'_'+currentCampaignId).update({hp:c.hp,hpMax:c.hpMax});}
+    catch(e){}
+    delete _mjHpSyncTimers[c.uid];
+  },800);
+}
 function mjHpChange(idx,dir){
   const c=_mjCombatants[idx];if(!c)return;
   c.hp=Math.max(0,Math.min(c.hpMax,c.hp+dir));
   if(c.hp===0)_mjCombatLog.push(`💀 ${esc(c.name)} tombe à 0 PV !`);
+  _mjSyncPlayerHp(c);
   renderMJContent();
 }
 
@@ -7778,10 +7836,37 @@ function mjApplyHpModal(idx){
   if(heal) _mjCombatLog.push(`💚 ${esc(c.name)} soigné de ${heal} PV (→ ${c.hp}/${c.hpMax})`);
   if(dmg) _mjCombatLog.push(`🗡 ${esc(c.name)} subit ${dmg} dégâts (→ ${c.hp}/${c.hpMax})`);
   if(c.hp===0)_mjCombatLog.push(`💀 ${esc(c.name)} tombe à 0 PV !`);
+  _mjSyncPlayerHp(c);
   closeModal();renderMJContent();
 }
 
 const MJ_CONDITIONS=['Charmé','Effrayé','Étourdi','Aveuglé','Sourd','Entravé','Paralysé','Empoisonné','Neutralisé','Épuisé','Invisible','Invisible','Renversé','Saisi'];
+
+function mjEditInitiative(idx){
+  const c=_mjCombatants[idx];if(!c)return;
+  openModal(`<div class="pt">🎲 Initiative — ${esc(c.name)}</div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <div style="flex:1"><div class="fl mb6">Valeur (dé + mod)</div><input class="fi" id="initInput" type="number" value="${c.initiative||0}" style="font-size:20px;text-align:center"></div>
+      <button class="btn bsm" style="margin-top:18px;border-color:#ffd54f;color:#ffd54f" onclick="mjRerollInitiative(${idx})">🎲 Relancer</button>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
+      <button class="btn bac" style="flex:2" onclick="_mjConfirmInitiative(${idx})">✓ Confirmer</button>
+    </div>`);
+  setTimeout(()=>{const el=document.getElementById('initInput');if(el){el.focus();el.select();}},50);
+}
+function _mjConfirmInitiative(idx){
+  const c=_mjCombatants[idx];if(!c)return;
+  const val=parseInt(document.getElementById('initInput')?.value)||0;
+  c.initiative=val;
+  closeModal();renderMJContent();
+}
+function mjRerollInitiative(idx){
+  const c=_mjCombatants[idx];if(!c)return;
+  c.initiative=Math.ceil(Math.random()*20)+(c.dexMod||0);
+  _mjCombatLog.push(`🎲 ${esc(c.name)} relance l'initiative : ${c.initiative}`);
+  closeModal();renderMJContent();
+}
 
 function mjOpenCondModal(idx){
   const c=_mjCombatants[idx];if(!c)return;
@@ -7856,15 +7941,27 @@ function mjTabPNJ(){
 function mjSelectNPC(i){_mjSelectedNPC=i;renderMJContent();}
 
 function mjNPCDetail(n,i){
+  const ab=n.abilities||[10,10,10,10,10,10];
+  const statLabels=['FOR','DEX','CON','INT','SAG','CHA'];
+  const abHtml=`<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-bottom:10px">
+    ${statLabels.map((l,idx)=>{const val=ab[idx]||10;const mod=Math.floor((val-10)/2);return`<div style="background:var(--surface2);border-radius:6px;padding:5px;text-align:center"><div style="font-size:9px;color:var(--text3);letter-spacing:.05em">${l}</div><div style="font-size:14px;font-weight:700">${val}</div><div style="font-size:10px;color:var(--cp)">${mod>=0?'+'+mod:mod}</div></div>`;}).join('')}
+  </div>`;
+  const attacks=Array.isArray(n.attacks)?n.attacks:[];
+  const spells=Array.isArray(n.spells)?n.spells:[];
+  const traits=Array.isArray(n.traits)?n.traits:[];
+  const attHtml=attacks.length?`<div style="margin-bottom:8px"><div class="fl mb6">⚔ Attaques</div>${attacks.map(a=>`<div style="font-size:12px;padding:5px 8px;background:var(--surface2);border-radius:6px;margin-bottom:4px"><span style="font-weight:600">${esc(a.name)}</span><span style="color:var(--text3)"> · +${a.atkBonus||0} · ${a.dmgDice||'1d6'}${a.dmgBonus?'+'+(a.dmgBonus):''}${a.dmgType?' '+esc(a.dmgType):''}${a.range?' · '+esc(a.range):''}</span></div>`).join('')}</div>`:'';
+  const spHtml=spells.length?`<div style="margin-bottom:8px"><div class="fl mb6">✦ Sorts & Pouvoirs</div>${spells.map(s=>`<div style="font-size:12px;padding:5px 8px;background:var(--surface2);border-radius:6px;margin-bottom:4px"><span style="font-weight:600">${esc(s.name)}</span>${s.level?` <span style="color:var(--text3)">Niv.${s.level}</span>`:''}${s.saveStat&&s.saveDC?` <span style="color:var(--text3)">· JS ${esc(s.saveStat)} DD${s.saveDC}</span>`:''}${s.dmgDice?` <span style="color:var(--text3)">· ${esc(s.dmgDice)}${s.dmgType?' '+esc(s.dmgType):''}</span>`:''}${s.desc?`<div style="color:var(--text2);font-size:11px;margin-top:2px">${esc(s.desc)}</div>`:''}</div>`).join('')}</div>`:'';
+  const trHtml=traits.length?`<div style="margin-bottom:8px"><div class="fl mb6">📜 Traits & Capacités</div>${traits.map(t=>`<div style="font-size:12px;padding:5px 8px;background:var(--surface2);border-radius:6px;margin-bottom:4px"><div style="font-weight:600">${esc(t.name)}</div>${t.desc?`<div style="color:var(--text2);font-size:11px;margin-top:2px">${esc(t.desc)}</div>`:''}</div>`).join('')}</div>`:'';
+  const oldAttHtml=typeof n.attacks==='string'&&n.attacks?`<div style="margin-bottom:8px"><div class="fl mb6">Attaques</div><div style="font-size:12px;color:var(--text2);background:var(--surface2);border-radius:6px;padding:8px;white-space:pre-wrap">${esc(n.attacks)}</div></div>`:'';
   return`<div class="panel">
     <div class="pt">${esc(n.name||'?')} <span style="font-size:11px;color:var(--text3);font-family:var(--B)">${esc(n.type||'PNJ')}</span></div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px">
-      ${n.cr?`<div style="background:var(--surface2);border-radius:6px;padding:8px;text-align:center"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">CR</div><div style="font-size:16px;font-weight:600;color:var(--cp)">${esc(n.cr)}</div></div>`:''}
-      <div style="background:var(--surface2);border-radius:6px;padding:8px;text-align:center"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">PV</div><div style="font-size:16px;font-weight:600;color:#4caf50">${n.hp||0}</div></div>
-      <div style="background:var(--surface2);border-radius:6px;padding:8px;text-align:center"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">CA</div><div style="font-size:16px;font-weight:600">${n.ac||0}</div></div>
-      ${n.speed?`<div style="background:var(--surface2);border-radius:6px;padding:8px;text-align:center"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">Vitesse</div><div style="font-size:13px;font-weight:600">${esc(n.speed)}</div></div>`:''}
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
+      ${n.cr?`<div style="background:var(--surface2);border-radius:6px;padding:6px 10px;text-align:center;min-width:50px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">Difficulté</div><div style="font-size:15px;font-weight:600;color:var(--cp)">${esc(n.cr)}</div></div>`:''}
+      <div style="background:var(--surface2);border-radius:6px;padding:6px 10px;text-align:center;min-width:50px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">PV</div><div style="font-size:15px;font-weight:600;color:#4caf50">${n.hp||0}</div></div>
+      <div style="background:var(--surface2);border-radius:6px;padding:6px 10px;text-align:center;min-width:50px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">CA</div><div style="font-size:15px;font-weight:600">${n.ac||0}</div></div>
+      ${n.speed?`<div style="background:var(--surface2);border-radius:6px;padding:6px 10px;text-align:center;min-width:50px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">Vitesse</div><div style="font-size:13px;font-weight:600">${esc(n.speed)}</div></div>`:''}
     </div>
-    ${n.attacks?`<div style="margin-bottom:8px"><div class="fl mb6">Attaques</div><div style="font-size:12px;color:var(--text2);background:var(--surface2);border-radius:6px;padding:8px;white-space:pre-wrap">${esc(n.attacks)}</div></div>`:''}
+    ${abHtml}${oldAttHtml}${attHtml}${spHtml}${trHtml}
     ${n.notes?`<div style="margin-bottom:10px"><div class="fl mb6">Notes</div><div style="font-size:12px;color:var(--text2);white-space:pre-wrap;background:var(--surface2);border-radius:6px;padding:8px">${esc(n.notes)}</div></div>`:''}
     <div style="display:flex;gap:6px;flex-wrap:wrap">
       <button class="btn bsm bprimary" onclick="mjAddNPCToCombat(${i})">⚡ Ajouter au combat</button>
@@ -7884,7 +7981,13 @@ function mjEditNPC(i){
 function mjOpenNPCForm(editIdx){
   const n=editIdx!=null?(_mjNPCs[editIdx]||{}):{};
   const title=editIdx!=null?'✏ Modifier le PNJ':'🐉 Nouveau PNJ / Monstre';
-  openModal(`<div class="pt">${title}</div>
+  _mjNewMonsterAttacks=Array.isArray(n.attacks)?n.attacks.map(a=>({...a})):[];
+  _mjNewMonsterSpells=Array.isArray(n.spells)?n.spells.map(s=>({...s})):[];
+  _mjNewMonsterTraits=Array.isArray(n.traits)?n.traits.map(t=>({...t})):[];
+  if(typeof n.attacks==='string'&&n.attacks)_mjNewMonsterTraits.unshift({name:'Attaques',desc:n.attacks});
+  const ab=n.abilities||[10,10,10,10,10,10];
+  const statLabels=['FOR','DEX','CON','INT','SAG','CHA'];
+  openWideModal(`<div class="pt">${title}</div>
     <div class="g2" style="gap:8px;margin-bottom:8px">
       <div><div class="fl mb6">Nom</div><input class="fi" id="pnj_name" value="${esc(n.name||'')}" placeholder="Gobelin, Marchand..."></div>
       <div><div class="fl mb6">Type</div>
@@ -7894,19 +7997,77 @@ function mjOpenNPCForm(editIdx){
       </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:8px">
-      <div><div class="fl mb6">CR</div><input class="fi" id="pnj_cr" value="${esc(n.cr||'')}" placeholder="1/4, 1, 5..."></div>
       <div><div class="fl mb6">PV max</div><input class="fi" id="pnj_hp" type="number" min="1" value="${n.hp||10}"></div>
       <div><div class="fl mb6">CA</div><input class="fi" id="pnj_ac" type="number" min="0" value="${n.ac||13}"></div>
       <div><div class="fl mb6">Vitesse</div><input class="fi" id="pnj_speed" value="${esc(n.speed||'9m')}" placeholder="9m"></div>
+      <div><div class="fl mb6">Difficulté</div><input class="fi" id="pnj_cr" value="${esc(n.cr||'')}" placeholder="1/4, 1, 5..."></div>
     </div>
-    <div class="fl mb6">Attaques (une par ligne)</div>
-    <textarea class="fi" id="pnj_attacks" rows="3" placeholder="Cimeterre. Corps à corps. +4 for atteindre, 5ft, 1 cible. Dégâts : 1d6+2 tranchant." style="margin-bottom:8px;resize:vertical">${esc(n.attacks||'')}</textarea>
+    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:16px">
+      ${statLabels.map((l,idx)=>`<div>
+        <div style="font-size:10px;color:var(--text3);text-align:center;margin-bottom:3px">${l}</div>
+        <input class="fi" id="pnj_ab${idx}" type="number" min="1" max="30" value="${ab[idx]||10}" style="text-align:center;padding:6px 4px">
+      </div>`).join('')}
+    </div>
+    <div style="border-top:1px solid var(--border);padding-top:12px;margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div style="font-size:12px;font-weight:700;color:var(--text2)">⚔ Attaques</div>
+        <button class="btn bsm" onclick="mjToggleMonsterSubForm('mAttForm')">+ Ajouter</button>
+      </div>
+      <div id="mAttForm" style="display:none;background:var(--surface2);border-radius:8px;padding:10px;margin-bottom:8px">
+        <input class="fi" id="mAtt_name" placeholder="Nom (ex: Cimeterre, Arc court...)" style="margin-bottom:6px">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px">
+          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Bonus attaque</div><input class="fi" id="mAtt_bonus" type="number" value="0"></div>
+          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Dés de dégâts</div><input class="fi" id="mAtt_dice" placeholder="1d6" value="1d6"></div>
+          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Bonus dégâts</div><input class="fi" id="mAtt_dmgBonus" type="number" value="0"></div>
+        </div>
+        <div class="g2" style="gap:6px;margin-bottom:8px">
+          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Type de dégâts</div><input class="fi" id="mAtt_type" placeholder="tranchant, feu..."></div>
+          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Portée (optionnel)</div><input class="fi" id="mAtt_range" placeholder="1.5m / 18/72m"></div>
+        </div>
+        <button class="btn bac bsm" style="width:100%" onclick="mjConfirmAddFormAttack()">✓ Confirmer cette attaque</button>
+      </div>
+      <div id="mAdd_attacksList"></div>
+    </div>
+    <div style="border-top:1px solid var(--border);padding-top:12px;margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div style="font-size:12px;font-weight:700;color:var(--text2)">✦ Sorts & Pouvoirs</div>
+        <button class="btn bsm" onclick="mjToggleMonsterSubForm('mSpForm')">+ Ajouter</button>
+      </div>
+      <div id="mSpForm" style="display:none;background:var(--surface2);border-radius:8px;padding:10px;margin-bottom:8px">
+        <input class="fi" id="mSp_name" placeholder="Nom du sort (ex: Boule de feu)" style="margin-bottom:6px">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px">
+          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Niveau sort</div><input class="fi" id="mSp_level" type="number" value="1" min="0" max="9"></div>
+          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Stat sauvegarde</div><input class="fi" id="mSp_saveStat" placeholder="DEX, CON..."></div>
+          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">DD sauvegarde</div><input class="fi" id="mSp_saveDC" type="number" value="13" min="0"></div>
+        </div>
+        <div class="g2" style="gap:6px;margin-bottom:6px">
+          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Dés de dégâts</div><input class="fi" id="mSp_dice" placeholder="8d6, 2d8..."></div>
+          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Type de dégâts</div><input class="fi" id="mSp_type" placeholder="feu, foudre..."></div>
+        </div>
+        <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Description (optionnel)</div><textarea class="fi" id="mSp_desc" rows="2" placeholder="Zone 6m, chaque créature doit réussir un JS..." style="resize:vertical;margin-bottom:8px"></textarea></div>
+        <button class="btn bac bsm" style="width:100%" onclick="mjConfirmAddFormSpell()">✓ Confirmer ce sort</button>
+      </div>
+      <div id="mAdd_spellsList"></div>
+    </div>
+    <div style="border-top:1px solid var(--border);padding-top:12px;margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div style="font-size:12px;font-weight:700;color:var(--text2)">📜 Traits & Capacités passives</div>
+        <button class="btn bsm" onclick="mjToggleMonsterSubForm('mTrForm')">+ Ajouter</button>
+      </div>
+      <div id="mTrForm" style="display:none;background:var(--surface2);border-radius:8px;padding:10px;margin-bottom:8px">
+        <input class="fi" id="mTr_name" placeholder="Nom (ex: Vision dans le noir, Résistance au feu...)" style="margin-bottom:6px">
+        <textarea class="fi" id="mTr_desc" rows="2" placeholder="Description du trait ou de la capacité..." style="resize:vertical;margin-bottom:8px"></textarea>
+        <button class="btn bac bsm" style="width:100%" onclick="mjConfirmAddFormTrait()">✓ Confirmer ce trait</button>
+      </div>
+      <div id="mAdd_traitsList"></div>
+    </div>
     <div class="fl mb6">Notes / Description</div>
-    <textarea class="fi" id="pnj_notes" rows="3" placeholder="Comportement, traits, motivation..." style="margin-bottom:16px;resize:vertical">${esc(n.notes||'')}</textarea>
+    <textarea class="fi" id="pnj_notes" rows="2" placeholder="Comportement, motivation..." style="margin-bottom:16px;resize:vertical">${esc(n.notes||'')}</textarea>
     <div style="display:flex;gap:8px">
       <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
       <button class="btn bac" style="flex:2" onclick="mjSaveNPC(${editIdx!=null?editIdx:'null'})">💾 Sauvegarder</button>
     </div>`);
+  mjRenderAttacksList();mjRenderSpellsList();mjRenderTraitsList();
 }
 
 async function mjSaveNPC(editIdx){
@@ -7917,9 +8078,13 @@ async function mjSaveNPC(editIdx){
     hp:parseInt(document.getElementById('pnj_hp').value)||10,
     ac:parseInt(document.getElementById('pnj_ac').value)||13,
     speed:(document.getElementById('pnj_speed').value||'9m').trim(),
-    attacks:(document.getElementById('pnj_attacks').value||'').trim(),
+    abilities:[0,1,2,3,4,5].map(idx=>parseInt(document.getElementById('pnj_ab'+idx)?.value)||10),
+    attacks:[..._mjNewMonsterAttacks],
+    spells:[..._mjNewMonsterSpells],
+    traits:[..._mjNewMonsterTraits],
     notes:(document.getElementById('pnj_notes').value||'').trim(),
   };
+  _mjNewMonsterAttacks=[];_mjNewMonsterSpells=[];_mjNewMonsterTraits=[];
   if(editIdx!=null&&editIdx!=='null'){_mjNPCs[editIdx]=npc;_mjSelectedNPC=editIdx;}
   else{_mjNPCs.push(npc);_mjSelectedNPC=_mjNPCs.length-1;}
   await saveMJData();
@@ -7936,10 +8101,14 @@ async function mjDeleteNPC(i){
 
 function mjAddNPCToCombat(i){
   const n=_mjNPCs[i];if(!n)return;
-  const traits=[];
-  if(n.attacks)traits.push({name:'Attaques',desc:n.attacks});
+  const abilities=n.abilities||[10,10,10,10,10,10];
+  const dexMod=Math.floor(((abilities[1]||10)-10)/2);
+  const attacks=Array.isArray(n.attacks)?[...n.attacks]:[];
+  const spells=Array.isArray(n.spells)?[...n.spells]:[];
+  const traits=Array.isArray(n.traits)?[...n.traits]:[];
+  if(typeof n.attacks==='string'&&n.attacks)traits.unshift({name:'Attaques',desc:n.attacks});
   if(n.notes)traits.push({name:'Notes',desc:n.notes});
-  _mjCombatants.push({id:'npc_'+i+'_'+Date.now(),name:n.name||'PNJ',hp:n.hp||10,hpMax:n.hp||10,ac:n.ac||13,initiative:0,dexMod:0,conditions:[],isPlayer:false,abilities:[10,10,10,10,10,10],attacks:[],spells:[],traits});
+  _mjCombatants.push({id:'npc_'+i+'_'+Date.now(),name:n.name||'PNJ',hp:n.hp||10,hpMax:n.hp||10,ac:n.ac||13,initiative:0,dexMod,conditions:[],isPlayer:false,abilities:[...abilities],attacks,spells,traits});
   _mjCombatLog.push(`🐉 "${esc(n.name||'PNJ')}" ajouté au combat.`);
   setMJTab('combat');showToast('✅ Ajouté au combat !');
 }
