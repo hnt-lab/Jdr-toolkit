@@ -4471,6 +4471,17 @@ function openEquipSlot(slotId){
 }
 function equipItem(slotId,name,desc,magic,linkedTo){
   const p=P();if(!p.equip)p.equip={};
+  if(!p.statuses)p.statuses=[];
+  // Retirer les anciens bonus de ce slot s'il y en avait
+  p.statuses=p.statuses.filter(s=>s.source!=='equip_'+slotId);
+  // Appliquer les statBonuses de l'objet s'il en a
+  const invItem=(p.inventory||[]).find(i=>i.name===name);
+  if(invItem&&invItem.statBonuses&&invItem.statBonuses.length){
+    invItem.statBonuses.forEach(b=>{
+      p.statuses.push({name:name,type:b.value>0?'bonus':'malus',stat:b.stat,value:b.value,icon:'✨',desc:'Bonus de l\'objet équipé',source:'equip_'+slotId});
+    });
+    showToast('✨ Bonus appliqués : '+invItem.statBonuses.map(b=>(b.value>0?'+':'')+b.value+' '+b.stat.toUpperCase()).join(', '));
+  }
   p.equip[slotId]={name,desc,magic:magic||false,linkedTo:linkedTo||''};
   if(slotId==='chest'||slotId==='offhand'){const newCA=_calcArmorCA(p);if(p.ac!==newCA){p.ac=newCA;showToast('🛡 CA mise à jour : '+newCA);}}
   closeModal();render();}
@@ -4478,6 +4489,8 @@ function unequipSlot(slotId){
   const p=P();if(!p.equip)return;
   const item=p.equip[slotId];
   if(item){if(!p.inventory)p.inventory=[];const ex=p.inventory.find(i=>i.name===item.name);if(ex)ex.qty++;else p.inventory.push({name:item.name,qty:1,desc:item.desc||'',magic:item.magic,linkedTo:item.linkedTo});}
+  // Retirer les bonus liés à ce slot
+  if(p.statuses)p.statuses=p.statuses.filter(s=>s.source!=='equip_'+slotId);
   delete p.equip[slotId];
   if(slotId==='chest'||slotId==='offhand'){const newCA=_calcArmorCA(p);p.ac=newCA;showToast('🛡 CA recalculée : '+newCA);}
   render();}
@@ -6752,6 +6765,44 @@ function _doExportMJCompendium(){
   showToast(`📤 "${name}" exporté (${total} entrée${total>1?'s':''}) !`);
 }
 
+function _parseCompendiumJSON(raw,filename){
+  let feats=[],spells=[],items=[],monsters=[];
+  let name='Compendium importé';
+  // Format 1 : export La Boîte à Outils (v1 ou v2)
+  if(raw.customFeats||raw.customSpells||raw.customItems){
+    feats=raw.customFeats||[];spells=raw.customSpells||[];items=raw.customItems||[];
+    name=raw.name||name;
+  }
+  // Format 2 : clés feats/spells/items/monsters directes
+  else if(raw.feats||raw.spells||raw.items||raw.monsters){
+    const mapStr=arr=>arr.map(x=>typeof x==='string'?{name:x,desc:''}:x);
+    feats=(raw.feats||[]).map(f=>typeof f==='string'?{id:Date.now().toString(36),name:f,category:'',description:''}:{...f,id:f.id||(Date.now().toString(36)+Math.random().toString(36).slice(2,5))});
+    spells=mapStr(raw.spells||[]);items=mapStr(raw.items||[]);
+    monsters=(raw.monsters||[]);
+    name=raw.name||name;
+  }
+  // Format 3 : tableau plat — détection par champs
+  else if(Array.isArray(raw)){
+    name=filename.replace(/\.json$/i,'').replace(/[_-]/g,' ')||name;
+    raw.forEach(obj=>{
+      if(!obj||!obj.name)return;
+      const hasSpellFields=obj.level!==undefined||obj.school||obj.casting_time||obj.components||obj.spell_level;
+      const hasItemFields=obj.damage||obj.damage_dice||obj.ac||obj.weight||obj.cost||obj.price;
+      const hasMonsterFields=obj.hp!==undefined||obj.challenge_rating||obj.armor_class||obj.hit_dice;
+      if(hasMonsterFields){
+        monsters.push({name:obj.name,hp:parseInt(obj.hp)||parseInt(obj.average_hp)||10,ac:parseInt(obj.ac)||parseInt(obj.armor_class)||13,speed:obj.speed||'9m',attacks:obj.actions?JSON.stringify(obj.actions).slice(0,200):'',notes:obj.desc||obj.description||''});
+      }else if(hasSpellFields){
+        spells.push({name:obj.name,desc:obj.desc||obj.description||''});
+      }else if(hasItemFields){
+        items.push({name:obj.name,desc:obj.desc||obj.description||obj.damage||''});
+      }else{
+        feats.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:obj.name,category:obj.category||obj.type||'',description:obj.description||obj.desc||''});
+      }
+    });
+  }
+  return{name,feats,spells,items,monsters};
+}
+
 function importMJCompendium(){
   const input=document.createElement('input');
   input.type='file';input.accept='.json,application/json';
@@ -6759,14 +6810,13 @@ function importMJCompendium(){
     const file=e.target.files[0];if(!file)return;
     try{
       const text=await file.text();
-      const data=JSON.parse(text);
-      const feats=data.customFeats||[];
-      const spells=data.customSpells||[];
-      const items=data.customItems||[];
-      const total=feats.length+spells.length+items.length;
-      if(!total){showToast('❌ Fichier vide ou invalide.');return;}
-      const importedName=data.name||'Compendium importé';
-      window._pendingCompendiumImport={name:importedName,feats,spells,items};
+      const raw=JSON.parse(text);
+      const data=_parseCompendiumJSON(raw,file.name);
+      const {feats,spells,items,monsters}=data;
+      const total=feats.length+spells.length+items.length+monsters.length;
+      if(!total){showToast('❌ Aucun élément reconnu dans ce fichier.');return;}
+      const importedName=data.name;
+      window._pendingCompendiumImport={name:importedName,feats,spells,items,monsters};
       const existingIds=Object.keys(_mjCompLib);
       const mergeOpts=existingIds.map(id=>`<option value="${id}">${esc(_mjCompLib[id].name)}</option>`).join('');
       openModal(`<div class="pt">📥 Importer un compendium</div>
@@ -6775,18 +6825,31 @@ function importMJCompendium(){
           <span style="color:var(--cp)">${feats.length}</span> capacité(s) &nbsp;·&nbsp;
           <span style="color:var(--cp)">${spells.length}</span> sort(s) &nbsp;·&nbsp;
           <span style="color:var(--cp)">${items.length}</span> objet(s)
+          ${monsters.length?`&nbsp;·&nbsp;<span style="color:var(--cp)">${monsters.length}</span> monstre(s)/PNJ`:''}
         </div>
-        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">
-          <button class="btn bac" onclick="confirmImportMJCompendium('new')">✨ Créer un nouveau compendium</button>
+        ${feats.length||spells.length||items.length?`<div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px">Capacités / Sorts / Objets → compendium :</div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px">
+          <button class="btn bac" onclick="confirmImportMJCompendium('new')">✨ Nouveau compendium</button>
           ${existingIds.length?`<div style="display:flex;gap:6px;align-items:center">
             <select class="fi" id="mergeTargetId" style="flex:1">${mergeOpts}</select>
-            <button class="btn" onclick="confirmImportMJCompendium('merge')">➕ Fusionner</button>
+            <button class="btn" onclick="confirmImportMJCompendium('merge')">➕ Fusionner dans</button>
           </div>`:''}
-        </div>
+        </div>`:''}
+        ${monsters.length?`<button class="btn bac" style="width:100%;margin-bottom:8px" onclick="confirmImportMJMonsters()">👾 Importer ${monsters.length} monstre(s) dans Mes PNJ</button>`:''}
         <div style="text-align:right"><button class="btn bsm" onclick="closeModal()">Annuler</button></div>`);
     }catch(err){showToast('❌ Fichier JSON invalide.');}
   };
   input.click();
+}
+
+async function confirmImportMJMonsters(){
+  const data=window._pendingCompendiumImport;
+  if(!data||!data.monsters||!data.monsters.length){closeModal();return;}
+  _mjNPCs=[..._mjNPCs,...data.monsters];
+  await saveMJData();
+  showToast(`✅ ${data.monsters.length} monstre(s) importé(s) dans Mes PNJ !`);
+  window._pendingCompendiumImport=null;
+  closeModal();
 }
 
 async function confirmImportMJCompendium(mode){
@@ -6794,15 +6857,15 @@ async function confirmImportMJCompendium(mode){
   if(!data){closeModal();return;}
   if(mode==='new'){
     const id=_genCompId();
-    _mjCompLib[id]={name:data.name,createdAt:new Date().toISOString(),feats:data.feats,spells:data.spells,items:data.items};
+    _mjCompLib[id]={name:data.name,createdAt:new Date().toISOString(),feats:data.feats||[],spells:data.spells||[],items:data.items||[]};
     _mjActiveCompId=id;
   }else{
     const targetId=document.getElementById('mergeTargetId')?.value||Object.keys(_mjCompLib)[0];
     if(!targetId||!_mjCompLib[targetId]){showToast('❌ Compendium cible introuvable.');return;}
     const c=_mjCompLib[targetId];
-    c.feats=[...c.feats,...data.feats];
-    c.spells=[...c.spells,...data.spells];
-    c.items=[...c.items,...data.items];
+    c.feats=[...c.feats,...(data.feats||[])];
+    c.spells=[...c.spells,...(data.spells||[])];
+    c.items=[...c.items,...(data.items||[])];
     _mjActiveCompId=targetId;
   }
   await saveMJCompLib();
@@ -7088,13 +7151,43 @@ function mjTabCombat(){
   </div>`;
 }
 
+function _extractPlayerCombatData(p){
+  const lvl=totalLevel(p);
+  const ab=p.abilities||[10,10,10,10,10,10];
+  const mods=ab.map(v=>Math.floor((v-10)/2));
+  const forM=mods[0],dexM=mods[1];
+  const profB=pb(lvl);
+  const attacks=[];
+  ['mainhand','offhand','ranged'].forEach(slot=>{
+    const w=(p.equip||{})[slot];
+    if(!w||!w.name)return;
+    const isRanged=slot==='ranged';
+    const srdW=SRD.weapons.find(sw=>sw.name===w.name);
+    if(srdW){
+      const finesse=(srdW.properties||'').includes('Finesse');
+      const atkM=finesse?Math.max(forM,dexM):isRanged?dexM:forM;
+      const dmgParts=(srdW.damage||'1d6').split(' ');
+      attacks.push({name:w.name,atkBonus:profB+atkM,dmgDice:dmgParts[0]||'1d6',dmgBonus:atkM,dmgType:dmgParts.slice(1).join(' '),range:isRanged?'Distance':'Corps à corps'});
+    }else{
+      // Arme personnalisée : extraire dés depuis la desc si possible
+      const diceMatch=(w.desc||'').match(/(\d+d\d+)/);
+      const atkM=isRanged?dexM:forM;
+      attacks.push({name:w.name,atkBonus:profB+atkM,dmgDice:diceMatch?diceMatch[1]:'1d6',dmgBonus:atkM,dmgType:'',range:isRanged?'Distance':'Corps à corps'});
+    }
+  });
+  const spells=(p.spells||[]).map(s=>({name:s.name,level:s.level||0,desc:''}));
+  const traits=(p.features||[]).filter(f=>f.name).map(f=>({name:f.name,desc:f.desc||''}));
+  return {attacks,spells,traits};
+}
+
 function mjAddPlayerToCombat(idx){
   const pp=_mjPlayersData[idx];
   if(!pp)return;
   const p=pp.charData||{};
   if(_mjCombatants.find(c=>c.uid===pp.uid)){showToast('Déjà dans le combat.');return;}
   const mods=(p.abilities||[0,0,0,0,0,0]).map(v=>Math.floor((v-10)/2));
-  _mjCombatants.push({id:'player_'+pp.uid,name:p.charName||pp.playerName||'Joueur',hp:p.hp||p.hpMax||1,hpMax:p.hpMax||1,ac:p.ac||10,initiative:0,dexMod:mods[1]||0,conditions:[],isPlayer:true,avatar:pp.avatar||'⚔',uid:pp.uid,abilities:p.abilities||[10,10,10,10,10,10]});
+  const {attacks,spells,traits}=_extractPlayerCombatData(p);
+  _mjCombatants.push({id:'player_'+pp.uid,name:p.charName||pp.playerName||'Joueur',hp:p.hp||p.hpMax||1,hpMax:p.hpMax||1,ac:p.ac||10,initiative:0,dexMod:mods[1]||0,conditions:[],isPlayer:true,avatar:pp.avatar||'⚔',uid:pp.uid,abilities:p.abilities||[10,10,10,10,10,10],attacks,spells,traits});
   _mjCombatLog.push(`⚔ ${esc(p.charName||pp.playerName)} ajouté au combat.`);
   renderMJContent();
 }
@@ -7103,9 +7196,31 @@ function mjAddAllToCombat(){
   _mjPlayersData.forEach((_,i)=>mjAddPlayerToCombat(i));
 }
 
+function mjFillFromNPC(idx){
+  const n=_mjNPCs[idx];if(!n)return;
+  const nameEl=document.getElementById('mAdd_name');
+  const hpEl=document.getElementById('mAdd_hp');
+  const acEl=document.getElementById('mAdd_ac');
+  if(nameEl)nameEl.value=n.name||'';
+  if(hpEl)hpEl.value=n.hp||10;
+  if(acEl)acEl.value=n.ac||13;
+  _mjNewMonsterAttacks=[];_mjNewMonsterSpells=[];_mjNewMonsterTraits=[];
+  if(n.attacks)_mjNewMonsterTraits.push({name:'Attaques',desc:n.attacks});
+  if(n.notes)_mjNewMonsterTraits.push({name:'Notes',desc:n.notes});
+  mjRenderAttacksList();mjRenderSpellsList();mjRenderTraitsList();
+  showToast('✓ '+esc(n.name)+' chargé — ajustez si besoin.');
+}
+
 function mjOpenAddMonster(){
   _mjNewMonsterAttacks=[];_mjNewMonsterSpells=[];_mjNewMonsterTraits=[];_mjEditingMonsterIdx=-1;
   window._mjPendingAbilities=null;
+  const npcSection=_mjNPCs.length?`<div style="margin-bottom:12px;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px">
+      <div style="font-size:11px;font-weight:600;color:var(--cp);margin-bottom:6px">👤 Mes PNJ (${_mjNPCs.length})</div>
+      <div style="max-height:90px;overflow-y:auto">${_mjNPCs.map((n,ni)=>`<div class="aci" onclick="mjFillFromNPC(${ni})" style="padding:5px 8px">
+        <div class="ain">${esc(n.name||'?')}</div>
+        <div class="ais">PV ${n.hp||'?'} · CA ${n.ac||'?'}</div>
+      </div>`).join('')}</div>
+    </div>`:'';
   const compSection=MONSTERS_DB
     ?`<div style="margin-bottom:12px;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px">
         <div style="font-size:11px;font-weight:600;color:var(--cp);margin-bottom:6px">📚 Compendium (${MONSTERS_DB.length} monstres)</div>
@@ -7116,7 +7231,7 @@ function mjOpenAddMonster(){
         <button class="btn bsm bprimary" onclick="loadMonstersDB(()=>{closeModal();mjOpenAddMonster()})">📚 Charger le compendium de monstres</button>
       </div>`;
   openWideModal(`<div class="pt">🐉 Ajouter au combat</div>
-    ${compSection}
+    ${npcSection}${compSection}
     <div class="fl mb6">Nom</div><input class="fi" id="mAdd_name" placeholder="Gobelin, Dragon Rouge..." style="margin-bottom:8px">
     <div class="g2" style="gap:8px;margin-bottom:8px">
       <div><div class="fl mb6">PV max</div><input class="fi" id="mAdd_hp" type="number" min="1" value="10"></div>
@@ -7821,7 +7936,10 @@ async function mjDeleteNPC(i){
 
 function mjAddNPCToCombat(i){
   const n=_mjNPCs[i];if(!n)return;
-  _mjCombatants.push({id:'npc_'+i+'_'+Date.now(),name:n.name||'PNJ',hp:n.hp||10,hpMax:n.hp||10,ac:n.ac||13,initiative:0,dexMod:0,conditions:[],isPlayer:false,abilities:[10,10,10,10,10,10]});
+  const traits=[];
+  if(n.attacks)traits.push({name:'Attaques',desc:n.attacks});
+  if(n.notes)traits.push({name:'Notes',desc:n.notes});
+  _mjCombatants.push({id:'npc_'+i+'_'+Date.now(),name:n.name||'PNJ',hp:n.hp||10,hpMax:n.hp||10,ac:n.ac||13,initiative:0,dexMod:0,conditions:[],isPlayer:false,abilities:[10,10,10,10,10,10],attacks:[],spells:[],traits});
   _mjCombatLog.push(`🐉 "${esc(n.name||'PNJ')}" ajouté au combat.`);
   setMJTab('combat');showToast('✅ Ajouté au combat !');
 }
