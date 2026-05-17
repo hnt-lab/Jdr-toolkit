@@ -297,6 +297,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--B);font-size:14px;
 #partyHudBtn{width:52px;height:52px;border-radius:50%;background:var(--surface);border:2px solid var(--cp);color:var(--cp);font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.5);transition:transform .15s;user-select:none;position:relative}
 #partyHudBtn:hover{transform:scale(1.08)}
 #partyHudBadge{position:absolute;top:-3px;right:-3px;width:16px;height:16px;background:#e53935;border-radius:50%;border:2px solid var(--bg);font-size:9px;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;display:none}
+#partyHudTurnBadge{position:absolute;top:-5px;left:-5px;width:20px;height:20px;background:#6d28d9;border-radius:50%;border:2px solid var(--bg);font-size:12px;display:none;align-items:center;justify-content:center;animation:combatPulse 2s ease-in-out infinite}
+#partyHudBtn.my-turn{border-color:#a78bfa;box-shadow:0 0 0 3px rgba(109,40,217,.45),0 4px 16px rgba(0,0,0,.5);animation:combatPulse 2s ease-in-out infinite}
 .phud-panel{position:absolute;bottom:62px;left:0;background:rgba(10,7,3,.94);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(200,168,75,.25);border-radius:10px;padding:8px 10px;min-width:220px;max-width:270px;box-shadow:0 8px 28px rgba(0,0,0,.6)}
 .pm-combat-badge{font-size:9px;font-weight:600;padding:1px 5px;border-radius:8px;display:inline-flex;align-items:center;gap:3px;margin-top:2px}
 .pm-combat-active{color:#a78bfa;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.3);animation:combatPulse 2s ease-in-out infinite}
@@ -1035,7 +1037,22 @@ function _updatePartyHUD(){
 
   const combatActive=!!(_activeCombatState?.active);
   const activeTurnUid=combatActive?_activeCombatState.currentTurnUid:null;
+  const isMyTurn=combatActive&&activeTurnUid===currentUser?.uid;
   const STATS_SH=['FOR','DEX','CON','INT','SAG','CHA'];
+
+  // Badge ⚡ + animation violet sur le bouton HUD quand c'est mon tour
+  const turnBadge=document.getElementById('partyHudTurnBadge');
+  if(turnBadge)turnBadge.style.display=isMyTurn?'flex':'none';
+  if(btn){
+    if(isMyTurn)btn.classList.add('my-turn');
+    else btn.classList.remove('my-turn');
+  }
+
+  // Bandeau "C'est ton tour" en haut du panel
+  const myTurnBannerHtml=isMyTurn?`<div style="background:linear-gradient(135deg,#6d28d9,#4338ca);border-radius:8px;padding:8px 10px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:6px;animation:combatPulse 2s ease-in-out infinite">
+    <span style="font-size:13px;font-weight:700;color:white">⚡ C'est ton tour !</span>
+    <button onclick="playerEndTurn()" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);border-radius:6px;color:white;font-size:11px;font-weight:600;padding:4px 8px;cursor:pointer;white-space:nowrap">⏩ Fin du tour</button>
+  </div>`:'';
 
   const headerHtml=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.08)">
     <span style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">👥 Groupe</span>
@@ -1080,7 +1097,7 @@ function _updatePartyHUD(){
       </div>`;
     }).join('');
 
-  panel.innerHTML=headerHtml+membersHtml;
+  panel.innerHTML=myTurnBannerHtml+headerHtml+membersHtml;
 
   // Rafraîchit le panneau détail si un joueur est sélectionné
   if(_currentHudDetailUid)_showHudDetail(_currentHudDetailUid);
@@ -6271,7 +6288,7 @@ function createPartyHud(){
   const hud=document.createElement('div');
   hud.id='partyHud';
   hud.style.cssText='position:fixed;bottom:24px;left:24px;z-index:850;display:none';
-  hud.innerHTML=`<div id="partyHudPanel" class="phud-panel" style="display:none"></div><div id="partyHudBtn" onclick="_togglePartyHud()" title="Groupe">👥<div id="partyHudBadge"></div></div>`;
+  hud.innerHTML=`<div id="partyHudPanel" class="phud-panel" style="display:none"></div><div id="partyHudBtn" onclick="_togglePartyHud()" title="Groupe">👥<div id="partyHudBadge"></div><div id="partyHudTurnBadge">⚡</div></div>`;
   document.body.appendChild(hud);
 }
 createPartyHud();
