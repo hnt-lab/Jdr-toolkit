@@ -292,6 +292,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--B);font-size:14px;
 @keyframes savePulse{0%,100%{box-shadow:0 0 0 0 rgba(200,168,75,.5)}50%{box-shadow:0 0 0 5px rgba(200,168,75,0)}}
 .tuto-highlight{outline:2px solid var(--cp)!important;outline-offset:3px;box-shadow:0 0 0 5px rgba(200,168,75,.25),0 0 16px rgba(200,168,75,.15)!important;animation:tutoGlow 1.6s ease-in-out infinite;position:relative;z-index:500}
 @keyframes tutoGlow{0%,100%{box-shadow:0 0 0 3px rgba(200,168,75,.3),0 0 10px rgba(200,168,75,.1)}50%{box-shadow:0 0 0 7px rgba(200,168,75,.15),0 0 24px rgba(200,168,75,.25)}}
+#_tutoBubble{position:fixed;z-index:9000;max-width:320px;min-width:240px;background:var(--surface);border:1px solid var(--cp);border-radius:14px;padding:16px 18px;box-shadow:0 8px 32px rgba(0,0,0,.5);animation:tutoBubbleFadeIn .2s ease;pointer-events:all}
+@keyframes tutoBubbleFadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 /* ===== PARTY HUD ===== */
 #partyHud{position:fixed;bottom:24px;left:24px;z-index:850;display:none}
 #partyHudBtn{width:52px;height:52px;border-radius:50%;background:var(--surface);border:2px solid var(--cp);color:var(--cp);font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.5);transition:transform .15s;user-select:none;position:relative}
@@ -472,7 +474,6 @@ body{background:var(--bg);color:var(--text);font-family:var(--B);font-size:14px;
     <span class="hdr-char" id="hdrChar" style="flex:1;text-align:center;display:flex;align-items:center;justify-content:center;gap:5px">Fiche de personnage<span id="playerSyncDot" class="sync-dot" title="Mis à jour en temps réel"></span></span>
     <span id="hdrUser" style="display:none"></span>
     <button class="btn bsm" id="mjBtn" onclick="toggleMJ()" style="border-color:var(--cp);color:var(--cp);flex-shrink:0">🎲 MJ</button>
-    <button class="btn bac bsm" id="saveBtn" onclick="saveAll()" style="flex-shrink:0" title="Sauvegarder">💾</button>
     <button class="hub-user-btn" onclick="openUserSettings()" title="Profil &amp; Déconnexion" style="flex-shrink:0">👤 Profil</button>
   </div>
   <!-- BANNIÈRE TOUR DE COMBAT -->
@@ -577,9 +578,10 @@ let _unsubscribes=[];
 let _mjRenderDebounce=null;
 let _unsaved=false;
 let _suppressUnsavedMark=false;
+let _saveDebounce=null;
 let _userInfoCache={};
 function stopAllListeners(){_unsubscribes.forEach(fn=>{try{fn();}catch(e){}});_unsubscribes=[];}
-window.addEventListener('beforeunload',e=>{if(_unsaved){e.preventDefault();e.returnValue='Des modifications ne sont pas sauvegardées. Quitter quand même ?';}});
+window.addEventListener('beforeunload',()=>{if(_unsaved){clearTimeout(_saveDebounce);try{localStorage.setItem(getUserSK(),JSON.stringify(state));}catch(e){}}});
 function _debouncedMJRender(){clearTimeout(_mjRenderDebounce);_mjRenderDebounce=setTimeout(()=>{renderMJContent();_flashSyncDot('mjSyncDot');},350);}
 function _flashSyncDot(id){const d=document.getElementById(id);if(!d)return;d.className='sync-dot on';setTimeout(()=>{d.className='sync-dot';},2500);}
 async function _getPlayerInfo(uid){
@@ -963,7 +965,7 @@ const _TUTO_FICHE=[
   {icon:'⭐',title:'Onglet XP',text:'Ton expérience et ton niveau. Le MJ peut t\'attribuer de l\'XP directement. Quand tu passes un niveau, un onglet ⬆ Niveau + apparaît pour choisir tes améliorations.',tab:'xp',sel:'#tabBar .tab:nth-child(9)'},
   {icon:'🎲',title:'Le bouton dé',text:'Le bouton 🎲 en bas à droite est ton lanceur de dés rapide. Un appui court ouvre le panneau complet — d4, d6, d8, d10, d12, d20, d100. Un appui long affiche des raccourcis vers le Journal et ton onglet Perso.',tab:null,sel:'#diceFloat'},
   {icon:'🔒',title:'Confidentialité',text:'Le cadenas 🔒 en bout de barre d\'onglets te permet de choisir les onglets que les autres joueurs peuvent voir. Chaque onglet peut être rendu public ou privé.',tab:'perso',sel:'#tabBar .tab[onclick*="openPrivacySettings"]'},
-  {icon:'💾',title:'Sauvegarde',text:'Le bouton 💾 dans le header sauvegarde tes modifications. Pense à sauvegarder régulièrement — le bouton brille en doré quand des changements n\'ont pas encore été sauvegardés. (Ce serait bête de perdre du loot)',tab:null,sel:'#saveBtn'},
+  {icon:'💾',title:'Sauvegarde automatique',text:'Toutes tes modifications sont sauvegardées automatiquement quelques secondes après chaque changement. Tu n\'as rien à faire — même si tu fermes l\'onglet, la dernière version est sécurisée. (Ce serait bête de perdre du loot)',tab:null,sel:null},
 ];
 
 // Tuto 3 — Maître du Jeu
@@ -1006,31 +1008,52 @@ function _renderTutoStep(){
   const s=steps[_tutoIdx];
   const total=steps.length;
   const isLast=_tutoIdx===total-1;
-  // Navigate to tab if step specifies one (fiche tuto)
   if(s.tab&&typeof setTab==='function'){
     try{if(document.getElementById('tabBar'))setTab(s.tab);}catch(e){}
   }
-  // Apply highlight after a brief delay (let tab render)
-  setTimeout(()=>_tutoApplyHighlight(s.sel),150);
   const dots=Array.from({length:total},(_,i)=>`<div style="width:7px;height:7px;border-radius:50%;background:${i===_tutoIdx?'var(--cp)':'var(--surface2)'};border:1px solid ${i===_tutoIdx?'var(--cp)':'var(--border)'};transition:background .2s;flex-shrink:0"></div>`).join('');
-  openModal(`
-    <div style="display:flex;justify-content:center;flex-wrap:wrap;gap:5px;margin-bottom:16px">${dots}</div>
-    <div style="text-align:center;font-size:44px;margin-bottom:10px;line-height:1">${s.icon}</div>
-    <div style="text-align:center;font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px">${s.title}</div>
-    <p style="text-align:center;font-size:13px;color:var(--text2);line-height:1.65;margin-bottom:20px">${s.text}</p>
-    <div style="display:flex;gap:8px;margin-bottom:10px">
-      ${_tutoIdx>0?`<button class="btn" style="flex:1" onclick="_tutoIdx--;_renderTutoStep()">← Préc.</button>`:''}
-      <button class="btn bac" style="flex:2" onclick="${isLast?'_tutoFinish()':'_tutoIdx++;_renderTutoStep()'}">
+  document.getElementById('_tutoBubble')?.remove();
+  const bubble=document.createElement('div');
+  bubble.id='_tutoBubble';
+  bubble.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div style="display:flex;gap:4px;flex-wrap:wrap">${dots}</div>
+      <button style="background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;line-height:1;padding:0 0 0 8px" onclick="_tutoFinish()" title="Fermer">✕</button>
+    </div>
+    <div style="font-size:30px;margin-bottom:6px;line-height:1">${s.icon}</div>
+    <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px">${s.title}</div>
+    <p style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:14px">${s.text}</p>
+    <div style="display:flex;gap:8px">
+      ${_tutoIdx>0?`<button class="btn bsm" style="flex:1" onclick="_tutoIdx--;_renderTutoStep()">← Préc.</button>`:''}
+      <button class="btn bac bsm" style="flex:2" onclick="${isLast?'_tutoFinish()':'_tutoIdx++;_renderTutoStep()'}">
         ${isLast?'✓ Terminer':'Suivant →'}
       </button>
-    </div>
-    <div style="text-align:center">
-      <button class="btn bsm" style="font-size:11px;opacity:.55;border:none;background:none" onclick="_tutoFinish()">Passer le guide</button>
-    </div>`);
+    </div>`;
+  document.body.appendChild(bubble);
+  setTimeout(()=>{
+    _tutoApplyHighlight(s.sel);
+    _tutoPositionBubble(bubble,s.sel);
+  },150);
+}
+function _tutoPositionBubble(bubble,sel){
+  const W=window.innerWidth,H=window.innerHeight;
+  const bw=bubble.offsetWidth||320,bh=bubble.offsetHeight||220;
+  const margin=12;
+  if(!sel){bubble.style.left=Math.max(margin,(W-bw)/2)+'px';bubble.style.bottom=(margin+60)+'px';return;}
+  const el=document.querySelector(sel);
+  if(!el){bubble.style.left=Math.max(margin,(W-bw)/2)+'px';bubble.style.bottom=(margin+60)+'px';return;}
+  const r=el.getBoundingClientRect();
+  let top=r.bottom+margin;
+  let left=r.left+r.width/2-bw/2;
+  left=Math.max(margin,Math.min(left,W-bw-margin));
+  if(top+bh>H-margin)top=r.top-bh-margin;
+  if(top<margin)top=margin;
+  bubble.style.top=top+'px';
+  bubble.style.left=left+'px';
 }
 function _tutoFinish(){
   _tutoRemoveHighlight();
-  closeModal();
+  document.getElementById('_tutoBubble')?.remove();
   const key=_tutoType==='mj'?'tuto_mj_done':(_tutoType==='fiche'?'tuto_fiche_done':'tuto_player_done');
   localStorage.setItem(key,'1');
 }
@@ -2630,6 +2653,26 @@ const MC_SLOT_TABLE=[[2],[3],[4,2],[4,3],[4,3,2],[4,3,3],[4,3,3,1],[4,3,3,2],[4,
 // Occultiste : [nb_emplacements, niveau_des_emplacements] par niveau de classe
 const WARLOCK_SLOT_TABLE=[[1,1],[2,1],[2,2],[2,2],[2,3],[2,3],[2,4],[2,4],[2,5],[2,5],[3,5],[3,5],[3,5],[3,5],[3,5],[3,5],[4,5],[4,5],[4,5],[4,5]];
 const XP_LEVELS=[0,300,900,2700,6500,14000,23000,34000,48000,64000,85000,100000,120000,140000,165000,195000,225000,265000,305000,355000];
+const BEAST_FORMS=[
+  {name:"Chat",icon:"🐈",cr:0,crD:"0",hpMax:2,ac:12,speed:"9m",ab:[3,15,10,3,12,7],swim:false,fly:false,attacks:[{name:"Griffes",bonus:0,dmg:"1",type:"tranchant"}],traits:["Vision dans le noir 18m","Sens aiguisés — avantage (ouïe, odorat)"]},
+  {name:"Aigle",icon:"🦅",cr:0,crD:"0",hpMax:4,ac:12,speed:"3m / Vol 18m",ab:[6,15,10,2,14,7],swim:false,fly:true,attacks:[{name:"Serres",bonus:4,dmg:"1d4+2",type:"tranchant"}],traits:["Vue perçante — avantage aux jets de Perception (vue)"]},
+  {name:"Mastiff",icon:"🐕",cr:0.125,crD:"1/8",hpMax:5,ac:12,speed:"12m",ab:[13,14,12,3,12,7],swim:false,fly:false,attacks:[{name:"Morsure",bonus:3,dmg:"1d6+1",type:"perforant",special:"Ciblé : JS FOR DD10 ou à terre"}],traits:["Perception aiguisée — avantage (ouïe, odorat)"]},
+  {name:"Serpent venimeux",icon:"🐍",cr:0.125,crD:"1/8",hpMax:2,ac:13,speed:"9m / Nage 9m",ab:[2,16,11,1,10,3],swim:true,fly:false,attacks:[{name:"Morsure",bonus:5,dmg:"1 + 2d4",type:"perforant + venin",special:"JS CON DD10 ou 2d4 poison"}],traits:["Amphibie (nage)"]},
+  {name:"Loup",icon:"🐺",cr:0.25,crD:"1/4",hpMax:11,ac:13,speed:"12m",ab:[12,15,12,3,12,6],swim:false,fly:false,attacks:[{name:"Morsure",bonus:4,dmg:"2d4+2",type:"perforant",special:"Ciblé : JS FOR DD11 ou à terre"}],traits:["Perception aiguisée (ouïe, odorat)","Tactique de meute — avantage si un allié est adjacent à la cible"]},
+  {name:"Panthère",icon:"🐆",cr:0.25,crD:"1/4",hpMax:13,ac:12,speed:"15m",ab:[14,15,10,3,14,7],swim:false,fly:false,attacks:[{name:"Morsure",bonus:4,dmg:"1d6+2",type:"perforant"},{name:"Griffes",bonus:4,dmg:"1d4+2",type:"tranchant"}],traits:["Saut amélioré (+3m distance, +1,5m hauteur)","Bond félin — si charge 6m → JS FOR DD12 ou à terre + action bonus Griffes"]},
+  {name:"Sanglier",icon:"🐗",cr:0.25,crD:"1/4",hpMax:11,ac:11,speed:"12m",ab:[13,11,12,2,9,5],swim:false,fly:false,attacks:[{name:"Défenses",bonus:3,dmg:"1d6+1",type:"perforant"}],traits:["Charge — si déplace 6m avant attaque → JS FOR DD11 ou dégâts supp. et à terre","Inarrêtable — peut se relever sans utiliser de mouvement"]},
+  {name:"Grenouille géante",icon:"🐸",cr:0.25,crD:"1/4",hpMax:18,ac:11,speed:"9m / Nage 9m",ab:[12,13,11,2,10,3],swim:true,fly:false,attacks:[{name:"Morsure",bonus:3,dmg:"1d6+1",type:"perforant"},{name:"Langue",bonus:3,dmg:"—",type:"—",special:"Agrippée jusqu'à 5,5m, JS FOR DD11 pour se libérer"}],traits:["Amphibie — respire sous l'eau","Langue collante — attrape jusqu'à 5,5m"]},
+  {name:"Ours noir",icon:"🐻",cr:0.5,crD:"1/2",hpMax:19,ac:11,speed:"12m",ab:[15,10,14,2,12,7],swim:false,fly:false,attacks:[{name:"Griffes",bonus:5,dmg:"2d6+2",type:"tranchant"},{name:"Morsure",bonus:5,dmg:"1d6+2",type:"perforant"}],traits:["Odorat aiguisé — avantage aux jets de Perception (odorat)"]},
+  {name:"Crocodile",icon:"🐊",cr:0.5,crD:"1/2",hpMax:19,ac:12,speed:"6m / Nage 9m",ab:[15,10,13,2,10,5],swim:true,fly:false,attacks:[{name:"Morsure",bonus:4,dmg:"1d10+2",type:"perforant",special:"Cible agrippée (évasion DD12) et immobilisée"}],traits:["Apnée 15 minutes","Nage 9m"]},
+  {name:"Cheval de guerre",icon:"🐴",cr:0.5,crD:"1/2",hpMax:19,ac:11,speed:"18m",ab:[18,12,13,2,12,7],swim:false,fly:false,attacks:[{name:"Sabots",bonus:6,dmg:"2d6+4",type:"contondant"}],traits:["Charge — si déplace 6m avant attaque → JS FOR DD14 ou dégâts supp. et à terre"]},
+  {name:"Ours brun",icon:"🐻",cr:1,crD:"1",hpMax:34,ac:11,speed:"12m",ab:[19,10,16,2,13,7],swim:false,fly:false,attacks:[{name:"Griffes",bonus:5,dmg:"2d6+4",type:"tranchant"},{name:"Morsure",bonus:5,dmg:"2d8+4",type:"perforant"}],traits:["Odorat aiguisé — avantage aux jets de Perception (odorat)"]},
+  {name:"Tigre",icon:"🐯",cr:1,crD:"1",hpMax:37,ac:12,speed:"12m",ab:[17,15,14,3,12,8],swim:false,fly:false,attacks:[{name:"Griffes",bonus:5,dmg:"1d6+3",type:"tranchant"},{name:"Morsure",bonus:5,dmg:"1d10+3",type:"perforant"}],traits:["Saut amélioré (+3m distance, +1,5m hauteur)","Bond félin — si charge 6m → JS FOR DD13 ou à terre + action bonus Morsure","Odorat aiguisé"]},
+  {name:"Araignée géante",icon:"🕷",cr:1,crD:"1",hpMax:26,ac:14,speed:"9m",ab:[14,16,12,2,11,4],swim:false,fly:false,attacks:[{name:"Morsure",bonus:5,dmg:"1d8+3",type:"perforant",special:"JS CON DD11 ou 5d8 poison (½ si réussi)"}],traits:["Vision dans le noir 18m","Sens des vibrations 6m","Escalade 9m (murs/plafonds)","Toile — JS DEX DD11 ou entravé"]},
+  {name:"Ours polaire",icon:"🐻",cr:2,crD:"2",hpMax:42,ac:12,speed:"12m / Nage 9m",ab:[20,10,16,2,13,7],swim:true,fly:false,attacks:[{name:"Griffes",bonus:7,dmg:"2d8+5",type:"tranchant"},{name:"Morsure",bonus:7,dmg:"2d6+5",type:"perforant"}],traits:["Odorat aiguisé — avantage aux jets de Perception (odorat)","Nage 9m"]},
+  {name:"Rhinocéros",icon:"🦏",cr:2,crD:"2",hpMax:45,ac:11,speed:"12m",ab:[21,8,15,2,12,6],swim:false,fly:false,attacks:[{name:"Corne",bonus:7,dmg:"2d8+5",type:"contondant"}],traits:["Charge — si déplace 9m avant attaque → JS FOR DD15 ou dégâts supp. et à terre"]},
+  {name:"Tigre à dents de sabre",icon:"🐅",cr:2,crD:"2",hpMax:52,ac:12,speed:"12m",ab:[18,14,15,3,12,8],swim:false,fly:false,attacks:[{name:"Morsure",bonus:6,dmg:"2d10+4",type:"perforant"},{name:"Griffes",bonus:6,dmg:"2d6+4",type:"tranchant"}],traits:["Saut amélioré (+4,5m / +3m hauteur)","Bond félin — si charge 6m → JS FOR DD14 ou à terre + action bonus Griffes","Odorat aiguisé"]},
+  {name:"Sanglier géant",icon:"🐗",cr:2,crD:"2",hpMax:42,ac:12,speed:"12m",ab:[17,10,16,2,7,5],swim:false,fly:false,attacks:[{name:"Défenses",bonus:5,dmg:"2d6+3",type:"perforant"}],traits:["Charge — si déplace 6m avant attaque → JS FOR DD13 ou dégâts supp. et à terre","Inarrêtable — peut se relever sans utiliser de mouvement","Vigilance farouche — ne peut pas être surpris"]},
+];
 const ALIGNMENTS=["Loyal Bon","Neutre Bon","Chaotique Bon","Loyal Neutre","Neutre","Chaotique Neutre","Loyal Mauvais","Neutre Mauvais","Chaotique Mauvais"];
 const SKILLS=[
   {name:"Acrobaties",ab:1},{name:"Arcanes",ab:3},{name:"Athlétisme",ab:0},{name:"Discrétion",ab:1},
@@ -2893,7 +2936,6 @@ const FEAT_EXCLUDE=[
   'Amélioration de caractéristiques',
   'Points de sorcellerie','Magie flexible',
   'Source d\'inspiration',
-  'Récupération arcanique',
   'Magie de pacte',
   'Invocations occultes',        // compteur géré dans combat
   'Pacte (choix',                // choix narratif, pas de desc utile
@@ -2978,7 +3020,7 @@ function calcSpellSlots(p){
   (p.classes||[]).forEach(c=>{
     if(c.name==='Occultiste')return; // géré séparément
     const d=SRD.classes.find(cl=>cl.name===c.name);if(!d)return;
-    if(c.name==='Paladin'||c.name==='Rôdeur')e+=Math.ceil(c.level/2); // demi-lanceurs (ceil = table classe exacte)
+    if(c.name==='Paladin'||c.name==='Rôdeur'){if(c.level>=2)e+=Math.ceil(c.level/2);} // niv1 = 0 slot, niv2+ demi-lanceur
     else if(d.spellWeight===1)e+=c.level;
     else if(d.spellWeight===0.5)e+=Math.ceil(c.level/2);
   });
@@ -3021,9 +3063,10 @@ function hasProficiency(p,itemName,itemType){
 // STORAGE
 // ═══════════════════════════════════════
 function getUserSK(){return currentUser?SK+'_'+currentUser.uid:SK;}
-function _markUnsaved(){_unsaved=true;const b=document.getElementById('saveBtn');if(b)b.classList.add('save-pending');}
+function _markUnsaved(){_unsaved=true;const b=document.getElementById('saveBtn');if(b)b.classList.add('save-pending');clearTimeout(_saveDebounce);_saveDebounce=setTimeout(()=>saveAll(true),1500);}
 function _clearUnsaved(){_unsaved=false;const b=document.getElementById('saveBtn');if(b)b.classList.remove('save-pending');}
-async function saveAll(){
+async function saveAll(silent=false){
+  clearTimeout(_saveDebounce);
   _clearUnsaved();
   if(currentUser&&currentCampaignId&&state.players[0]){
     try{
@@ -3045,7 +3088,7 @@ async function saveAll(){
     }catch(e){console.error('Firestore save error',e);}
   }
   try{localStorage.setItem(getUserSK(),JSON.stringify(state));}catch(e){}
-  showToast('✓ Sauvegardé');
+  if(!silent)showToast('✓ Sauvegardé');
 }
 function P(){return state.players[state.activeIdx]||state.players[0];}
 function upd(k,v){P()[k]=v;}
@@ -3418,11 +3461,21 @@ function confirmCreation(){
   p.armorProfs=cd?cd.armorTypes||[]:[];
   p.inventory=[];p.equip={};
   if(cd&&cd.equipment&&cd.equipment[CS.equipChoice]){
-    cd.equipment[CS.equipChoice].forEach(item=>p.inventory.push({name:item.name,qty:item.qty||1,desc:item.desc||''}));
-    const arm=cd.equipment[CS.equipChoice].find(i=>SRD.armors.find(a=>a.name===i.name));
+    cd.equipment[CS.equipChoice].forEach(item=>{
+      const _arm=SRD.armors.find(a=>a.name===item.name);
+      const _wpn=SRD.weapons.find(w=>w.name===item.name);
+      const itemType=_arm?(_arm.type==='Bouclier'?'S':_arm.type==='Légère'?'LA':_arm.type==='Intermédiaire'?'MA':'HA'):(_wpn?(_wpn.subtype&&_wpn.subtype.includes('distance')?'R':'M'):'G');
+      p.inventory.push({name:item.name,qty:item.qty||1,desc:item.desc||'',itemType});
+    });
+    const arm=cd.equipment[CS.equipChoice].find(i=>SRD.armors.find(a=>a.name===i.name&&a.type!=='Bouclier'));
+    const shield=cd.equipment[CS.equipChoice].find(i=>SRD.armors.find(a=>a.name===i.name&&a.type==='Bouclier'));
     const wpn=cd.equipment[CS.equipChoice].find(i=>SRD.weapons.find(w=>w.name===i.name));
+    const rwpn=cd.equipment[CS.equipChoice].find(i=>SRD.weapons.find(w=>w.name===i.name&&w.subtype&&w.subtype.includes('distance')));
     if(arm)p.equip.chest={name:arm.name,desc:arm.desc||''};
-    if(wpn)p.equip.mainhand={name:wpn.name,desc:wpn.desc||''};
+    if(shield)p.equip.offhand={name:shield.name,desc:shield.desc||''};
+    if(wpn&&!SRD.weapons.find(w=>w.name===wpn.name&&w.subtype&&w.subtype.includes('distance')))p.equip.mainhand={name:wpn.name,desc:wpn.desc||''};
+    if(rwpn)p.equip.ranged={name:rwpn.name,desc:rwpn.desc||''};
+    p.ac=_calcArmorCA(p);
   }
   p.spells=CS.selectedSpells.map(name=>({name}));p.spellsLocked=true;
   // Capacités de niveau 1 depuis CLASS_LEVEL_DATA
@@ -3462,8 +3515,9 @@ function confirmCreation(){
 function tabPerso(p){
   const mc=mainClass(p);const cd=mc?SRD.classes.find(c=>c.name===mc.name):null;const rd=SRD.races.find(r=>r.name===p.race);
   const lvl=totalLevel(p);const dexM=mod(p.abilities[1]);
-  const pct=Math.max(0,Math.min(100,Math.round((p.hp/Math.max(1,p.hpMax))*100)));
-  const hpColor=pct>50?'#4caf50':pct>25?'#ff9800':'#e53935';
+  const ws=p.wildshape;
+  const pct=Math.max(0,Math.min(100,Math.round((ws?.active?ws.beast.hpCur/Math.max(1,ws.beast.hpMax):p.hp/Math.max(1,p.hpMax))*100)));
+  const hpColor=ws?.active?'#4caf50':pct>50?'#4caf50':pct>25?'#ff9800':'#e53935';
 
   // Calcul CA affichée avec statuts
   const caBonus=(p.statuses||[]).filter(s=>s.stat==='ca').reduce((a,s)=>a+(parseInt(s.value)||0),0);
@@ -3486,7 +3540,11 @@ function tabPerso(p){
 
     <!-- Statistiques (lecture seule joueur / éditables MJ) -->
     <div class="panel mb10">
-      <div class="pt" style="display:flex;align-items:center;justify-content:space-between"><span>Statistiques</span>${isMJ()?`<span style="font-size:10px;color:var(--cp);border:1px solid var(--cp);border-radius:10px;padding:2px 8px">🎲 MJ</span>`:''}</div>
+      <div class="pt" style="display:flex;align-items:center;justify-content:space-between"><span>Statistiques</span>${ws?.active?`<span style="font-size:10px;color:#4caf50;border:1px solid #4caf50;border-radius:10px;padding:2px 8px">🐺 Forme sauvage</span>`:isMJ()?`<span style="font-size:10px;color:var(--cp);border:1px solid var(--cp);border-radius:10px;padding:2px 8px">🎲 MJ</span>`:''}</div>
+      ${ws?.active?`<div style="background:rgba(76,175,80,.08);border:1px solid rgba(76,175,80,.35);border-radius:8px;padding:10px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:8px">
+        <div style="display:flex;align-items:center;gap:8px"><span style="font-size:24px">${ws.beast.icon}</span><div><div style="font-size:13px;font-weight:700;color:#4caf50">🐺 ${esc(ws.beast.name)}</div><div style="font-size:10px;color:var(--text3)">CA ${ws.beast.ac} • ${ws.beast.speed}</div></div></div>
+        <button class="btn bsm" style="border-color:rgba(76,175,80,.5);color:#4caf50;white-space:nowrap" onclick="revertWildshape()">↩ Reprendre forme</button>
+      </div>`:''}
       <div class="g6 mb10">
         ${ABILITIES.map((ab,i)=>{
           const statKey=ABILITIES_SH[i].toLowerCase();
@@ -3494,6 +3552,14 @@ function tabPerso(p){
           const totalBonus=statBonuses.reduce((a,s)=>a+(parseInt(s.value)||0),0);
           const finalVal=p.abilities[i]+totalBonus;
           const hasBonus=totalBonus>0;const hasMalus=totalBonus<0;
+          if(ws?.active){
+            return`<div class="sb hi" style="border-color:#4caf50;box-shadow:0 0 8px rgba(76,175,80,.2)">
+              <div class="sn" style="color:var(--text3)">${ABILITIES_SH[i]}</div>
+              <div style="font-size:20px;font-weight:700;color:#4caf50">${ws.beast.ab[i]}</div>
+              <div class="sm" style="color:#4caf50">${fmt(Math.floor((ws.beast.ab[i]-10)/2))}</div>
+              <div style="font-size:9px;color:var(--text3);margin-top:1px">🧝 ${p.abilities[i]}</div>
+            </div>`;
+          }
           if(isMJ()){
             return`<div class="sb hi" style="${hasBonus?'border-color:#4caf50':hasMalus?'border-color:#e53935':''}">
               <div class="sn">${ABILITIES_SH[i]}</div>
@@ -3511,6 +3577,30 @@ function tabPerso(p){
         }).join('')}
       </div>
       <!-- PV -->
+      ${ws?.active?`
+      <div class="g2 mb6">
+        <div class="sb hi" style="border-color:#4caf50;box-shadow:0 0 8px rgba(76,175,80,.2)">
+          <div class="sn" style="color:#4caf50">🐺 PV bête</div>
+          <div style="font-size:22px;font-weight:700;color:#4caf50">${ws.beast.hpCur}</div>
+          <div class="sm" style="color:#4caf50">${ws.beast.hpCur} / ${ws.beast.hpMax}</div>
+        </div>
+        <div class="sb" style="opacity:.65">
+          <div class="sn">🔒 PV druide</div>
+          <div style="font-size:20px;font-weight:700;color:var(--text3)">${ws.savedHp}</div>
+          <div class="sm" style="color:var(--text3)">${ws.savedHp}/${p.hpMax} (gelés)</div>
+        </div>
+      </div>
+      <div class="hp-bar"><div class="hp-fill" style="width:${pct}%;background:#4caf50"></div></div>
+      <div class="hp-ctrl">
+        <input class="fi" id="hpDelta" type="number" placeholder="montant" style="width:70px">
+        <button class="btn bsm" style="background:#b71c1c;color:#fff;border-color:#b71c1c" onclick="applyHp(-1)">Dégâts bête</button>
+        <button class="btn bsm" style="background:#2e7d32;color:#fff;border-color:#2e7d32" onclick="applyHp(1)">Soins bête</button>
+      </div>
+      <div class="g3 mt8">
+        <div class="sb" style="border-color:#4caf50"><div class="sn" style="color:#4caf50">CA bête</div><div style="font-size:20px;font-weight:700;color:#4caf50">${ws.beast.ac}</div></div>
+        <div class="sb"><div class="sn">Initiative</div><div class="sm" style="font-size:20px;font-weight:600">${fmt(Math.floor((ws.beast.ab[1]-10)/2))}</div></div>
+        <div class="sb" style="border-color:#4caf50"><div class="sn" style="color:#4caf50">Vitesse</div><div style="font-size:14px;font-weight:600;color:#4caf50">${ws.beast.speed}</div></div>
+      </div>`:`
       <div class="g3 mb6">
         <div class="sb hi"><div class="sn">PV actuels</div><div style="font-size:20px;font-weight:700;color:${hpBonus?'var(--cp)':'var(--text)'}">${p.hp}${hpBonus?`<span style="font-size:12px;color:#4caf50"> +${hpBonus}</span>`:''}</div><div class="sm">${p.hp}/${p.hpMax}</div></div>
         <div class="sb"><div class="sn">PV max</div>${isMJ()?`<input type="number" min="1" max="999" value="${p.hpMax}" oninput="P().hpMax=Math.max(1,parseInt(this.value)||1);render()" style="width:100%;text-align:center;font-size:18px;font-weight:700;background:transparent;border:none;color:var(--cp);outline:none;padding:2px 0">`:` <div style="font-size:20px;font-weight:700">${p.hpMax}</div>`}</div>
@@ -3522,21 +3612,33 @@ function tabPerso(p){
         <button class="btn bsm" style="background:#b71c1c;color:#fff;border-color:#b71c1c" onclick="applyHp(-1)">Dégâts</button>
         <button class="btn bsm" style="background:#2e7d32;color:#fff;border-color:#2e7d32" onclick="applyHp(1)">Soins</button>
       </div>
-      <!-- CA / Initiative / Vitesse -->
       <div class="g3 mt8">
         <div class="sb"><div class="sn">CA</div><div style="font-size:20px;font-weight:700;color:${caBonus?'var(--cp)':'var(--text)'}">${caDisplay}</div></div>
         <div class="sb"><div class="sn">Initiative</div><div class="sm" style="font-size:20px;font-weight:600">${fmt(dexM)}</div></div>
         <div class="sb"><div class="sn">Vitesse (m)</div><input type="number" min="0" max="99" value="${p.speed||9}" oninput="P().speed=parseInt(this.value)||9;saveAll()" style="width:100%;text-align:center;font-size:18px;font-weight:700;background:transparent;border:none;color:var(--text);outline:none;padding:2px 0"></div>
-      </div>
+      </div>`}
       <!-- Jets de mort -->
-      <div style="margin-top:10px"><div class="fl mb6">Jets de mort</div>
+      ${ws?.active?'':`<div style="margin-top:10px"><div class="fl mb6">Jets de mort</div>
         <div style="display:flex;gap:16px;align-items:center">
           <div style="display:flex;align-items:center;gap:4px"><span style="font-size:11px;color:#4caf50">✓</span>${[0,1,2].map(i=>`<span class="ds-circle${i<p.deathSaves.success?' s':''}" onclick="cycleDS('success',${i})"></span>`).join('')}</div>
           <div style="display:flex;align-items:center;gap:4px"><span style="font-size:11px;color:#e53935">✗</span>${[0,1,2].map(i=>`<span class="ds-circle${i<p.deathSaves.fail?' f':''}" onclick="cycleDS('fail',${i})"></span>`).join('')}</div>
           <button class="btn bsm" onclick="upd('deathSaves',{success:0,fail:0});render()">Reset</button>
         </div>
-      </div>
+      </div>`}
     </div>
+
+    ${ws?.active?`<div class="panel mb10" style="border-color:rgba(76,175,80,.4);background:rgba(76,175,80,.04)">
+      <div class="pt" style="color:#4caf50;display:flex;align-items:center;gap:6px">${ws.beast.icon} ${esc(ws.beast.name)} — Attaques & Traits</div>
+      ${ws.beast.attacks.map(a=>`<div style="background:rgba(76,175,80,.08);border:1px solid rgba(76,175,80,.2);border-radius:6px;padding:8px 10px;margin-bottom:6px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <strong style="color:#4caf50;font-size:13px">${esc(a.name)}</strong>
+          <span style="color:var(--text2);font-size:12px">+${a.bonus} / <strong>${esc(a.dmg)}</strong> ${esc(a.type||'')}</span>
+        </div>
+        ${a.special?`<div style="font-size:11px;color:var(--text3);margin-top:3px">${esc(a.special)}</div>`:''}
+        <button class="btn bsm" style="margin-top:6px;border-color:rgba(76,175,80,.4);color:#4caf50" onclick="rollCustomDmg('${esc(a.dmg)}','${esc(a.name)}')">🎲 ${esc(a.dmg)}</button>
+      </div>`).join('')}
+      ${ws.beast.traits.map(t=>`<div style="font-size:11px;color:var(--text2);padding:5px 0;border-bottom:1px solid rgba(76,175,80,.15)">🐾 ${esc(t)}</div>`).join('')}
+    </div>`:''}
 
     <!-- Statuts -->
     <div class="panel">
@@ -3679,7 +3781,28 @@ function openPrivacySettings(){
 }
 
 // ── PV & HP ──
-function applyHp(sign){const p=P();const delta=parseInt(document.getElementById('hpDelta')?.value)||0;p.hp=Math.max(0,Math.min(p.hpMax+p.hpTemp,p.hp+sign*delta));render();}
+function applyHp(sign){
+  const p=P();const delta=parseInt(document.getElementById('hpDelta')?.value)||0;if(delta<=0)return;
+  const ws=p.wildshape;
+  if(ws?.active){
+    if(sign<0){
+      // Dégâts : bête en priorité, overflow sur le druide
+      const overflow=Math.max(0,delta-ws.beast.hpCur);
+      ws.beast.hpCur=Math.max(0,ws.beast.hpCur-delta);
+      if(ws.beast.hpCur<=0){
+        p.hp=Math.max(0,ws.savedHp-overflow);
+        delete p.wildshape;
+        showToast(`💥 La bête tombe à 0 PV ! Retour à la forme de druide${overflow>0?' (-'+overflow+' PV débordants)':''}.`);
+      }
+    } else {
+      // Soins : vers les PV de la bête (cap au max)
+      ws.beast.hpCur=Math.min(ws.beast.hpMax,ws.beast.hpCur+delta);
+    }
+  } else {
+    p.hp=Math.max(0,Math.min(p.hpMax+(p.hpTemp||0),p.hp+sign*delta));
+  }
+  render();
+}
 function cycleDS(type,idx){const p=P();p.deathSaves[type]=p.deathSaves[type]>idx?idx:idx+1;render();}
 
 // ── STATUTS ──
@@ -3853,6 +3976,7 @@ function doShortRest(){
       if(f.recovery==='short'){const max=getChargesMax(f,p);p.combatCharges[f.name]=max;}
     });
   });
+  (p.customCombatFeats||[]).forEach(f=>{if(f.recovery==='short'&&f.charges>0)p.combatCharges[f.name]=f.charges;});
   if((p.classes||[]).find(c=>c.name==='Occultiste'))p.spellSlotsUsed=[];
   render();saveAll();showToast(`☕ Repos court — ${cd.hd}(${roll-mod(p.abilities[2])})+CON = <strong>+${healed} PV</strong>`);
 }
@@ -3860,7 +3984,9 @@ function doLongRest(){
   const p=P();p.hp=p.hpMax;p.spellSlotsUsed=[];
   p.deathSaves={success:0,fail:0};
   p.conditions=[];
-  (p.classes||[]).forEach(cls=>{const d=SRD.classes.find(c=>c.name===cls.name);if(!d||!d.combatFeatures)return;d.combatFeatures.forEach(f=>{if(f.recovery!=='passive'){if(!p.combatCharges)p.combatCharges={};const max=getChargesMax(f,p);p.combatCharges[f.name]=max;}});});
+  if(!p.combatCharges)p.combatCharges={};
+  (p.classes||[]).forEach(cls=>{const d=SRD.classes.find(c=>c.name===cls.name);if(!d||!d.combatFeatures)return;d.combatFeatures.forEach(f=>{if(f.recovery!=='passive'){const max=getChargesMax(f,p);p.combatCharges[f.name]=max;}});});
+  (p.customCombatFeats||[]).forEach(f=>{if(f.recovery!=='passive'&&f.charges>0)p.combatCharges[f.name]=f.charges;});
   render();saveAll();showToast('🌙 Repos long — PV, sorts, charges et conditions récupérés !');
 }
 
@@ -3972,7 +4098,21 @@ function cycleSkillIfAllowed(name,current,maxSkills){
   p.skillProf[name]=nextVal;
   render();
 }
-function openFeatSearch(){openModal(`<div class="pt">Ajouter une capacité</div><input class="fi" id="featQ" placeholder="Chercher..." oninput="filterFeats(this.value)" style="margin-bottom:8px"><div id="featList">${renderFeatList('')}</div><div style="margin-top:10px;display:flex;gap:8px"><input class="fi" id="featCustomName" placeholder="Nom"><input class="fi" id="featCustomDesc" placeholder="Description"><button class="btn bsm bac" onclick="addCustomFeat()">+</button></div><button class="btn bsm bdanger" style="margin-top:8px;width:100%" onclick="closeModal()">Fermer</button>`);}
+function openFeatSearch(){openModal(`<div class="pt">Ajouter une capacité</div>
+<input class="fi" id="featQ" placeholder="🔍 Chercher dans les capacités SRD..." oninput="filterFeats(this.value)" style="margin-bottom:8px">
+<div id="featList">${renderFeatList('')}</div>
+<div style="margin-top:12px;padding:10px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">
+  <div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:8px">✨ Capacité personnalisée (univers alternatif)</div>
+  <input class="fi" id="featCustomName" placeholder="Nom de la capacité" style="margin-bottom:6px">
+  <textarea class="fi" id="featCustomDesc" rows="2" placeholder="Description de la capacité..." style="resize:vertical;margin-bottom:6px"></textarea>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px">
+    <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Charges (0 = passif)</div><input class="fi" id="featCustomCharges" type="number" min="0" value="0" placeholder="0"></div>
+    <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Récupération</div><select class="fi" id="featCustomRecovery"><option value="passive">Passif</option><option value="short">Repos court</option><option value="long">Repos long</option></select></div>
+    <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Dé (ex : 2d6+3)</div><input class="fi" id="featCustomDice" placeholder="2d6+3"></div>
+  </div>
+  <button class="btn bac bsm" style="width:100%" onclick="addCustomCombatFeat()">+ Ajouter cette capacité</button>
+</div>
+<button class="btn bsm bdanger" style="margin-top:8px;width:100%" onclick="closeModal()">Fermer</button>`);}
 const FEATS_SRD=[
   {name:"Rage",classe:"Barbare",desc:"2/repos long. Bonus dégâts, résistance physique, avantage FOR."},
   {name:"Attaque supplémentaire",classe:"Guerrier/Barbare",desc:"Attaque 2 fois par action Attaquer au niv.5."},
@@ -3987,6 +4127,19 @@ function renderFeatList(q){return FEATS_SRD.filter(f=>!q||f.name.toLowerCase().i
 function filterFeats(q){const el=document.getElementById('featList');if(el)el.innerHTML=renderFeatList(q);}
 function addFeat(name,desc,classe){P().features.push({name,desc,classe});closeModal();render();}
 function addCustomFeat(){const n=document.getElementById('featCustomName')?.value;const d=document.getElementById('featCustomDesc')?.value;if(!n)return;P().features.push({name:n,desc:d||'',classe:''});closeModal();render();}
+function addCustomCombatFeat(){
+  const n=(document.getElementById('featCustomName')?.value||'').trim();
+  if(!n){showToast('❌ Nom requis.');return;}
+  const d=(document.getElementById('featCustomDesc')?.value||'').trim();
+  const ch=parseInt(document.getElementById('featCustomCharges')?.value)||0;
+  const rec=document.getElementById('featCustomRecovery')?.value||'passive';
+  const dice=(document.getElementById('featCustomDice')?.value||'').trim();
+  const feat={name:n,desc:d,charges:ch,recovery:ch>0?rec:'passive',icon:'⚡'};
+  if(dice)feat.dice=dice;
+  if(!P().customCombatFeats)P().customCombatFeats=[];
+  P().customCombatFeats.push(feat);
+  closeModal();render();
+}
 function removeFeat(i){P().features.splice(i,1);render();}
 
 // ═══════════════════════════════════════
@@ -4016,10 +4169,15 @@ function tabCombat(p){
 
   // Niveaux des classes à panneau dédié
   const guerrierLvl=((p.classes||[]).find(c=>c.name==='Guerrier')||{}).level||0;
+  const clercLvl=((p.classes||[]).find(c=>c.name==='Clerc')||{}).level||0;
+  const druLvl=((p.classes||[]).find(c=>c.name==='Druide')||{}).level||0;
   const paladinLvl=((p.classes||[]).find(c=>c.name==='Paladin')||{}).level||0;
   const roublardLvl=((p.classes||[]).find(c=>c.name==='Roublard')||{}).level||0;
   const artsMartiauxDie=moineLvl>=17?'d10':moineLvl>=11?'d8':moineLvl>=5?'d6':'d4';
   const snkDice=Math.ceil(roublardLvl/2);
+  const hasExtraAttack=(p.classes||[]).some(c=>['Guerrier','Barbare','Paladin','Rôdeur','Moine'].includes(c.name)&&(c.level||0)>=5);
+  const attackCount=guerrierLvl>=20?4:guerrierLvl>=11?3:hasExtraAttack?2:1;
+  const wsC=p.wildshape;
 
   // Collecte les capacités de combat — exclut par classe celles gérées par un panneau dédié
   const _DEDICATED_PANEL_FEATS_BY_CLASS={
@@ -4028,6 +4186,8 @@ function tabCombat(p){
     'Moine':['Points de ki'],
     'Ensorceleur':['Points de sorcellerie'],
     'Guerrier':['Second souffle',"Sursaut d'action",'Indomptable'],
+    'Druide':['Forme sauvage'],
+    'Clerc':['Conduit divin','Intervention divine'],
     'Paladin':['Conduit divin','Imposition des mains','Aura de protection','Aura de courage','Forme sacrée'],
     'Roublard':['Roublardise'],
   };
@@ -4041,11 +4201,23 @@ function tabCombat(p){
       allCombatFeats.push({...f,className:cls.name});
     });
   });
+  (p.customCombatFeats||[]).forEach(f=>allCombatFeats.push({...f,className:'Personnalisé'}));
   // Helper : récupère la desc d'une feature depuis le SRD
   function _featDesc(className,featName){return(SRD.classes.find(c=>c.name===className)?.combatFeatures||[]).find(f=>f.name===featName)?.desc||'';}
 
   return`<div id="combatContainer">
-  ${cs('cs-armes',`<div class="panel mb10"><div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>Armes équipées</div>
+  ${cs('cs-armes',wsC?.active?`<div class="panel mb10" style="border-color:rgba(76,175,80,.4)"><div class="pt" style="display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span><span style="color:#4caf50">${wsC.beast.icon} ${esc(wsC.beast.name)} — Attaques</span></div><span style="font-size:10px;color:#4caf50;border:1px solid rgba(76,175,80,.4);border-radius:10px;padding:2px 8px">🐺 Forme sauvage</span></div>
+      ${wsC.beast.attacks.map(a=>`<div style="background:rgba(76,175,80,.06);border:1px solid rgba(76,175,80,.25);border-radius:6px;padding:10px;margin-bottom:6px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:14px;font-weight:600;color:#4caf50">${esc(a.name)}</span>
+          <span style="color:#4caf50;font-weight:600">+${a.bonus} / ${esc(a.dmg)} ${esc(a.type||'')}</span>
+        </div>
+        ${a.special?`<div style="font-size:11px;color:var(--text3);margin-top:3px">${esc(a.special)}</div>`:''}
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px"><button class="btn bsm" style="border-color:rgba(76,175,80,.4);color:#4caf50" onclick="rollCustomDmg('${esc(a.dmg)}','${esc(a.name)}')">🎲 ${esc(a.dmg)}</button></div>
+      </div>`).join('')}
+      <div style="margin-top:10px;display:flex;gap:5px;flex-wrap:wrap">${['d4','d6','d8','d10','d12','d20'].map(d=>`<button class="dice-btn" onclick="rollDie('${d}')">🎲 ${d}</button>`).join('')}</div>
+      <div id="rollResult" style="margin-top:8px;padding:8px;background:var(--surface2);border-radius:6px;display:${_lastRollResultHtml?'block':'none'};font-size:14px;font-weight:600;color:var(--cp);text-align:center">${_lastRollResultHtml}</div>
+    </div>`:`<div class="panel mb10"><div class="pt" style="display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>Armes équipées</div>${attackCount>1?`<span style="font-size:10px;font-weight:600;color:var(--cp);border:1px solid rgba(200,168,75,.4);border-radius:10px;padding:2px 8px">⚔ ×${attackCount} attaques</span>`:''}</div>
       ${weapons.length?weapons.map(w=>{
         const srdW=SRD.weapons.find(sw=>sw.name===w.name);
         const finesse=srdW&&(srdW.properties||'').includes('Finesse');
@@ -4065,7 +4237,7 @@ function tabCombat(p){
             ${w.ammoLink?`<button class="btn bsm" style="font-size:10px" onclick="unlinkRangedAmmo()">↩ Délier ${esc(w.ammoLink)}</button>`:
             `<button class="btn bsm" style="font-size:10px" onclick="openLinkAmmoModal()">🏹 Lier des munitions</button>`}
           </div>`:''}
-          <button class="btn bsm" style="margin-top:6px" onclick="rollAttack('${esc(w.name)}',${atkBonus},'${esc(srdW?srdW.damage:'1d6')}','${w.slot}')">🎲 Attaque</button>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">${Array.from({length:attackCount},(_,ai)=>`<button class="btn bsm" onclick="rollAttack('${esc(w.name)}',${atkBonus},'${esc(srdW?srdW.damage:'1d6')}','${w.slot}')">🎲${attackCount>1?' Att.'+(ai+1):'  Attaque'}</button>`).join('')}</div>
         </div>`;
       }).join(''):`<div style="font-size:12px;color:var(--text3);font-style:italic">Aucune arme équipée.</div>`}
       <div style="margin-top:10px;display:flex;gap:5px;flex-wrap:wrap">${['d4','d6','d8','d10','d12','d20'].map(d=>`<button class="dice-btn" onclick="rollDie('${d}')">🎲 ${d}</button>`).join('')}</div>
@@ -4074,7 +4246,7 @@ function tabCombat(p){
   ${cs('cs-sauvegardes',`<div class="panel"><div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>Sauvegardes</div>
       ${ABILITIES_SH.map((ab,i)=>{const saves=CLASS_SAVES[mc?mc.name:'']||[];const hasSave=saves.includes(i);const m=mod(p.abilities[i])+(hasSave?pb(lvl):0);return`<div class="save-btn" onclick="rollSave('${ab}',${m})"><span class="save-dot${hasSave?' p':''}"></span><span style="flex:1;font-size:13px">${ab}</span><span style="color:var(--cp);font-weight:600">${fmt(m)}</span><span style="font-size:10px;color:var(--text3)">🎲</span></div>`;}).join('')}
     </div>`)}
-  ${allCombatFeats.length||isMJ()?cs('cs-capacites',`<div class="panel mb10"><div class="pt" style="display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span><span>Capacités de combat</span></div>${isMJ()?`<button class="btn bsm" onclick="openFeatSearch()">+ Ajouter</button>`:''}</div>
+  ${!wsC?.active&&(allCombatFeats.length||isMJ())?cs('cs-capacites',`<div class="panel mb10"><div class="pt" style="display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span><span>Capacités de combat</span></div>${isMJ()?`<button class="btn bsm" onclick="openFeatSearch()">+ Ajouter</button>`:''}</div>
       ${allCombatFeats.map(f=>{
         const fid='cf_'+f.name.replace(/\s+/g,'_');
         const maxCharges=getChargesMax(f,p);
@@ -4092,13 +4264,14 @@ function tabCombat(p){
           </div>
           <div class="feat-body" id="${fid}">
             <p>${esc(f.desc)}</p>
-            ${!isPassive&&maxCharges>0?`<button class="btn bsm" style="margin-top:6px" onclick="recoverCombatCharge('${esc(f.name)}',${maxCharges})">Récupérer</button>`:''}
+            ${f.dice?`<button class="btn bsm" style="margin-top:6px" onclick="rollCustomDmg('${esc(f.dice)}','${esc(f.name)}')">🎲 ${esc(f.dice)}</button>`:''}
+            ${!isPassive&&maxCharges>0?`<button class="btn bsm" style="margin-top:6px" onclick="recoverCombatCharge('${esc(f.name)}',${maxCharges})">↺ Récupérer</button>`:''}
           </div>
         </div>`;
       }).join('')}
       ${!allCombatFeats.length&&isMJ()?`<div style="font-size:12px;color:var(--text3);font-style:italic">Aucune capacité de classe. Le MJ peut en ajouter via le bouton ci-dessus.</div>`:''}
     </div>`):''}
-  ${barbareLvl>0?cs('cs-barbare',`<div class="panel mb10"><div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>🔥 Rage — Barbare</div>
+  ${!wsC?.active&&barbareLvl>0?cs('cs-barbare',`<div class="panel mb10"><div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>🔥 Rage — Barbare</div>
       <div style="font-size:11px;color:var(--text3);margin-bottom:10px">${_featDesc('Barbare','Rage')}</div>
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <div class="sb hi" style="flex:1;min-width:80px"><div class="sn">Bonus dégâts</div><div style="font-size:20px;font-weight:700;color:var(--cp)">+${rageBonus}</div></div>
@@ -4107,9 +4280,11 @@ function tabCombat(p){
           ${(()=>{const rageMax=barbareLvl>=17?6:barbareLvl>=12?5:barbareLvl>=6?4:barbareLvl>=3?3:2;const rageUsed=(p.combatCharges||{})['Rage (2 utilisations, +2 dégâts)']||rageMax;const remaining=rageUsed;return`<div style="display:flex;gap:4px;flex-wrap:wrap">${Array.from({length:rageMax},(_,i)=>`<span class="slot-bubble${i<remaining?'':' used'}" onclick="useCombatCharge('Rage (2 utilisations, +2 dégâts)',${rageMax})" title="Utiliser une rage"></span>`).join('')}</div><div style="font-size:10px;color:var(--text3);margin-top:4px">${remaining}/${rageMax} • Récup. repos long</div><button class="btn bsm" style="margin-top:4px" onclick="recoverCombatCharge('Rage (2 utilisations, +2 dégâts)',${rageMax})">↺ Récupérer</button>`;})()}
         </div>
       </div>
-      ${(()=>{const rageActive=(p.combatCharges||{})['RageActive']===true;const bg=rageActive?'rgba(229,57,53,0.1)':'var(--surface2)';const bc=rageActive?'#e53935':'var(--border)';const col=rageActive?'#e53935':'var(--text3)';const tagBg=rageActive?'rgba(229,57,53,0.2)':'var(--surface3)';const tags=['Contondant','Perforant','Tranchant'].map(r=>`<span style="font-size:11px;padding:2px 8px;border-radius:10px;background:${tagBg};color:${col};border:1px solid ${bc}">${r}</span>`).join('');return`<div style="margin-top:10px;padding:8px;background:${bg};border-radius:6px;border:1px solid ${bc}"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><span style="font-size:12px;font-weight:600;color:${col}">${rageActive?'🔥 En rage':'💤 Hors rage'}</span><button class="btn bsm" style="${rageActive?'color:#e53935;border-color:#e53935;':''}" onclick="P().combatCharges=P().combatCharges||{};P().combatCharges['RageActive']=!(P().combatCharges['RageActive']===true);saveAll();render()">${rageActive?'⬛ Sortir de la rage':'🔥 Entrer en rage'}</button></div><div style="font-size:11px;color:var(--text3);margin-bottom:4px">Résistances actives en rage :</div><div style="display:flex;gap:4px;flex-wrap:wrap">${tags}</div></div>`;})()}
+      ${(()=>{const rageActive=(p.combatCharges||{})['RageActive']===true;const bg=rageActive?'rgba(229,57,53,0.1)':'var(--surface2)';const bc=rageActive?'#e53935':'var(--border)';const col=rageActive?'#e53935':'var(--text3)';const tagBg=rageActive?'rgba(229,57,53,0.2)':'var(--surface3)';const tags=['Contondant','Perforant','Tranchant'].map(r=>`<span style="font-size:11px;padding:2px 8px;border-radius:10px;background:${tagBg};color:${col};border:1px solid ${bc}">${r}</span>`).join('');return`<div style="margin-top:10px;padding:8px;background:${bg};border-radius:6px;border:1px solid ${bc}"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><span style="font-size:12px;font-weight:600;color:${col}">${rageActive?'🔥 En rage':'💤 Hors rage'}</span><button class="btn bsm" style="${rageActive?'color:#e53935;border-color:#e53935;':''}" onclick="toggleRageActive()">${rageActive?'⬛ Sortir de la rage':'🔥 Entrer en rage'}</button></div><div style="font-size:11px;color:var(--text3);margin-bottom:4px">Résistances actives en rage :</div><div style="display:flex;gap:4px;flex-wrap:wrap">${tags}</div></div>`;})()}
+      ${barbareLvl>=9?(()=>{const critDice=barbareLvl>=17?3:barbareLvl>=13?2:1;return`<div style="margin-top:10px;padding:8px;background:var(--surface2);border-radius:6px"><div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:2px">💥 Critique brutal</div><div style="font-size:11px;color:var(--text3)">+${critDice} dé${critDice>1?'s':''} de dégâts supplémentaire${critDice>1?'s':''} sur un coup critique en rage.</div></div>`;})():''}
+      ${barbareLvl>=7?`<div style="margin-top:10px;padding:8px;background:var(--surface2);border-radius:6px"><div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:2px">🦅 Instinct sauvage</div><div style="font-size:11px;color:var(--text3)">Initiative : avantage. Impossible d'être surpris (si en rage au début du combat).</div></div>`:''}
     </div>`):''}
-  ${moineLvl>0?cs('cs-moine',`<div class="panel mb10"><div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>☯ Points Ki — Moine</div>
+  ${!wsC?.active&&moineLvl>0?cs('cs-moine',`<div class="panel mb10"><div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>☯ Points Ki — Moine</div>
       <div style="font-size:11px;color:var(--text3);margin-bottom:10px">${_featDesc('Moine','Points de ki')}</div>
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <div class="sb hi" style="flex:1;min-width:80px"><div class="sn">Ki max</div><div style="font-size:20px;font-weight:700;color:var(--cp)">${kiMax}</div></div>
@@ -4118,9 +4293,11 @@ function tabCombat(p){
           ${(()=>{const remaining=(p.combatCharges?.['Ki']!==undefined)?p.combatCharges['Ki']:kiMax;return`<div style="display:flex;gap:4px;flex-wrap:wrap">${Array.from({length:kiMax},(_,ki)=>`<span class="slot-bubble${ki<remaining?'':' used'}" onclick="toggleKi(${ki},${kiMax})" style="cursor:pointer"></span>`).join('')}</div><div style="font-size:10px;color:var(--text3);margin-top:4px">${remaining}/${kiMax} pts disponibles</div><button class="btn bsm" style="margin-top:4px" onclick="P().combatCharges=P().combatCharges||{};P().combatCharges['Ki']=${kiMax};render()">↺ Repos court</button>`;})()}
         </div>
       </div>
-      <div style="margin-top:10px;padding:8px;background:var(--surface2);border-radius:6px"><div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:4px">⚡ Arts martiaux</div><div style="font-size:11px;color:var(--text3);margin-bottom:6px">Frappe à mains nues — Niv. ${moineLvl}</div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><div class="sb hi" style="padding:6px 14px;flex-shrink:0"><div class="sn">Dé</div><div style="font-size:20px;font-weight:700;color:var(--cp)">${artsMartiauxDie}</div></div><button class="btn bsm" onclick="rollCustomDmg('1${artsMartiauxDie}+${Math.max(forM,dexM)}','Arts martiaux')">🎲 1${artsMartiauxDie}${Math.max(forM,dexM)>=0?'+':''}${Math.max(forM,dexM)}</button></div></div>
+      <div style="margin-top:10px;padding:8px;background:var(--surface2);border-radius:6px"><div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:4px">⚡ Arts martiaux</div><div style="font-size:11px;color:var(--text3);margin-bottom:6px">Frappe à mains nues — Niv. ${moineLvl}</div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><div class="sb hi" style="padding:6px 14px;flex-shrink:0"><div class="sn">Dé</div><div style="font-size:20px;font-weight:700;color:var(--cp)">${artsMartiauxDie}</div></div><button class="btn bsm" onclick="rollCustomDmg('1${artsMartiauxDie}${Math.max(forM,dexM)>=0?'+':''}${Math.max(forM,dexM)}','Arts martiaux')">🎲 1${artsMartiauxDie}${Math.max(forM,dexM)>=0?'+':''}${Math.max(forM,dexM)}</button></div></div>
+      ${!(p.equip||{}).chest?.name?`<div style="margin-top:8px;padding:6px 10px;background:var(--surface2);border-radius:6px;font-size:11px;color:var(--text3)">🛡 Défense sans armure : CA = 10 + DEX (${fmt(dexM)}) + SAG (${fmt(sagM)}) = <strong style="color:var(--cp)">${10+dexM+sagM}</strong></div>`:''}
+      ${moineLvl>=5?`<div style="margin-top:8px;padding:6px 10px;background:var(--surface2);border-radius:6px;font-size:11px;color:var(--text3)">⚡ Frappe étourdissante (niv${moineLvl}) : 1 ki — la cible rate son JS CON (DD ${8+pb(lvl)+Math.max(forM,dexM)}) ou est étourdie jusqu'à la fin de ton prochain tour.</div>`:''}
     </div>`):''}
-  ${bardeLvl>0?cs('cs-barde',`<div class="panel mb10"><div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>🎵 Inspiration bardique</div>
+  ${!wsC?.active&&bardeLvl>0?cs('cs-barde',`<div class="panel mb10"><div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>🎵 Inspiration bardique — Barde</div>
       <div style="font-size:11px;color:var(--text3);margin-bottom:10px">${_featDesc('Barde','Inspiration bardique')}</div>
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <div class="sb hi" style="flex:1;min-width:80px"><div class="sn">Dé</div><div style="font-size:18px;font-weight:700;color:var(--cp)">${bardDie}</div></div>
@@ -4130,11 +4307,12 @@ function tabCombat(p){
         </div>
       </div>
     </div>`):''}
-  ${roublardLvl>0?cs('cs-roublard',`<div class="panel mb10"><div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>🗡 Roublard — Capacités</div>
+  ${!wsC?.active&&roublardLvl>0?cs('cs-roublard',`<div class="panel mb10"><div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>🗡 Roublard — Capacités</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Arme de finesse ou à distance. Dés de roublardise : +1d6 tous les 2 niveaux.</div>
     <div style="margin-bottom:14px"><div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:4px">🎯 Attaque sournoise</div><div style="font-size:11px;color:var(--text3);margin-bottom:8px">Si avantage OU allié adjacent à la cible (et pas de désavantage). Arme de finesse ou à distance.</div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><div class="sb hi" style="padding:6px 14px;flex-shrink:0"><div class="sn">Dés</div><div style="font-size:20px;font-weight:700;color:var(--cp)">${snkDice}d6</div></div><button class="btn bsm" onclick="rollCustomDmg('${snkDice}d6','Attaque sournoise')">🎲 ${snkDice}d6</button></div></div>
     ${roublardLvl>=2?`<div><div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:4px">⚡ Action rusée</div><div style="font-size:11px;color:var(--text3)">Action bonus : Foncer, Se désengager ou Se cacher.</div></div>`:''}
   </div>`):''}
-  ${guerrierLvl>0?cs('cs-guerrier',`<div class="panel mb10"><div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>⚔ Guerrier — Capacités</div>
+  ${!wsC?.active&&guerrierLvl>0?cs('cs-guerrier',`<div class="panel mb10"><div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>⚔ Guerrier — Capacités</div>
     <div style="margin-bottom:${guerrierLvl>=2?'14':'0'}px">
       <div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:4px">💨 Second souffle</div>
       <div style="font-size:11px;color:var(--text3);margin-bottom:8px">${_featDesc('Guerrier','Second souffle')}</div>
@@ -4143,7 +4321,7 @@ function tabCombat(p){
     ${guerrierLvl>=2?(()=>{const saMax=guerrierLvl>=17?2:1;const saUsed=(p.combatCharges||{})['SursautAction']!==undefined?p.combatCharges['SursautAction']:saMax;return`<div style="margin-bottom:${guerrierLvl>=9?'14':'0'}px"><div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:4px">⚡ Sursaut d'action${guerrierLvl>=17?' (×2)':''}</div><div style="font-size:11px;color:var(--text3);margin-bottom:8px">${_featDesc('Guerrier',"Sursaut d'action")}</div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><div style="display:flex;gap:4px">${Array.from({length:saMax},(_,i)=>`<span class="slot-bubble${i<saUsed?'':' used'}" onclick="useCombatCharge('SursautAction',${saMax})"></span>`).join('')}</div><span style="font-size:10px;color:var(--text3)">${saUsed}/${saMax}</span><button class="btn bsm" onclick="recoverCombatCharge('SursautAction',${saMax})">↺ Repos court</button></div></div>`;})():''}
     ${guerrierLvl>=9?(()=>{const indMax=guerrierLvl>=17?3:(guerrierLvl>=13?2:1);const indUsed=(p.combatCharges||{})['Indomptable']!==undefined?p.combatCharges['Indomptable']:indMax;return`<div><div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:4px">🔄 Indomptable${guerrierLvl>=13?` (×${indMax})`:''}</div><div style="font-size:11px;color:var(--text3);margin-bottom:8px">${_featDesc('Guerrier','Indomptable')}</div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><div style="display:flex;gap:4px">${Array.from({length:indMax},(_,i)=>`<span class="slot-bubble${i<indUsed?'':' used'}" onclick="useCombatCharge('Indomptable',${indMax})"></span>`).join('')}</div><span style="font-size:10px;color:var(--text3)">${indUsed}/${indMax}</span><button class="btn bsm" onclick="recoverCombatCharge('Indomptable',${indMax})">↺ Repos long</button></div></div>`;})():''}
   </div>`):''}
-  ${paladinLvl>0?cs('cs-paladin',`<div class="panel mb10"><div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>⚔ Paladin — Capacités</div>
+  ${!wsC?.active&&paladinLvl>0?cs('cs-paladin',`<div class="panel mb10"><div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>🛡 Paladin — Capacités</div>
     ${paladinLvl>=3?(()=>{const cdUsed=(p.combatCharges||{})['Conduit divin']!==undefined?p.combatCharges['Conduit divin']:1;return`<div style="margin-bottom:14px"><div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:4px">✝ Conduit divin</div><div style="font-size:11px;color:var(--text3);margin-bottom:8px">${_featDesc('Paladin','Conduit divin')}</div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><div style="display:flex;gap:4px"><span class="slot-bubble${cdUsed>0?'':' used'}" onclick="useCombatCharge('Conduit divin',1)"></span></div><button class="btn bsm" onclick="recoverCombatCharge('Conduit divin',1)">↺ Repos court</button></div></div>`;})():''}
     <div style="margin-bottom:14px"><div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:4px">🙏 Imposition des mains</div>
       <div style="font-size:11px;color:var(--text3);margin-bottom:8px">${_featDesc('Paladin','Imposition des mains')}</div>
@@ -4153,7 +4331,14 @@ function tabCombat(p){
     ${paladinLvl>=10?`<div style="margin-bottom:${paladinLvl>=20?'14':'0'}px"><div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:4px">💛 Aura de courage</div><div style="font-size:11px;color:var(--text3)">${_featDesc('Paladin','Aura de courage')}</div></div>`:''}
     ${paladinLvl>=20?(()=>{const fsUsed=(p.combatCharges||{})['FormeSacree']!==undefined?p.combatCharges['FormeSacree']:1;return`<div><div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:4px">👼 Forme sacrée</div><div style="font-size:11px;color:var(--text3);margin-bottom:8px">${_featDesc('Paladin','Forme sacrée')}</div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="slot-bubble${fsUsed>0?'':' used'}" onclick="useCombatCharge('FormeSacree',1)"></span><button class="btn bsm" onclick="recoverCombatCharge('FormeSacree',1)">↺ Repos long</button></div></div>`;})():''}
   </div>`):''}
-  ${(()=>{const sorcLvl=((p.classes||[]).find(c=>c.name==='Ensorceleur')||{}).level||0;if(!sorcLvl)return'';const sorcPtsMax=sorcLvl;const sorcPts=(p.combatCharges||{})['SorcelleriePts']!==undefined?p.combatCharges['SorcelleriePts']:sorcPtsMax;const sorcBubbles=Array.from({length:sorcPtsMax},(_,sp)=>`<span class="slot-bubble${sp<sorcPts?'':' used'}" onclick="toggleSorcPts(${sp},${sorcPtsMax})"></span>`).join('');const flexButtons=[[1,2],[2,3],[3,5],[4,6],[5,7]].map(([niv,cout])=>`<button class="btn bsm" onclick="sorcCreateSlot(${niv},${cout},${sorcPtsMax})" ${sorcPts<cout?'disabled':''}>Niv.${niv} (${cout} pts)</button>`).join('');return cs('cs-sorc',`<div class="panel mb10"><div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>✨ Points de sorcellerie — Ensorceleur</div>
+  ${!wsC?.active&&clercLvl>=2?cs('cs-clerc',`<div class="panel mb10"><div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>✝ Clerc — Capacités</div>
+    ${(()=>{const cdMax=clercLvl>=18?3:clercLvl>=6?2:1;const cdUsed=(p.combatCharges||{})['Conduit divin']!==undefined?p.combatCharges['Conduit divin']:cdMax;return`<div style="margin-bottom:14px"><div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:4px">✝ Conduit divin</div><div style="font-size:11px;color:var(--text3);margin-bottom:8px">${_featDesc('Clerc','Conduit divin')}</div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><div style="display:flex;gap:4px">${Array.from({length:cdMax},(_,i)=>`<span class="slot-bubble${i<cdUsed?'':' used'}" onclick="useCombatCharge('Conduit divin',${cdMax})"></span>`).join('')}</div><span style="font-size:10px;color:var(--text3)">${cdUsed}/${cdMax} • Repos court</span><button class="btn bsm" onclick="recoverCombatCharge('Conduit divin',${cdMax})">↺ Repos court</button></div></div>`;})()}
+    ${clercLvl>=10?(()=>{const idUsed=(p.combatCharges||{})['Intervention divine']!==undefined?p.combatCharges['Intervention divine']:1;return`<div><div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:4px">🙏 Intervention divine</div><div style="font-size:11px;color:var(--text3);margin-bottom:8px">${_featDesc('Clerc','Intervention divine')}</div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="slot-bubble${idUsed>0?'':' used'}" onclick="useCombatCharge('Intervention divine',1)"></span><button class="btn bsm" onclick="recoverCombatCharge('Intervention divine',1)">↺ Repos long</button></div></div>`;})():''}
+  </div>`):''}
+  ${druLvl>=2?cs('cs-druide',(()=>{const crMax=druLvl>=8?'2':druLvl>=4?'1':'1/2';const canFly=druLvl>=8;const canSwim=druLvl>=4;const fsMax=druLvl>=20?99:2;const fsUsed=druLvl>=20?fsMax:(p.combatCharges||{})['Forme sauvage']!==undefined?p.combatCharges['Forme sauvage']:2;
+    if(wsC?.active){const bHpPct=Math.min(100,Math.round(wsC.beast.hpCur/Math.max(1,wsC.beast.hpMax)*100));return`<div class="panel mb10" style="border-color:rgba(76,175,80,.5);background:rgba(76,175,80,.04)"><div class="pt" style="display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span><span style="color:#4caf50">${wsC.beast.icon} En forme de ${esc(wsC.beast.name)}</span></div><span style="font-size:10px;color:#4caf50;border:1px solid rgba(76,175,80,.4);border-radius:10px;padding:2px 8px">🐺 Actif</span></div><div style="margin:10px 0"><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:4px"><span>PV bête</span><span style="color:#4caf50;font-weight:700">${wsC.beast.hpCur} / ${wsC.beast.hpMax}</span></div><div class="hp-bar"><div class="hp-fill" style="width:${bHpPct}%;background:#4caf50"></div></div></div><div style="display:flex;gap:8px;margin-bottom:8px;font-size:11px;color:var(--text3)"><span>CA ${wsC.beast.ac}</span><span>•</span><span>${wsC.beast.speed}</span><span>•</span><span>Charges restantes : <strong style="color:var(--cp)">${druLvl>=20?'∞':fsUsed+'/'+fsMax}</strong></span></div><button class="btn bsm" style="width:100%;border-color:rgba(76,175,80,.4);color:#4caf50" onclick="revertWildshape()">↩ Abandonner la forme</button></div>`;}
+    return`<div class="panel mb10"><div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>🐺 Druide — Forme sauvage</div><div style="font-size:11px;color:var(--text3);margin-bottom:10px">${_featDesc('Druide','Forme sauvage')}</div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px"><div class="sb hi"><div class="sn">CR max</div><div style="font-size:18px;font-weight:700;color:var(--cp)">${crMax}</div></div><div class="sb"><div class="sn">Nage</div><div style="font-size:14px;font-weight:600;color:${canSwim?'#4caf50':'var(--text3)'}">${canSwim?'✓':'✗'}</div></div><div class="sb"><div class="sn">Vol</div><div style="font-size:14px;font-weight:600;color:${canFly?'#4caf50':'var(--text3)'}">${canFly?'✓':'✗'}</div></div></div>${druLvl>=20?'<div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:8px">✓ Archidruide — Utilisations illimitées</div>':`<div style="display:flex;gap:4px;margin-bottom:6px">${Array.from({length:2},(_,i)=>`<span class="slot-bubble${i<fsUsed?'':' used'}" onclick="useCombatCharge('Forme sauvage',2)"></span>`).join('')}</div><div style="font-size:10px;color:var(--text3);margin-bottom:6px">${fsUsed}/2 • Repos court</div><button class="btn bsm" style="margin-bottom:8px" onclick="recoverCombatCharge('Forme sauvage',2)">↺ Repos court</button>`}<button class="btn bac bsm" style="width:100%;background:rgba(76,175,80,.1);border-color:#4caf50;color:#4caf50" onclick="openWildshapeModal()">🐺 Entrer en Forme sauvage</button></div>`;})()):''}
+  ${(()=>{if(wsC?.active)return'';const sorcLvl=((p.classes||[]).find(c=>c.name==='Ensorceleur')||{}).level||0;if(!sorcLvl)return'';const sorcPtsMax=sorcLvl;const sorcPts=(p.combatCharges||{})['SorcelleriePts']!==undefined?p.combatCharges['SorcelleriePts']:sorcPtsMax;const sorcBubbles=Array.from({length:sorcPtsMax},(_,sp)=>`<span class="slot-bubble${sp<sorcPts?'':' used'}" onclick="toggleSorcPts(${sp},${sorcPtsMax})"></span>`).join('');const flexButtons=[[1,2],[2,3],[3,5],[4,6],[5,7]].map(([niv,cout])=>`<button class="btn bsm" onclick="sorcCreateSlot(${niv},${cout},${sorcPtsMax})" ${sorcPts<cout?'disabled':''}>Niv.${niv} (${cout} pts)</button>`).join('');return cs('cs-sorc',`<div class="panel mb10"><div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>✨ Points de sorcellerie — Ensorceleur</div>
         <div style="font-size:11px;color:var(--text3);margin-bottom:10px">${_featDesc('Ensorceleur','Points de sorcellerie')}</div>
         <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px">${sorcBubbles}</div>
         <div style="font-size:11px;color:var(--text3);margin-bottom:6px">${sorcPts}/${sorcPtsMax} pts • Repos long</div>
@@ -4176,7 +4361,8 @@ function tabCombat(p){
         </div>
         ${used?`<button class="btn bsm" style="margin-top:8px" onclick="P().combatCharges=P().combatCharges||{};delete P().combatCharges['SouffleDraconique'];saveAll();render();">↺ Récupérer (Repos court/long)</button>`:''}
       </div>`);})()}
-  ${warlockSlots?cs('cs-warlock',`<div class="panel mb10"><div class="pt" style="display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span><span>Magie de pacte — Occultiste</span></div><span style="font-size:10px;color:var(--cp);border:1px solid var(--cp);border-radius:10px;padding:2px 8px">Repos court</span></div>
+  ${wsC?.active?cs('cs-ws-info',`<div class="panel mb10" style="border-color:rgba(76,175,80,.3);background:rgba(76,175,80,.04)"><div style="font-size:12px;color:var(--text3);text-align:center;padding:8px">🐺 En forme animale — sorts et capacités de classe indisponibles${druLvl>=18?'<br><span style="color:#4caf50;font-size:11px">Niv. 18 — Sorts de bête : tu peux lancer des sorts ✓</span>':''}</div></div>`):''}
+  ${(!wsC?.active||druLvl>=18)&&warlockSlots?cs('cs-warlock',`<div class="panel mb10"><div class="pt" style="display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span><span>Magie de pacte — Occultiste</span></div><span style="font-size:10px;color:var(--cp);border:1px solid var(--cp);border-radius:10px;padding:2px 8px">Repos court</span></div>
       <div style="font-size:12px;color:var(--text2);margin-bottom:8px">Niveau des emplacements : <strong style="color:var(--cp)">${warlockSlots[1]}</strong></div>
       <div style="display:flex;align-items:center;gap:8px">
         <div style="display:flex;gap:4px">${Array.from({length:warlockSlots[0]},(_,si)=>`<span class="slot-bubble${si<(slotsUsed[9]||0)?' used':''}" onclick="toggleWarlockSlot(${si},${warlockSlots[0]})" style="width:16px;height:16px"></span>`).join('')}</div>
@@ -4184,13 +4370,13 @@ function tabCombat(p){
         <button class="btn bsm" onclick="P().spellSlotsUsed=P().spellSlotsUsed||[];P().spellSlotsUsed[9]=0;render()">↺ Repos court</button>
       </div>
     </div>`):''}
-  ${hasCaster?cs('cs-sorts',`<div class="panel"><div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>Sorts</div>
+  ${(!wsC?.active||druLvl>=18)&&hasCaster?cs('cs-sorts',`<div class="panel"><div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>Sorts</div>
       <div class="g3 mb10">
         <div class="sb hi"><div class="sn">Bonus sort</div><div style="font-size:18px;font-weight:600;color:var(--cp)">${fmt(pb(lvl)+spellMod)}</div></div>
         <div class="sb hi"><div class="sn">DD sort</div><div style="font-size:18px;font-weight:600;color:var(--cp)">${8+pb(lvl)+spellMod}</div></div>
         <div class="sb"><div class="sn">Mod.</div><div style="font-size:14px;font-weight:600">${fmt(spellMod)}</div></div>
       </div>
-      ${slots?`<div style="margin-bottom:10px"><div class="fl mb6">Emplacements</div>${slots.map((total,ni)=>total?`<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span style="font-size:11px;color:var(--text2);width:50px">Niv. ${ni+1}</span><div>${Array.from({length:total},(_,si)=>`<span class="slot-bubble${si<(slotsUsed[ni]||0)?' used':''}" onclick="toggleSlot(${ni},${si},${total})"></span>`).join('')}</div><span style="font-size:10px;color:var(--text3)">${slotsUsed[ni]||0}/${total}</span></div>`:'').join('')}<button class="btn bsm" style="margin-top:4px" onclick="upd('spellSlotsUsed',[]);render()">Récupérer tous</button></div>`:''}
+      ${slots?`<div style="margin-bottom:10px"><div class="fl mb6">Emplacements</div>${slots.map((total,ni)=>total?`<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span style="font-size:11px;color:var(--text2);width:50px">Niv. ${ni+1}</span><div>${Array.from({length:total},(_,si)=>`<span class="slot-bubble${si<(slotsUsed[ni]||0)?' used':''}" onclick="toggleSlot(${ni},${si},${total})"></span>`).join('')}</div><span style="font-size:10px;color:var(--text3)">${total-(slotsUsed[ni]||0)}/${total}</span></div>`:'').join('')}<button class="btn bsm" style="margin-top:4px" onclick="upd('spellSlotsUsed',[]);render()">Récupérer tous</button></div>`:''}
       ${(()=>{const magLvl=((p.classes||[]).find(c=>c.name==='Magicien')||{}).level||0;if(!magLvl)return'';const prepMax=Math.max(1,intM+magLvl);const known=(p.spells||[]).filter(s=>{const sp=findSpellData(s.name);return sp&&sp.level>0;}).length;return`<div style="margin-top:8px;padding:8px;background:var(--surface2);border-radius:6px;font-size:12px;color:var(--text2)">📚 Sorts préparés : <strong style="color:${known>prepMax?'#e53935':'var(--cp)'}">${known}/${prepMax}</strong> (INT ${fmt(intM)} + niv. ${magLvl})</div>`;})()}
       ${renderSpellList(p, true)}
     </div>`):''}
@@ -4209,6 +4395,102 @@ function rollCustomDmg(dice,name){
 
 function useCombatCharge(name,max){const p=P();if(!p.combatCharges)p.combatCharges={};const cur=p.combatCharges[name]!==undefined?p.combatCharges[name]:max;if(cur<=0){showToast('❌ Plus de charges disponibles !');return;}p.combatCharges[name]=cur-1;render();}
 function recoverCombatCharge(name,max){const p=P();if(!p.combatCharges)p.combatCharges={};p.combatCharges[name]=max;render();}
+function toggleRageActive(){
+  const p=P();if(!p.combatCharges)p.combatCharges={};
+  const barbareLvl=((p.classes||[]).find(c=>c.name==='Barbare')||{}).level||0;
+  const rageKey='Rage (2 utilisations, +2 dégâts)';
+  const rageMax=barbareLvl>=17?6:barbareLvl>=12?5:barbareLvl>=6?4:barbareLvl>=3?3:2;
+  const RAGE_RES=['Contondant','Perforant','Tranchant'];
+  if(p.combatCharges['RageActive']===true){
+    // Sortir de la rage — retirer les résistances de rage
+    p.combatCharges['RageActive']=false;
+    p.dmgResistances=(p.dmgResistances||[]).filter(r=>!RAGE_RES.includes(r));
+  } else {
+    // Entrer en rage — consommer une charge + ajouter résistances
+    const cur=p.combatCharges[rageKey]!==undefined?p.combatCharges[rageKey]:rageMax;
+    if(cur<=0){showToast('❌ Plus de charges de rage disponibles !');return;}
+    p.combatCharges[rageKey]=cur-1;
+    p.combatCharges['RageActive']=true;
+    p.dmgResistances=p.dmgResistances||[];
+    RAGE_RES.forEach(r=>{if(!p.dmgResistances.includes(r))p.dmgResistances.push(r);});
+  }
+  saveAll();render();
+}
+function openWildshapeModal(){
+  const p=P();const druLvl=((p.classes||[]).find(c=>c.name==='Druide')||{}).level||0;
+  const crMax=druLvl>=8?2:druLvl>=4?1:0.5;const canSwim=druLvl>=4;const canFly=druLvl>=8;
+  const fsMax=druLvl>=20?99:2;const fsUsed=(p.combatCharges||{})['Forme sauvage']!==undefined?p.combatCharges['Forme sauvage']:fsMax;
+  if(druLvl<20&&fsUsed<=0){showToast('❌ Plus de charges de Forme sauvage !');return;}
+  const available=BEAST_FORMS.filter(b=>b.cr<=crMax&&(!b.fly||canFly)&&(!b.swim||canSwim));
+  openWideModal(`<div class="pt">🐺 Entrer en Forme sauvage</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:10px">CR max : ${crMax<=0.5?'1/2':crMax} — Nage : ${canSwim?'<span style="color:#4caf50">✓</span>':'✗'} — Vol : ${canFly?'<span style="color:#4caf50">✓</span>':'✗'} — Charges : <strong style="color:var(--cp)">${druLvl>=20?'∞':fsUsed+'/'+fsMax}</strong></div>
+    <div id="wsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;max-height:48vh;overflow-y:auto;margin-bottom:10px">
+      ${available.map((b,gi)=>{const bi=BEAST_FORMS.indexOf(b);return`<div onclick="wsShowDetail(${bi})" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;cursor:pointer;text-align:center;transition:all .15s" onmouseover="this.style.borderColor='#4caf50';this.style.background='rgba(76,175,80,.06)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface2)'">
+        <div style="font-size:26px;margin-bottom:4px">${b.icon}</div>
+        <div style="font-size:12px;font-weight:600">${b.name}</div>
+        <div style="font-size:10px;color:var(--text3)">CR ${b.crD}</div>
+        <div style="font-size:10px;color:var(--text3)">${b.hpMax} PV • CA ${b.ac}</div>
+      </div>`;}).join('')}
+    </div>
+    <div id="wsDetail" style="display:none;max-height:55vh;overflow-y:auto"></div>
+    <div style="text-align:right;margin-top:8px"><button class="btn bsm" onclick="closeWideModal()">Annuler</button></div>`);
+}
+function wsShowDetail(bIdx){
+  const b=BEAST_FORMS[bIdx];if(!b)return;
+  const abN=['FOR','DEX','CON','INT','SAG','CHA'];
+  document.getElementById('wsGrid').style.display='none';
+  document.getElementById('wsDetail').style.display='block';
+  document.getElementById('wsDetail').innerHTML=`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)">
+      <span style="font-size:36px">${b.icon}</span>
+      <div><div style="font-size:16px;font-weight:700;color:#4caf50">${b.name}</div>
+        <div style="font-size:11px;color:var(--text3)">CR ${b.crD} • ${b.hpMax} PV • CA ${b.ac} • ${b.speed}</div>
+        ${b.swim?'<span style="font-size:10px;color:#4caf50;margin-right:6px">🌊 Nage</span>':''}${b.fly?'<span style="font-size:10px;color:#4caf50">🦅 Vol</span>':''}
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:12px">
+      ${b.ab.map((v,i)=>`<div style="background:rgba(76,175,80,.08);border:1px solid rgba(76,175,80,.3);border-radius:6px;padding:6px;text-align:center">
+        <div style="font-size:9px;color:var(--text3)">${abN[i]}</div>
+        <div style="font-size:16px;font-weight:700;color:#4caf50">${v}</div>
+        <div style="font-size:11px;color:var(--text3)">${fmt(Math.floor((v-10)/2))}</div>
+      </div>`).join('')}
+    </div>
+    <div style="margin-bottom:10px"><div style="font-size:10px;color:var(--cp);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Attaques</div>
+      ${b.attacks.map(a=>`<div style="background:var(--surface2);border-radius:6px;padding:7px 10px;margin-bottom:4px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <strong style="color:#4caf50;font-size:13px">${a.name}</strong>
+          <span style="font-size:12px;color:var(--text2)">+${a.bonus} / <strong>${a.dmg}</strong> ${a.type}</span>
+        </div>
+        ${a.special?`<div style="font-size:11px;color:var(--text3);margin-top:3px">${a.special}</div>`:''}
+      </div>`).join('')}
+    </div>
+    ${b.traits.length?`<div style="margin-bottom:14px"><div style="font-size:10px;color:var(--cp);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Capacités & Traits</div>
+      ${b.traits.map(t=>`<div style="font-size:12px;color:var(--text2);padding:5px 0;border-bottom:1px solid var(--border)">🐾 ${t}</div>`).join('')}
+    </div>`:''}
+    <div style="display:flex;gap:8px;justify-content:flex-end;padding-top:8px;border-top:1px solid var(--border)">
+      <button class="btn bsm" onclick="document.getElementById('wsDetail').style.display='none';document.getElementById('wsGrid').style.display='grid'">← Retour</button>
+      <button class="btn bac" style="background:rgba(76,175,80,.15);border-color:#4caf50;color:#4caf50" onclick="enterWildshape(${bIdx})">🐺 Entrer en forme</button>
+    </div>`;
+}
+function enterWildshape(bIdx){
+  const p=P();const b=BEAST_FORMS[bIdx];if(!b)return;
+  const druLvl=((p.classes||[]).find(c=>c.name==='Druide')||{}).level||0;
+  const fsMax=druLvl>=20?99:2;
+  if(!p.combatCharges)p.combatCharges={};
+  const fsUsed=(p.combatCharges['Forme sauvage']!==undefined)?p.combatCharges['Forme sauvage']:fsMax;
+  if(druLvl<20&&fsUsed<=0){showToast('❌ Plus de charges de Forme sauvage !');return;}
+  if(druLvl<20)p.combatCharges['Forme sauvage']=fsUsed-1;
+  p.wildshape={active:true,beastIdx:bIdx,beast:{name:b.name,icon:b.icon,hpMax:b.hpMax,hpCur:b.hpMax,ac:b.ac,speed:b.speed,ab:[...b.ab],attacks:b.attacks,traits:b.traits},savedHp:p.hp};
+  closeWideModal();saveAll();render();
+  showToast(`🐺 ${p.charName||'Druide'} se transforme en ${b.name} ! (${b.hpMax} PV)`);
+}
+function revertWildshape(){
+  const p=P();if(!p.wildshape?.active)return;
+  const bName=p.wildshape.beast.name;
+  p.hp=p.wildshape.savedHp;
+  delete p.wildshape;
+  saveAll();render();showToast(`🧝 Retour à la forme de druide. PV restaurés : ${p.hp}/${p.hpMax}`);
+}
 function _spendImpositionMains(amount){const p=P();const mx=((p.classes||[]).find(c=>c.name==='Paladin')||{}).level*5||0;if(!p.combatCharges)p.combatCharges={};const cur=p.combatCharges['ImpositionMains']!==undefined?p.combatCharges['ImpositionMains']:mx;if(cur<amount){showToast('❌ Pas assez de PV dans le réservoir !');return;}p.combatCharges['ImpositionMains']=cur-amount;render();}
 function _restoreImpositionMains(){const p=P();const mx=((p.classes||[]).find(c=>c.name==='Paladin')||{}).level*5||0;if(!p.combatCharges)p.combatCharges={};p.combatCharges['ImpositionMains']=mx;render();}
 function toggleDraconicBreath(){const p=P();if(!p.combatCharges)p.combatCharges={};if(p.combatCharges['SouffleDraconique'])delete p.combatCharges['SouffleDraconique'];else p.combatCharges['SouffleDraconique']=true;saveAll();render();}
@@ -4497,7 +4779,7 @@ function tabSorts(p){
     const rows=slots.map((total,ni)=>total?`<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
       <span style="font-size:11px;color:var(--text2);width:46px">Niv. ${ni+1}</span>
       <div>${Array.from({length:total},(_,si)=>`<span class="slot-bubble${si<(slotsUsed[ni]||0)?' used':''}" onclick="toggleSlot(${ni},${si},${total})"></span>`).join('')}</div>
-      <span style="font-size:10px;color:var(--text3)">${slotsUsed[ni]||0}/${total}</span>
+      <span style="font-size:10px;color:var(--text3)">${total-(slotsUsed[ni]||0)}/${total}</span>
     </div>`:''). join('');
     return`<div style="margin-bottom:10px;padding:10px;background:var(--surface2);border-radius:8px">
       <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Emplacements de sorts</div>
@@ -4736,21 +5018,44 @@ function tabEquipement(p){
   </div>`;
 }
 
+const _TYPE_ICON={M:'⚔',R:'🏹',ST:'🪄',RD:'🔱',WD:'✨',W:'✨',MA:'🛡',HA:'🛡',LA:'🛡',S:'🛡',A:'🪃',G:'🎒',RG:'💍',P:'🧪',SC:'📜','$':'💰'};
+function _itemType(name,invItem){
+  if(invItem&&invItem.itemType)return invItem.itemType;
+  if(typeof ITEMS_DB!=='undefined'&&ITEMS_DB){const found=ITEMS_DB.find(x=>x.n===name);if(found)return found.t||'';}
+  const arm=SRD.armors.find(a=>a.name===name);
+  if(arm)return arm.type==='Bouclier'?'S':arm.type==='Légère'?'LA':arm.type==='Intermédiaire'?'MA':'HA';
+  const wpn=SRD.weapons.find(w=>w.name===name);
+  if(wpn)return wpn.subtype&&wpn.subtype.includes('distance')?'R':'M';
+  return '';
+}
+function _slotAccepts(slotId,t){
+  if(!t)return true;
+  if(slotId==='chest')return['LA','MA','HA'].includes(t);
+  if(slotId==='mainhand')return['M','ST','RD','WD','R'].includes(t);
+  if(slotId==='offhand')return['M','ST','S'].includes(t);
+  if(slotId==='ranged')return t==='R';
+  return!['M','R','ST','RD','LA','MA','HA','S','A','$'].includes(t);
+}
+function _isTwoHanded(name){
+  const wpn=SRD.weapons.find(w=>w.name===name);
+  if(wpn&&wpn.properties&&wpn.properties.includes('deux mains'))return true;
+  if(typeof ITEMS_DB!=='undefined'&&ITEMS_DB){const found=ITEMS_DB.find(x=>x.n===name);if(found&&found.p&&found.p.toLowerCase().includes('two-handed'))return true;}
+  return false;
+}
 function _calcArmorCA(p){
   const abs=p.abilities||[10,10,10,10,10,10];
   const dexM=Math.floor((abs[1]-10)/2);
   const eq=p.equip||{};
   let base=null;
   if(eq.chest&&eq.chest.name){
-    const arm=SRD.armors.find(a=>a.name===eq.chest.name);
-    if(arm){
-      const ca=arm.ca||'';
-      if(ca.includes('max 2'))base=(parseInt(ca)||14)+Math.min(dexM,2);
-      else if(ca.includes('DEX'))base=(parseInt(ca)||11)+dexM;
-      else base=parseInt(ca)||10;
+    const caStr=eq.chest.ca||(SRD.armors.find(a=>a.name===eq.chest.name)||{}).ca||'';
+    if(caStr){
+      if(caStr.startsWith('+'))base=(10+dexM)+(parseInt(caStr)||0);
+      else if(caStr.includes('max 2'))base=(parseInt(caStr)||14)+Math.min(dexM,2);
+      else if(caStr.includes('DEX'))base=(parseInt(caStr)||11)+dexM;
+      else base=parseInt(caStr)||10;
     } else {
-      // Fallback: parse CA from the item description (e.g. "CA 16" or "CA 11 + DEX (max 2)")
-      const desc=(eq.chest.desc||'');
+      const desc=eq.chest.desc||'';
       const m=desc.match(/CA\s*(\d+)/i);
       if(m){
         const caBase=parseInt(m[1]);
@@ -4760,30 +5065,57 @@ function _calcArmorCA(p){
       }
     }
   }
-  if(base===null)base=10+dexM;
+  if(base===null){
+    const conM=Math.floor((abs[2]-10)/2);const sagM=Math.floor((abs[4]-10)/2);
+    const classes=p.classes||[];
+    const isBarbare=classes.some(c=>c.name==='Barbare');
+    const isMoine=classes.some(c=>c.name==='Moine');
+    if(isBarbare)base=10+dexM+conM;       // Défense sans armure Barbare : 10+DEX+CON
+    else if(isMoine)base=10+dexM+sagM;   // Défense sans armure Moine : 10+DEX+SAG
+    else base=10+dexM;
+  }
   if(eq.offhand&&eq.offhand.name){
     const shield=SRD.armors.find(a=>a.name===eq.offhand.name&&a.type==='Bouclier');
     if(shield)base+=2;
-    else{const desc=(eq.offhand.desc||'');if(desc.match(/bouclier|shield/i))base+=2;}
+    else{const t=_itemType(eq.offhand.name,eq.offhand);if(t==='S'||(eq.offhand.desc||'').match(/bouclier|shield/i))base+=2;}
   }
   // Ajouter les bonus de CA depuis les statuts (anneaux, objets magiques, etc.)
   const caBonus=(p.statuses||[]).filter(s=>s.stat==='ca'||s.stat==='CA').reduce((sum,s)=>sum+(parseInt(s.value)||0),0);
   return base+caBonus;
 }
 function openEquipSlot(slotId){
-  const p=P();const inv=(p.inventory||[]).filter(i=>i.name&&i.qty>0);
+  const p=P();
+  const allInv=(p.inventory||[]).filter(i=>i.name&&i.qty>0);
+  const inv=allInv.filter(item=>_slotAccepts(slotId,_itemType(item.name,item)));
   const SLOT_LABELS={head:'🪖 Tête',shoulders:'🧥 Épaules',chest:'🛡 Torse',hands:'🧤 Mains',legs:'👖 Jambes',feet:'👢 Pieds',neck:'📿 Cou',ring1:'💍 Anneau G',ring2:'💍 Anneau D',waist:'🪢 Ceinture',back:'🧣 Dos',mainhand:'⚔️ Main droite',offhand:'🗡️ Main gauche',ranged:'🏹 Distance'};
-  const isWeaponSlot=['mainhand','offhand','ranged'].includes(slotId);
-  const isArmorSlot=['chest','head','shoulders','hands','legs','feet','back','waist','neck','ring1','ring2'].includes(slotId);
-  let html='';
-  html+=`<div style="font-size:10px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">🎒 Depuis ton sac</div>`;
-  html+=inv.length?inv.map(item=>`<div class="aci" onclick="equipItem('${slotId}','${esc(item.name)}','${esc(item.desc||'')}',${item.magic||false},'${esc(item.linkedTo||'')}')"><div class="ain">${esc(item.name)}${item.magic?` <span class="magic-badge">✨</span>`:''}</div>${item.desc?`<div class="ais">${esc(item.desc)}</div>`:''}</div>`).join(''):`<div style="font-size:12px;color:var(--text3);padding:4px;font-style:italic">Sac vide.</div>`;
+  let html=`<div style="font-size:10px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">🎒 Depuis ton sac</div>`;
+  html+=inv.length?inv.map(item=>`<div class="aci" onclick="equipItem('${slotId}','${esc(item.name)}','${esc(item.desc||'')}',${item.magic||false},'${esc(item.linkedTo||'')}')"><div class="ain">${esc(item.name)}${item.magic?` <span class="magic-badge">✨</span>`:''}</div>${item.desc?`<div class="ais">${esc(item.desc)}</div>`:''}</div>`).join(''):`<div style="font-size:12px;color:var(--text3);padding:4px;font-style:italic">${allInv.length?'Aucun objet compatible dans le sac.':'Sac vide.'}</div>`;
   openModal(`<div class="pt">${SLOT_LABELS[slotId]||slotId}</div><div style="max-height:400px;overflow-y:auto">${html}</div><button class="btn bsm" style="width:100%;margin-top:8px" onclick="closeModal()">Fermer</button>`);
 }
 function equipItem(slotId,name,desc,magic,linkedTo){
   const p=P();if(!p.equip)p.equip={};
   if(!p.statuses)p.statuses=[];
-  // Retirer les anciens bonus de ce slot s'il y en avait
+  // Validation arme à deux mains → libère la main gauche automatiquement
+  if(slotId==='mainhand'&&_isTwoHanded(name)){
+    const oh=p.equip.offhand;
+    if(oh&&oh.name){
+      if(!p.inventory)p.inventory=[];
+      const ex=p.inventory.find(i=>i.name===oh.name);
+      if(ex)ex.qty++;else p.inventory.push({name:oh.name,qty:1,desc:oh.desc||'',magic:oh.magic,linkedTo:oh.linkedTo||''});
+      p.statuses=p.statuses.filter(s=>s.source!=='equip_offhand');
+      delete p.equip.offhand;
+      showToast('⚠️ '+name+' requiert deux mains — main gauche libérée.');
+    }
+  }
+  // Validation bouclier → bloque si arme 2 mains en main droite
+  if(slotId==='offhand'){
+    const t=_itemType(name,null);
+    if(t==='S'||(desc||'').match(/bouclier|shield/i)){
+      const mh=p.equip.mainhand;
+      if(mh&&mh.name&&_isTwoHanded(mh.name)){showToast('⚠️ Impossible — '+mh.name+' nécessite deux mains.');return;}
+    }
+  }
+  // Retirer les anciens bonus de ce slot
   p.statuses=p.statuses.filter(s=>s.source!=='equip_'+slotId);
   // Appliquer les statBonuses de l'objet s'il en a
   const invItem=(p.inventory||[]).find(i=>i.name===name);
@@ -4793,7 +5125,10 @@ function equipItem(slotId,name,desc,magic,linkedTo){
     });
     showToast('✨ Bonus appliqués : '+invItem.statBonuses.map(b=>(b.value>0?'+':'')+b.value+' '+b.stat.toUpperCase()).join(', '));
   }
-  p.equip[slotId]={name,desc,magic:magic||false,linkedTo:linkedTo||''};
+  // Stocker le ca depuis items_db si disponible (améliore _calcArmorCA pour armures magiques)
+  let caStr=null;
+  if(typeof ITEMS_DB!=='undefined'&&ITEMS_DB){const dbItem=ITEMS_DB.find(x=>x.n===name);if(dbItem&&dbItem.ac)caStr=String(dbItem.ac);}
+  p.equip[slotId]={name,desc,magic:magic||false,linkedTo:linkedTo||'',...(caStr?{ca:caStr}:{})};
   if(slotId==='chest'||slotId==='offhand'){const newCA=_calcArmorCA(p);if(p.ac!==newCA){p.ac=newCA;showToast('🛡 CA mise à jour : '+newCA);}}
   closeModal();render();}
 function unequipSlot(slotId){
@@ -4825,8 +5160,9 @@ function mjToggleArmorProf(type){
 // ═══════════════════════════════════════
 function tabSac(p){
   const inv=p.inventory||[];const cur=p.currency||{pc:0,pa:0,pe:0,po:0,pp:0};
-  const invRows=inv.length?inv.map((item,i)=>`<div class="inv-item" style="flex-direction:column;align-items:flex-start;gap:4px;${(item.qty||0)===0?'opacity:.6':''}">
+  const invRows=inv.length?inv.map((item,i)=>{const _t=_itemType(item.name,item);const _ico=_TYPE_ICON[_t]||'📦';return`<div class="inv-item" style="flex-direction:column;align-items:flex-start;gap:4px;${(item.qty||0)===0?'opacity:.6':''}">
     <div style="display:flex;align-items:center;gap:8px;width:100%">
+      <span style="font-size:15px;flex-shrink:0" title="${_t||'Objet'}">${_ico}</span>
       <span style="flex:1;font-size:13px;font-weight:600">${esc(item.name)}${item.magic?` <span class="magic-badge">✨${item.linkedTo?' '+esc(item.linkedTo):''}</span>`:''} ${(item.qty||0)===0?'<span style="font-size:10px;color:#e53935;font-weight:600;border:1px solid rgba(229,57,53,.4);border-radius:4px;padding:0 4px">Épuisé</span>':''}</span>
       <button class="btn bsm" style="padding:1px 6px;font-size:16px;line-height:1" onclick="adjustQty(${i},-1)">−</button>
       <input type="number" min="0" value="${item.qty||0}" style="width:38px;text-align:center;font-size:13px;font-weight:600;color:${(item.qty||0)===0?'#e53935':'var(--text)'};background:transparent;border:1px solid var(--border);border-radius:4px;padding:1px 2px;outline:none" onchange="setQty(${i},this.value)" onclick="this.select()">
@@ -4840,7 +5176,8 @@ function tabSac(p){
       <div>${Array.from({length:item.charges},(_,ci)=>`<span class="slot-bubble${ci>=(item.chargesUsed||0)?'':' used'}" onclick="toggleItemCharge(${i},${ci})"></span>`).join('')}</div>
       <span style="font-size:10px;color:var(--text3)">${item.charges-(item.chargesUsed||0)}/${item.charges}</span>
     </div>`:''}
-  </div>`).join(''):`<div style="font-size:12px;color:var(--text3);font-style:italic">Inventaire vide.</div>`;
+    ${(_t==='P'||_t==='SC')&&(item.qty||0)>0?`<div style="margin-top:4px"><button class="btn bsm" style="color:#7986cb;border-color:rgba(121,134,203,.4)" onclick="useConsumable(${i})">${_t==='P'?'🧪 Utiliser':'📜 Lancer'}</button></div>`:''}
+  </div>`;}).join(''):`<div style="font-size:12px;color:var(--text3);font-style:italic">Inventaire vide.</div>`;
   return`<div>
   <div class="panel mb10">
     <div class="pt" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
@@ -4886,6 +5223,20 @@ function toggleItemCharge(itemIdx,chargeIdx){
   else item.chargesUsed=Math.min(item.charges,chargeIdx+1);
   render();
 }
+function useConsumable(itemIdx){
+  const p=P();const item=p.inventory[itemIdx];if(!item||(item.qty||0)<=0)return;
+  const m=(item.desc||'').match(/(\d+)d(\d+)([+-]\d+)?/);
+  if(m){
+    let total=0;const rolls=[];
+    for(let i=0;i<parseInt(m[1]);i++){const r=Math.ceil(Math.random()*parseInt(m[2]));rolls.push(r);total+=r;}
+    if(m[3])total+=parseInt(m[3]);
+    showToast(`${item.itemType==='P'?'🧪':'📜'} <strong>${esc(item.name)}</strong> : [${rolls.join('+')}]${m[3]||''} = <strong style="font-size:16px;color:var(--cp)">${total}</strong>`);
+  } else {
+    showToast(`${item.itemType==='P'?'🧪':'📜'} <strong>${esc(item.name)}</strong> utilisé !${item.desc?' — '+esc(item.desc.slice(0,80)):''}`);
+  }
+  item.qty=Math.max(0,(item.qty||1)-1);
+  render();_markUnsaved();
+}
 function addPoolItemToSac(idx){
   const item=mjPool.customItems[idx];if(!item)return;
   const p=P();if(!p.inventory)p.inventory=[];
@@ -4916,12 +5267,25 @@ function openBourseModal(type){
 function confirmBourse(type){
   const p=P();const c=p.currency=p.currency||{};
   const isGain=type==='gagner';
-  ['pc','pa','pe','po','pp'].forEach(k=>{
-    const val=parseInt(document.getElementById('bm_'+k)?.value)||0;
-    if(isGain) c[k]=(c[k]||0)+val;
-    else c[k]=Math.max(0,(c[k]||0)-val);
-  });
-  autoConvertCurrency();
+  const PC_VALUE={pc:1,pa:10,pe:50,po:100,pp:1000};
+  const vals={};
+  ['pc','pa','pe','po','pp'].forEach(k=>{vals[k]=parseInt(document.getElementById('bm_'+k)?.value)||0;});
+  if(isGain){
+    ['pc','pa','pe','po','pp'].forEach(k=>{c[k]=(c[k]||0)+vals[k];});
+    autoConvertCurrency();
+  } else {
+    const totalCur=['pc','pa','pe','po','pp'].reduce((s,k)=>s+(c[k]||0)*PC_VALUE[k],0);
+    const totalPay=['pc','pa','pe','po','pp'].reduce((s,k)=>s+vals[k]*PC_VALUE[k],0);
+    if(totalPay===0){closeModal();return;}
+    if(totalPay>totalCur){showToast('❌ Pas assez de pièces !');return;}
+    let rem=totalCur-totalPay;
+    c.pp=Math.floor(rem/1000);rem%=1000;
+    c.po=Math.floor(rem/100);rem%=100;
+    c.pe=Math.floor(rem/50);rem%=50;
+    c.pa=Math.floor(rem/10);rem%=10;
+    c.pc=rem;
+    ['pc','pa','pe','po','pp'].forEach(k=>{const el=document.getElementById('bourse_'+k);if(el)el.textContent=c[k]||0;});
+  }
   closeModal();
   saveAll();
   showToast(isGain?'💰 Pièces reçues !':'💸 Paiement effectué.');
@@ -4944,7 +5308,6 @@ function removeInvItem(i){P().inventory.splice(i,1);render();}
 function adjustQty(i,delta){const p=P();if(!p.inventory[i])return;p.inventory[i].qty=Math.max(0,(p.inventory[i].qty||0)+delta);render();}
 function setQty(i,val){const p=P();if(!p.inventory[i])return;p.inventory[i].qty=Math.max(0,parseInt(val)||0);render();}
 function renderSrdList(q){
-  const TYPE_ICON={M:'⚔',S:'🗡',MA:'🛡',LA:'🛡',HA:'🛡',G:'🎒',W:'✨',R:'💍',RD:'🔱',ST:'🪄',WD:'🪄',P:'🧪',SC:'📜'};
   if(ITEMS_DB){
     const low=q.trim().toLowerCase();
     const res=[];
@@ -4955,7 +5318,7 @@ function renderSrdList(q){
     if(!res.length)return'<div style="font-size:11px;color:var(--text3);text-align:center;padding:6px">Aucun résultat.</div>';
     const suffix=!low&&ITEMS_DB.length>30?`<div style="font-size:10px;color:var(--text3);text-align:center;padding:4px">… et ${ITEMS_DB.length-30} autres — affinez la recherche</div>`:'';
     return res.map(({i,it})=>`<div class="aci" onclick="addCompendiumItem(${i})">
-      <div class="ain">${TYPE_ICON[it.t]||'📦'} ${esc(it.n)}${it.mg?' ✨':''}</div>
+      <div class="ain">${_TYPE_ICON[it.t]||'📦'} ${esc(it.n)}${it.mg?' ✨':''}</div>
       <div class="ais">${esc(it.d||'')}${it.d1?' — '+it.d1+(it.d2?' / '+it.d2:'')+(it.dt?' '+it.dt:''):''}${it.ac?' — CA '+it.ac:''}</div>
     </div>`).join('')+suffix;
   }
@@ -4969,7 +5332,12 @@ function filterSrdItems(q){
   el.innerHTML=renderSrdList(q);
   el.style.display='block';
 }
-function addSrdItem(name,stats,type){const p=P();_addToInventory(p,{name,qty:1,desc:`${type} — ${stats}`,magic:false,linkedTo:''});render();}
+function addSrdItem(name,stats,type){
+  const p=P();
+  const arm=SRD.armors.find(a=>a.name===name);
+  const itemType=arm?(arm.type==='Bouclier'?'S':arm.type==='Légère'?'LA':arm.type==='Intermédiaire'?'MA':'HA'):(SRD.weapons.find(w=>w.name===name)?(name.includes('Arc')||name.includes('Arbalète')?'R':'M'):'');
+  _addToInventory(p,{name,qty:1,desc:`${type} — ${stats}`,magic:false,linkedTo:'',itemType});render();
+}
 function addCompendiumItem(idx){
   const it=ITEMS_DB[idx];if(!it)return;
   const p=P();if(!p.inventory)p.inventory=[];
@@ -4978,7 +5346,7 @@ function addCompendiumItem(idx){
   if(it.d1)desc+=(desc?' — ':'')+it.d1+(it.d2?' / '+it.d2:'')+(it.dt?' '+it.dt:'');
   if(it.ac)desc+=(desc?' — ':'')+'CA '+it.ac;
   if(it.d&&!desc)desc=it.d;
-  _addToInventory(p,{name:it.n,qty:1,desc:desc.trim(),magic:!!it.mg,linkedTo:''});
+  _addToInventory(p,{name:it.n,qty:1,desc:desc.trim(),magic:!!it.mg,linkedTo:'',itemType:it.t||''});
   render();showToast(`✓ "${it.n}" ajouté au sac`);
 }
 
@@ -6280,6 +6648,36 @@ function showToast(html,duration=3000){let t=document.getElementById('toast');if
 function openMJCreateItem(){mjModal('item');}
 function openMJCreateSpell(){mjModal('spell');}
 function openMJCreateCombatFeat(){mjModal('feat');}
+const _TYPE_LABEL_TO_CODE={'Arme de mêlée':'M','Arme à distance':'R','Armure légère':'LA','Armure intermédiaire':'MA','Armure lourde':'HA','Bouclier':'S','Bâton / Baguette':'ST','Anneau':'RG','Potion':'P','Parchemin':'SC','Objet magique':'WD','Munitions':'A','Équipement / Divers':'G'};
+function _openMJCreateItem(){
+  openModal(`<div class="pt">🎲 Créer un objet</div>
+    <div class="fl mb6">Nom</div><input class="fi mb6" id="mjci_name" placeholder="Épée courte +1...">
+    <div class="g2" style="gap:8px;margin-bottom:8px">
+      <div><div class="fl mb6">Type</div>
+        <select class="fi" id="mjci_type">
+          ${Object.keys(_TYPE_LABEL_TO_CODE).map(l=>`<option value="${_TYPE_LABEL_TO_CODE[l]}">${_TYPE_ICON[_TYPE_LABEL_TO_CODE[l]]||'📦'} ${l}</option>`).join('')}
+        </select>
+      </div>
+      <div><div class="fl mb6">Magique ?</div>
+        <select class="fi" id="mjci_magic"><option value="0">Non</option><option value="1">Oui ✨</option></select>
+      </div>
+    </div>
+    <div class="fl mb6">Description (optionnel)</div>
+    <input class="fi mb10" id="mjci_desc" placeholder="Effets, bonus...">
+    <div style="display:flex;gap:8px">
+      <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
+      <button class="btn bac" style="flex:2" onclick="_confirmMJCreateItem()">✓ Ajouter au sac</button>
+    </div>`);
+}
+function _confirmMJCreateItem(){
+  const name=(document.getElementById('mjci_name')?.value||'').trim();
+  if(!name){showToast('❌ Nom requis.');return;}
+  const itemType=document.getElementById('mjci_type')?.value||'';
+  const magic=document.getElementById('mjci_magic')?.value==='1';
+  const desc=(document.getElementById('mjci_desc')?.value||'').trim();
+  _addToInventory(P(),{name,qty:1,desc,magic,linkedTo:'',itemType});
+  closeModal();render();showToast(`✓ "${name}" ajouté au sac.`);
+}
 function mjModal(type){
   if(type==='item')_openMJCreateItem();
   else if(type==='spell')_openMJCreateSpell();
@@ -6705,9 +7103,11 @@ function mjTabJoueurs(){
   return`<div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
       <div style="font-family:var(--F);font-size:12px;color:var(--cp)">${_mjPlayersData.length} joueur(s) <span style="font-size:10px;color:var(--text3);margin-left:4px">● Live</span></div>
-      <div style="display:flex;gap:6px">
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
         <button class="btn bsm" onclick="renderMJContent()">🔄 Actualiser</button>
         <button class="btn bsm" onclick="mjOpenCompendium()">📚 Compendium</button>
+        <button class="btn bsm" style="border-color:#7986cb;color:#7986cb" onclick="mjGroupRest('short')">☕ Repos court</button>
+        <button class="btn bsm" style="border-color:#5c6bc0;color:#5c6bc0" onclick="mjGroupRest('long')">🌙 Repos long</button>
         <button class="btn bsm bprimary" onclick="mjAddAllToCombat()">⚡ Tous en combat</button>
       </div>
     </div>
@@ -7333,6 +7733,14 @@ function _mjSnapshotEditData(){
   if(document.getElementById('mje_weaponprofs')){const v=getVal('mje_weaponprofs');p.weaponProfs=v?v.split(',').map(s=>s.trim()).filter(Boolean):[];}
   if(document.getElementById('mje_armorprofs')){const v=getVal('mje_armorprofs');p.armorProfs=v?v.split(',').map(s=>s.trim()).filter(Boolean):[];}
   ['languages','proficiencies','traits','ideals','bonds','flaws','backstory','secrets'].forEach(k=>{if(document.getElementById('mje_'+k))p[k]=getVal('mje_'+k);});
+  const xpAdd=parseInt(document.getElementById('mje_xp_add')?.value)||0;if(xpAdd>0){p.xp=(p.xp||0)+xpAdd;const el=document.getElementById('mje_xp_add');if(el)el.value='';}
+}
+function mjEditAddQuickXP(amount){
+  if(!_mjEditData||amount<=0)return;
+  _mjSnapshotEditData();
+  _mjEditData.p.xp=(_mjEditData.p.xp||0)+amount;
+  const el=document.getElementById('mje_xp_add');if(el)el.value='';
+  mjEditPlayerSheet(_mjEditData.idx);
 }
 function mjOpenFeatPicker(playerIdx){
   _mjSnapshotEditData();
@@ -7393,6 +7801,8 @@ function mjEditPlayerSheet(idx){
     ${sec('Classes & Niveaux')}
     <div id="mje_class_list" style="margin-bottom:4px">${_mjRenderClassList(classes)}</div>
     <button class="btn bsm" style="width:100%;margin-bottom:12px" onclick="mjEditAddClass()">+ Ajouter une classe</button>
+    ${sec('Expérience')}
+    ${(()=>{const _xpLvl=classes.reduce((s,c)=>s+(c.level||0),0);const _xpCur=p.xp||0;const _xpCurT=XP_LEVELS[_xpLvl-1]||0;const _xpNextT=XP_LEVELS[_xpLvl]||XP_LEVELS[19];const _xpPct=Math.min(100,Math.round(((_xpCur-_xpCurT)/Math.max(1,_xpNextT-_xpCurT))*100));const _xpToNext=Math.max(0,_xpNextT-_xpCur);return`<div style="margin-bottom:12px"><div style="display:flex;align-items:baseline;gap:6px;margin-bottom:4px"><span style="font-size:20px;font-weight:700;color:var(--cp)">${_xpCur.toLocaleString()}</span><span style="font-size:11px;color:var(--text3)">XP actuels • Niv. ${_xpLvl}</span></div><div class="xp-bar-wrap"><div class="xp-bar-fill" style="width:${_xpPct}%"></div></div><div style="font-size:11px;color:var(--text3);margin-bottom:8px">${_xpToNext>0?`${_xpToNext.toLocaleString()} XP jusqu'au niveau ${_xpLvl+1}`:`✨ Prêt pour le niveau ${_xpLvl+1} !`}</div><div style="display:flex;gap:6px;margin-bottom:6px"><input id="mje_xp_add" type="number" min="0" placeholder="XP à ajouter..." class="fi" style="flex:1;font-size:12px"><button class="btn bsm bac" onclick="mjEditAddQuickXP(parseInt(document.getElementById('mje_xp_add').value)||0)" style="white-space:nowrap">+ Ajouter</button></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">${[[25,'Gobelin tué'],[50,'Rencontre facile'],[100,'Rencontre moyenne'],[200,'Rencontre difficile'],[450,'Boss tué'],[1000,'Jalon narratif']].map(([xp,lbl])=>`<div class="xp-reward" onclick="mjEditAddQuickXP(${xp})">+${xp} XP — ${lbl}</div>`).join('')}</div></div>`;})()}
     ${sec('Stats de combat')}
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px">
       ${[['PV','hp',p.hp||0],['PV max','hpMax',p.hpMax||1],['CA','ac',p.ac||10],['Vit. (m)','speed',p.speed||9]].map(([label,id,val])=>`<div style="background:var(--surface2);border-radius:6px;padding:6px;text-align:center"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:3px">${label}</div><input id="mje_${id}" type="number" value="${val}" style="width:100%;text-align:center;background:transparent;border:none;color:var(--text);font-size:15px;font-weight:700;outline:none"></div>`).join('')}
@@ -7625,7 +8035,7 @@ function mjAddPlayerToCombat(idx){
   if(_mjCombatants.find(c=>c.uid===pp.uid)){showToast('Déjà dans le combat.');return;}
   const mods=(p.abilities||[0,0,0,0,0,0]).map(v=>Math.floor((v-10)/2));
   const {attacks,spells,traits}=_extractPlayerCombatData(p);
-  _mjCombatants.push({id:'player_'+pp.uid,name:p.charName||pp.playerName||'Joueur',hp:p.hp||p.hpMax||1,hpMax:p.hpMax||1,ac:p.ac||10,speed:p.speed||'',initiative:0,dexMod:mods[1]||0,conditions:[],isPlayer:true,avatar:pp.avatar||'⚔',uid:pp.uid,abilities:p.abilities||[10,10,10,10,10,10],attacks,spells,traits});
+  _mjCombatants.push({id:'player_'+pp.uid,name:p.charName||pp.playerName||'Joueur',hp:p.hp||p.hpMax||1,hpMax:p.hpMax||1,ac:p.ac||10,speed:(p.speed!=null?p.speed:9)+'m',initiative:0,dexMod:mods[1]||0,conditions:[],isPlayer:true,avatar:pp.avatar||'⚔',uid:pp.uid,abilities:p.abilities||[10,10,10,10,10,10],attacks,spells,traits});
   _mjCombatLog.push(`⚔ ${esc(p.charName||pp.playerName)} ajouté au combat.`);
   renderMJContent();
 }
@@ -7733,7 +8143,12 @@ function mjOpenAddMonster(){
       </div>
       <div id="mTrForm" style="display:none;background:var(--surface2);border-radius:8px;padding:10px;margin-bottom:8px">
         <input class="fi" id="mTr_name" placeholder="Nom (ex: Vision dans le noir, Résistance au feu...)" style="margin-bottom:6px">
-        <textarea class="fi" id="mTr_desc" rows="2" placeholder="Description du trait ou de la capacité..." style="resize:vertical;margin-bottom:8px"></textarea>
+        <textarea class="fi" id="mTr_desc" rows="2" placeholder="Description du trait ou de la capacité..." style="resize:vertical;margin-bottom:6px"></textarea>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px">
+          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Charges (0=passif)</div><input class="fi" id="mTr_uses" type="number" min="0" value="0"></div>
+          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Récupération</div><select class="fi" id="mTr_recovery"><option value="passive">Passif</option><option value="short">Repos court</option><option value="long">Repos long</option></select></div>
+          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Dé (ex: 2d6+3)</div><input class="fi" id="mTr_dice" placeholder="2d6+3"></div>
+        </div>
         <button class="btn bac bsm" style="width:100%" onclick="mjConfirmAddFormTrait()">✓ Confirmer ce trait</button>
       </div>
       <div id="mAdd_traitsList"><div style="font-size:11px;color:var(--text3);font-style:italic;padding:4px 0">Aucun trait défini</div></div>
@@ -7969,6 +8384,7 @@ function mjRenderTraitsList(){
         <div style="flex:1;min-width:0">
           <div style="font-size:12px;font-weight:600">${esc(t.name)}</div>
           ${t.desc?`<div style="font-size:11px;color:var(--text3)">${esc(t.desc)}</div>`:''}
+          ${(t.uses&&t.uses>0)||t.dice?`<div style="font-size:10px;color:var(--cp);margin-top:2px">${t.uses>0?t.uses+'× · '+(t.recovery==='short'?'Repos court':t.recovery==='long'?'Repos long':'Passif'):''}${t.dice?' · 🎲 '+esc(t.dice):''}</div>`:''}
         </div>
         <button class="btn bsm" style="color:#e53935;padding:1px 6px;flex-shrink:0" onclick="mjRemoveFormTrait(${i})">✕</button>
       </div>`).join('')
@@ -7978,13 +8394,91 @@ function mjRenderTraitsList(){
 function mjConfirmAddFormTrait(){
   const name=(document.getElementById('mTr_name')?.value||'').trim();
   if(!name){showToast('❌ Nom du trait requis.');return;}
-  _mjNewMonsterTraits.push({name,desc:(document.getElementById('mTr_desc')?.value||'').trim()});
-  ['mTr_name','mTr_desc'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const desc=(document.getElementById('mTr_desc')?.value||'').trim();
+  const uses=parseInt(document.getElementById('mTr_uses')?.value)||0;
+  const recovery=document.getElementById('mTr_recovery')?.value||'passive';
+  const dice=(document.getElementById('mTr_dice')?.value||'').trim();
+  const trait={name,desc};
+  if(uses>0){trait.uses=uses;trait.recovery=recovery;}
+  if(dice)trait.dice=dice;
+  _mjNewMonsterTraits.push(trait);
+  ['mTr_name','mTr_desc','mTr_dice'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const usesEl=document.getElementById('mTr_uses');if(usesEl)usesEl.value='0';
   const sf=document.getElementById('mTrForm')||document.getElementById('mEdTrForm');if(sf)sf.style.display='none';
   mjRenderTraitsList();
 }
 
 function mjRemoveFormTrait(i){_mjNewMonsterTraits.splice(i,1);mjRenderTraitsList();}
+function mjRollTrait(cIdx,tIdx){
+  const c=_mjCombatants[cIdx];if(!c)return;
+  const t=(c.traits||[])[tIdx];if(!t||!t.dice)return;
+  const m=t.dice.match(/(\d+)d(\d+)([+-]\d+)?/);
+  if(!m){showToast(`🎲 ${t.name} : formule non reconnue`);return;}
+  let total=0;const rolls=[];
+  for(let i=0;i<parseInt(m[1]);i++){const r=Math.ceil(Math.random()*parseInt(m[2]));rolls.push(r);total+=r;}
+  if(m[3])total+=parseInt(m[3]);
+  const el=document.getElementById('mjDiceResult');
+  if(el){el.style.display='block';el.innerHTML=`<strong>${esc(c.name)}</strong> — ${esc(t.name)}<br>🎲 [${rolls.join('+')}]${m[3]||''} = <span style="font-size:22px;font-weight:700;color:var(--cp)">${total}</span>`;}
+  _mjCombatLog.push(`🎲 ${esc(c.name)} ${esc(t.name)} : ${total}`);
+}
+function mjUseTraitCharge(cIdx,traitName,maxUses){
+  const c=_mjCombatants[cIdx];if(!c)return;
+  c.traitUses=c.traitUses||{};
+  const cur=c.traitUses[traitName]!==undefined?c.traitUses[traitName]:maxUses;
+  if(cur<=0){showToast('❌ Plus de charges disponibles !');return;}
+  c.traitUses[traitName]=cur-1;
+  mjOpenCombatDice(cIdx);
+}
+function mjRecoverTraitCharge(cIdx,traitName,maxUses){
+  const c=_mjCombatants[cIdx];if(!c)return;
+  c.traitUses=c.traitUses||{};
+  c.traitUses[traitName]=maxUses;
+  mjOpenCombatDice(cIdx);
+}
+function mjGroupRest(type){
+  if(!_mjPlayersData.length){showToast('Aucun joueur dans la campagne.');return;}
+  const label=type==='long'?'🌙 Repos long':'☕ Repos court';
+  const detail=type==='long'
+    ?'PV remis à fond, sorts, capacités et jets de mort réinitialisés.'
+    :'Capacités à repos court récupérées.';
+  openModal(`<div class="pt">${label} — Groupe</div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:16px">${detail}</p>
+    <div style="display:flex;gap:8px">
+      <button class="btn bsm bac" style="flex:1" onclick="mjGroupRestConfirm('${type}')">✓ Confirmer pour tous</button>
+      <button class="btn bsm bdanger" onclick="closeModal()">Annuler</button>
+    </div>`);
+}
+async function mjGroupRestConfirm(type){
+  closeModal();
+  let count=0;
+  for(const pp of _mjPlayersData){
+    if(!pp.uid||!pp.docId)continue;
+    const p=pp.charData||{};
+    const update={};
+    if(type==='long'){
+      update['characterData.hp']=p.hpMax||p.hp||0;
+      update['characterData.spellSlotsUsed']=[];
+      update['characterData.deathSaves']={success:0,fail:0};
+      update['characterData.conditions']=[];
+      update['characterData.combatCharges']={};
+      pp.charData.hp=p.hpMax||p.hp||0;pp.charData.spellSlotsUsed=[];
+      pp.charData.deathSaves={success:0,fail:0};pp.charData.conditions=[];pp.charData.combatCharges={};
+    } else {
+      const newCharges={...(p.combatCharges||{})};
+      (p.classes||[]).forEach(cls=>{
+        const d=SRD.classes.find(c=>c.name===cls.name);
+        if(d&&d.combatFeatures)d.combatFeatures.forEach(f=>{if(f.recovery==='short')delete newCharges[f.name];});
+      });
+      (p.customCombatFeats||[]).forEach(f=>{if(f.recovery==='short')delete newCharges[f.name];});
+      update['characterData.combatCharges']=newCharges;
+      pp.charData.combatCharges=newCharges;
+    }
+    try{await fbDb.collection('characters').doc(pp.docId).update(update);count++;}
+    catch(e){console.warn('Rest sync error',pp.uid,e);}
+  }
+  showToast(`${type==='long'?'🌙 Repos long':'☕ Repos court'} appliqué à ${count} joueur(s) !`);
+  renderMJContent();
+}
 
 async function _mjSaveCombatState(sorted,turnIdx){
   if(!currentUser||!currentCampaignId)return;
@@ -8083,10 +8577,20 @@ function mjOpenCombatDice(idx){
       </div>`).join('')
     :`<div style="text-align:center;padding:20px;color:var(--text3);font-style:italic">Aucun sort défini.<br><span style="font-size:11px">Utilisez ✏ Éditer pour en ajouter.</span></div>`;
   const traitsHtml=traits.length
-    ?traits.map(t=>`<div style="padding:8px;background:rgba(255,255,255,.04);border-radius:8px;margin-bottom:6px">
-        <div style="font-size:13px;font-weight:700;margin-bottom:2px">📜 ${esc(t.name)}</div>
-        ${t.desc?`<div style="font-size:12px;color:var(--text2)">${esc(t.desc)}</div>`:''}
-      </div>`).join('')
+    ?traits.map((t,ti)=>{
+      const hasUses=t.uses&&t.uses>0;
+      const maxUses=t.uses||0;
+      const remaining=hasUses?(c.traitUses&&c.traitUses[t.name]!==undefined?c.traitUses[t.name]:maxUses):0;
+      const recovLabel=t.recovery==='short'?'Repos court':t.recovery==='long'?'Repos long':'';
+      return`<div style="padding:8px;background:rgba(255,255,255,.04);border-radius:8px;margin-bottom:6px">
+        <div style="font-size:13px;font-weight:700;margin-bottom:4px">📜 ${esc(t.name)}</div>
+        ${t.desc?`<div style="font-size:12px;color:var(--text2);margin-bottom:6px">${esc(t.desc)}</div>`:''}
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          ${t.dice?`<button class="btn bsm bac" onclick="mjRollTrait(${idx},${ti})">🎲 ${esc(t.dice)}</button>`:''}
+          ${hasUses?`<div style="display:flex;gap:3px">${Array.from({length:maxUses},(_,bi)=>`<span class="slot-bubble${bi<remaining?'':' used'}" onclick="mjUseTraitCharge(${idx},'${esc(t.name)}',${maxUses})"></span>`).join('')}</div><span style="font-size:10px;color:var(--text3)">${remaining}/${maxUses}${recovLabel?' · '+recovLabel:''}</span><button class="btn bsm" style="padding:1px 6px" onclick="mjRecoverTraitCharge(${idx},'${esc(t.name)}',${maxUses})">↺</button>`:''}
+        </div>
+      </div>`;
+    }).join('')
     :`<div style="text-align:center;padding:20px;color:var(--text3);font-style:italic">Aucun trait défini.<br><span style="font-size:11px">Utilisez ✏ Éditer pour en ajouter.</span></div>`;
   openWideModal(`<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
     <div class="pt" style="margin:0;flex:1">🎲 ${esc(c.name)}</div>
@@ -8265,7 +8769,12 @@ function mjOpenEditMonster(idx){
       </div>
       <div id="mEdTrForm" style="display:none;background:var(--surface2);border-radius:8px;padding:10px;margin-bottom:8px">
         <input class="fi" id="mTr_name" placeholder="Nom du trait" style="margin-bottom:6px">
-        <textarea class="fi" id="mTr_desc" rows="2" placeholder="Description..." style="resize:vertical;margin-bottom:8px"></textarea>
+        <textarea class="fi" id="mTr_desc" rows="2" placeholder="Description..." style="resize:vertical;margin-bottom:6px"></textarea>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px">
+          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Charges (0=passif)</div><input class="fi" id="mTr_uses" type="number" min="0" value="0"></div>
+          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Récupération</div><select class="fi" id="mTr_recovery"><option value="passive">Passif</option><option value="short">Repos court</option><option value="long">Repos long</option></select></div>
+          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Dé (ex: 2d6+3)</div><input class="fi" id="mTr_dice" placeholder="2d6+3"></div>
+        </div>
         <button class="btn bac bsm" style="width:100%" onclick="mjConfirmAddFormTrait()">✓ Confirmer</button>
       </div>
       <div id="mEd_traitsList"></div>
@@ -8315,7 +8824,25 @@ function _mjSyncPlayerHp(c){
   if(!c.isPlayer||!c.uid||!currentCampaignId)return;
   clearTimeout(_mjHpSyncTimers[c.uid]);
   _mjHpSyncTimers[c.uid]=setTimeout(async()=>{
-    try{await fbDb.collection('characters').doc(c.uid+'_'+currentCampaignId).update({'characterData.hp':c.hp,'characterData.hpMax':c.hpMax});}
+    try{
+      const pp=_mjPlayersData.find(p=>p.docId===c.uid+'_'+currentCampaignId||p.charData?.uid===c.uid);
+      const inWs=pp&&pp.charData&&pp.charData.wildshape?.active;
+      if(inWs){
+        // Le joueur est en forme animale — syncer les PV de la bête
+        const overflow=Math.max(0,c.hp<0?-c.hp:0);
+        const beastHp=Math.max(0,c.hp);
+        const update={'characterData.wildshape.beast.hpCur':beastHp};
+        if(beastHp<=0){
+          // La bête tombe — déclencher le retour à la forme druide
+          const savedHp=Math.max(0,(pp.charData.wildshape.savedHp||0)-overflow);
+          Object.assign(update,{'characterData.hp':savedHp,'characterData.wildshape':firebase.firestore.FieldValue.delete()});
+        }
+        await fbDb.collection('characters').doc(c.uid+'_'+currentCampaignId).update(update);
+        c.hpMax=inWs?pp.charData.wildshape.beast.hpMax:c.hpMax;
+      } else {
+        await fbDb.collection('characters').doc(c.uid+'_'+currentCampaignId).update({'characterData.hp':c.hp,'characterData.hpMax':c.hpMax});
+      }
+    }
     catch(e){}
     delete _mjHpSyncTimers[c.uid];
   },800);
@@ -8606,7 +9133,12 @@ function mjOpenNPCForm(editIdx){
       </div>
       <div id="mTrForm" style="display:none;background:var(--surface2);border-radius:8px;padding:10px;margin-bottom:8px">
         <input class="fi" id="mTr_name" placeholder="Nom (ex: Vision dans le noir, Résistance au feu...)" style="margin-bottom:6px">
-        <textarea class="fi" id="mTr_desc" rows="2" placeholder="Description du trait ou de la capacité..." style="resize:vertical;margin-bottom:8px"></textarea>
+        <textarea class="fi" id="mTr_desc" rows="2" placeholder="Description du trait ou de la capacité..." style="resize:vertical;margin-bottom:6px"></textarea>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px">
+          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Charges (0=passif)</div><input class="fi" id="mTr_uses" type="number" min="0" value="0"></div>
+          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Récupération</div><select class="fi" id="mTr_recovery"><option value="passive">Passif</option><option value="short">Repos court</option><option value="long">Repos long</option></select></div>
+          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Dé (ex: 2d6+3)</div><input class="fi" id="mTr_dice" placeholder="2d6+3"></div>
+        </div>
         <button class="btn bac bsm" style="width:100%" onclick="mjConfirmAddFormTrait()">✓ Confirmer ce trait</button>
       </div>
       <div id="mAdd_traitsList"></div>
@@ -8702,8 +9234,7 @@ function mjTabObjets(){
 
 function mjFilterItems(q){
   const el=document.getElementById('itemResults');if(!el||!ITEMS_DB)return;
-  const TYPE_ICON={M:'⚔',S:'🗡',MA:'🛡',LA:'🛡',HA:'🛡',G:'🎒',W:'✨',R:'💍',RD:'🔱',ST:'🪄',WD:'🪄',P:'🧪',SC:'📜'};
-  if(!q.trim()){el.innerHTML=ITEMS_DB.slice(0,15).map((it,i)=>`<div class="charlib-item" style="padding:6px 8px;cursor:pointer" onclick="mjAddItemFromCompendium(${i})"><span style="font-size:16px">${TYPE_ICON[it.t]||'📦'}</span><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600">${esc(it.n)}</div><div style="font-size:11px;color:var(--text3)">${esc(it.d||'')}${it.mg?' ✨ Magique':''}</div></div><span style="color:var(--cp);font-size:11px;white-space:nowrap">+ Ajouter</span></div>`).join('');return;}
+  if(!q.trim()){el.innerHTML=ITEMS_DB.slice(0,15).map((it,i)=>`<div class="charlib-item" style="padding:6px 8px;cursor:pointer" onclick="mjAddItemFromCompendium(${i})"><span style="font-size:16px">${_TYPE_ICON[it.t]||'📦'}</span><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600">${esc(it.n)}</div><div style="font-size:11px;color:var(--text3)">${esc(it.d||'')}${it.mg?' ✨ Magique':''}</div></div><span style="color:var(--cp);font-size:11px;white-space:nowrap">+ Ajouter</span></div>`).join('');return;}
   const low=q.toLowerCase();
   const res=[];
   for(let i=0;i<ITEMS_DB.length&&res.length<30;i++){
@@ -8711,7 +9242,7 @@ function mjFilterItems(q){
   }
   const RARITY_MAP={'très rare':'Très rare','peu commun':'Peu commun','légendaire':'Légendaire','artefact':'Artefact','commun':'Commun','rare':'Rare'};
   el.innerHTML=res.length?res.map(({i,it})=>`<div class="charlib-item" style="padding:6px 8px;cursor:pointer" onclick="mjAddItemFromCompendium(${i})">
-    <span style="font-size:16px">${TYPE_ICON[it.t]||'📦'}</span>
+    <span style="font-size:16px">${_TYPE_ICON[it.t]||'📦'}</span>
     <div style="flex:1;min-width:0">
       <div style="font-size:12px;font-weight:600">${esc(it.n)}</div>
       <div style="font-size:11px;color:var(--text3)">${esc(it.d||'')}${it.mg?' ✨ Magique':''}</div>
@@ -8809,10 +9340,11 @@ async function mjGiveItem(itemIdx,playerIdx){
     const charDoc=await charRef.get();
     if(!charDoc.exists){showToast('❌ Personnage introuvable.');return;}
     const charData=charDoc.data().characterData||{};
-    const sac=charData.sac||{items:[]};
-    if(!sac.items)sac.items=[];
-    sac.items.push({name:item.name,qty:1,w:item.value?parseFloat(item.value)||0:0,notes:item.desc||''});
-    await charRef.update({'characterData.sac':sac});
+    if(!charData.inventory)charData.inventory=[];
+    const ex=charData.inventory.find(i=>i.name===item.name);
+    if(ex)ex.qty=(ex.qty||0)+1;
+    else charData.inventory.push({name:item.name,qty:1,desc:item.desc||'',magic:item.type==='Objet magique',linkedTo:'',itemType:_TYPE_LABEL_TO_CODE[item.type]||''});
+    await charRef.update({'characterData.inventory':charData.inventory});
     closeModal();
     showToast(`✅ "${esc(item.name||'?')}" donné à ${esc(pp.charData&&pp.charData.charName||pp.playerName||'?')} !`);
   }catch(e){showToast('❌ Erreur : '+e.message);}
