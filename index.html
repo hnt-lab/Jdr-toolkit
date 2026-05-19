@@ -2674,6 +2674,27 @@ const BEAST_FORMS=[
   {name:"Tigre à dents de sabre",icon:"🐅",cr:2,crD:"2",hpMax:52,ac:12,speed:"12m",ab:[18,14,15,3,12,8],swim:false,fly:false,attacks:[{name:"Morsure",bonus:6,dmg:"2d10+4",type:"perforant"},{name:"Griffes",bonus:6,dmg:"2d6+4",type:"tranchant"}],traits:["Saut amélioré (+4,5m / +3m hauteur)","Bond félin — si charge 6m → JS FOR DD14 ou à terre + action bonus Griffes","Odorat aiguisé"]},
   {name:"Sanglier géant",icon:"🐗",cr:2,crD:"2",hpMax:42,ac:12,speed:"12m",ab:[17,10,16,2,7,5],swim:false,fly:false,attacks:[{name:"Défenses",bonus:5,dmg:"2d6+3",type:"perforant"}],traits:["Charge — si déplace 6m avant attaque → JS FOR DD13 ou dégâts supp. et à terre","Inarrêtable — peut se relever sans utiliser de mouvement","Vigilance farouche — ne peut pas être surpris"]},
 ];
+// Familiers SRD — Trouver un familier + Pacte de la Chaîne
+const FAMILIAR_TYPES=[
+  {name:'Chauve-souris',icon:'🦇',hp:1,ac:12,speed:'Vol 9m',ab:[2,15,8,2,12,4],attacks:[],traits:['Écholocalisation — avantage ouïe (hors cécité/surdité)','Ouïe fine — avantage Perception (ouïe)']},
+  {name:'Chat',icon:'🐈',hp:2,ac:12,speed:'12m',ab:[3,15,10,3,12,7],attacks:[{name:'Griffes',bonus:0,dmg:'1',type:'tranchant'}],traits:['Sens aiguisés — avantage Perception (ouïe, odorat)']},
+  {name:'Crabe',icon:'🦀',hp:2,ac:11,speed:'6m, nage 6m',ab:[2,11,10,1,8,2],attacks:[{name:'Pince',bonus:0,dmg:'1',type:'tranchant'}],traits:['Amphibie — respire air et eau']},
+  {name:'Grenouille',icon:'🐸',hp:1,ac:11,speed:'6m, nage 6m',ab:[1,13,8,1,8,3],attacks:[],traits:['Amphibie — respire air et eau','Saut amélioré — +1,5m de distance']},
+  {name:'Faucon',icon:'🦅',hp:1,ac:13,speed:'Vol 18m',ab:[5,14,8,2,14,6],attacks:[{name:'Serres',bonus:4,dmg:'1',type:'tranchant'}],traits:['Ouïe et vue fines — avantage Perception (ouïe, vue)']},
+  {name:'Lézard',icon:'🦎',hp:2,ac:10,speed:'6m, escalade 6m',ab:[2,11,10,1,8,3],attacks:[{name:'Morsure',bonus:0,dmg:'1',type:'perforant'}],traits:[]},
+  {name:'Poulpe',icon:'🐙',hp:3,ac:12,speed:'1,5m, nage 9m',ab:[4,15,11,3,10,4],attacks:[{name:'Tentacules',bonus:4,dmg:'1',type:'contondant',special:'Cible agrippée (évasion DD10)'}],traits:['Amphibie — apnée 30 min','Camouflage — avantage Discrétion dans l\'eau','Tentacules portée 1m']},
+  {name:'Chouette',icon:'🦉',hp:1,ac:11,speed:'Vol 18m',ab:[3,13,8,2,12,7],attacks:[{name:'Serres',bonus:3,dmg:'1',type:'tranchant'}],traits:['Vol sur place — nul besoin de recul','Vision dans le noir 36m','Ouïe et vue fines — avantage Perception (ouïe, vue)']},
+  {name:'Rat',icon:'🐀',hp:1,ac:10,speed:'6m',ab:[2,11,10,2,10,4],attacks:[{name:'Morsure',bonus:0,dmg:'1',type:'perforant'}],traits:['Odorat fin — avantage Perception (odorat)']},
+  {name:'Corbeau',icon:'🐦',hp:1,ac:12,speed:'Vol 15m',ab:[2,14,8,2,12,6],attacks:[{name:'Bec',bonus:4,dmg:'1',type:'perforant'}],traits:['Imitation — imite sons entendus (Perspicacité DD10 pour différencier)']},
+  {name:'Cheval de mer',icon:'🐡',hp:1,ac:11,speed:'Nage 12m',ab:[1,12,8,1,10,2],attacks:[],traits:['Aquatique — ne peut respirer l\'air']},
+  {name:'Araignée',icon:'🕷️',hp:1,ac:12,speed:'6m, escalade 6m',ab:[2,14,8,2,10,2],attacks:[{name:'Morsure',bonus:4,dmg:'1 + venin',type:'perforant',special:'JS CON DD9 ou 2d4 venin'}],traits:['Vision dans le noir 9m','Sens des vibrations via toile 6m','Escalade (murs et plafonds)']},
+  {name:'Belette',icon:'🦡',hp:1,ac:13,speed:'9m',ab:[3,16,8,2,12,3],attacks:[{name:'Morsure',bonus:5,dmg:'1',type:'perforant'}],traits:['Ouïe et odorat fins — avantage Perception (ouïe, odorat)']},
+  // Pacte de la Chaîne — Occultiste niv. 3
+  {name:'Diablotin',icon:'😈',hp:10,ac:13,speed:'9m, vol 12m',ab:[6,17,13,11,12,14],attacks:[{name:'Dard',bonus:5,dmg:'1d4+3',type:'perforant',special:'JS CON DD11 ou 2d4 venin'}],traits:['Résistance à la magie — avantage contre sorts','Changeforme (araignée / rat / corbeau)','Vision dans le noir 36m','Résistances : froid, feu, foudre, venin']},
+  {name:'Pseudodragon',icon:'🐲',hp:7,ac:13,speed:'4,5m, vol 18m',ab:[6,15,13,10,12,10],attacks:[{name:'Morsure',bonus:4,dmg:'1d4+2',type:'perforant'},{name:'Dard',bonus:4,dmg:'1d4+2 + venin',type:'perforant',special:'JS CON DD11 ou endormi 1h'}],traits:['Résistance à la magie — avantage contre sorts','Sens magiques — détecte magie 10m','Télépathie limitée 30m avec son lien']},
+  {name:'Quasit',icon:'👿',hp:7,ac:13,speed:'7,5m',ab:[5,17,10,7,10,8],attacks:[{name:'Griffes',bonus:4,dmg:'1d4+3',type:'perforant',special:'JS CON DD10 ou empoisonné 1 min'}],traits:['Résistance à la magie — avantage contre sorts','Changeforme (chauve-souris / centipède / crapaud)','Invisibilité à volonté','Vision dans le noir 36m']},
+  {name:'Sylphe',icon:'🧚',hp:2,ac:15,speed:'3m, vol 15m',ab:[3,18,10,14,11,11],attacks:[{name:'Épée longue',bonus:2,dmg:'1',type:'tranchant'},{name:'Arc court',bonus:6,dmg:'1 + venin',type:'perforant',special:'JS CON DD10 ou endormi 1 min'}],traits:['Sens du cœur — détecte alignement et émotions à 9m','Invisibilité à volonté','Vol furtif — avantage Discrétion en vol']},
+];
 const ALIGNMENTS=["Loyal Bon","Neutre Bon","Chaotique Bon","Loyal Neutre","Neutre","Chaotique Neutre","Loyal Mauvais","Neutre Mauvais","Chaotique Mauvais"];
 const SKILLS=[
   {name:"Acrobaties",ab:1},{name:"Arcanes",ab:3},{name:"Athlétisme",ab:0},{name:"Discrétion",ab:1},
@@ -4379,6 +4400,37 @@ function tabCombat(p){
         <button class="btn bsm" onclick="P().spellSlotsUsed=P().spellSlotsUsed||[];P().spellSlotsUsed[9]=0;render()">↺ Repos court</button>
       </div>
     </div>`):''}
+  ${(()=>{
+    const fam=p.familiar;
+    const rodeurLvl=((p.classes||[]).find(c=>c.name==='Rôdeur')||{}).level||0;
+    const magLvl=((p.classes||[]).find(c=>c.name==='Magicien')||{}).level||0;
+    const occLvl=((p.classes||[]).find(c=>c.name==='Occultiste')||{}).level||0;
+    const showFamiliar=fam||(magLvl||occLvl||rodeurLvl);
+    if(!showFamiliar)return'';
+    if(!fam||!fam.active){
+      return cs('cs-familiar',`<div class="panel mb10"><div class="pt" style="display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span><span>🦉 Familier</span></div><button class="btn bsm" onclick="openFamiliarModal()">⚙ Configurer</button></div>
+        ${fam&&!fam.active?`<div style="font-size:12px;color:var(--text3);margin-bottom:8px">🦉 <em>${fam.name}</em> est actuellement dissipé dans le plan éthéré.</div><button class="btn bsm bac" onclick="recallFamiliar()">🦉 Reconvoquer</button>`:`<div style="font-size:12px;color:var(--text3)">Aucun familier actif. Configurez-en un pour le suivre ici.</div>`}
+      </div>`);
+    }
+    const fpct=Math.round(fam.hpCur/Math.max(1,fam.hpMax)*100);
+    const fhpColor=fpct>50?'#4caf50':fpct>25?'#ff9800':'#e53935';
+    return cs('cs-familiar',`<div class="panel mb10" style="border-color:rgba(200,168,75,.35)"><div class="pt" style="display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span><span>${fam.icon} Familier — ${fam.name}</span></div><div style="display:flex;gap:6px"><button class="btn bsm" onclick="openFamiliarModal()" title="Configurer">⚙</button><button class="btn bsm bdanger" onclick="revokeFamiliar()">✕ Révoquer</button></div></div>
+      <div class="g3 mb6">
+        <div class="sb hi"><div class="sn">PV</div><div style="font-size:18px;font-weight:700;color:${fhpColor}">${fam.hpCur}</div><div class="sm">${fam.hpCur}/${fam.hpMax}</div></div>
+        <div class="sb"><div class="sn">CA</div><div style="font-size:18px;font-weight:700">${fam.ac}</div></div>
+        <div class="sb"><div class="sn">Vitesse</div><div style="font-size:10px;font-weight:600;line-height:1.3">${fam.speed}</div></div>
+      </div>
+      <div class="hp-bar mb6"><div class="hp-fill" style="width:${fpct}%;background:${fhpColor}"></div></div>
+      <div class="hp-ctrl mb8">
+        <input class="fi" id="famHpDelta" type="number" placeholder="montant" style="width:70px">
+        <button class="btn bsm" style="background:#b71c1c;color:#fff;border-color:#b71c1c" onclick="applyFamiliarHp(-1)">Dégâts</button>
+        <button class="btn bsm" style="background:#2e7d32;color:#fff;border-color:#2e7d32" onclick="applyFamiliarHp(1)">Soins</button>
+      </div>
+      <div class="g6 mb8">${ABILITIES_SH.map((ab,i)=>`<div class="sb" style="padding:3px"><div class="sn" style="font-size:9px">${ab}</div><div style="font-size:12px;font-weight:600">${fam.ab[i]}</div><div class="sm" style="font-size:9px">${fmt(Math.floor((fam.ab[i]-10)/2))}</div></div>`).join('')}</div>
+      ${fam.attacks.length?`<div style="margin-bottom:8px"><div class="fl mb4">Attaques</div>${fam.attacks.map(a=>`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 10px;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center"><div><strong style="font-size:12px">${a.name}</strong>${a.special?`<div style="font-size:10px;color:var(--text3)">${a.special}</div>`:''}</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:11px;color:var(--text2)">+${a.bonus} / <strong>${a.dmg}</strong> ${a.type}</span>${a.dmg&&a.dmg.includes('d')?`<button class="btn bsm" onclick="rollCustomDmg('${a.dmg}','${a.name}')">🎲</button>`:''}</div></div>`).join('')}</div>`:''}
+      ${fam.traits.length?`<div><div class="fl mb4">Traits</div>${fam.traits.map(t=>`<div style="font-size:11px;color:var(--text2);padding:2px 0">▹ ${t}</div>`).join('')}</div>`:''}
+    </div>`);
+  })()}
   ${(!wsC?.active||druLvl>=18)&&hasCaster?cs('cs-sorts',`<div class="panel"><div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>Sorts</div>
       <div class="g3 mb10">
         <div class="sb hi"><div class="sn">Bonus sort</div><div style="font-size:18px;font-weight:600;color:var(--cp)">${fmt(pb(lvl)+spellMod)}</div></div>
@@ -4499,6 +4551,66 @@ function revertWildshape(){
   p.hp=p.wildshape.savedHp;
   delete p.wildshape;
   saveAll();render();showToast(`🧝 Retour à la forme de druide. PV restaurés : ${p.hp}/${p.hpMax}`);
+}
+// ── FAMILIER ──
+function openFamiliarModal(){
+  const p=P();const fam=p.familiar;
+  openWideModal(`<div class="pt">🦉 Configurer un familier</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Familiers classiques (Trouver un familier) et Pacte de la Chaîne (Occultiste niv.3). Choisissez un type SRD ou modifiez ses PV/CA librement après.</div>
+    <div id="famGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:6px;max-height:38vh;overflow-y:auto;margin-bottom:10px">
+      ${FAMILIAR_TYPES.map((f,i)=>`<div onclick="famShowDetail(${i})" style="background:var(--surface2);border:1px solid ${fam&&fam.name===f.name?'var(--cp)':'var(--border)'};border-radius:8px;padding:8px 6px;cursor:pointer;text-align:center;transition:all .15s" onmouseover="this.style.borderColor='var(--cp)'" onmouseout="this.style.borderColor='${fam&&fam.name===f.name?'var(--cp)':'var(--border)'}'">
+        <div style="font-size:22px;margin-bottom:3px">${f.icon}</div>
+        <div style="font-size:10px;font-weight:600;line-height:1.2">${f.name}</div>
+        <div style="font-size:9px;color:var(--text3);margin-top:2px">${f.attacks.length?'⚔ Attaque':'🕊 Passif'}</div>
+      </div>`).join('')}
+    </div>
+    <div id="famDetail" style="min-height:80px"></div>
+    <div style="display:flex;justify-content:flex-end;margin-top:10px;gap:8px">
+      ${fam?`<button class="btn bsm bdanger" onclick="removeFamiliar()">Supprimer</button>`:''}
+      <button class="btn bsm" onclick="closeWideModal()">Annuler</button>
+    </div>`);
+  if(fam){const idx=FAMILIAR_TYPES.findIndex(f=>f.name===fam.name);if(idx>=0)famShowDetail(idx);}
+}
+function famShowDetail(idx){
+  const f=FAMILIAR_TYPES[idx];const el=document.getElementById('famDetail');if(!el)return;
+  el.innerHTML=`<div style="background:rgba(200,168,75,.06);border:1px solid rgba(200,168,75,.2);border-radius:10px;padding:12px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <span style="font-size:30px">${f.icon}</span>
+      <div><div style="font-size:14px;font-weight:700;color:var(--cp)">${f.name}</div><div style="font-size:11px;color:var(--text3)">PV ${f.hp} • CA ${f.ac} • ${f.speed}</div></div>
+    </div>
+    <div class="g6 mb8">${ABILITIES_SH.map((ab,i)=>`<div class="sb" style="padding:3px"><div class="sn" style="font-size:9px">${ab}</div><div style="font-size:13px;font-weight:600">${f.ab[i]}</div><div class="sm" style="font-size:9px">${fmt(Math.floor((f.ab[i]-10)/2))}</div></div>`).join('')}</div>
+    ${f.attacks.length?`<div style="margin-bottom:8px"><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Attaques</div>${f.attacks.map(a=>`<div style="font-size:12px;color:var(--text2);padding:2px 0">${a.name} : <strong>+${a.bonus}</strong> / ${a.dmg} ${a.type}${a.special?` • <em style="font-size:11px">${a.special}</em>`:''}</div>`).join('')}</div>`:''}
+    ${f.traits.length?`<div style="margin-bottom:10px"><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Traits</div>${f.traits.map(t=>`<div style="font-size:11px;color:var(--text2);padding:2px 0">▹ ${t}</div>`).join('')}</div>`:''}
+    <button class="btn bac" style="width:100%;margin-top:4px" onclick="setFamiliar(${idx})">🦉 Convoquer ce familier</button>
+  </div>`;
+}
+function setFamiliar(idx){
+  const p=P();const f=FAMILIAR_TYPES[idx];
+  p.familiar={name:f.name,icon:f.icon,hpMax:f.hp,hpCur:f.hp,ac:f.ac,speed:f.speed,ab:[...f.ab],attacks:f.attacks.map(a=>({...a})),traits:[...f.traits],active:true};
+  closeWideModal();saveAll();render();showToast(`🦉 ${f.name} convoqué !`);
+}
+function revokeFamiliar(){
+  const p=P();if(!p.familiar)return;
+  p.familiar.active=false;saveAll();render();showToast('🦉 Familier renvoyé dans le plan éthéré.');
+}
+function recallFamiliar(){
+  const p=P();if(!p.familiar)return;
+  p.familiar.hpCur=p.familiar.hpMax;p.familiar.active=true;
+  saveAll();render();showToast(`🦉 ${p.familiar.name} reconvoqué !`);
+}
+function removeFamiliar(){
+  const p=P();delete p.familiar;closeWideModal();saveAll();render();showToast('🦉 Familier supprimé.');
+}
+function applyFamiliarHp(sign){
+  const p=P();const fam=p.familiar;if(!fam?.active)return;
+  const delta=parseInt(document.getElementById('famHpDelta')?.value)||0;if(delta<=0)return;
+  if(sign<0){
+    fam.hpCur=Math.max(0,fam.hpCur-delta);
+    if(fam.hpCur<=0){fam.active=false;showToast('💀 Le familier tombe à 0 PV et se dissipe !');}
+  } else {
+    fam.hpCur=Math.min(fam.hpMax,fam.hpCur+delta);
+  }
+  saveAll();render();
 }
 function _spendImpositionMains(amount){const p=P();const mx=((p.classes||[]).find(c=>c.name==='Paladin')||{}).level*5||0;if(!p.combatCharges)p.combatCharges={};const cur=p.combatCharges['ImpositionMains']!==undefined?p.combatCharges['ImpositionMains']:mx;if(cur<amount){showToast('❌ Pas assez de PV dans le réservoir !');return;}p.combatCharges['ImpositionMains']=cur-amount;render();}
 function _restoreImpositionMains(){const p=P();const mx=((p.classes||[]).find(c=>c.name==='Paladin')||{}).level*5||0;if(!p.combatCharges)p.combatCharges={};p.combatCharges['ImpositionMains']=mx;render();}
@@ -7140,6 +7252,7 @@ function mjTabJoueurs(){
           <button class="btn bsm" onclick="mjShowPlayerDetail(${i})">📋 Fiche</button>
           <button class="btn bsm" onclick="mjEditPlayerSheet(${i})">✏ Modifier</button>
           <button class="btn bsm bprimary" onclick="mjAddPlayerToCombat(${i})">⚡ Combat</button>
+          ${p.familiar?.active?`<button class="btn bsm" style="border-color:rgba(200,168,75,.5);color:var(--cp)" onclick="mjAddFamiliarToCombat(${i})" title="Ajouter le familier au combat">🦉 ${esc(p.familiar.name)}</button>`:''}
           <button class="btn bsm" style="color:#e53935;border-color:rgba(229,57,53,.3)" onclick="mjModerationModal(${i})" title="Modérer ce joueur">🗑</button>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:8px">
@@ -8049,6 +8162,23 @@ function mjAddPlayerToCombat(idx){
   renderMJContent();
 }
 
+function mjAddFamiliarToCombat(playerIdx){
+  const pp=_mjPlayersData[playerIdx];if(!pp)return;
+  const fam=(pp.charData||{}).familiar;if(!fam?.active){showToast('❌ Ce joueur n\'a pas de familier actif.');return;}
+  const famId='familiar_'+pp.uid;
+  if(_mjCombatants.find(c=>c.id===famId)){showToast('🦉 Déjà dans le combat.');return;}
+  const mods=(fam.ab||[]).map(v=>Math.floor((v-10)/2));
+  _mjCombatants.push({
+    id:famId,name:fam.name+' (familier de '+((pp.charData||{}).charName||pp.playerName||'joueur')+')',
+    hp:fam.hpCur,hpMax:fam.hpMax,ac:fam.ac,speed:fam.speed||'?',
+    initiative:0,dexMod:mods[1]||0,conditions:[],isPlayer:false,avatar:fam.icon||'🦉',
+    abilities:fam.ab||[10,10,10,10,10,10],
+    attacks:fam.attacks||[],spells:[],
+    traits:(fam.traits||[]).map(t=>({name:'Trait',desc:t,uses:0,dice:''})),
+  });
+  _mjCombatLog.push(`🦉 ${esc(fam.name)} (familier) ajouté au combat.`);
+  renderMJContent();showToast(`🦉 ${fam.name} ajouté au combat !`);
+}
 function mjAddAllToCombat(){
   _mjPlayersData.forEach((_,i)=>mjAddPlayerToCombat(i));
 }
