@@ -2339,7 +2339,7 @@ async function enterCampaign(tableId,campaignId,tName,cName,preloadedCharData){
       showApp();
       await loadMJPool();
       _suppressUnsavedMark=true;render();
-      if(!localStorage.getItem('tuto_fiche_done')&&state.players[0]?.classes?.length>0) setTimeout(()=>startTutorial('fiche'),800);
+      if(!localStorage.getItem('tuto_fiche_done')&&state.players[0]?.created) setTimeout(()=>startTutorial('fiche'),800);
       // Lance les listeners temps réel
       currentTableMjId=tableData?.mjId||null;
       stopAllListeners();
@@ -3509,6 +3509,7 @@ function confirmCreation(){
   p.combatCharges={};
   p.xp=0;p.created=true;state.activeTab='perso';resetCS();render();
   showToast(`🎉 ${p.charName} est prêt à l'aventure !`);
+  if(!localStorage.getItem('tuto_fiche_done')) setTimeout(()=>startTutorial('fiche'),1200);
 }
 
 // ═══════════════════════════════════════
