@@ -579,6 +579,7 @@ let _mjRenderDebounce=null;
 let _unsaved=false;
 let _suppressUnsavedMark=false;
 let _saveDebounce=null;
+let _ownWritePending=false;
 let _userInfoCache={};
 function stopAllListeners(){_unsubscribes.forEach(fn=>{try{fn();}catch(e){}});_unsubscribes=[];}
 window.addEventListener('beforeunload',()=>{if(_unsaved){clearTimeout(_saveDebounce);try{localStorage.setItem(getUserSK(),JSON.stringify(state));}catch(e){}}});
@@ -647,11 +648,11 @@ function startPlayerListener(campaignId){
   const docId=currentUser.uid+'_'+campaignId;
   const unsub=fbDb.collection('characters').doc(docId)
     .onSnapshot(snap=>{
-      // Ignore si c'est notre propre écriture en attente
       if(!snap.exists||snap.metadata.hasPendingWrites)return;
+      // Ignorer notre propre sauvegarde (évite re-render + fermeture de modals)
+      if(_ownWritePending){_ownWritePending=false;return;}
       const newData=snap.data()?.characterData;
       if(!newData)return;
-      // Ne re-render que si les données ont vraiment changé
       if(JSON.stringify(state.players[0])===JSON.stringify(newData))return;
       state.players[0]=newData;
       _suppressUnsavedMark=true;render();
@@ -939,15 +940,14 @@ function openHubPlayerSheet(uid,campId){
 
 // Tuto 1 — Joueur (hub, profil, groupe, campagne)
 const _TUTO_PLAYER=[
-  {icon:'🧰',title:'Bienvenue dans La Boîte à Outils !',text:'Ton compagnon numérique pour D&D 5e. Fiche de personnage, suivi de combat, sorts, inventaire, monnaie — tout en un, synchronisé en temps réel avec ton MJ.'},
-  {icon:'🏠',title:'Le Hub — ta page d\'accueil',text:'C\'est d\'ici que tout part. Rejoins une campagne avec le code donné par ton MJ, ou crée ta propre table pour tester l\'outil. Toutes tes tables apparaissent ici.'},
-  {icon:'🧑',title:'Rejoindre une campagne',text:'Quand tu rejoins une campagne pour la première fois, une fiche de personnage est créée automatiquement. Tu la remplis à ton rythme — nom, race, classe, stats... Un guide dédié à la fiche est disponible dans ton Profil.'},
-  {icon:'📥',title:'Importer un personnage',text:'Tous tes personnages sont sauvegardés dans ta bibliothèque, accessible depuis ton Profil. Si tu rejoins une nouvelle campagne, tu peux y importer un personnage existant en quelques clics — sans rien perdre.'},
-  {icon:'📋',title:'Menu campagne',text:'Sur la carte d\'une campagne, tu trouveras la description et la liste des membres. L\'icône 📋 à droite ouvre ta fiche ou celle de n\'importe quel participant. Clique sur "👥 Rejoindre le groupe" pour partir à l\'aventure et suivre l\'état du groupe en temps réel.'},
-  {icon:'👥',title:'Le menu Groupe',text:'Le bouton 👥 en bas à gauche est disponible partout — hub et fiche. Il affiche les PV, conditions et ressources de tous tes alliés en temps réel. Un badge rouge signale un allié en danger (PV < 25%) et les cooldowns de capacité s\'affichent directement sur chaque carte.'},
-  {icon:'👤',title:'Ton profil',text:'Accède à ton profil via le bouton 👤 en haut à droite. Tu peux y gérer tes personnages, tes compendiums et ton compte, modifier tes identifiants, et revoir les guides de La Boîte à Outils à tout moment.'},
-  {icon:'💬',title:'Donner un retour',text:'Un formulaire de feedback est accessible depuis ton Profil. Retours, questions, bugs, idées — tout est bienvenu. Tes retours aident directement à améliorer l\'outil pour toute la communauté.'},
-  {icon:'⚔️',title:'Combats',text:'Lorsque le MJ lance le combat, une bannière violette apparaît en haut de ta fiche quand c\'est ton tour. Clique sur ⏩ Fin de tour pour passer la main — le MJ et tes alliés le voient instantanément.'},
+  {icon:'🧰',title:'Bienvenue dans La Boîte à Outils !',text:'Ton compagnon numérique pour D&D 5e. Fiche de personnage, suivi de combat, sorts, inventaire, monnaie — tout en un, synchronisé en temps réel avec ton MJ.',sel:'#hubScreen'},
+  {icon:'🏠',title:'Le Hub — ta page d\'accueil',text:'C\'est d\'ici que tout part. Rejoins une campagne avec le code donné par ton MJ, ou crée ta propre table pour tester l\'outil. Toutes tes tables apparaissent ici.',sel:'#hubContent'},
+  {icon:'🧑',title:'Rejoindre une campagne',text:'Quand tu rejoins une campagne pour la première fois, une fiche de personnage est créée automatiquement. Tu la remplis à ton rythme — nom, race, classe, stats... Un guide dédié à la fiche est disponible dans ton Profil.',sel:'.hub-section'},
+  {icon:'📥',title:'Ton profil & ta bibliothèque',text:'Accède à ton profil via le bouton 👤 en haut à droite. Tu peux y gérer tes personnages, tes compendiums et ton compte. Si tu rejoins une nouvelle campagne, importe un personnage existant depuis ta bibliothèque — sans rien perdre.',sel:'#hubUserBtn'},
+  {icon:'📋',title:'Menu campagne',text:'Sur la carte d\'une campagne, tu trouveras la description et la liste des membres. L\'icône 📋 à droite ouvre ta fiche ou celle de n\'importe quel participant. Clique sur "👥 Rejoindre le groupe" pour partir à l\'aventure.',sel:'.hub-card'},
+  {icon:'👥',title:'Le menu Groupe',text:'Le bouton 👥 en bas à gauche est disponible partout — hub et fiche. Il affiche les PV, conditions et ressources de tous tes alliés en temps réel. Un badge rouge signale un allié en danger (PV < 25%).',sel:'#partyHudBtn'},
+  {icon:'💬',title:'Donner un retour',text:'Un formulaire de feedback est accessible depuis ton Profil. Retours, questions, bugs, idées — tout est bienvenu. Tes retours aident directement à améliorer l\'outil pour toute la communauté.',sel:'#hubUserBtn'},
+  {icon:'⚔️',title:'Combats',text:'Lorsque le MJ lance le combat, une bannière violette apparaît en haut de ta fiche quand c\'est ton tour. Clique sur ⏩ Fin de tour pour passer la main — le MJ et tes alliés le voient instantanément.',sel:null},
 ];
 
 // Tuto 2 — Fiche personnage, onglet par onglet
@@ -965,20 +965,18 @@ const _TUTO_FICHE=[
   {icon:'⭐',title:'Onglet XP',text:'Ton expérience et ton niveau. Le MJ peut t\'attribuer de l\'XP directement. Quand tu passes un niveau, un onglet ⬆ Niveau + apparaît pour choisir tes améliorations.',tab:'xp',sel:'#tabBar .tab:nth-child(9)'},
   {icon:'🎲',title:'Le bouton dé',text:'Le bouton 🎲 en bas à droite est ton lanceur de dés rapide. Un appui court ouvre le panneau complet — d4, d6, d8, d10, d12, d20, d100. Un appui long affiche des raccourcis vers le Journal et ton onglet Perso.',tab:null,sel:'#diceFloat'},
   {icon:'🔒',title:'Confidentialité',text:'Le cadenas 🔒 en bout de barre d\'onglets te permet de choisir les onglets que les autres joueurs peuvent voir. Chaque onglet peut être rendu public ou privé.',tab:'perso',sel:'#tabBar .tab[onclick*="openPrivacySettings"]'},
-  {icon:'💾',title:'Sauvegarde automatique',text:'Toutes tes modifications sont sauvegardées automatiquement quelques secondes après chaque changement. Tu n\'as rien à faire — même si tu fermes l\'onglet, la dernière version est sécurisée. (Ce serait bête de perdre du loot)',tab:null,sel:null},
 ];
 
 // Tuto 3 — Maître du Jeu
 const _TUTO_MJ=[
-  {icon:'🏠',title:'Créer ta table — devenir MJ',text:'Tout commence dans le Hub : crée une table et tu en deviens automatiquement le Maître du Jeu. Tu obtiens un code à partager avec tes joueurs. Tu peux créer plusieurs campagnes par table et tout gérer en parallèle.'},
-  {icon:'🎲',title:'L\'interface MJ',text:'Depuis la carte de ta campagne dans le Hub, clique sur "🎲 Gérer la campagne" pour accéder à ton interface. Ce bouton n\'est visible que par toi — tes joueurs ne le voient pas.'},
-  {icon:'📋',title:'Les participants',text:'Sur chaque carte de campagne dans le Hub, tu vois les participants avec leur portrait et leur classe. L\'icône 📋 ouvre leur fiche en lecture seule — tu as accès à tous les onglets, même les privés.'},
-  {icon:'👤',title:'Onglet Joueurs',text:'Vois les PV, CA, initiative et conditions de chaque joueur en temps réel. Tu peux modifier leurs stats directement (soins, dégâts, conditions) — ils voient les changements instantanément.'},
-  {icon:'⚔️',title:'Onglet Combat',text:'L\'onglet Combat brille en violet quand un combat est en cours, et affiche un liseré doré en veille. Lance l\'initiative, ajoute joueurs et monstres. Le bouton ▶ Tour suivant notifie automatiquement le joueur concerné.'},
-  {icon:'🐉',title:'PNJ & Monstres',text:'Crée des PNJ personnalisés ou importe depuis le compendium de 322 monstres avec leurs stats préremplies. Gère leurs PV et lance leurs attaques depuis l\'onglet Combat pendant la session.'},
-  {icon:'📚',title:'Onglet Règles',text:'Référence rapide en jeu : actions de combat, couverture, conditions, repos, exhaustion, magie sauvage... Consulte-la sans quitter l\'interface MJ. Plus besoin d\'ouvrir le livre.'},
-  {icon:'🧰',title:'Compendiums personnalisés',text:'Dans 👤 Profil → Mes compendiums, crée des recueils de sorts, objets ou capacités maison. Tu peux en créer plusieurs, les nommer, les exporter et les partager. Chaque table peut avoir un compendium différent.'},
-  {icon:'🔄',title:'Synchronisation',text:'Tout ce que tu fais est visible instantanément par tes joueurs — PV, conditions, tours de combat. Et inversement, tu vois leurs modifications en temps réel. Fini les "attends je note ça" en cours de partie.'},
+  {icon:'🎲',title:'Interface Maître du Jeu',text:'Bienvenue dans ton espace MJ. Depuis ici, tu coordonnes ta campagne en temps réel — joueurs, combat, PNJ, règles. Parcourons chaque onglet ensemble.',mjTab:'joueurs',sel:'#mjTabContent'},
+  {icon:'👤',title:'Onglet Joueurs',text:'Vois les PV, CA, initiative et conditions de chaque joueur en temps réel. Tu peux modifier leurs stats directement (soins, dégâts, conditions) — ils voient les changements instantanément. Tu peux aussi leur donner de l\'XP.',mjTab:'joueurs',sel:'#mjTabContent'},
+  {icon:'⚔️',title:'Onglet Combat',text:'L\'onglet Combat brille en violet quand un combat est en cours, et affiche un liseré doré en veille. Lance l\'initiative, ajoute joueurs et monstres. Le bouton ▶ Tour suivant notifie automatiquement le joueur concerné.',mjTab:'combat',sel:'#mjTabContent'},
+  {icon:'🐉',title:'Onglet PNJ / Monstres',text:'Crée des PNJ personnalisés ou importe depuis le compendium SRD de monstres avec leurs stats préremplies. Gère leurs PV, lance leurs attaques, et ajoute-les directement au combat.',mjTab:'pnj',sel:'#mjTabContent'},
+  {icon:'💰',title:'Onglet Objets',text:'Gère les objets magiques et les récompenses de la session. Depuis ici, tu peux donner un objet directement au sac d\'un joueur — il apparaît instantanément dans son inventaire.',mjTab:'objets',sel:'#mjTabContent'},
+  {icon:'📖',title:'Onglet Règles',text:'Référence rapide en jeu : actions de combat, couverture, conditions, repos, exhaustion, magie sauvage... Consulte-la sans quitter l\'interface. Plus besoin d\'ouvrir le livre.',mjTab:'regles',sel:'#mjTabContent'},
+  {icon:'🧰',title:'Compendiums & Profil',text:'Dans 👤 Profil → Mes compendiums, crée des recueils de sorts, objets ou capacités maison. Tu peux en créer plusieurs, les nommer et les partager. L\'icône 📋 sur une carte campagne ouvre la fiche d\'un joueur en lecture seule — même les onglets privés.',mjTab:'joueurs',sel:'#mjTabContent'},
+  {icon:'🔄',title:'Synchronisation en temps réel',text:'Tout ce que tu fais est visible instantanément par tes joueurs — PV, conditions, tours de combat. Et inversement, tu vois leurs modifications en temps réel. Fini les "attends je note ça" en cours de partie.',mjTab:'joueurs',sel:'#mjTabContent'},
 ];
 
 let _tutoIdx=0;
@@ -1010,6 +1008,9 @@ function _renderTutoStep(){
   const isLast=_tutoIdx===total-1;
   if(s.tab&&typeof setTab==='function'){
     try{if(document.getElementById('tabBar'))setTab(s.tab);}catch(e){}
+  }
+  if(s.mjTab&&typeof setMJTab==='function'){
+    try{setMJTab(s.mjTab);}catch(e){}
   }
   const dots=Array.from({length:total},(_,i)=>`<div style="width:7px;height:7px;border-radius:50%;background:${i===_tutoIdx?'var(--cp)':'var(--surface2)'};border:1px solid ${i===_tutoIdx?'var(--cp)':'var(--border)'};transition:background .2s;flex-shrink:0"></div>`).join('');
   document.getElementById('_tutoBubble')?.remove();
@@ -2338,7 +2339,7 @@ async function enterCampaign(tableId,campaignId,tName,cName,preloadedCharData){
       showApp();
       await loadMJPool();
       _suppressUnsavedMark=true;render();
-      if(!localStorage.getItem('tuto_fiche_done')) setTimeout(()=>startTutorial('fiche'),800);
+      if(!localStorage.getItem('tuto_fiche_done')&&state.players[0]?.classes?.length>0) setTimeout(()=>startTutorial('fiche'),800);
       // Lance les listeners temps réel
       currentTableMjId=tableData?.mjId||null;
       stopAllListeners();
@@ -3070,6 +3071,7 @@ async function saveAll(silent=false){
   _clearUnsaved();
   if(currentUser&&currentCampaignId&&state.players[0]){
     try{
+      _ownWritePending=true;
       const p=state.players[0];
       await fbDb.collection('characters').doc(currentUser.uid+'_'+currentCampaignId).set({
         userId:currentUser.uid,campaignId:currentCampaignId,tableId:currentTableId,
@@ -3640,34 +3642,16 @@ function tabPerso(p){
       ${ws.beast.traits.map(t=>`<div style="font-size:11px;color:var(--text2);padding:5px 0;border-bottom:1px solid rgba(76,175,80,.15)">🐾 ${esc(t)}</div>`).join('')}
     </div>`:''}
 
-    <!-- Statuts -->
+    <!-- Résistances & Immunités (rétractable) -->
     <div class="panel">
-      <div class="pt" style="display:flex;align-items:center;justify-content:space-between"><span>Statuts</span><button class="btn bsm" onclick="openAddStatus()">+ Ajouter</button></div>
-      ${(p.statuses||[]).length?`<div>${(p.statuses||[]).map((s,i)=>{
-        const sid='st_'+i;
-        const rollInfo=s.rollPenalty?` ⚠ ${s.rollPenalty.split(',').join(', ')}`:(s.rollBonus?` +🎲 ${s.rollBonus}`:'');
-        const valInfo=s.value&&s.stat?` ${s.value>0?'+':''}${s.value} ${s.stat.toUpperCase()}`:'';
-        return`<div class="sort-row">
-          <div class="sort-head" onclick="document.getElementById('${sid}').classList.toggle('open')" style="padding:6px 10px">
-            <span style="font-size:15px;margin-right:8px">${s.icon||'◆'}</span>
-            <div style="flex:1">
-              <span class="status-badge ${s.type}" style="cursor:default;margin:0">${esc(s.name)}${valInfo}</span>
-            </div>
-            <span style="font-size:10px;color:var(--text3);margin-right:8px">▾</span>
-            <span onclick="event.stopPropagation();removeStatus(${i})" style="cursor:pointer;color:var(--text3);font-size:15px">×</span>
-          </div>
-          <div class="sort-body" id="${sid}">
-            <p>${esc(s.desc||'Aucune description.')}</p>
-            ${rollInfo?`<p style="margin-top:4px;color:${s.type==='bonus'?'#4caf50':'#e53935'};font-size:12px">${rollInfo}</p>`:''}
-          </div>
-        </div>`;}).join('')}</div>`
-        :`<div style="font-size:12px;color:var(--text3);font-style:italic">Aucun statut actif.</div>`}
-    </div>
-
-    <!-- Résistances & Immunités -->
-    <div class="panel">
-      <div class="pt" style="display:flex;align-items:center;justify-content:space-between"><span>Résistances & Immunités</span><button class="btn bsm" onclick="openResistModal()">+ Ajouter</button></div>
-      ${(()=>{
+      <div class="pt" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="window._riOpen=!window._riOpen;render()">
+        <span>Résistances & Immunités</span>
+        <div style="display:flex;gap:6px;align-items:center">
+          <span style="color:var(--text3);font-size:12px">${window._riOpen?'▴':'▾'}</span>
+          <button class="btn bsm" onclick="event.stopPropagation();openResistModal()">+ Ajouter</button>
+        </div>
+      </div>
+      ${window._riOpen?(()=>{
         const res=p.dmgResistances||[];const imm=p.dmgImmunities||[];const ci=p.condImmunities||[];
         const tag=(cat,val,i)=>`<span class="status-badge bonus" style="cursor:pointer" title="Retirer" onclick="removeResist('${cat}',${i})">🛡 ${esc(val)} ✕</span>`;
         const tagImm=(cat,val,i)=>`<span class="status-badge malus" style="background:#2e1b00;border-color:#ff9800;color:#ff9800;cursor:pointer" title="Retirer" onclick="removeResist('${cat}',${i})">✦ ${esc(val)} ✕</span>`;
@@ -3676,7 +3660,7 @@ function tabPerso(p){
         return`<div style="margin-bottom:8px"><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Résistances dégâts</div><div style="display:flex;flex-wrap:wrap;gap:4px">${res.length?res.map((v,i)=>tag('dmgResistances',v,i)).join(''):empty}</div></div>
         <div style="margin-bottom:8px"><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Immunités dégâts</div><div style="display:flex;flex-wrap:wrap;gap:4px">${imm.length?imm.map((v,i)=>tagImm('dmgImmunities',v,i)).join(''):empty}</div></div>
         <div><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Immunités conditions</div><div style="display:flex;flex-wrap:wrap;gap:4px">${ci.length?ci.map((v,i)=>tagCond('condImmunities',v,i)).join(''):empty}</div></div>`;
-      })()}
+      })():''}
     </div>
   </div>
 
@@ -3738,6 +3722,30 @@ function tabPerso(p){
           <div style="font-size:10px;margin-top:2px">PV max + sorts + charges</div>
         </div>
       </div>
+    </div>
+
+    <!-- Statuts -->
+    <div class="panel mt10">
+      <div class="pt" style="display:flex;align-items:center;justify-content:space-between"><span>Statuts</span><button class="btn bsm" onclick="openAddStatus()">+ Ajouter</button></div>
+      ${(p.statuses||[]).length?`<div>${(p.statuses||[]).map((s,i)=>{
+        const sid='st_'+i;
+        const rollInfo=s.rollPenalty?` ⚠ ${s.rollPenalty.split(',').join(', ')}`:(s.rollBonus?` +🎲 ${s.rollBonus}`:'');
+        const valInfo=s.value&&s.stat?` ${s.value>0?'+':''}${s.value} ${s.stat.toUpperCase()}`:'';
+        return`<div class="sort-row">
+          <div class="sort-head" onclick="document.getElementById('${sid}').classList.toggle('open')" style="padding:6px 10px">
+            <span style="font-size:15px;margin-right:8px">${s.icon||'◆'}</span>
+            <div style="flex:1">
+              <span class="status-badge ${s.type}" style="cursor:default;margin:0">${esc(s.name)}${valInfo}</span>
+            </div>
+            <span style="font-size:10px;color:var(--text3);margin-right:8px">▾</span>
+            <span onclick="event.stopPropagation();removeStatus(${i})" style="cursor:pointer;color:var(--text3);font-size:15px">×</span>
+          </div>
+          <div class="sort-body" id="${sid}">
+            <p>${esc(s.desc||'Aucune description.')}</p>
+            ${rollInfo?`<p style="margin-top:4px;color:${s.type==='bonus'?'#4caf50':'#e53935'};font-size:12px">${rollInfo}</p>`:''}
+          </div>
+        </div>`;}).join('')}</div>`
+        :`<div style="font-size:12px;color:var(--text3);font-style:italic">Aucun statut actif.</div>`}
     </div>
 
   </div>
