@@ -119,6 +119,7 @@ function mjTabJoueurs(){
           <button class="btn bsm" onclick="mjShowPlayerDetail(${i})">📋 Fiche</button>
           <button class="btn bsm" onclick="mjEditPlayerSheet(${i})">✏ Modifier</button>
           <button class="btn bsm bprimary" onclick="mjAddPlayerToCombat(${i})">⚡ Combat</button>
+          <button class="btn bsm" style="color:#ff9800;border-color:rgba(255,152,0,.3)" onclick="mjRespecPlayer(${i})" title="Réinitialiser les niveaux">↩ Respec</button>
           ${p.familiar?.active?`<button class="btn bsm" style="border-color:rgba(200,168,75,.5);color:var(--cp)" onclick="mjAddFamiliarToCombat(${i})" title="Ajouter le familier au combat">🦉 ${esc(p.familiar.name)}</button>`:''}
           <button class="btn bsm" style="color:#e53935;border-color:rgba(229,57,53,.3)" onclick="mjModerationModal(${i})" title="Modérer ce joueur">🗑</button>
         </div>
@@ -867,6 +868,43 @@ async function mjSavePlayerSheet(idx){
   }catch(e){showToast('❌ Erreur : '+e.message);}
 }
 
+function mjRespecPlayer(idx){
+  const pp=_mjPlayersData[idx];if(!pp)return;
+  const charName=esc((pp.charData||{}).charName||'ce personnage');
+  openModal(`<div class="pt" style="color:#ff9800">↩ Réinitialiser les niveaux ?</div>
+    <div style="font-size:13px;color:var(--text2);margin:10px 0 18px">Ramener <b>${charName}</b> au niveau 1 pour chaque classe ?<br><span style="font-size:11px;color:var(--text3)">Capacités, sorts et PV réinitialisés. Équipement et statistiques de base conservés.</span></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
+      <button class="btn" style="flex:2;color:#ff9800;border-color:rgba(255,152,0,.4);font-weight:600" onclick="mjRespecConfirm(${idx})">↩ Réinitialiser</button>
+    </div>`);
+}
+async function mjRespecConfirm(idx){
+  const pp=_mjPlayersData[idx];if(!pp)return;
+  const p=JSON.parse(JSON.stringify(pp.charData||{}));
+  const conScore=(p.abilities||[10,10,10,10,10,10])[2];
+  const conMod=Math.floor((conScore-10)/2);
+  let newHpMax=0;
+  (p.classes||[]).forEach(c=>{
+    const cd=SRD.classes.find(cl=>cl.name===c.name);
+    const hd=cd?parseInt((cd.hd||'d8').replace(/[^0-9]/g,''))||8:8;
+    c.level=1;
+    newHpMax+=hd+conMod;
+  });
+  p.hpMax=Math.max(1,newHpMax);
+  p.hp=Math.min(p.hp||p.hpMax,p.hpMax);
+  const lvl1Names=new Set();
+  (p.classes||[]).forEach(c=>{(getLevel1Features(c.name)||[]).forEach(f=>lvl1Names.add(f.name));});
+  p.features=(p.features||[]).filter(f=>lvl1Names.has(f.name));
+  p.metamagicOptions=[];
+  p.pendingLevelUp=true;
+  try{
+    await fbDb.collection('characters').doc(pp.docId).update({characterData:p,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+    pp.charData=p;
+    closeModal();
+    showToast('↩ '+esc(p.charName||'Personnage')+' réinitialisé au niveau 1');
+    renderMJContent();
+  }catch(e){showToast('❌ Erreur : '+e.message);}
+}
 function mjQuickKickConfirm(idx){
   const pp=_mjPlayersData[idx];if(!pp)return;
   const charName=esc(pp.charData&&pp.charData.charName||'Sans nom');
