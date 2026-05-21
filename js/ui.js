@@ -789,6 +789,7 @@ async function useExistingCharForCampaign(sourceCampId,tableId,campId){
     if(!doc.exists){showToast('❌ Personnage introuvable.');return;}
     const data=JSON.parse(JSON.stringify(doc.data().characterData||{}));
     await enterCampaign(tableId,campId,null,null,data);
+    await saveAll(true);
   }catch(e){showToast('❌ Erreur : '+e.message);}
 }
 
