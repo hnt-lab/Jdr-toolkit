@@ -517,6 +517,7 @@ function openTabOrderSettings(){
 function setTab(id){
   state.activeTab=id;
   if(currentCampaignId)localStorage.setItem('lastTab_'+currentCampaignId,id);
+  if(id==='levelup')resetLU();
   renderTabBar();
   const el=document.getElementById('tabContent');if(!el)return;
   const map={perso:tabPerso,competences:tabCompetences,combat:tabCombat,equipement:tabEquipement,sac:tabSac,historique:tabHistorique,xp:tabXP,sorts:tabSorts,levelup:tabLevelUp,journal:tabJournal};
