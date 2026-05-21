@@ -390,7 +390,7 @@ async function saveAll(silent=false){
   _clearUnsaved();
   if(currentUser&&currentCampaignId&&state.players[0]){
     try{
-      _ownWritePending=true;
+      _ownWritePending++;
       _ownWriteData=_stableJSON(state.players[0]);
       const p=state.players[0];
       await fbDb.collection('characters').doc(currentUser.uid+'_'+currentCampaignId).set({
