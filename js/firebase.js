@@ -78,7 +78,7 @@ let _mjRenderDebounce=null;
 let _unsaved=false;
 let _suppressUnsavedMark=false;
 let _saveDebounce=null;
-let _ownWritePending=false;
+let _ownWritePending=0;
 let _ownWriteData=null;
 function _stableJSON(v){if(v===null||v===undefined||typeof v!=='object')return JSON.stringify(v);if(Array.isArray(v))return'['+v.map(_stableJSON).join(',')+']';const keys=Object.keys(v).sort();return'{'+keys.map(k=>JSON.stringify(k)+':'+_stableJSON(v[k])).join(',')+'}';}
 
@@ -152,7 +152,7 @@ function startPlayerListener(campaignId){
     .onSnapshot(snap=>{
       if(!snap.exists||snap.metadata.hasPendingWrites)return;
       // Ignorer notre propre sauvegarde (évite re-render + fermeture de modals)
-      if(_ownWritePending){_ownWritePending=false;return;}
+      if(_ownWritePending>0){_ownWritePending--;return;}
       const newData=snap.data()?.characterData;
       if(!newData)return;
       // Comparaison stable (indépendante de l'ordre des clés) pour éviter les faux positifs
