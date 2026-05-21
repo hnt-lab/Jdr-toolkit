@@ -3142,7 +3142,7 @@ function luDirectionNext(){
     if(d&&d.mcSkillCount)steps.push('mcSkill');
     steps.push('recap');
     LU.steps=steps;
-  }
+  } else {return;}
   LU.step=2;renderTab();
 }
 
@@ -3420,7 +3420,7 @@ function luStepRecap(p,newLvl){
     </div>
 
     <div style="padding:8px 12px;background:var(--cglow);border:1px solid var(--cp);border-radius:8px;margin-bottom:14px">
-      <div style="font-size:12px;color:var(--text2)">PV gagnés : <strong style="color:var(--cp)">${(()=>{const d=mc?SRD.classes.find(c=>c.name===mc.name):null;if(!d)return'?';const avg=Math.floor(d.hdVal/2)+1;return`${avg} + CON (${fmt(mod(p.abilities[2]))}) = ${Math.max(1,avg+mod(p.abilities[2]))} PV supplémentaires`})()}</strong></div>
+      <div style="font-size:12px;color:var(--text2)">PV gagnés : <strong style="color:var(--cp)">${(()=>{const d=mc?SRD.classes.find(c=>c.name===mc.name):null;if(!d)return'?';const ab=p.abilities||[10,10,10,10,10,10];const avg=Math.floor(d.hdVal/2)+1;return`${avg} + CON (${fmt(mod(ab[2]))}) = ${Math.max(1,avg+mod(ab[2]))} PV supplémentaires`})()}</strong></div>
     </div>
 
     <div style="display:flex;gap:8px">
