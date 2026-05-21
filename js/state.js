@@ -247,6 +247,10 @@ function getFeatDesc(name){
   const key=Object.keys(FEAT_DESCS).find(k=>name.includes(k.split(' ')[0])&&name.includes(k.split(' ')[1]||''));
   return key?FEAT_DESCS[key]:'Description non disponible dans le SRD. Consulter aidedd.org/regles/classes/ pour les détails complets.';
 }
+function filterDescByLevel(desc,classLvl){
+  if(!desc)return'';
+  return desc.split('. ').filter(part=>{const m=part.match(/niv\.(\d+)/);return!m||parseInt(m[1])<=classLvl;}).join('. ');
+}
 // Capacités purement de compteur/UI, déjà affichées ailleurs — exclure des features
 const FEAT_EXCLUDE=[
   'Amélioration de caractéristiques',
