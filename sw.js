@@ -1,9 +1,16 @@
-const CACHE = 'boite-outils-v0.5.46';
+const CACHE = 'boite-outils-v0.5.78';
 
 // Fichiers à mettre en cache dès l'installation
 const PRECACHE = [
   './',
   './index.html',
+  './style.css',
+  './js/firebase.js',
+  './js/ui.js',
+  './js/config.js',
+  './js/state.js',
+  './js/player.js',
+  './js/mj.js',
   './manifest.json',
   './icon.svg',
   './bg-login.png'
