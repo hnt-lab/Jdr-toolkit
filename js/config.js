@@ -301,6 +301,29 @@ const ELEMENTAL_FORMS=[
   {name:"Élémentaire du feu",icon:"🔥",hpMax:102,ac:13,speed:"15m",ab:[10,17,16,6,10,7],attacks:[{name:"Toucher enflammé",bonus:6,dmg:"2d6+3",type:"feu",special:"2 attaques par action"},{name:"Embrasement",bonus:6,dmg:"2d6+3",type:"feu",special:"Cible enflammée : 1d10 feu/tour (DD10 pour éteindre)"}],traits:["Forme de feu — illumine 3m brillant / 6m faible","Résistance aux dégâts contondants/perforants/tranchants non magiques","Immunité : feu, poison, étourdissement","Inflammabilité — les créatures touchées peuvent s'enflammer"]},
   {name:"Élémentaire de l'eau",icon:"🌊",hpMax:114,ac:14,speed:"9m / Nage 27m",ab:[18,14,18,5,10,8],attacks:[{name:"Frappe",bonus:7,dmg:"2d8+4",type:"contondant",special:"2 attaques par action"},{name:"Engloutissement",bonus:7,dmg:"2d8+4",type:"contondant",special:"Cible agrippée (taille M/S) : noyade DD13 CON chaque tour"}],traits:["Forme d'eau — peut traverser tout espace d'1 pouce ou plus","Résistance aux dégâts contondants/perforants/tranchants non magiques","Immunité : acide, poison, étourdissement","Marche sur l'eau — se déplace sur les surfaces liquides"]},
 ];
+const ELDRITCH_INVOCATIONS=[
+  {name:"Trait torturant",minLevel:0,desc:"Quand tu touches avec le Rayon occulte, ajoute ton modificateur de CHA aux dégâts (même si 0 ou négatif). Prérequis : sort Rayon occulte."},
+  {name:"Armure d'ombres",minLevel:0,desc:"Tu peux lancer Armure de mage sur toi-même à volonté, sans dépenser d'emplacement ni de composantes."},
+  {name:"Influence ensorcelante",minLevel:0,desc:"Tu maîtrises les compétences Tromperie et Persuasion."},
+  {name:"Vision du diable",minLevel:0,desc:"Tu vois normalement dans les ténèbres, magiques ou non, jusqu'à une portée de 36 mètres."},
+  {name:"Vue occulte",minLevel:0,desc:"Tu peux lancer Détection de la magie à volonté, sans dépenser d'emplacement ni de composantes."},
+  {name:"Lance occulte",minLevel:0,desc:"La portée de ton Rayon occulte passe à 90 mètres. Prérequis : sort Rayon occulte."},
+  {name:"Yeux du gardien de runes",minLevel:0,desc:"Tu peux lire toutes les formes d'écriture, qu'elles soient normales ou magiques."},
+  {name:"Vigueur fiélonne",minLevel:0,desc:"Tu peux lancer Forme de faux-mort sur toi-même à volonté, sans dépenser d'emplacement ni de composantes."},
+  {name:"Regard de deux esprits",minLevel:0,desc:"Tu touches un humanoïde consentant et pendant 1 heure tu peux percevoir à travers ses sens. Tu peux y mettre fin à volonté."},
+  {name:"Masque aux mille visages",minLevel:0,desc:"Tu peux lancer Déguisement à volonté, sans dépenser d'emplacement ni de composantes."},
+  {name:"Visions brumeuses",minLevel:0,desc:"Tu peux lancer Image silencieuse à volonté, sans dépenser d'emplacement ni de composantes."},
+  {name:"Explosion repoussante",minLevel:0,desc:"Quand tu touches avec le Rayon occulte, tu peux repousser la cible de 3 mètres en ligne droite. Prérequis : sort Rayon occulte."},
+  {name:"Un avec les ombres",minLevel:5,desc:"Dans une zone de lumière faible ou de ténèbres, tu peux utiliser ton action pour devenir invisible jusqu'à ce que tu te déplaces ou effectues une action ou réaction. Prérequis : niveau 5."},
+  {name:"Lame assoiffée",minLevel:5,desc:"Tu peux attaquer deux fois au lieu d'une quand tu effectues l'action Attaquer avec ton arme de pacte. Prérequis : niveau 5, Faveur de pacte (Lame)."},
+  {name:"Signe mauvais",minLevel:5,desc:"Tu peux lancer Imprécation à volonté, sans dépenser d'emplacement ni de composantes. Prérequis : niveau 5."},
+  {name:"Sculpteur de chair",minLevel:7,desc:"Tu peux lancer Métamorphose une fois sans dépenser d'emplacement de sort. Tu dois finir un repos long avant de pouvoir le refaire. Prérequis : niveau 7."},
+  {name:"Marche ascendante",minLevel:9,desc:"Tu peux lancer Lévitation sur toi-même à volonté, sans dépenser d'emplacement ni de composantes. Prérequis : niveau 9."},
+  {name:"Chuchotements de la tombe",minLevel:9,desc:"Tu peux lancer Communication avec les morts à volonté, sans dépenser d'emplacement ni de composantes. Prérequis : niveau 9."},
+  {name:"Buveur de vie",minLevel:12,desc:"Quand tu frappes avec ton arme de pacte, la cible subit des dégâts nécrotiques supplémentaires égaux à 1 + ton modificateur de CHA. Prérequis : niveau 12, Faveur de pacte (Lame)."},
+  {name:"Visions de royaumes lointains",minLevel:15,desc:"Tu peux lancer Œil invisible à volonté, sans dépenser d'emplacement ni de composantes. Prérequis : niveau 15."},
+  {name:"Vue de sorcière",minLevel:15,desc:"Tu peux voir la vraie forme de tout changeforme ou créature invisible dans un rayon de 9 mètres et dans ton champ de vision. Prérequis : niveau 15."},
+];
 // Familiers SRD — Trouver un familier + Pacte de la Chaîne
 const FAMILIAR_TYPES=[
   {name:'Chauve-souris',icon:'🦇',hp:1,ac:12,speed:'Vol 9m',ab:[2,15,8,2,12,4],attacks:[],traits:['Écholocalisation — avantage ouïe (hors cécité/surdité)','Ouïe fine — avantage Perception (ouïe)']},
