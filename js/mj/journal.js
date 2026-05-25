@@ -1,10 +1,10 @@
-﻿function mjTabJournalScreen(){
-  return tabJournalMJ(); // rÃ©utilise le rendu existant
+function mjTabJournalScreen(){
+  return tabJournalMJ(); // réutilise le rendu existant
 }
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// RÃˆGLES â€” DRAG & DROP
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────
+// RÈGLES — DRAG & DROP
+// ─────────────────────────────────────────
 let _mjDragRuleId=null;
 let _rulesCollapsed=JSON.parse(localStorage.getItem('mj_rules_collapsed')||'{}');
 function toggleRuleSection(id){
@@ -22,7 +22,7 @@ function mjInitRulesDnD(){
   const c=document.getElementById('mjRulesContainer');if(!c)return;
   const order=getMjRulesOrder();
   const map={};c.querySelectorAll(':scope>[data-ruleid]').forEach(e=>map[e.dataset.ruleid]=e);
-  // Applique l'ordre (sauvegardÃ© ou par dÃ©faut), les nouvelles sections non listÃ©es restent Ã  la fin
+  // Applique l'ordre (sauvegardé ou par défaut), les nouvelles sections non listées restent à la fin
   order.forEach(id=>{if(map[id])c.appendChild(map[id]);});
 }
 function mjRuleDragStart(id,el){_mjDragRuleId=id;setTimeout(()=>el.classList.add('mj-dragging'),0);}
@@ -43,6 +43,6 @@ function mjRuleDrop(e,targetId){
   saveMjRulesOrder();_mjDragRuleId=null;
 }
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// TAB RÃˆGLES
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────
+// TAB RÈGLES
+// ─────────────────────────────────────────
