@@ -1,18 +1,18 @@
-﻿function mjTabJoueurs(){
+function mjTabJoueurs(){
   if(!_mjPlayersData.length) return`<div style="text-align:center;padding:32px;color:var(--text3);font-style:italic">
-    <div style="font-size:32px;margin-bottom:12px">âš”</div>
-    Aucun joueur n'a encore crÃ©Ã© de personnage dans cette campagne.
-    <div style="margin-top:12px"><button class="btn bsm bprimary" onclick="renderMJContent()">ðŸ”„ Actualiser</button></div>
+    <div style="font-size:32px;margin-bottom:12px">⚔</div>
+    Aucun joueur n'a encore créé de personnage dans cette campagne.
+    <div style="margin-top:12px"><button class="btn bsm bprimary" onclick="renderMJContent()">🔄 Actualiser</button></div>
   </div>`;
   return`<div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-      <div style="font-family:var(--F);font-size:12px;color:var(--cp)">${_mjPlayersData.length} joueur(s) <span style="font-size:10px;color:var(--text3);margin-left:4px">â— Live</span></div>
+      <div style="font-family:var(--F);font-size:12px;color:var(--cp)">${_mjPlayersData.length} joueur(s) <span style="font-size:10px;color:var(--text3);margin-left:4px">● Live</span></div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn bsm" onclick="renderMJContent()">ðŸ”„ Actualiser</button>
-        <button class="btn bsm" onclick="mjOpenCompendium()">ðŸ“š Compendium</button>
-        <button class="btn bsm" style="border-color:#7986cb;color:#7986cb" onclick="mjGroupRest('short')">â˜• Repos court</button>
-        <button class="btn bsm" style="border-color:#5c6bc0;color:#5c6bc0" onclick="mjGroupRest('long')">ðŸŒ™ Repos long</button>
-        <button class="btn bsm bprimary" onclick="mjAddAllToCombat()">âš¡ Tous en combat</button>
+        <button class="btn bsm" onclick="renderMJContent()">🔄 Actualiser</button>
+        <button class="btn bsm" onclick="mjOpenCompendium()">📚 Compendium</button>
+        <button class="btn bsm" style="border-color:#7986cb;color:#7986cb" onclick="mjGroupRest('short')">☕ Repos court</button>
+        <button class="btn bsm" style="border-color:#5c6bc0;color:#5c6bc0" onclick="mjGroupRest('long')">🌙 Repos long</button>
+        <button class="btn bsm bprimary" onclick="mjAddAllToCombat()">⚡ Tous en combat</button>
       </div>
     </div>
     ${_mjPlayersData.map((pp,i)=>{
@@ -27,18 +27,18 @@
       const mods=(p.abilities||[0,0,0,0,0,0]).map(v=>Math.floor((v-10)/2));
       return`<div class="mj-player-card">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-          <span style="font-size:22px">${pp.avatar||'âš”'}</span>
+          <span style="font-size:22px">${pp.avatar||'⚔'}</span>
           <div style="flex:1;min-width:0;cursor:pointer" onclick="mjQuickKickConfirm(${i})" title="Cliquer pour exclure ce joueur">
             <div style="font-size:14px;font-weight:600;color:var(--text)">${esc(p.charName||'?')}</div>
-            <div style="font-size:11px;color:var(--text3)">${esc(cls)} â€” Niv.${lvl} â€” ${esc(pp.playerName||'')}</div>
+            <div style="font-size:11px;color:var(--text3)">${esc(cls)} — Niv.${lvl} — ${esc(pp.playerName||'')}</div>
           </div>
-          <button class="btn bsm" onclick="mjShowPlayerDetail(${i})">ðŸ“‹ Fiche</button>
-          <button class="btn bsm" onclick="mjEditPlayerSheet(${i})">âœ Modifier</button>
-          <button class="btn bsm bprimary" onclick="mjAddPlayerToCombat(${i})">âš¡ Combat</button>
-          <button class="btn bsm" style="color:#ff9800;border-color:rgba(255,152,0,.3)" onclick="mjRespecPlayer(${i})" title="RÃ©initialiser les niveaux">â†© Respec</button>
-          <button class="btn bsm" style="color:#9c27b0;border-color:rgba(156,39,176,.3)" onclick="mjWhisperPlayer(${i})" title="Chuchoter Ã  ce joueur">ðŸ¤«</button>
-          ${p.familiar?.active?`<button class="btn bsm" style="border-color:rgba(200,168,75,.5);color:var(--cp)" onclick="mjAddFamiliarToCombat(${i})" title="Ajouter le familier au combat">ðŸ¦‰ ${esc(p.familiar.name)}</button>`:''}
-          <button class="btn bsm" style="color:#e53935;border-color:rgba(229,57,53,.3)" onclick="mjModerationModal(${i})" title="ModÃ©rer ce joueur">ðŸ—‘</button>
+          <button class="btn bsm" onclick="mjShowPlayerDetail(${i})">📋 Fiche</button>
+          <button class="btn bsm" onclick="mjEditPlayerSheet(${i})">✏ Modifier</button>
+          <button class="btn bsm bprimary" onclick="mjAddPlayerToCombat(${i})">⚡ Combat</button>
+          <button class="btn bsm" style="color:#ff9800;border-color:rgba(255,152,0,.3)" onclick="mjRespecPlayer(${i})" title="Réinitialiser les niveaux">↩ Respec</button>
+          <button class="btn bsm" style="color:#9c27b0;border-color:rgba(156,39,176,.3)" onclick="mjWhisperPlayer(${i})" title="Chuchoter à ce joueur">🤫</button>
+          ${p.familiar?.active?`<button class="btn bsm" style="border-color:rgba(200,168,75,.5);color:var(--cp)" onclick="mjAddFamiliarToCombat(${i})" title="Ajouter le familier au combat">🦉 ${esc(p.familiar.name)}</button>`:''}
+          <button class="btn bsm" style="color:#e53935;border-color:rgba(229,57,53,.3)" onclick="mjModerationModal(${i})" title="Modérer ce joueur">🗑</button>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:8px">
           <div style="background:var(--surface2);border-radius:6px;padding:8px;text-align:center">
@@ -59,8 +59,8 @@
             <div style="font-size:17px;font-weight:600;color:var(--cp)">${lvl}</div>
           </div>
         </div>
-        ${conds.length?`<div style="margin-bottom:6px">${conds.map(c=>`<span class="status-badge malus">âš  ${esc(c)}</span>`).join('')}</div>`:''}
-        ${p.secrets?`<div style="padding:8px;background:rgba(200,168,75,.06);border:1px solid rgba(200,168,75,.2);border-radius:6px;font-size:12px;color:var(--text2)"><span style="color:var(--cp);font-size:11px">ðŸ” Secret :</span> ${esc(p.secrets)}</div>`:''}
+        ${conds.length?`<div style="margin-bottom:6px">${conds.map(c=>`<span class="status-badge malus">⚠ ${esc(c)}</span>`).join('')}</div>`:''}
+        ${p.secrets?`<div style="padding:8px;background:rgba(200,168,75,.06);border:1px solid rgba(200,168,75,.2);border-radius:6px;font-size:12px;color:var(--text2)"><span style="color:var(--cp);font-size:11px">🔐 Secret :</span> ${esc(p.secrets)}</div>`:''}
       </div>`;
     }).join('')}
   </div>`;
@@ -84,30 +84,30 @@ function mjShowPlayerDetail(idx){
   const skillsHtml=SKILLS.map(sk=>{
     const prof=(p.skillProf||{})[sk.name]||0;
     const bonus=mods[sk.ab]+(prof>=2?pb*2:prof>=1?pb:0);
-    const icon=prof>=2?'â—†':prof>=1?'â—':'â—‹';
+    const icon=prof>=2?'◆':prof>=1?'●':'○';
     const col=prof>=2?'var(--cp)':prof>=1?'var(--text)':'var(--text3)';
     return`<div style="display:flex;align-items:center;gap:4px;padding:1px 0"><span style="font-size:10px;color:${col};width:12px">${icon}</span><span style="font-size:11px;flex:1">${esc(sk.name)}</span><span style="font-size:11px;font-weight:${prof?'600':'400'};color:${col}">${fmt2(bonus)}</span></div>`;
   }).join('');
   const savesHtml=abilNames.map((ab,i)=>{
     const isProf=saveProf.has(ab);const bonus=mods[i]+(isProf?pb:0);
-    return`<div style="display:flex;align-items:center;gap:4px;padding:1px 0"><span style="font-size:10px;color:${isProf?'var(--cp)':'var(--text3)'};width:12px">${isProf?'â—':'â—‹'}</span><span style="font-size:11px;flex:1">${ab}</span><span style="font-size:11px;font-weight:${isProf?'600':'400'};color:${isProf?'var(--cp)':'var(--text2)'}">${fmt2(bonus)}</span></div>`;
+    return`<div style="display:flex;align-items:center;gap:4px;padding:1px 0"><span style="font-size:10px;color:${isProf?'var(--cp)':'var(--text3)'};width:12px">${isProf?'●':'○'}</span><span style="font-size:11px;flex:1">${ab}</span><span style="font-size:11px;font-weight:${isProf?'600':'400'};color:${isProf?'var(--cp)':'var(--text2)'}">${fmt2(bonus)}</span></div>`;
   }).join('');
   const inv=p.inventory||[];
-  const invHtml=inv.length?inv.map(it=>`<div style="display:flex;gap:6px;padding:3px 0;border-bottom:1px solid var(--border)"><span style="font-size:11px;min-width:18px;color:var(--text3)">${it.qty||1}Ã—</span><div><span style="font-size:12px">${esc(it.name||'?')}${it.magic?'<span style="font-size:10px;color:var(--cp);margin-left:4px">âœ¨</span>':''}</span>${it.desc?`<br><span style="font-size:10px;color:var(--text3)">${esc(it.desc)}</span>`:''}</div></div>`).join(''):'<div style="font-size:12px;color:var(--text3);font-style:italic">Inventaire vide.</div>';
+  const invHtml=inv.length?inv.map(it=>`<div style="display:flex;gap:6px;padding:3px 0;border-bottom:1px solid var(--border)"><span style="font-size:11px;min-width:18px;color:var(--text3)">${it.qty||1}×</span><div><span style="font-size:12px">${esc(it.name||'?')}${it.magic?'<span style="font-size:10px;color:var(--cp);margin-left:4px">✨</span>':''}</span>${it.desc?`<br><span style="font-size:10px;color:var(--text3)">${esc(it.desc)}</span>`:''}</div></div>`).join(''):'<div style="font-size:12px;color:var(--text3);font-style:italic">Inventaire vide.</div>';
   const cur=p.currency||{};
-  const curHtml=['pp','po','pe','pa','pc'].filter(c=>cur[c]>0).map(c=>`${cur[c]} ${c.toUpperCase()}`).join(' Â· ')||'Aucune monnaie';
+  const curHtml=['pp','po','pe','pa','pc'].filter(c=>cur[c]>0).map(c=>`${cur[c]} ${c.toUpperCase()}`).join(' · ')||'Aucune monnaie';
   const spells=p.spells||[];
   const spellsByLv={};spells.forEach(s=>{const l=s.level??0;if(!spellsByLv[l])spellsByLv[l]=[];spellsByLv[l].push(s);});
   const spellHtml=Object.keys(spellsByLv).sort((a,b)=>a-b).map(l=>`<div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin:6px 0 3px">${l==='0'?'Mineurs':'Niveau '+l}</div><div style="display:flex;flex-wrap:wrap;gap:3px">${spellsByLv[l].map(s=>`<span style="font-size:11px;background:rgba(200,168,75,.1);border:1px solid rgba(200,168,75,.2);border-radius:4px;padding:2px 6px">${esc(s.name||s)}</span>`).join('')}</div>`).join('');
   const feats=(p.features||[]).filter(f=>!isFeatExcluded(f.name));
-  const featHtml=feats.length?feats.map(f=>`<div style="margin-bottom:8px"><div style="font-size:12px;font-weight:600;color:var(--cp)">${esc(f.name)}${f.classe?`<span style="font-size:10px;color:var(--text3);font-weight:400"> â€” ${esc(f.classe)}</span>`:''}</div>${f.desc?`<div style="font-size:11px;color:var(--text2);margin-top:2px">${esc((f.desc||'').substring(0,250))}${(f.desc||'').length>250?'â€¦':''}</div>`:''}</div>`).join(''):'<div style="font-size:12px;color:var(--text3);font-style:italic">Aucune capacitÃ©.</div>';
+  const featHtml=feats.length?feats.map(f=>`<div style="margin-bottom:8px"><div style="font-size:12px;font-weight:600;color:var(--cp)">${esc(f.name)}${f.classe?`<span style="font-size:10px;color:var(--text3);font-weight:400"> — ${esc(f.classe)}</span>`:''}</div>${f.desc?`<div style="font-size:11px;color:var(--text2);margin-top:2px">${esc((f.desc||'').substring(0,250))}${(f.desc||'').length>250?'…':''}</div>`:''}</div>`).join(''):'<div style="font-size:12px;color:var(--text3);font-style:italic">Aucune capacité.</div>';
   const conds=p.conditions||[];
-  const persBlocks=[p.traits?`<div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:2px">Traits</div><div style="font-size:12px;color:var(--text2)">${esc(p.traits)}</div></div>`:'',p.ideals?`<div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:2px">IdÃ©aux</div><div style="font-size:12px;color:var(--text2)">${esc(p.ideals)}</div></div>`:'',p.bonds?`<div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:2px">Liens</div><div style="font-size:12px;color:var(--text2)">${esc(p.bonds)}</div></div>`:'',p.flaws?`<div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:2px">DÃ©fauts</div><div style="font-size:12px;color:var(--text2)">${esc(p.flaws)}</div></div>`:''].filter(Boolean);
+  const persBlocks=[p.traits?`<div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:2px">Traits</div><div style="font-size:12px;color:var(--text2)">${esc(p.traits)}</div></div>`:'',p.ideals?`<div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:2px">Idéaux</div><div style="font-size:12px;color:var(--text2)">${esc(p.ideals)}</div></div>`:'',p.bonds?`<div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:2px">Liens</div><div style="font-size:12px;color:var(--text2)">${esc(p.bonds)}</div></div>`:'',p.flaws?`<div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:2px">Défauts</div><div style="font-size:12px;color:var(--text2)">${esc(p.flaws)}</div></div>`:''].filter(Boolean);
   openModal(`<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
-    <span style="font-size:30px">${pp.avatar||'âš”'}</span>
+    <span style="font-size:30px">${pp.avatar||'⚔'}</span>
     <div><div style="font-size:16px;font-weight:700">${esc(p.charName||'?')}</div>
     <div style="font-size:12px;color:var(--cp)">${esc(cls)}</div>
-    <div style="font-size:11px;color:var(--text3)">${[p.race,p.background,pp.playerName].filter(Boolean).map(esc).join(' Â· ')}</div></div>
+    <div style="font-size:11px;color:var(--text3)">${[p.race,p.background,pp.playerName].filter(Boolean).map(esc).join(' · ')}</div></div>
   </div>
   <div style="max-height:75vh;overflow-y:auto;padding-right:4px">
     <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:10px">
@@ -115,37 +115,37 @@ function mjShowPlayerDetail(idx){
       <div style="background:var(--surface2);border-radius:6px;padding:7px;text-align:center"><div style="font-size:9px;color:var(--text3);text-transform:uppercase">CA</div><div style="font-size:14px;font-weight:700">${p.ac||10}</div></div>
       <div style="background:var(--surface2);border-radius:6px;padding:7px;text-align:center"><div style="font-size:9px;color:var(--text3);text-transform:uppercase">Init.</div><div style="font-size:14px;font-weight:700;color:var(--cp)">${fmt2(mods[1])}</div></div>
       <div style="background:var(--surface2);border-radius:6px;padding:7px;text-align:center"><div style="font-size:9px;color:var(--text3);text-transform:uppercase">Vit.</div><div style="font-size:14px;font-weight:700">${p.speed||9}m</div></div>
-      <div style="background:var(--surface2);border-radius:6px;padding:7px;text-align:center"><div style="font-size:9px;color:var(--text3);text-transform:uppercase">MaÃ®tr.</div><div style="font-size:14px;font-weight:700;color:var(--cp)">+${pb}</div></div>
+      <div style="background:var(--surface2);border-radius:6px;padding:7px;text-align:center"><div style="font-size:9px;color:var(--text3);text-transform:uppercase">Maîtr.</div><div style="font-size:14px;font-weight:700;color:var(--cp)">+${pb}</div></div>
     </div>
-    ${conds.length?`<div style="margin-bottom:10px">${conds.map(c=>`<span class="status-badge malus">âš  ${esc(c)}</span>`).join(' ')}</div>`:''}
+    ${conds.length?`<div style="margin-bottom:10px">${conds.map(c=>`<span class="status-badge malus">⚠ ${esc(c)}</span>`).join(' ')}</div>`:''}
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
       <div>
-        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px">CaractÃ©ristiques</div>
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px">Caractéristiques</div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin-bottom:8px">${abilNames.map((ab,i)=>`<div style="background:var(--surface2);border-radius:6px;padding:6px;text-align:center"><div style="font-size:9px;color:var(--text3)">${ab}</div><div style="font-size:14px;font-weight:700">${fmt2(mods[i])}</div><div style="font-size:10px;color:var(--text3)">${abs[i]}</div></div>`).join('')}</div>
         <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">Sauvegardes</div>
         <div style="background:var(--surface2);border-radius:6px;padding:8px">${savesHtml}</div>
       </div>
       <div>
-        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px">CompÃ©tences</div>
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px">Compétences</div>
         <div style="background:var(--surface2);border-radius:6px;padding:8px">${skillsHtml}</div>
       </div>
     </div>
     <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:10px">
       <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">Inventaire</div>
       ${invHtml}
-      <div style="font-size:12px;color:var(--text3);margin-top:8px">ðŸ’° ${curHtml}</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:8px">💰 ${curHtml}</div>
     </div>
     ${spells.length?`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Sorts</div>${spellHtml}</div>`:''}
-    ${feats.length?`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">CapacitÃ©s & Dons</div>${featHtml}</div>`:''}
-    ${persBlocks.length?`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">PersonnalitÃ©</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${persBlocks.join('')}</div></div>`:''}
+    ${feats.length?`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">Capacités & Dons</div>${featHtml}</div>`:''}
+    ${persBlocks.length?`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">Personnalité</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${persBlocks.join('')}</div></div>`:''}
     ${p.backstory?`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:10px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Histoire du personnage</div><div style="font-size:12px;color:var(--text2);white-space:pre-wrap">${esc(p.backstory)}</div></div>`:''}
-    ${p.secrets?`<div style="background:rgba(200,168,75,.06);border:1px solid rgba(200,168,75,.3);border-radius:8px;padding:10px;margin-bottom:10px"><div style="font-size:10px;color:var(--cp);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">ðŸ” Secrets (MJ)</div><div style="font-size:12px;color:var(--text2);white-space:pre-wrap">${esc(p.secrets)}</div></div>`:''}
-    ${(p.languages||p.proficiencies||(p.weaponProfs&&p.weaponProfs.length))?`<div style="font-size:11px;color:var(--text3);line-height:2">${p.languages?`ðŸ—£ <b>Langues :</b> <span style="color:var(--text2)">${esc(p.languages)}</span><br>`:''}${p.proficiencies?`ðŸ“œ <b>MaÃ®trises :</b> <span style="color:var(--text2)">${esc(p.proficiencies)}</span><br>`:''}${p.weaponProfs&&p.weaponProfs.length?`âš” <b>Armes :</b> <span style="color:var(--text2)">${p.weaponProfs.join(', ')}</span><br>`:''}${p.armorProfs&&p.armorProfs.length?`ðŸ›¡ <b>Armures :</b> <span style="color:var(--text2)">${p.armorProfs.join(', ')}</span>`:''}</div>`:''}
+    ${p.secrets?`<div style="background:rgba(200,168,75,.06);border:1px solid rgba(200,168,75,.3);border-radius:8px;padding:10px;margin-bottom:10px"><div style="font-size:10px;color:var(--cp);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">🔐 Secrets (MJ)</div><div style="font-size:12px;color:var(--text2);white-space:pre-wrap">${esc(p.secrets)}</div></div>`:''}
+    ${(p.languages||p.proficiencies||(p.weaponProfs&&p.weaponProfs.length))?`<div style="font-size:11px;color:var(--text3);line-height:2">${p.languages?`🗣 <b>Langues :</b> <span style="color:var(--text2)">${esc(p.languages)}</span><br>`:''}${p.proficiencies?`📜 <b>Maîtrises :</b> <span style="color:var(--text2)">${esc(p.proficiencies)}</span><br>`:''}${p.weaponProfs&&p.weaponProfs.length?`⚔ <b>Armes :</b> <span style="color:var(--text2)">${p.weaponProfs.join(', ')}</span><br>`:''}${p.armorProfs&&p.armorProfs.length?`🛡 <b>Armures :</b> <span style="color:var(--text2)">${p.armorProfs.join(', ')}</span>`:''}</div>`:''}
   </div>
   <div style="display:flex;justify-content:flex-end;margin-top:8px"><button class="btn" onclick="closeModal()">Fermer</button></div>`);
 }
 
-// â”€â”€â”€ MJ : Ã‰DITION DE LA FICHE JOUEUR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── MJ : ÉDITION DE LA FICHE JOUEUR ───────────────────────────────────────
 let _mjEditData=null;
 
 function _mjRenderInvList(inv){
@@ -153,7 +153,7 @@ function _mjRenderInvList(inv){
   return inv.map((it,i)=>`<div style="display:flex;gap:5px;align-items:center;margin-bottom:4px">
     <input type="number" id="mje_inv_qty_${i}" value="${it.qty||1}" min="1" style="width:42px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px;padding:3px;outline:none">
     <input id="mje_inv_name_${i}" value="${esc(it.name||'')}" placeholder="Nom de l'objet" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px;padding:3px 6px;outline:none">
-    <button class="btn bsm" style="color:#e53935;padding:2px 7px;flex-shrink:0" onclick="mjEditRemoveInv(${i})">âœ•</button>
+    <button class="btn bsm" style="color:#e53935;padding:2px 7px;flex-shrink:0" onclick="mjEditRemoveInv(${i})">✕</button>
   </div>`).join('');
 }
 
@@ -162,7 +162,7 @@ function _mjRenderSpellList(spells){
   return spells.map((s,i)=>`<div style="display:flex;gap:5px;align-items:center;margin-bottom:3px;padding:3px 6px;background:var(--surface2);border-radius:4px">
     <span style="font-size:10px;color:var(--text3);min-width:18px;text-align:center">${s.level!=null?s.level:0}</span>
     <span style="flex:1;font-size:12px">${esc(s.name||s)}</span>
-    <button class="btn bsm" style="color:#e53935;padding:1px 6px;font-size:11px" onclick="mjEditRemoveSpell(${i})">âœ•</button>
+    <button class="btn bsm" style="color:#e53935;padding:1px 6px;font-size:11px" onclick="mjEditRemoveSpell(${i})">✕</button>
   </div>`).join('');
 }
 
@@ -180,13 +180,13 @@ function mjEditAddCond(){
   _mjEditData.p.conditions=_mjEditData.p.conditions||[];
   _mjEditData.p.conditions.push(val);input.value='';
   const chips=document.getElementById('mje_cond_chips');
-  if(chips)chips.innerHTML=_mjEditData.p.conditions.map((c,i)=>`<span class="status-badge malus" style="cursor:pointer" onclick="mjEditRemoveCond(${i})">âš  ${esc(c)} âœ•</span>`).join('');
+  if(chips)chips.innerHTML=_mjEditData.p.conditions.map((c,i)=>`<span class="status-badge malus" style="cursor:pointer" onclick="mjEditRemoveCond(${i})">⚠ ${esc(c)} ✕</span>`).join('');
 }
 function mjEditRemoveCond(i){
   (_mjEditData.p.conditions||[]).splice(i,1);
   const chips=document.getElementById('mje_cond_chips');
   const conds=_mjEditData.p.conditions||[];
-  if(chips)chips.innerHTML=conds.length?conds.map((c,j)=>`<span class="status-badge malus" style="cursor:pointer" onclick="mjEditRemoveCond(${j})">âš  ${esc(c)} âœ•</span>`).join(''):'<span style="font-size:11px;color:var(--text3);font-style:italic">Aucune condition.</span>';
+  if(chips)chips.innerHTML=conds.length?conds.map((c,j)=>`<span class="status-badge malus" style="cursor:pointer" onclick="mjEditRemoveCond(${j})">⚠ ${esc(c)} ✕</span>`).join(''):'<span style="font-size:11px;color:var(--text3);font-style:italic">Aucune condition.</span>';
 }
 function mjEditAddInv(){
   _mjEditData.p.inventory=_mjReadInvFromDOM();
@@ -216,14 +216,14 @@ function mjEditRemoveSpell(i){
   if(list)list.innerHTML=_mjRenderSpellList(_mjEditData.p.spells||[]);
 }
 
-// â”€â”€ Classes helpers â”€â”€
+// ── Classes helpers ──
 function _mjRenderClassList(classes){
   if(!classes.length)return'<div style="font-size:11px;color:var(--text3);font-style:italic;padding:3px 0">Aucune classe.</div>';
   return classes.map((c,i)=>`<div style="display:flex;gap:5px;align-items:center;margin-bottom:4px">
     <input id="mje_cls_name_${i}" value="${esc(c.name||'')}" placeholder="Nom de la classe" style="flex:2;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px;padding:3px 6px;outline:none">
     <span style="font-size:11px;color:var(--text3);white-space:nowrap">Niv.</span>
     <input type="number" id="mje_cls_level_${i}" value="${c.level||1}" min="1" max="20" style="width:46px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px;padding:3px;outline:none">
-    <button class="btn bsm" style="color:#e53935;padding:2px 7px;flex-shrink:0" onclick="mjEditRemoveClass(${i})">âœ•</button>
+    <button class="btn bsm" style="color:#e53935;padding:2px 7px;flex-shrink:0" onclick="mjEditRemoveClass(${i})">✕</button>
   </div>`).join('');
 }
 function _mjReadClassFromDOM(){
@@ -243,13 +243,13 @@ function mjEditRemoveClass(i){
   if(list)list.innerHTML=_mjRenderClassList(current);
 }
 
-// â”€â”€ CompÃ©tences helpers â”€â”€
+// ── Compétences helpers ──
 function _mjRenderSkillGrid(){
   const sp=_mjEditData.p.skillProf||{};
   const abNames=['FOR','DEX','CON','INT','SAG','CHA'];
   return SKILLS.map(sk=>{
     const prof=sp[sk.name]||0;
-    const icon=prof>=2?'â—†':prof>=1?'â—':'â—‹';
+    const icon=prof>=2?'◆':prof>=1?'●':'○';
     const col=prof>=2?'var(--cp)':prof>=1?'var(--text)':'var(--text3)';
     return`<div style="display:flex;align-items:center;gap:4px;padding:3px 5px;cursor:pointer;border-radius:4px;background:var(--surface2);user-select:none" onclick="mjEditToggleSkill('${sk.name}')">
       <span style="font-size:12px;color:${col};width:14px;text-align:center">${icon}</span>
@@ -265,14 +265,14 @@ function mjEditToggleSkill(name){
   if(grid)grid.innerHTML=_mjRenderSkillGrid();
 }
 
-// â”€â”€ CapacitÃ©s helpers â”€â”€
+// ── Capacités helpers ──
 function _mjRenderFeatList(feats){
-  if(!feats.length)return'<div style="font-size:11px;color:var(--text3);font-style:italic;padding:3px 0">Aucune capacitÃ©.</div>';
+  if(!feats.length)return'<div style="font-size:11px;color:var(--text3);font-style:italic;padding:3px 0">Aucune capacité.</div>';
   return feats.map((f,i)=>`<div style="background:var(--surface2);border-radius:6px;padding:7px;margin-bottom:6px">
     <div style="display:flex;gap:5px;align-items:center;margin-bottom:4px">
-      <input id="mje_feat_name_${i}" value="${esc(f.name||'')}" placeholder="Nom de la capacitÃ© *" style="flex:2;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px;font-weight:600;padding:3px 6px;outline:none">
+      <input id="mje_feat_name_${i}" value="${esc(f.name||'')}" placeholder="Nom de la capacité *" style="flex:2;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px;font-weight:600;padding:3px 6px;outline:none">
       <input id="mje_feat_class_${i}" value="${esc(f.classe||'')}" placeholder="Classe" style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text2);font-size:11px;padding:3px 6px;outline:none">
-      <button class="btn bsm" style="color:#e53935;padding:2px 7px;flex-shrink:0" onclick="mjEditRemoveFeat(${i})">âœ•</button>
+      <button class="btn bsm" style="color:#e53935;padding:2px 7px;flex-shrink:0" onclick="mjEditRemoveFeat(${i})">✕</button>
     </div>
     <textarea id="mje_feat_desc_${i}" rows="2" placeholder="Description (optionnelle)" style="width:100%;box-sizing:border-box;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text2);font-size:11px;padding:4px 6px;resize:vertical;outline:none">${esc(f.desc||'')}</textarea>
   </div>`).join('');
@@ -294,8 +294,8 @@ function mjEditRemoveFeat(i){
   if(list)list.innerHTML=_mjRenderFeatList(current);
 }
 
-// â”€â”€ Compendium personnalisÃ© â”€â”€
-// â•â•â• BIBLIOTHÃˆQUE COMPENDIUMS â•â•â•
+// ── Compendium personnalisé ──
+// ═══ BIBLIOTHÈQUE COMPENDIUMS ═══
 function _genCompId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5);}
 
 async function loadMJCompLib(){
@@ -305,7 +305,7 @@ async function loadMJCompLib(){
     const data=doc.exists?doc.data():{};
     _mjCompLib=data.compendiumLib||{};
     if(!Object.keys(_mjCompLib).length){
-      // Migration depuis l'ancien systÃ¨me
+      // Migration depuis l'ancien système
       const oldFeats=data.customFeats||[];
       let oldSpells=[],oldItems=[];
       try{const saved=localStorage.getItem('dnd5e_mj_pool');if(saved){const p=JSON.parse(saved);oldSpells=p.customSpells||[];oldItems=p.customItems||[];}}catch(e){}
@@ -338,7 +338,7 @@ function _ensureActiveComp(){
 async function saveMJCompLib(){
   if(!currentUser)return;
   try{await fbDb.collection('users').doc(currentUser.uid).update({compendiumLib:_mjCompLib});}
-  catch(e){showToast('âŒ Erreur sauvegarde compendiums.');}
+  catch(e){showToast('❌ Erreur sauvegarde compendiums.');}
 }
 
 async function loadMJCustomFeats(){return loadMJCompLib();}
@@ -350,7 +350,7 @@ async function saveMJCustomFeats(){
   await saveMJCompLib();
 }
 function _mjRenderCompendiumList(){
-  if(!_mjCustomFeats.length)return'<div style="font-size:12px;color:var(--text3);font-style:italic;text-align:center;padding:20px">Aucune entrÃ©e. CrÃ©ez votre premiÃ¨re capacitÃ© ci-dessus.</div>';
+  if(!_mjCustomFeats.length)return'<div style="font-size:12px;color:var(--text3);font-style:italic;text-align:center;padding:20px">Aucune entrée. Créez votre première capacité ci-dessus.</div>';
   return _mjCustomFeats.map((f,i)=>`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:6px">
     <div style="display:flex;align-items:flex-start;gap:8px">
       <div style="flex:1;min-width:0">
@@ -358,33 +358,33 @@ function _mjRenderCompendiumList(){
         ${f.category?`<div style="font-size:11px;color:var(--cp);margin-bottom:3px">${esc(f.category)}</div>`:''}
         ${f.description?`<div style="font-size:12px;color:var(--text2);line-height:1.4">${esc(f.description)}</div>`:''}
       </div>
-      <button class="btn bsm" style="color:#e53935;padding:2px 7px;flex-shrink:0" onclick="mjDeleteCustomFeat(${i})">ðŸ—‘</button>
+      <button class="btn bsm" style="color:#e53935;padding:2px 7px;flex-shrink:0" onclick="mjDeleteCustomFeat(${i})">🗑</button>
     </div>
   </div>`).join('');
 }
 function mjOpenCompendium(){
   const ids=Object.keys(_mjCompLib);
   if(ids.length===1){mjOpenCompendiumEditor(ids[0]);return;}
-  // BibliothÃ¨que : liste des compendiums
+  // Bibliothèque : liste des compendiums
   const listHtml=ids.length?ids.map(id=>{
     const c=_mjCompLib[id];
     const total=(c.feats||[]).length+(c.spells||[]).length+(c.items||[]).length;
     return`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:6px;display:flex;align-items:center;gap:8px">
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:600;color:var(--text)">${esc(c.name)}</div>
-        <div style="font-size:11px;color:var(--text3)">${(c.feats||[]).length} capacitÃ©(s) Â· ${(c.spells||[]).length} sort(s) Â· ${(c.items||[]).length} objet(s)</div>
+        <div style="font-size:11px;color:var(--text3)">${(c.feats||[]).length} capacité(s) · ${(c.spells||[]).length} sort(s) · ${(c.items||[]).length} objet(s)</div>
       </div>
-      <button class="btn bsm bprimary" onclick="mjOpenCompendiumEditor('${id}')">âœï¸ Ã‰diter</button>
-      <button class="btn bsm" onclick="exportMJCompendium('${id}')">ðŸ“¤</button>
+      <button class="btn bsm bprimary" onclick="mjOpenCompendiumEditor('${id}')">✏️ Éditer</button>
+      <button class="btn bsm" onclick="exportMJCompendium('${id}')">📤</button>
     </div>`;}).join('')
-    :`<div style="font-size:12px;color:var(--text3);font-style:italic;text-align:center;padding:20px">Aucun compendium. CrÃ©ez-en un ci-dessous.</div>`;
-  openWideModal(`<div class="pt">ðŸ“š BibliothÃ¨que de compendiums</div>
-    <div style="font-size:12px;color:var(--text2);margin-bottom:14px">Choisissez un compendium Ã  Ã©diter, ou crÃ©ez-en un nouveau.</div>
+    :`<div style="font-size:12px;color:var(--text3);font-style:italic;text-align:center;padding:20px">Aucun compendium. Créez-en un ci-dessous.</div>`;
+  openWideModal(`<div class="pt">📚 Bibliothèque de compendiums</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:14px">Choisissez un compendium à éditer, ou créez-en un nouveau.</div>
     <div style="max-height:50vh;overflow-y:auto;margin-bottom:12px">${listHtml}</div>
     <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
       <div style="display:flex;gap:6px">
         <button class="btn bsm bprimary" onclick="mjCreateNewComp()">+ Nouveau</button>
-        <button class="btn bsm" onclick="importMJCompendium()">ðŸ“¥ Importer</button>
+        <button class="btn bsm" onclick="importMJCompendium()">📥 Importer</button>
       </div>
       <button class="btn bsm" onclick="closeModal()">Fermer</button>
     </div>`);
@@ -397,68 +397,68 @@ function mjOpenCompendiumEditor(id){
   _mjCustomFeats=c.feats||[];
   const hasLib=Object.keys(_mjCompLib).length>1;
   openWideModal(`<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-    ${hasLib?`<button class="btn bsm" onclick="mjOpenCompendium()" style="flex-shrink:0">â† Retour</button>`:''}
-    <div class="pt" style="margin:0;flex:1">ðŸ“š ${esc(c.name)}</div>
+    ${hasLib?`<button class="btn bsm" onclick="mjOpenCompendium()" style="flex-shrink:0">← Retour</button>`:''}
+    <div class="pt" style="margin:0;flex:1">📚 ${esc(c.name)}</div>
   </div>
-    <div style="font-size:12px;color:var(--text2);margin-bottom:12px">CapacitÃ©s, dons et traits maison disponibles pour vos tables.</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Capacités, dons et traits maison disponibles pour vos tables.</div>
     <div style="background:var(--surface2);border-radius:8px;padding:12px;margin-bottom:14px">
-      <div style="font-size:10px;color:var(--cp);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">+ Nouvelle capacitÃ©</div>
+      <div style="font-size:10px;color:var(--cp);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">+ Nouvelle capacité</div>
       <input id="mj_comp_name" class="fi" placeholder="Nom *" style="margin-bottom:6px;font-size:13px;font-weight:600">
-      <input id="mj_comp_cat" class="fi" placeholder="CatÃ©gorie (ex : Racial, Magie, Roublard...)" style="margin-bottom:6px;font-size:12px">
-      <textarea id="mj_comp_desc" class="fi" rows="3" placeholder="Description de la capacitÃ©..." style="font-size:12px;resize:vertical;margin-bottom:8px"></textarea>
-      <button class="btn bsm bprimary" onclick="mjCreateCustomFeat()">ðŸ’¾ Ajouter</button>
+      <input id="mj_comp_cat" class="fi" placeholder="Catégorie (ex : Racial, Magie, Roublard...)" style="margin-bottom:6px;font-size:12px">
+      <textarea id="mj_comp_desc" class="fi" rows="3" placeholder="Description de la capacité..." style="font-size:12px;resize:vertical;margin-bottom:8px"></textarea>
+      <button class="btn bsm bprimary" onclick="mjCreateCustomFeat()">💾 Ajouter</button>
     </div>
-    <div style="font-size:10px;color:var(--cp);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">${_mjCustomFeats.length} capacitÃ©(s)</div>
+    <div style="font-size:10px;color:var(--cp);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">${_mjCustomFeats.length} capacité(s)</div>
     <div id="mj_comp_list" style="max-height:38vh;overflow-y:auto">${_mjRenderCompendiumList()}</div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:8px;flex-wrap:wrap">
       <div style="display:flex;gap:6px">
-        <button class="btn bsm" onclick="exportMJCompendium('${id}')">ðŸ“¤ Exporter</button>
-        <button class="btn bsm" style="color:#e53935;border-color:rgba(229,57,53,.3)" onclick="mjDeleteComp('${id}')">ðŸ—‘ Supprimer</button>
+        <button class="btn bsm" onclick="exportMJCompendium('${id}')">📤 Exporter</button>
+        <button class="btn bsm" style="color:#e53935;border-color:rgba(229,57,53,.3)" onclick="mjDeleteComp('${id}')">🗑 Supprimer</button>
       </div>
       <button class="btn bsm" onclick="closeModal()">Fermer</button>
     </div>`);
 }
 
 function mjCreateNewComp(){
-  openModal(`<div class="pt">ðŸ“š Nouveau compendium</div>
+  openModal(`<div class="pt">📚 Nouveau compendium</div>
     <div class="fl mb6">Nom du compendium</div>
     <input class="fi" id="newCompName" placeholder="ex : Magie du Nord, Campagne Ravenloft..." style="margin-bottom:16px">
     <div style="display:flex;gap:8px">
       <button class="btn" style="flex:1" onclick="mjOpenCompendium()">Annuler</button>
-      <button class="btn bac" style="flex:2" onclick="mjConfirmCreateComp()">âœ“ CrÃ©er</button>
+      <button class="btn bac" style="flex:2" onclick="mjConfirmCreateComp()">✓ Créer</button>
     </div>`);
   setTimeout(()=>{const i=document.getElementById('newCompName');if(i)i.focus();},50);
 }
 
 async function mjConfirmCreateComp(){
   const name=(document.getElementById('newCompName')?.value||'').trim();
-  if(!name){showToast('âŒ Donnez un nom au compendium.');return;}
+  if(!name){showToast('❌ Donnez un nom au compendium.');return;}
   const id=_genCompId();
   _mjCompLib[id]={name,createdAt:new Date().toISOString(),feats:[],spells:[],items:[]};
   await saveMJCompLib();
-  showToast('âœ… Compendium "'+name+'" crÃ©Ã© !');
+  showToast('✅ Compendium "'+name+'" créé !');
   mjOpenCompendiumEditor(id);
 }
 
 async function mjDeleteComp(id){
   if(!_mjCompLib[id])return;
   const name=_mjCompLib[id].name;
-  if(!confirm('Supprimer le compendium "'+name+'" ? Cette action est irrÃ©versible.'))return;
+  if(!confirm('Supprimer le compendium "'+name+'" ? Cette action est irréversible.'))return;
   delete _mjCompLib[id];
   if(_mjActiveCompId===id)_mjActiveCompId=null;
   await saveMJCompLib();
   _refreshMjPool();
-  showToast('ðŸ—‘ Compendium supprimÃ©.');
+  showToast('🗑 Compendium supprimé.');
   mjOpenCompendium();
 }
 async function mjCreateCustomFeat(){
   const name=(document.getElementById('mj_comp_name')?.value||'').trim();
-  if(!name){showToast('âŒ Le nom est obligatoire.');return;}
+  if(!name){showToast('❌ Le nom est obligatoire.');return;}
   const category=(document.getElementById('mj_comp_cat')?.value||'').trim();
   const description=(document.getElementById('mj_comp_desc')?.value||'').trim();
   _mjCustomFeats.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),name,category,description});
   await saveMJCustomFeats();
-  showToast('âœ… "'+name+'" ajoutÃ© au compendium !');
+  showToast('✅ "'+name+'" ajouté au compendium !');
   if(document.getElementById('mj_comp_name'))document.getElementById('mj_comp_name').value='';
   if(document.getElementById('mj_comp_cat'))document.getElementById('mj_comp_cat').value='';
   if(document.getElementById('mj_comp_desc'))document.getElementById('mj_comp_desc').value='';
@@ -475,18 +475,18 @@ async function mjDeleteCustomFeat(i){
 function exportMJCompendium(id){
   const compId=id||_mjActiveCompId;
   const c=compId?_mjCompLib[compId]:null;
-  if(!c){showToast('âš ï¸ SÃ©lectionnez un compendium Ã  exporter.');return;}
+  if(!c){showToast('⚠️ Sélectionnez un compendium à exporter.');return;}
   const feats=c.feats||[];const spells=c.spells||[];const items=c.items||[];
   const total=feats.length+spells.length+items.length;
-  if(!total){showToast('âš ï¸ Compendium vide, rien Ã  exporter.');return;}
+  if(!total){showToast('⚠️ Compendium vide, rien à exporter.');return;}
   window._exportCompId=compId;
-  openModal(`<div class="pt">ðŸ“¤ Exporter Â« ${esc(c.name)} Â»</div>
-    <div style="font-size:12px;color:var(--text2);margin-bottom:12px">${feats.length} capacitÃ©(s) Â· ${spells.length} sort(s) Â· ${items.length} objet(s)</div>
+  openModal(`<div class="pt">📤 Exporter « ${esc(c.name)} »</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:12px">${feats.length} capacité(s) · ${spells.length} sort(s) · ${items.length} objet(s)</div>
     <div class="fl mb6">Nom du fichier</div>
     <input class="fi" id="compExportName" style="margin-bottom:16px" value="${esc(c.name)}">
     <div style="display:flex;gap:8px">
       <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
-      <button class="btn bac" style="flex:2" onclick="_doExportMJCompendium()">ðŸ“¤ TÃ©lÃ©charger</button>
+      <button class="btn bac" style="flex:2" onclick="_doExportMJCompendium()">📤 Télécharger</button>
     </div>`);
   setTimeout(()=>{const i=document.getElementById('compExportName');if(i){i.focus();i.select();}},50);
 }
@@ -496,27 +496,27 @@ function _doExportMJCompendium(){
   const c=compId?_mjCompLib[compId]:null;
   if(!c){closeModal();return;}
   const name=(document.getElementById('compExportName')?.value||c.name).trim();
-  const data={version:2,tool:'La BoÃ®te Ã  Outils',name,exportDate:new Date().toISOString(),
+  const data={version:2,tool:'La Boîte à Outils',name,exportDate:new Date().toISOString(),
     customFeats:c.feats||[],customSpells:c.spells||[],customItems:c.items||[]};
   const total=data.customFeats.length+data.customSpells.length+data.customItems.length;
-  const filename=name.toLowerCase().replace(/[^a-z0-9Ã€-Ã¿]+/gi,'_')+'_compendium.json';
+  const filename=name.toLowerCase().replace(/[^a-z0-9À-ÿ]+/gi,'_')+'_compendium.json';
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;a.download=filename;a.click();
   URL.revokeObjectURL(url);
   closeModal();
-  showToast(`ðŸ“¤ "${name}" exportÃ© (${total} entrÃ©e${total>1?'s':''}) !`);
+  showToast(`📤 "${name}" exporté (${total} entrée${total>1?'s':''}) !`);
 }
 
 function _parseCompendiumJSON(raw,filename){
   let feats=[],spells=[],items=[],monsters=[];
-  let name='Compendium importÃ©';
-  // Format 1 : export La BoÃ®te Ã  Outils (v1 ou v2)
+  let name='Compendium importé';
+  // Format 1 : export La Boîte à Outils (v1 ou v2)
   if(raw.customFeats||raw.customSpells||raw.customItems){
     feats=raw.customFeats||[];spells=raw.customSpells||[];items=raw.customItems||[];
     name=raw.name||name;
   }
-  // Format 2 : clÃ©s feats/spells/items/monsters directes
+  // Format 2 : clés feats/spells/items/monsters directes
   else if(raw.feats||raw.spells||raw.items||raw.monsters){
     const mapStr=arr=>arr.map(x=>typeof x==='string'?{name:x,desc:''}:x);
     feats=(raw.feats||[]).map(f=>typeof f==='string'?{id:Date.now().toString(36),name:f,category:'',description:''}:{...f,id:f.id||(Date.now().toString(36)+Math.random().toString(36).slice(2,5))});
@@ -524,7 +524,7 @@ function _parseCompendiumJSON(raw,filename){
     monsters=(raw.monsters||[]);
     name=raw.name||name;
   }
-  // Format 3 : tableau plat â€” dÃ©tection par champs
+  // Format 3 : tableau plat — détection par champs
   else if(Array.isArray(raw)){
     name=filename.replace(/\.json$/i,'').replace(/[_-]/g,' ')||name;
     raw.forEach(obj=>{
@@ -557,30 +557,30 @@ function importMJCompendium(){
       const data=_parseCompendiumJSON(raw,file.name);
       const {feats,spells,items,monsters}=data;
       const total=feats.length+spells.length+items.length+monsters.length;
-      if(!total){showToast('âŒ Aucun Ã©lÃ©ment reconnu dans ce fichier.');return;}
+      if(!total){showToast('❌ Aucun élément reconnu dans ce fichier.');return;}
       const importedName=data.name;
       window._pendingCompendiumImport={name:importedName,feats,spells,items,monsters};
       const existingIds=Object.keys(_mjCompLib);
       const mergeOpts=existingIds.map(id=>`<option value="${id}">${esc(_mjCompLib[id].name)}</option>`).join('');
-      openModal(`<div class="pt">ðŸ“¥ Importer un compendium</div>
+      openModal(`<div class="pt">📥 Importer un compendium</div>
         <div style="background:var(--surface2);border-radius:8px;padding:12px;margin-bottom:14px;font-size:13px;color:var(--text2)">
-          <div style="font-size:14px;font-weight:600;color:var(--cp);margin-bottom:6px">Â« ${esc(importedName)} Â»</div>
-          <span style="color:var(--cp)">${feats.length}</span> capacitÃ©(s) &nbsp;Â·&nbsp;
-          <span style="color:var(--cp)">${spells.length}</span> sort(s) &nbsp;Â·&nbsp;
+          <div style="font-size:14px;font-weight:600;color:var(--cp);margin-bottom:6px">« ${esc(importedName)} »</div>
+          <span style="color:var(--cp)">${feats.length}</span> capacité(s) &nbsp;·&nbsp;
+          <span style="color:var(--cp)">${spells.length}</span> sort(s) &nbsp;·&nbsp;
           <span style="color:var(--cp)">${items.length}</span> objet(s)
-          ${monsters.length?`&nbsp;Â·&nbsp;<span style="color:var(--cp)">${monsters.length}</span> monstre(s)/PNJ`:''}
+          ${monsters.length?`&nbsp;·&nbsp;<span style="color:var(--cp)">${monsters.length}</span> monstre(s)/PNJ`:''}
         </div>
-        ${feats.length||spells.length||items.length?`<div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px">CapacitÃ©s / Sorts / Objets â†’ compendium :</div>
+        ${feats.length||spells.length||items.length?`<div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px">Capacités / Sorts / Objets → compendium :</div>
         <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px">
-          <button class="btn bac" onclick="confirmImportMJCompendium('new')">âœ¨ Nouveau compendium</button>
+          <button class="btn bac" onclick="confirmImportMJCompendium('new')">✨ Nouveau compendium</button>
           ${existingIds.length?`<div style="display:flex;gap:6px;align-items:center">
             <select class="fi" id="mergeTargetId" style="flex:1">${mergeOpts}</select>
-            <button class="btn" onclick="confirmImportMJCompendium('merge')">âž• Fusionner dans</button>
+            <button class="btn" onclick="confirmImportMJCompendium('merge')">➕ Fusionner dans</button>
           </div>`:''}
         </div>`:''}
-        ${monsters.length?`<button class="btn bac" style="width:100%;margin-bottom:8px" onclick="confirmImportMJMonsters()">ðŸ‘¾ Importer ${monsters.length} monstre(s) dans Mes PNJ</button>`:''}
+        ${monsters.length?`<button class="btn bac" style="width:100%;margin-bottom:8px" onclick="confirmImportMJMonsters()">👾 Importer ${monsters.length} monstre(s) dans Mes PNJ</button>`:''}
         <div style="text-align:right"><button class="btn bsm" onclick="closeModal()">Annuler</button></div>`);
-    }catch(err){showToast('âŒ Fichier JSON invalide.');}
+    }catch(err){showToast('❌ Fichier JSON invalide.');}
   };
   input.click();
 }
@@ -590,7 +590,7 @@ async function confirmImportMJMonsters(){
   if(!data||!data.monsters||!data.monsters.length){closeModal();return;}
   _mjNPCs=[..._mjNPCs,...data.monsters];
   await saveMJData();
-  showToast(`âœ… ${data.monsters.length} monstre(s) importÃ©(s) dans Mes PNJ !`);
+  showToast(`✅ ${data.monsters.length} monstre(s) importé(s) dans Mes PNJ !`);
   window._pendingCompendiumImport=null;
   closeModal();
 }
@@ -604,7 +604,7 @@ async function confirmImportMJCompendium(mode){
     _mjActiveCompId=id;
   }else{
     const targetId=document.getElementById('mergeTargetId')?.value||Object.keys(_mjCompLib)[0];
-    if(!targetId||!_mjCompLib[targetId]){showToast('âŒ Compendium cible introuvable.');return;}
+    if(!targetId||!_mjCompLib[targetId]){showToast('❌ Compendium cible introuvable.');return;}
     const c=_mjCompLib[targetId];
     c.feats=[...c.feats,...(data.feats||[])];
     c.spells=[...c.spells,...(data.spells||[])];
@@ -615,7 +615,7 @@ async function confirmImportMJCompendium(mode){
   _refreshMjPool();
   window._pendingCompendiumImport=null;
   const total=data.feats.length+data.spells.length+data.items.length;
-  showToast(`âœ… ${total} entrÃ©e${total>1?'s':''} importÃ©e${total>1?'s':''} !`);
+  showToast(`✅ ${total} entrée${total>1?'s':''} importée${total>1?'s':''} !`);
   closeModal();
   mjOpenCompendiumEditor(_mjActiveCompId);
 }
@@ -652,22 +652,22 @@ function mjEditAddQuickXP(amount){
 function mjOpenFeatPicker(playerIdx){
   _mjSnapshotEditData();
   const allFeats=_mjAllFeats();
-  if(!allFeats.length){showToast('Compendium vide â€” crÃ©ez des capacitÃ©s d\'abord via le bouton ðŸ“š Compendium.');return;}
-  openWideModal(`<div class="pt">ðŸ“š Importer depuis le compendium</div>
-    <div style="font-size:12px;color:var(--text2);margin-bottom:10px">Cliquez sur une capacitÃ© pour l'ajouter Ã  la fiche du personnage.</div>
+  if(!allFeats.length){showToast('Compendium vide — créez des capacités d\'abord via le bouton 📚 Compendium.');return;}
+  openWideModal(`<div class="pt">📚 Importer depuis le compendium</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:10px">Cliquez sur une capacité pour l'ajouter à la fiche du personnage.</div>
     <div style="max-height:60vh;overflow-y:auto;margin-bottom:10px">
       ${allFeats.map((f,i)=>`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:6px;cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='var(--cp)'" onmouseout="this.style.borderColor='var(--border)'" onclick="mjApplyCustomFeat(${i},${playerIdx})">
         <div style="display:flex;align-items:center;gap:8px">
           <div style="flex:1;min-width:0">
             <div style="font-size:13px;font-weight:600">${esc(f.name)}</div>
             ${f.category?`<div style="font-size:11px;color:var(--cp)">${esc(f.category)}</div>`:''}
-            ${f.description?`<div style="font-size:12px;color:var(--text2);margin-top:3px">${esc(f.description).substring(0,120)}${f.description.length>120?'â€¦':''}</div>`:''}
+            ${f.description?`<div style="font-size:12px;color:var(--text2);margin-top:3px">${esc(f.description).substring(0,120)}${f.description.length>120?'…':''}</div>`:''}
           </div>
           <span style="font-size:18px;color:var(--cp)">+</span>
         </div>
       </div>`).join('')}
     </div>
-    <div style="text-align:right"><button class="btn bsm" onclick="mjEditPlayerSheet(${playerIdx})">â† Retour Ã  la fiche</button></div>`);
+    <div style="text-align:right"><button class="btn bsm" onclick="mjEditPlayerSheet(${playerIdx})">← Retour à la fiche</button></div>`);
 }
 function mjApplyCustomFeat(featIdx,playerIdx){
   const f=_mjAllFeats()[featIdx];if(!f||!_mjEditData)return;
@@ -676,7 +676,7 @@ function mjApplyCustomFeat(featIdx,playerIdx){
   mjEditPlayerSheet(playerIdx);
 }
 
-// â”€â”€ Modale principale â”€â”€
+// ── Modale principale ──
 function mjEditPlayerSheet(idx){
   const pp=_mjPlayersData[idx];if(!pp)return;
   if(!_mjEditData||_mjEditData.idx!==idx){
@@ -693,9 +693,9 @@ function mjEditPlayerSheet(idx){
   const feats=p.features||[];
   const sec=t=>`<div style="font-size:10px;color:var(--cp);text-transform:uppercase;letter-spacing:.07em;border-bottom:1px solid var(--border);margin-bottom:8px;padding-bottom:3px;margin-top:4px">${t}</div>`;
   openWideModal(`<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-    <span style="font-size:24px">${pp.avatar||'âš”'}</span>
+    <span style="font-size:24px">${pp.avatar||'⚔'}</span>
     <div style="flex:1;min-width:0">
-      <div style="font-size:11px;color:var(--text3);margin-bottom:4px">${esc(pp.playerName||'')} Â· âœ Modification de la fiche</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:4px">${esc(pp.playerName||'')} · ✏ Modification de la fiche</div>
       <input id="mje_charname" value="${esc(p.charName||'')}" placeholder="Nom du personnage" style="width:100%;background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--text);font-size:15px;font-weight:700;outline:none;padding:2px 0">
     </div>
   </div>
@@ -708,27 +708,27 @@ function mjEditPlayerSheet(idx){
     ${sec('Classes & Niveaux')}
     <div id="mje_class_list" style="margin-bottom:4px">${_mjRenderClassList(classes)}</div>
     <button class="btn bsm" style="width:100%;margin-bottom:12px" onclick="mjEditAddClass()">+ Ajouter une classe</button>
-    ${sec('ExpÃ©rience')}
-    ${(()=>{const _xpLvl=classes.reduce((s,c)=>s+(c.level||0),0);const _xpCur=p.xp||0;const _xpCurT=XP_LEVELS[_xpLvl-1]||0;const _xpNextT=XP_LEVELS[_xpLvl]||XP_LEVELS[19];const _xpPct=Math.min(100,Math.round(((_xpCur-_xpCurT)/Math.max(1,_xpNextT-_xpCurT))*100));const _xpToNext=Math.max(0,_xpNextT-_xpCur);return`<div style="margin-bottom:12px"><div style="display:flex;align-items:baseline;gap:6px;margin-bottom:4px"><span style="font-size:20px;font-weight:700;color:var(--cp)">${_xpCur.toLocaleString()}</span><span style="font-size:11px;color:var(--text3)">XP actuels â€¢ Niv. ${_xpLvl}</span></div><div class="xp-bar-wrap"><div class="xp-bar-fill" style="width:${_xpPct}%"></div></div><div style="font-size:11px;color:var(--text3);margin-bottom:8px">${_xpToNext>0?`${_xpToNext.toLocaleString()} XP jusqu'au niveau ${_xpLvl+1}`:`âœ¨ PrÃªt pour le niveau ${_xpLvl+1} !`}</div><div style="display:flex;gap:6px;margin-bottom:6px"><input id="mje_xp_add" type="number" min="0" placeholder="XP Ã  ajouter..." class="fi" style="flex:1;font-size:12px"><button class="btn bsm bac" onclick="mjEditAddQuickXP(parseInt(document.getElementById('mje_xp_add').value)||0)" style="white-space:nowrap">+ Ajouter</button></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">${[[25,'Gobelin tuÃ©'],[50,'Rencontre facile'],[100,'Rencontre moyenne'],[200,'Rencontre difficile'],[450,'Boss tuÃ©'],[1000,'Jalon narratif']].map(([xp,lbl])=>`<div class="xp-reward" onclick="mjEditAddQuickXP(${xp})">+${xp} XP â€” ${lbl}</div>`).join('')}</div></div>`;})()}
+    ${sec('Expérience')}
+    ${(()=>{const _xpLvl=classes.reduce((s,c)=>s+(c.level||0),0);const _xpCur=p.xp||0;const _xpCurT=XP_LEVELS[_xpLvl-1]||0;const _xpNextT=XP_LEVELS[_xpLvl]||XP_LEVELS[19];const _xpPct=Math.min(100,Math.round(((_xpCur-_xpCurT)/Math.max(1,_xpNextT-_xpCurT))*100));const _xpToNext=Math.max(0,_xpNextT-_xpCur);return`<div style="margin-bottom:12px"><div style="display:flex;align-items:baseline;gap:6px;margin-bottom:4px"><span style="font-size:20px;font-weight:700;color:var(--cp)">${_xpCur.toLocaleString()}</span><span style="font-size:11px;color:var(--text3)">XP actuels • Niv. ${_xpLvl}</span></div><div class="xp-bar-wrap"><div class="xp-bar-fill" style="width:${_xpPct}%"></div></div><div style="font-size:11px;color:var(--text3);margin-bottom:8px">${_xpToNext>0?`${_xpToNext.toLocaleString()} XP jusqu'au niveau ${_xpLvl+1}`:`✨ Prêt pour le niveau ${_xpLvl+1} !`}</div><div style="display:flex;gap:6px;margin-bottom:6px"><input id="mje_xp_add" type="number" min="0" placeholder="XP à ajouter..." class="fi" style="flex:1;font-size:12px"><button class="btn bsm bac" onclick="mjEditAddQuickXP(parseInt(document.getElementById('mje_xp_add').value)||0)" style="white-space:nowrap">+ Ajouter</button></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">${[[25,'Gobelin tué'],[50,'Rencontre facile'],[100,'Rencontre moyenne'],[200,'Rencontre difficile'],[450,'Boss tué'],[1000,'Jalon narratif']].map(([xp,lbl])=>`<div class="xp-reward" onclick="mjEditAddQuickXP(${xp})">+${xp} XP — ${lbl}</div>`).join('')}</div></div>`;})()}
     ${sec('Stats de combat')}
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px">
       ${[['PV','hp',p.hp||0],['PV max','hpMax',p.hpMax||1],['CA','ac',p.ac||10],['Vit. (m)','speed',p.speed||9]].map(([label,id,val])=>`<div style="background:var(--surface2);border-radius:6px;padding:6px;text-align:center"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:3px">${label}</div><input id="mje_${id}" type="number" value="${val}" style="width:100%;text-align:center;background:transparent;border:none;color:var(--text);font-size:15px;font-weight:700;outline:none"></div>`).join('')}
     </div>
-    ${sec('CaractÃ©ristiques')}
+    ${sec('Caractéristiques')}
     <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:12px">
       ${abilNames.map((ab,i)=>`<div style="background:var(--surface2);border-radius:6px;padding:5px;text-align:center"><div style="font-size:9px;color:var(--text3)">${ab}</div><input id="mje_ab${i}" type="number" min="1" max="30" value="${abs[i]}" style="width:100%;text-align:center;background:transparent;border:none;color:var(--text);font-size:14px;font-weight:700;outline:none"></div>`).join('')}
     </div>
-    ${sec('CompÃ©tences')}
-    <div style="font-size:10px;color:var(--text3);margin-bottom:6px">Cliquer pour changer : â—‹ Aucune Â· â— MaÃ®trise Â· â—† Expertise</div>
+    ${sec('Compétences')}
+    <div style="font-size:10px;color:var(--text3);margin-bottom:6px">Cliquer pour changer : ○ Aucune · ● Maîtrise · ◆ Expertise</div>
     <div id="mje_skill_grid" style="display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-bottom:12px">${_mjRenderSkillGrid()}</div>
     ${sec('Conditions')}
-    <div id="mje_cond_chips" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px">${conds.length?conds.map((c,i)=>`<span class="status-badge malus" style="cursor:pointer" onclick="mjEditRemoveCond(${i})">âš  ${esc(c)} âœ•</span>`).join(''):'<span style="font-size:11px;color:var(--text3);font-style:italic">Aucune condition.</span>'}</div>
+    <div id="mje_cond_chips" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px">${conds.length?conds.map((c,i)=>`<span class="status-badge malus" style="cursor:pointer" onclick="mjEditRemoveCond(${i})">⚠ ${esc(c)} ✕</span>`).join(''):'<span style="font-size:11px;color:var(--text3);font-style:italic">Aucune condition.</span>'}</div>
     <div style="display:flex;gap:6px;margin-bottom:12px"><input id="mje_cond_input" class="fi" placeholder="Nom de la condition..." style="flex:1;font-size:12px;padding:5px 8px"><button class="btn bsm" onclick="mjEditAddCond()">+ Ajouter</button></div>
-    ${sec('CapacitÃ©s & Dons')}
+    ${sec('Capacités & Dons')}
     <div id="mje_feat_list" style="margin-bottom:4px">${_mjRenderFeatList(feats)}</div>
     <div style="display:flex;gap:6px;margin-bottom:12px">
       <button class="btn bsm" style="flex:1" onclick="mjEditAddFeat()">+ Nouvelle</button>
-      <button class="btn bsm" style="flex:1" onclick="mjOpenFeatPicker(${idx})">ðŸ“š Depuis le compendium</button>
+      <button class="btn bsm" style="flex:1" onclick="mjOpenFeatPicker(${idx})">📚 Depuis le compendium</button>
     </div>
     ${sec('Inventaire')}
     <div id="mje_inv_list" style="margin-bottom:4px">${_mjRenderInvList(inv)}</div>
@@ -744,26 +744,26 @@ function mjEditPlayerSheet(idx){
       <input id="mje_spell_level" type="number" min="0" max="9" placeholder="Niv" style="width:52px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:5px;font-size:12px;text-align:center;outline:none">
       <button class="btn bsm" onclick="mjEditAddSpell()">+ Sort</button>
     </div>
-    ${sec('Langues & MaÃ®trises')}
+    ${sec('Langues & Maîtrises')}
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px">
       <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Langues</div><input id="mje_languages" value="${esc(p.languages||'')}" class="fi" style="font-size:12px" placeholder="Commun, Elfique..."></div>
-      <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">MaÃ®trises diverses</div><input id="mje_proficiencies" value="${esc(p.proficiencies||'')}" class="fi" style="font-size:12px" placeholder="Outils, instruments..."></div>
-      <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">MaÃ®trises d'armes</div><input id="mje_weaponprofs" value="${esc((p.weaponProfs||[]).join(', '))}" class="fi" style="font-size:12px" placeholder="Armes courantes, Ã©pÃ©e..."></div>
-      <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">MaÃ®trises d'armures</div><input id="mje_armorprofs" value="${esc((p.armorProfs||[]).join(', '))}" class="fi" style="font-size:12px" placeholder="LÃ©gÃ¨res, intermÃ©diaires..."></div>
+      <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Maîtrises diverses</div><input id="mje_proficiencies" value="${esc(p.proficiencies||'')}" class="fi" style="font-size:12px" placeholder="Outils, instruments..."></div>
+      <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Maîtrises d'armes</div><input id="mje_weaponprofs" value="${esc((p.weaponProfs||[]).join(', '))}" class="fi" style="font-size:12px" placeholder="Armes courantes, épée..."></div>
+      <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Maîtrises d'armures</div><input id="mje_armorprofs" value="${esc((p.armorProfs||[]).join(', '))}" class="fi" style="font-size:12px" placeholder="Légères, intermédiaires..."></div>
     </div>
-    ${sec('PersonnalitÃ© & Histoire')}
+    ${sec('Personnalité & Histoire')}
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
       <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Traits</div><textarea id="mje_traits" class="fi" rows="2" style="font-size:11px;resize:vertical">${esc(p.traits||'')}</textarea></div>
-      <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">IdÃ©aux</div><textarea id="mje_ideals" class="fi" rows="2" style="font-size:11px;resize:vertical">${esc(p.ideals||'')}</textarea></div>
+      <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Idéaux</div><textarea id="mje_ideals" class="fi" rows="2" style="font-size:11px;resize:vertical">${esc(p.ideals||'')}</textarea></div>
       <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Liens</div><textarea id="mje_bonds" class="fi" rows="2" style="font-size:11px;resize:vertical">${esc(p.bonds||'')}</textarea></div>
-      <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">DÃ©fauts</div><textarea id="mje_flaws" class="fi" rows="2" style="font-size:11px;resize:vertical">${esc(p.flaws||'')}</textarea></div>
+      <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Défauts</div><textarea id="mje_flaws" class="fi" rows="2" style="font-size:11px;resize:vertical">${esc(p.flaws||'')}</textarea></div>
     </div>
     <div style="margin-bottom:6px"><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Histoire du personnage</div><textarea id="mje_backstory" class="fi" rows="3" style="font-size:11px;resize:vertical">${esc(p.backstory||'')}</textarea></div>
-    <div style="margin-bottom:10px"><div style="font-size:10px;color:var(--cp);margin-bottom:3px">ðŸ” Secrets MJ</div><textarea id="mje_secrets" class="fi" rows="2" style="font-size:11px;resize:vertical;border-color:rgba(200,168,75,.35)">${esc(p.secrets||'')}</textarea></div>
+    <div style="margin-bottom:10px"><div style="font-size:10px;color:var(--cp);margin-bottom:3px">🔐 Secrets MJ</div><textarea id="mje_secrets" class="fi" rows="2" style="font-size:11px;resize:vertical;border-color:rgba(200,168,75,.35)">${esc(p.secrets||'')}</textarea></div>
   </div>
   <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">
     <button class="btn bsm" onclick="closeModal()">Annuler</button>
-    <button class="btn bsm bprimary" onclick="mjSavePlayerSheet(${idx})">ðŸ’¾ Sauvegarder</button>
+    <button class="btn bsm bprimary" onclick="mjSavePlayerSheet(${idx})">💾 Sauvegarder</button>
   </div>`);
 }
 
@@ -780,9 +780,9 @@ async function mjSavePlayerSheet(idx){
     pp.charData=p;
     _mjEditData=null;
     closeModal();
-    showToast('âœ… Fiche de '+esc(pp.playerName||'joueur')+' mise Ã  jour !');
+    showToast('✅ Fiche de '+esc(pp.playerName||'joueur')+' mise à jour !');
     renderMJContent();
-  }catch(e){showToast('âŒ Erreur : '+e.message);}
+  }catch(e){showToast('❌ Erreur : '+e.message);}
 }
 
 function mjWhisperPlayer(idx){
@@ -793,11 +793,11 @@ function mjWhisperPlayer(idx){
 function mjRespecPlayer(idx){
   const pp=_mjPlayersData[idx];if(!pp)return;
   const charName=esc((pp.charData||{}).charName||'ce personnage');
-  openModal(`<div class="pt" style="color:#ff9800">â†© RÃ©initialiser les niveaux ?</div>
-    <div style="font-size:13px;color:var(--text2);margin:10px 0 18px">Ramener <b>${charName}</b> au niveau 1 pour chaque classe ?<br><span style="font-size:11px;color:var(--text3)">CapacitÃ©s, sorts et PV rÃ©initialisÃ©s. Ã‰quipement et statistiques de base conservÃ©s.</span></div>
+  openModal(`<div class="pt" style="color:#ff9800">↩ Réinitialiser les niveaux ?</div>
+    <div style="font-size:13px;color:var(--text2);margin:10px 0 18px">Ramener <b>${charName}</b> au niveau 1 pour chaque classe ?<br><span style="font-size:11px;color:var(--text3)">Capacités, sorts et PV réinitialisés. Équipement et statistiques de base conservés.</span></div>
     <div style="display:flex;gap:10px">
       <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
-      <button class="btn" style="flex:2;color:#ff9800;border-color:rgba(255,152,0,.4);font-weight:600" onclick="mjRespecConfirm(${idx})">â†© RÃ©initialiser</button>
+      <button class="btn" style="flex:2;color:#ff9800;border-color:rgba(255,152,0,.4);font-weight:600" onclick="mjRespecConfirm(${idx})">↩ Réinitialiser</button>
     </div>`);
 }
 async function mjRespecConfirm(idx){
@@ -823,19 +823,19 @@ async function mjRespecConfirm(idx){
     await fbDb.collection('characters').doc(pp.docId).update({characterData:p,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
     pp.charData=p;
     closeModal();
-    showToast('â†© '+esc(p.charName||'Personnage')+' rÃ©initialisÃ© au niveau 1');
+    showToast('↩ '+esc(p.charName||'Personnage')+' réinitialisé au niveau 1');
     renderMJContent();
-  }catch(e){showToast('âŒ Erreur : '+e.message);}
+  }catch(e){showToast('❌ Erreur : '+e.message);}
 }
 function mjQuickKickConfirm(idx){
   const pp=_mjPlayersData[idx];if(!pp)return;
   const charName=esc(pp.charData&&pp.charData.charName||'Sans nom');
   const playerName=esc(pp.playerName||'ce joueur');
-  openModal(`<div class="pt" style="color:#e53935">âš ï¸ Exclure ce joueur ?</div>
-    <div style="font-size:13px;color:var(--text2);margin:10px 0 18px">Retirer <b>${charName}</b> (${playerName}) de cette campagne ?<br><span style="font-size:11px;color:var(--text3)">Le personnage reste intact dans sa bibliothÃ¨que.</span></div>
+  openModal(`<div class="pt" style="color:#e53935">⚠️ Exclure ce joueur ?</div>
+    <div style="font-size:13px;color:var(--text2);margin:10px 0 18px">Retirer <b>${charName}</b> (${playerName}) de cette campagne ?<br><span style="font-size:11px;color:var(--text3)">Le personnage reste intact dans sa bibliothèque.</span></div>
     <div style="display:flex;gap:10px">
       <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
-      <button class="btn" style="flex:2;color:#e53935;border-color:rgba(229,57,53,.4);font-weight:600" onclick="mjKickCharacter(${idx})">âœ“ Exclure</button>
+      <button class="btn" style="flex:2;color:#e53935;border-color:rgba(229,57,53,.4);font-weight:600" onclick="mjKickCharacter(${idx})">✓ Exclure</button>
     </div>`);
 }
 
@@ -843,16 +843,16 @@ function mjModerationModal(idx){
   const pp=_mjPlayersData[idx];if(!pp)return;
   const charName=esc(pp.charData&&pp.charData.charName||'Sans nom');
   const playerName=esc(pp.playerName||'Joueur');
-  openModal(`<div class="pt" style="color:#e53935">ðŸ—‘ ModÃ©ration</div>
-    <div style="font-size:13px;color:var(--text2);margin-bottom:16px">Joueur : <b>${playerName}</b> Â· Personnage : <b>${charName}</b></div>
+  openModal(`<div class="pt" style="color:#e53935">🗑 Modération</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:16px">Joueur : <b>${playerName}</b> · Personnage : <b>${charName}</b></div>
     <div style="display:flex;flex-direction:column;gap:10px">
       <button class="btn" style="background:rgba(229,57,53,.08);border:1px solid rgba(229,57,53,.35);color:#e53935;text-align:left;padding:12px 14px;border-radius:8px" onclick="mjKickCharacter(${idx})">
-        <div style="font-weight:600;margin-bottom:3px">â†© Retirer de la campagne</div>
-        <div style="font-size:11px;color:var(--text3)">Retire <b>${charName}</b> du roster MJ. Le personnage reste intact dans la bibliothÃ¨que du joueur â€” c'est Ã  lui de le supprimer.</div>
+        <div style="font-weight:600;margin-bottom:3px">↩ Retirer de la campagne</div>
+        <div style="font-size:11px;color:var(--text3)">Retire <b>${charName}</b> du roster MJ. Le personnage reste intact dans la bibliothèque du joueur — c'est à lui de le supprimer.</div>
       </button>
       <button class="btn" style="background:rgba(229,57,53,.15);border:1px solid rgba(229,57,53,.6);color:#e53935;text-align:left;padding:12px 14px;border-radius:8px" onclick="mjKickFromTable(${idx})">
-        <div style="font-weight:600;margin-bottom:3px">ðŸš« Exclure de la table</div>
-        <div style="font-size:11px;color:var(--text3)">Retire <b>${playerName}</b> de la table entiÃ¨re et supprime tous ses personnages dans toutes les campagnes. IrrÃ©versible.</div>
+        <div style="font-weight:600;margin-bottom:3px">🚫 Exclure de la table</div>
+        <div style="font-size:11px;color:var(--text3)">Retire <b>${playerName}</b> de la table entière et supprime tous ses personnages dans toutes les campagnes. Irréversible.</div>
       </button>
     </div>
     <div style="margin-top:14px;text-align:right"><button class="btn bsm" onclick="closeModal()">Annuler</button></div>`);
@@ -864,9 +864,9 @@ async function mjKickCharacter(idx){
   closeModal();
   try{
     await fbDb.collection('characters').doc(pp.docId).update({ejectedFromCampaign:true});
-    showToast('âœ… '+(pp.playerName||'Joueur')+' retirÃ© de la campagne. Son personnage reste dans sa bibliothÃ¨que.');
-    // Le listener onSnapshot va dÃ©tecter ejectedFromCampaign et mettre Ã  jour _mjPlayersData automatiquement
-  }catch(e){showToast('âŒ Erreur : '+e.message);}
+    showToast('✅ '+(pp.playerName||'Joueur')+' retiré de la campagne. Son personnage reste dans sa bibliothèque.');
+    // Le listener onSnapshot va détecter ejectedFromCampaign et mettre à jour _mjPlayersData automatiquement
+  }catch(e){showToast('❌ Erreur : '+e.message);}
 }
 
 async function mjKickFromTable(idx){
@@ -883,11 +883,11 @@ async function mjKickFromTable(idx){
       ['memberAvatars.'+pp.uid]:firebase.firestore.FieldValue.delete()
     });
     await batch.commit();
-    showToast(`âœ… ${playerName} exclu(e) de la table.`);
-    // Les docs supprimÃ©s dÃ©clenchent le listener onSnapshot (type='removed') â€” pas besoin de loadMJPlayersData
-  }catch(e){showToast('âŒ Erreur : '+e.message);}
+    showToast(`✅ ${playerName} exclu(e) de la table.`);
+    // Les docs supprimés déclenchent le listener onSnapshot (type='removed') — pas besoin de loadMJPlayersData
+  }catch(e){showToast('❌ Erreur : '+e.message);}
 }
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────
 // TAB COMBAT
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────
