@@ -1382,6 +1382,7 @@ async function enterCampaign(tableId,campaignId,tName,cName,preloadedCharData){
       stopAllListeners();
       // Lance le listener temps réel pour les joueurs (remplace loadMJPlayersData)
       startMJPlayersListener(campaignId);
+      if(currentTableId)startWhisperListener(currentTableId,currentUser.uid);
       // Charge la bibliothèque de compendiums puis filtre selon les compendiums actifs de la table
       if(!Object.keys(_mjCompLib).length)await loadMJCompLib();
       const activeCustomIds=tableData?.activeCustomCompendiums||Object.keys(_mjCompLib);
@@ -1416,6 +1417,7 @@ async function enterCampaign(tableId,campaignId,tName,cName,preloadedCharData){
       startPlayerListener(campaignId);
       startGroupListener(campaignId);
       if(currentTableMjId)startCombatListener(campaignId,currentTableMjId);
+      if(currentTableId)startWhisperListener(currentTableId,currentUser.uid);
     }
   }catch(e){showToast('❌ Erreur chargement : '+e.message);}
 }
