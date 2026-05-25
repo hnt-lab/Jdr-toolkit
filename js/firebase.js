@@ -83,7 +83,9 @@ let _ownWriteData=null;
 function _stableJSON(v){if(v===null||v===undefined||typeof v!=='object')return JSON.stringify(v);if(Array.isArray(v))return'['+v.map(_stableJSON).join(',')+']';const keys=Object.keys(v).sort();return'{'+keys.map(k=>JSON.stringify(k)+':'+_stableJSON(v[k])).join(',')+'}';}
 
 let _userInfoCache={};
-function stopAllListeners(){_unsubscribes.forEach(fn=>{try{fn();}catch(e){}});_unsubscribes=[];}
+let _whisperHistory=[];
+let _whisperInited=false;
+function stopAllListeners(){_unsubscribes.forEach(fn=>{try{fn();}catch(e){}});_unsubscribes=[];_whisperHistory=[];_whisperInited=false;}
 window.addEventListener('beforeunload',()=>{if(_unsaved){clearTimeout(_saveDebounce);try{localStorage.setItem(getUserSK(),JSON.stringify(state));}catch(e){}}});
 function _debouncedMJRender(){clearTimeout(_mjRenderDebounce);_mjRenderDebounce=setTimeout(()=>{renderMJContent();_flashSyncDot('mjSyncDot');},350);}
 function _flashSyncDot(id){const d=document.getElementById(id);if(!d)return;d.className='sync-dot on';setTimeout(()=>{d.className='sync-dot';},2500);}
@@ -438,5 +440,47 @@ function openHubPlayerSheet(uid,campId){
   if(!pp){showToast('❌ Données introuvables.');return;}
   const isMJ=!!(currentUser&&_hubCache&&(_hubCache.find(t=>t.campaigns&&t.campaigns.some(c=>c.id===campId))?.mjId===currentUser.uid));
   openPlayerReadonlySheetFull(pp.fullData||{},pp.priv||{},{playerName:pp.playerName,avatar:pp.avatar},isMJ);
+}
+
+// ─── CHUCHOTEMENTS ───
+function startWhisperListener(tableId,uid){
+  if(!tableId||!uid)return;
+  _whisperHistory=[];_whisperInited=false;
+  const unsub=fbDb.collection('tables').doc(tableId).collection('whispers')
+    .where('to','==',uid)
+    .limit(20)
+    .onSnapshot(snap=>{
+      const firstBatch=!_whisperInited;
+      _whisperInited=true;
+      snap.docChanges().forEach(change=>{
+        if(change.type!=='added')return;
+        const d=change.doc.data();
+        if(!_whisperHistory.some(w=>w.id===change.doc.id)){
+          _whisperHistory.unshift({id:change.doc.id,...d});
+          _whisperHistory.sort((a,b)=>(b.ts?.seconds||0)-(a.ts?.seconds||0));
+          if(_whisperHistory.length>20)_whisperHistory.pop();
+          if(!firstBatch&&typeof showToast==='function'){
+            showToast(`🤫 <strong>${typeof esc==='function'?esc(d.fromName||'?'):d.fromName||'?'}</strong> vous chuchote : "${typeof esc==='function'?esc(d.message||''):d.message||''}"`,8000);
+          }
+        }
+      });
+    },err=>console.warn('Whisper listener error:',err));
+  _unsubscribes.push(unsub);
+}
+
+async function sendWhisperMsg(toUid,toName,message){
+  if(!currentUser||!currentTableId||!message.trim())return;
+  try{
+    const fromName=currentUserData?.displayName||currentUserData?.playerName||'Joueur';
+    await fbDb.collection('tables').doc(currentTableId).collection('whispers').add({
+      from:currentUser.uid,
+      fromName,
+      to:toUid,
+      toName,
+      message:message.trim(),
+      ts:firebase.firestore.FieldValue.serverTimestamp(),
+      campaignId:currentCampaignId||null
+    });
+  }catch(e){if(typeof showToast==='function')showToast('❌ Erreur envoi : '+e.message);}
 }
 
