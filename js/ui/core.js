@@ -1,4 +1,4 @@
-﻿let _mjJournal=[];
+let _mjJournal=[];
 let _journalSubTab='mj';
 let _playerJournalSubTab='entries';
 let _compilationData=null;
@@ -32,7 +32,7 @@ let _mjNewMonsterSpells=[];
 let _mjNewMonsterTraits=[];
 let _mjEditingMonsterIdx=-1;
 
-// â”€â”€â”€ NAVIGATION â”€â”€â”€
+// ─── NAVIGATION ───
 function showAuthScreen(){
   document.getElementById('authScreen').style.display='flex';
   document.getElementById('hubScreen').style.display='none';
@@ -55,7 +55,7 @@ async function joinGroupOnly(tableId,campaignId){
   }
   startGroupListener(campaignId);
   if(currentTableMjId)startCombatListener(campaignId,currentTableMjId);
-  // Animation Ã©clair sur le bouton HUD
+  // Animation éclair sur le bouton HUD
   const hudBtn=document.getElementById('partyHudBtn');
   if(hudBtn){hudBtn.style.transition='box-shadow .3s';hudBtn.style.boxShadow='0 0 0 5px rgba(200,168,75,.5)';setTimeout(()=>{hudBtn.style.boxShadow='';},1200);}
 }
@@ -71,7 +71,7 @@ function showHub(){
   document.getElementById('mjScreen').style.display='none';
   _expandedCamp=null;
   const btn=document.getElementById('hubUserBtn');
-  if(btn&&currentUserData) btn.innerHTML=`ðŸ‘¤ ${esc(currentUserData.displayName)}`;
+  if(btn&&currentUserData) btn.innerHTML=`👤 ${esc(currentUserData.displayName)}`;
   renderHub();
   if(!localStorage.getItem('tuto_player_done')) setTimeout(()=>startTutorial('player'),700);
 }
@@ -84,10 +84,10 @@ function showApp(){
   const mjBtn=document.getElementById('mjBtn');
   if(mjBtn) mjBtn.style.display='none';
   const hdrUser=document.getElementById('hdrUser');
-  if(hdrUser&&currentUserData) hdrUser.textContent=`âš” ${currentUserData.displayName}`;
+  if(hdrUser&&currentUserData) hdrUser.textContent=`⚔ ${currentUserData.displayName}`;
 }
 
-// â”€â”€â”€ CACHE INVALIDATION â”€â”€â”€
+// ─── CACHE INVALIDATION ───
 const _DB_VERSION='srd-v1';
 (function(){
   if(localStorage.getItem('_db_version')!==_DB_VERSION){
@@ -96,7 +96,7 @@ const _DB_VERSION='srd-v1';
   }
 })();
 
-// â”€â”€â”€ AUTH STATE â”€â”€â”€
+// ─── AUTH STATE ───
 fbAuth.onAuthStateChanged(async user=>{
   if(user){
     currentUser=user;
