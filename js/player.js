@@ -1021,6 +1021,7 @@ function tabCombat(p){
         if(isGrandAncien){const peU=!!cc['ProtecEntropiqueUsed'];html+=`<div style="border-top:1px solid var(--border);padding-top:10px;margin-top:8px"><div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:6px">🐙 Le Grand Ancien</div><div style="font-size:11px;color:var(--text2);padding:5px 8px;background:var(--surface2);border-radius:6px;margin-bottom:4px">Esprit éveillé (niv.1) — Télépathie à 9m vers toute créature comprenant une langue</div>${occLvl>=6?`<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:${peU?'rgba(200,168,75,.1)':'var(--surface2)'};border:1px solid ${peU?'var(--cp)':'var(--border)'};border-radius:6px;margin-bottom:4px"><span class="slot-bubble${peU?' used':''}" onclick="(()=>{const p=P();if(!p.combatCharges)p.combatCharges={};p.combatCharges['ProtecEntropiqueUsed']=!p.combatCharges['ProtecEntropiqueUsed'];saveAll();render();})()"></span><div><div style="font-size:11px;font-weight:600">Protection entropique (niv.6) — 1/repos court</div><div style="font-size:10px;color:var(--text3)">Réaction : désavantage à l'attaquant. Si rate : avantage sur ton prochain jet contre lui</div></div><button class="btn bsm" onclick="(()=>{const p=P();if(!p.combatCharges)p.combatCharges={};delete p.combatCharges['ProtecEntropiqueUsed'];saveAll();render();})()">↺</button></div>`:''}  ${occLvl>=10?`<div style="font-size:11px;color:var(--text2);padding:5px 8px;background:var(--surface2);border-radius:6px;margin-bottom:4px">Bouclier mental (niv.10) — Immunité lecture de pensées, résistance dégâts psychiques</div>`:''} ${occLvl>=14?`<div style="font-size:11px;color:var(--text2);padding:5px 8px;background:var(--surface2);border-radius:6px">Asservissement (niv.14) — Action : toucher humanoïde incapacité → charme permanent (JS SAG DD ${8+pb(occLvl)+chaM})</div>`:''}</div>`;}
         if(occLvl>=11){const arcs=[{n:11,s:6},{n:13,s:7},{n:15,s:8},{n:17,s:9}].filter(a=>occLvl>=a.n);html+=`<div style="border-top:1px solid var(--border);padding-top:10px;margin-top:8px"><div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:6px">📿 Arcanum mystique — 1 sort/niveau/repos long</div>${arcs.map(a=>{const key='ArcanumNiv'+a.s+'Used';const used=!!cc[key];return`<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span class="slot-bubble${used?' used':''}" onclick="(()=>{const p=P();if(!p.combatCharges)p.combatCharges={};p.combatCharges['${key}']=!p.combatCharges['${key}'];saveAll();render();})()"></span><span style="font-size:11px;color:${used?'var(--text3)':'var(--text2)'}">Niv.${a.s} ${used?'(utilisé)':'(disponible)'}</span>${used?`<button class="btn bsm" onclick="(()=>{const p=P();if(!p.combatCharges)p.combatCharges={};delete p.combatCharges['${key}'];saveAll();render();})()">↺</button>`:''}`;}).join('')}</div>`;}
         if(occLvl>=20){html+=`<div style="border-top:1px solid var(--border);padding-top:10px;margin-top:8px"><div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:4px">👑 Maître de l'occulte (niv.20)</div><div style="font-size:11px;color:var(--text2)">Supplier ton patron 1 min → récupérer tous tes emplacements de pacte. 1×/repos long.</div></div>`;}
+        if(occLvl>=2&&(p.eldritchInvocations||[]).length){html+=`<div style="border-top:1px solid var(--border);padding-top:10px;margin-top:8px"><div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:6px">📖 Manifestations occultes</div>${(p.eldritchInvocations||[]).map(name=>{const inv=(typeof ELDRITCH_INVOCATIONS!=='undefined'?ELDRITCH_INVOCATIONS:[]).find(i=>i.name===name);return`<div style="margin-bottom:5px;padding:5px 8px;background:var(--surface2);border-radius:6px"><div style="font-size:11px;font-weight:600;color:var(--cp)">${esc(name)}</div>${inv?`<div style="font-size:10px;color:var(--text3);margin-top:2px;line-height:1.4">${esc(inv.desc)}</div>`:''}</div>`;}).join('')}</div>`;}
         return html;})()}
     </div>`):''}
   ${!wsC?.active&&magLvl>0?cs('cs-magicien',`<div class="panel mb10"><div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>📚 Magicien — Capacités</div>
@@ -1553,6 +1554,11 @@ function isPrepCaster(p){
 function renderSpellList(p, combatOnly){
   const spells = p.spells||[];
   if(!spells.length)return`<div style="font-size:12px;color:var(--text3);font-style:italic;padding:8px">Aucun sort enregistré.</div>`;
+  const wsActive=p.wildshape?.active&&!p.wildshape?.isElemental;
+  const druEntry=(p.classes||[]).find(c=>c.name==='Druide');
+  const druLvl=druEntry?druEntry.level:0;
+  if(wsActive&&druLvl<18)return`<div style="padding:12px;background:rgba(76,175,80,.08);border:1px solid rgba(76,175,80,.3);border-radius:8px;font-size:13px;color:var(--text3);text-align:center">🐺 En forme animale — l'incantation est impossible avant le niveau 18 (Sorts de bête).</div>`;
+  const wsMaterialRestrict=wsActive&&druLvl>=18;
   const prepCaster = isPrepCaster(p);
   const _mc=mainClass(p);const _cd=_mc?SRD.classes.find(c=>c.name===_mc.name):null;
   const _lvl=totalLevel(p);
@@ -1595,8 +1601,9 @@ function renderSpellList(p, combatOnly){
         const rolls=d&&d.rolls?d.rolls:[];
         const lvi=parseInt(lv);
         const isPrepared=s.prepared||lvi===0||!prepCaster;
+        const hasMComponent=wsMaterialRestrict&&components&&components.includes('M');
         return`
-        <div class="sort-row">
+        <div class="sort-row"${hasMComponent?' style="opacity:0.4"':''}>
           <div class="sort-head" onclick="document.getElementById('${s.stableId}').classList.toggle('open')">
             <div style="flex:1">
               <div style="font-size:13px;font-weight:600;${!isPrepared?'color:var(--text3)':''}">${esc(s.name)}${ritual?' <span style="font-size:10px;color:var(--cp)">(R)</span>':''}${isPrepared&&lvi>0&&prepCaster?'  <span style="font-size:9px;background:rgba(76,175,80,.15);color:#4caf50;border-radius:8px;padding:1px 5px">Préparé</span>':''}</div>
@@ -3290,9 +3297,9 @@ let LU={
   step:1,steps:[],choice:null,mcTarget:null,
   asiChoice:null,archetypeChoice:null,styleChoice:null,
   metamagicChoices:[],newSpells:[],
-  expertiseChoices:[],secretsChoices:[],mcSkillChoices:[],
+  expertiseChoices:[],secretsChoices:[],mcSkillChoices:[],invocationChoices:[],
 };
-function resetLU(){LU={step:1,steps:[],choice:null,mcTarget:null,asiChoice:null,archetypeChoice:null,styleChoice:null,metamagicChoices:[],newSpells:[],expertiseChoices:[],secretsChoices:[],mcSkillChoices:[]};_luSpellSearch='';_luSecretsSearch='';}
+function resetLU(){LU={step:1,steps:[],choice:null,mcTarget:null,asiChoice:null,archetypeChoice:null,styleChoice:null,metamagicChoices:[],newSpells:[],expertiseChoices:[],secretsChoices:[],mcSkillChoices:[],invocationChoices:[]};_luSpellSearch='';_luSecretsSearch='';}
 
 // Calcule les étapes nécessaires pour cette montée de niveau
 function calcLUSteps(p,className,newClassLevel){
@@ -3309,6 +3316,7 @@ function calcLUSteps(p,className,newClassLevel){
     const _EXPERTISE_LVL={'Barde':[3,10],'Roublard':[1,6]};
     const needExpertise=_EXPERTISE_LVL[className]&&_EXPERTISE_LVL[className].includes(newClassLevel);
     const needSecrets=className==='Barde'&&[9,14,18].includes(newClassLevel);
+    const needInvocations=className==='Occultiste'&&[2,5,7,9,12,15,18].includes(newClassLevel);
     if(isStyle)steps.push('style');
     if(isArchetype||isOrigin)steps.push('archetype');
     if(isASI)steps.push('asi');
@@ -3316,6 +3324,7 @@ function calcLUSteps(p,className,newClassLevel){
     if(needSpells)steps.push('spells');
     if(needSecrets)steps.push('secretsMagiques');
     if(isMetamagic)steps.push('metamagic');
+    if(needInvocations)steps.push('invocations');
   }
   steps.push('recap');
   return steps;
@@ -3323,7 +3332,7 @@ function calcLUSteps(p,className,newClassLevel){
 
 function tabLevelUp(p){
   const lvl=totalLevel(p);const newLvl=lvl+1;const mc=mainClass(p);
-  const stepLabels={direction:'Direction',style:'Style de combat',archetype:'Archétype',asi:'Amélioration',expertise:'Expertise',spells:'Sorts',secretsMagiques:'Secrets Magiques',metamagic:'Métamagie',mcSkill:'Compétence',recap:'Confirmation'};
+  const stepLabels={direction:'Direction',style:'Style de combat',archetype:'Archétype',asi:'Amélioration',expertise:'Expertise',spells:'Sorts',secretsMagiques:'Secrets Magiques',metamagic:'Métamagie',mcSkill:'Compétence',invocations:'Invocations',recap:'Confirmation'};
 
   const displaySteps=LU.steps.length?LU.steps:['direction','recap'];
   const progress=LU.steps.length>1?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:16px">
@@ -3341,6 +3350,7 @@ function tabLevelUp(p){
   else if(curStep==='secretsMagiques')content=luStepSecretsM(p);
   else if(curStep==='metamagic')content=luStepMetamagic(p);
   else if(curStep==='mcSkill')content=luStepMcSkill(p);
+  else if(curStep==='invocations')content=luStepInvocations(p);
   else if(curStep==='recap')content=luStepRecap(p,newLvl);
 
   return`<div class="creation-wrap"><div class="panel">
@@ -3481,16 +3491,15 @@ function luToggleASI(i){
 }
 function luFilterFeats(q){
   const el=document.getElementById('featResults');if(!el||!FEATS_DB)return;
-  if(!q.trim()){const preview=FEATS_DB.slice(0,24);el.innerHTML=preview.map(f=>`<div class="lu-choice" style="margin-bottom:6px;padding:8px 10px;cursor:pointer" onclick="LU.asiChoice.featName='${esc(f.n)}';renderTab()"><h3 style="font-size:13px;margin-bottom:4px">${esc(f.n)}</h3><p style="font-size:11px;color:var(--text2);line-height:1.4">${esc(f.tx||'')}</p></div>`).join('')+`<div style="font-size:11px;color:var(--text3);text-align:center;padding:4px">…et ${FEATS_DB.length-24} autres. Tapez pour filtrer.</div>`;return;}
+  const _featHasPrereq=f=>!!(f.tx&&(f.tx.includes('Prérequis')||f.tx.toLowerCase().includes('prerequisite')));
+  const _featCard=f=>{const hasPre=_featHasPrereq(f);return`<div class="lu-choice" style="margin-bottom:6px;padding:8px 10px;cursor:pointer" onclick="LU.asiChoice.featName='${esc(f.n)}';renderTab()"><h3 style="font-size:13px;margin-bottom:4px">${esc(f.n)}${hasPre?` <span style="font-size:10px;color:#ff9800;font-weight:400">⚠ Prérequis</span>`:''}</h3><p style="font-size:11px;color:var(--text2);line-height:1.4">${esc(f.tx||'')}</p></div>`;};
+  if(!q.trim()){const preview=FEATS_DB.slice(0,24);el.innerHTML=preview.map(_featCard).join('')+`<div style="font-size:11px;color:var(--text3);text-align:center;padding:4px">…et ${FEATS_DB.length-24} autres. Tapez pour filtrer.</div>`;return;}
   const low=q.toLowerCase();
   const res=[];
   for(let i=0;i<FEATS_DB.length&&res.length<12;i++){
     if(FEATS_DB[i].n&&FEATS_DB[i].n.toLowerCase().includes(low))res.push(FEATS_DB[i]);
   }
-  el.innerHTML=res.length?res.map(f=>`<div class="lu-choice" style="margin-bottom:6px;padding:8px 10px;cursor:pointer" onclick="LU.asiChoice.featName='${esc(f.n)}';renderTab()">
-    <h3 style="font-size:13px;margin-bottom:4px">${esc(f.n)}</h3>
-    <p style="font-size:11px;color:var(--text2);line-height:1.4">${esc(f.tx||'')}</p>
-  </div>`).join(''):'<div style="font-size:12px;color:var(--text3);text-align:center;padding:8px">Aucun résultat.</div>';
+  el.innerHTML=res.length?res.map(_featCard).join(''):'<div style="font-size:12px;color:var(--text3);text-align:center;padding:8px">Aucun résultat.</div>';
 }
 
 // ── Sorts ──
@@ -3585,6 +3594,45 @@ function luStepMcSkill(p){
   </div>`;
 }
 function luToggleMcSkill(name){const idx=LU.mcSkillChoices.indexOf(name);if(idx>=0)LU.mcSkillChoices.splice(idx,1);else LU.mcSkillChoices.push(name);renderTab();}
+
+// ── Manifestations occultes (Occultiste) ──
+function luStepInvocations(p){
+  const occEntry=p.classes.find(c=>c.name==='Occultiste');
+  const occLvl=occEntry?(occEntry.level+1):2;
+  const totalByLevel={2:2,5:3,7:4,9:5,12:6,15:7,18:8};
+  const targetTotal=totalByLevel[occLvl]||2;
+  const currentCount=(p.eldritchInvocations||[]).length;
+  const toChoose=Math.max(1,targetTotal-currentCount);
+  const sel=LU.invocationChoices;
+  const alreadyHas=p.eldritchInvocations||[];
+  const available=(ELDRITCH_INVOCATIONS||[]).filter(inv=>{
+    if(alreadyHas.includes(inv.name))return false;
+    if(inv.minLevel>occLvl)return false;
+    return true;
+  });
+  return`<div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:8px">Choisis <strong style="color:var(--cp)">${toChoose}</strong> manifestation${toChoose>1?'s':''} occulte${toChoose>1?'s':''}. (${sel.length}/${toChoose} sélectionnée${sel.length>1?'s':''})</p>
+    ${alreadyHas.length?`<div style="font-size:11px;color:var(--text3);margin-bottom:8px;padding:5px 8px;background:var(--surface2);border-radius:6px">Déjà choisies : ${alreadyHas.map(n=>esc(n)).join(', ')}</div>`:''}
+    ${available.map(inv=>{
+      const isSel=sel.includes(inv.name);const dis=!isSel&&sel.length>=toChoose;
+      return`<div class="lu-choice${isSel?' selected':dis?' disabled':''}" style="margin-bottom:6px;padding:8px 10px;cursor:${dis?'default':'pointer'}" onclick="${dis?'':'luToggleInvocation(\''+esc(inv.name)+'\')'}">
+        <div style="display:flex;align-items:flex-start;gap:8px">
+          <span style="color:var(--cp);font-size:14px;margin-top:1px;flex-shrink:0">${isSel?'✓':'◯'}</span>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:600">${esc(inv.name)}${inv.minLevel>0?` <span style="font-size:10px;color:var(--text3);font-weight:400">niv.${inv.minLevel}+</span>`:''}</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:3px;line-height:1.4">${esc(inv.desc)}</div>
+          </div>
+        </div>
+      </div>`;
+    }).join('')}
+    ${!available.length?`<div style="font-size:12px;color:var(--text3);font-style:italic;padding:8px">Toutes les manifestations disponibles ont déjà été choisies.</div>`:''}
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn" style="flex:1" onclick="LU.step--;renderTab()">← Retour</button>
+      <button class="btn bac" style="flex:2" onclick="LU.step++;renderTab()" ${sel.length>=toChoose||!available.length?'':'disabled'}>Continuer →</button>
+    </div>
+  </div>`;
+}
+function luToggleInvocation(name){const idx=LU.invocationChoices.indexOf(name);if(idx>=0)LU.invocationChoices.splice(idx,1);else LU.invocationChoices.push(name);renderTab();}
 
 // ── Secrets Magiques (Barde) ──
 let _luSecretsSearch='';
@@ -3770,6 +3818,12 @@ function applyLevelUp(){
     });
   }
 
+  // Manifestations occultes → stocker dans p.eldritchInvocations
+  if(LU.invocationChoices.length){
+    if(!p.eldritchInvocations)p.eldritchInvocations=[];
+    LU.invocationChoices.forEach(name=>{if(!p.eldritchInvocations.includes(name))p.eldritchInvocations.push(name);});
+  }
+
   p.pendingLevelUp=false;
   resetLU();
   saveAll();
@@ -3876,6 +3930,7 @@ function toggleMJ(){
 // ═══════════════════════════════════════
 let diceOpen=false;
 let diceHistory=[];
+let _whisperTarget=-1;
 let _lastRollResultHtml='';
 let _journalDraft={title:'',content:''};
 
@@ -4047,7 +4102,59 @@ function renderDicePanel(){
       <span style="font-weight:700;color:${h.result>=20&&h.die==='d20'?'#ffd54f':h.result<=1&&h.die==='d20'?'#e53935':'var(--cp)'}">${h.result}${h.bonus?` (${fmt(h.bonus)})`:''}</span>
     </div>`).join('')}
   </div>`:''}
+
+  ${currentTableId?`<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">Chuchotements</div>
+      <button onclick="openWhisperModal()" style="padding:4px 10px;border:1px solid var(--cp);border-radius:6px;font-size:11px;cursor:pointer;background:transparent;color:var(--cp);font-family:var(--B)">🤫 Chuchoter</button>
+    </div>
+    ${(typeof _whisperHistory!=='undefined'&&_whisperHistory.length)?_whisperHistory.slice(0,5).map(w=>`<div style="padding:5px 8px;background:var(--surface2);border-radius:6px;margin-bottom:4px;font-size:11px">
+      <div style="color:var(--cp);font-weight:600;margin-bottom:1px">${esc(w.fromName||'?')}</div>
+      <div style="color:var(--text2)">${esc(w.message||'')}</div>
+    </div>`).join(''):'<div style="font-size:11px;color:var(--text3);font-style:italic">Aucun chuchotement reçu.</div>'}
+  </div>`:''}
   `;
+}
+
+// ─── CHUCHOTEMENTS ───
+function openWhisperModal(){
+  if(!currentTableId){showToast('❌ Rejoignez une campagne pour chuchoter.');return;}
+  if(typeof isMJ==='function'&&isMJ()){
+    const players=typeof _mjPlayersData!=='undefined'?_mjPlayersData:[];
+    openWideModal(`<div class="pt">🤫 Chuchoter à un joueur</div>
+      <div style="margin-bottom:10px">${players.length?players.map((pl,i)=>`<div class="lu-choice${_whisperTarget===i?' selected':''}" style="padding:8px 12px;margin-bottom:6px;cursor:pointer" onclick="_whisperTarget=${i};document.querySelectorAll('#modal .lu-choice').forEach((el,j)=>{el.classList.toggle('selected',j===${i});})">
+        <div style="font-size:13px;font-weight:600">${esc(pl.playerName||'Joueur')}</div>
+        <div style="font-size:11px;color:var(--text3)">${esc((pl.charData||{}).charName||'?')}</div>
+      </div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:8px">Aucun joueur connecté.</div>'}</div>
+      <textarea id="whisperMsg" placeholder="Message secret..." style="width:100%;box-sizing:border-box;min-height:72px;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;resize:vertical;margin-bottom:8px"></textarea>
+      <div style="display:flex;gap:8px">
+        <button class="btn" onclick="closeModal()">Annuler</button>
+        <button class="btn bac" style="flex:1" onclick="_sendMJWhisper()">🤫 Envoyer</button>
+      </div>`);
+  }else{
+    if(!currentTableMjId){showToast('❌ MJ introuvable.');return;}
+    openModal(`<div class="pt">🤫 Chuchoter au MJ</div>
+      <textarea id="whisperMsg" placeholder="Message secret pour le MJ..." style="width:100%;box-sizing:border-box;min-height:72px;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;resize:vertical;margin-bottom:8px"></textarea>
+      <div style="display:flex;gap:8px">
+        <button class="btn" onclick="closeModal()">Annuler</button>
+        <button class="btn bac" style="flex:1" onclick="_sendPlayerWhisper()">🤫 Envoyer au MJ</button>
+      </div>`);
+  }
+}
+function _sendPlayerWhisper(){
+  const msg=document.getElementById('whisperMsg')?.value?.trim();
+  if(!msg){showToast('❌ Message vide.');return;}
+  sendWhisperMsg(currentTableMjId,'Maître de Jeu',msg);
+  closeModal();
+}
+function _sendMJWhisper(){
+  const msg=document.getElementById('whisperMsg')?.value?.trim();
+  if(!msg){showToast('❌ Message vide.');return;}
+  const players=typeof _mjPlayersData!=='undefined'?_mjPlayersData:[];
+  if(_whisperTarget<0||!players[_whisperTarget]){showToast('❌ Sélectionnez un destinataire.');return;}
+  const pl=players[_whisperTarget];
+  sendWhisperMsg(pl.uid,pl.playerName||'Joueur',msg);
+  _whisperTarget=-1;closeModal();
 }
 
 // Détecte avantage/désavantage/bonus-dé selon les statuts actifs
