@@ -120,6 +120,7 @@ function mjTabJoueurs(){
           <button class="btn bsm" onclick="mjEditPlayerSheet(${i})">✏ Modifier</button>
           <button class="btn bsm bprimary" onclick="mjAddPlayerToCombat(${i})">⚡ Combat</button>
           <button class="btn bsm" style="color:#ff9800;border-color:rgba(255,152,0,.3)" onclick="mjRespecPlayer(${i})" title="Réinitialiser les niveaux">↩ Respec</button>
+          <button class="btn bsm" style="color:#9c27b0;border-color:rgba(156,39,176,.3)" onclick="mjWhisperPlayer(${i})" title="Chuchoter à ce joueur">🤫</button>
           ${p.familiar?.active?`<button class="btn bsm" style="border-color:rgba(200,168,75,.5);color:var(--cp)" onclick="mjAddFamiliarToCombat(${i})" title="Ajouter le familier au combat">🦉 ${esc(p.familiar.name)}</button>`:''}
           <button class="btn bsm" style="color:#e53935;border-color:rgba(229,57,53,.3)" onclick="mjModerationModal(${i})" title="Modérer ce joueur">🗑</button>
         </div>
@@ -866,6 +867,11 @@ async function mjSavePlayerSheet(idx){
     showToast('✅ Fiche de '+esc(pp.playerName||'joueur')+' mise à jour !');
     renderMJContent();
   }catch(e){showToast('❌ Erreur : '+e.message);}
+}
+
+function mjWhisperPlayer(idx){
+  _whisperTarget=idx;
+  openWhisperModal();
 }
 
 function mjRespecPlayer(idx){
