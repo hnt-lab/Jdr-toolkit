@@ -1,7 +1,7 @@
-﻿
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
+// ═══════════════════════════════════════
 // INTERFACE MJ
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ═══════════════════════════════════════
 
 function showMJScreen(){
   document.getElementById('authScreen').style.display='none';
@@ -9,7 +9,7 @@ function showMJScreen(){
   document.getElementById('app').style.display='none';
   document.getElementById('mjScreen').style.display='block';
   const el=document.getElementById('mjHdrCamp');
-  if(el) el.textContent=(currentTableName?currentTableName+' â€” ':'')+currentCampaignName;
+  if(el) el.textContent=(currentTableName?currentTableName+' — ':'')+currentCampaignName;
   _mjTab='joueurs';
   renderMJTabs();
   if(!localStorage.getItem('tuto_mj_done')) setTimeout(()=>startTutorial('mj'),700);
@@ -23,12 +23,12 @@ function setMJTab(tab){
 
 function renderMJTabs(){
   const tabs=[
-    {id:'joueurs',label:'âš” Joueurs'},
-    {id:'combat',label:'âš¡ Combat'},
-    {id:'pnj',label:'ðŸ‰ PNJ / Monstres'},
-    {id:'objets',label:'ðŸ’° Objets'},
-    {id:'journal',label:'ðŸ““ Journal MJ'},
-    {id:'regles',label:'ðŸ“– RÃ¨gles'},
+    {id:'joueurs',label:'⚔ Joueurs'},
+    {id:'combat',label:'⚡ Combat'},
+    {id:'pnj',label:'🐉 PNJ / Monstres'},
+    {id:'objets',label:'💰 Objets'},
+    {id:'journal',label:'📓 Journal MJ'},
+    {id:'regles',label:'📖 Règles'},
   ];
   const bar=document.getElementById('mjTabBar');
   if(bar) bar.innerHTML=tabs.map(t=>{
@@ -49,7 +49,7 @@ function renderMJContent(){
   else if(_mjTab==='regles'){el.innerHTML=mjTabRegles();mjInitRulesDnD();}
 }
 
-// â”€â”€ Chargement des joueurs de la campagne â”€â”€
+// ── Chargement des joueurs de la campagne ──
 async function loadMJPlayersData(){
   try{
     const snap=await fbDb.collection('characters').where('campaignId','==',currentCampaignId).get();
@@ -59,15 +59,15 @@ async function loadMJPlayersData(){
       const data=doc.data();
       if(data.ejectedFromCampaign)continue;
       const charData=data.characterData||{};
-      let playerName='Joueur';let avatar='âš”';
-      try{const u=await fbDb.collection('users').doc(data.userId).get();if(u.exists){playerName=u.data().displayName||'Joueur';avatar=u.data().avatar||'âš”';}}catch(e){}
+      let playerName='Joueur';let avatar='⚔';
+      try{const u=await fbDb.collection('users').doc(data.userId).get();if(u.exists){playerName=u.data().displayName||'Joueur';avatar=u.data().avatar||'⚔';}}catch(e){}
       players.push({uid:data.userId,playerName,avatar,charData,docId:doc.id});
     }
     _mjPlayersData=players;
-  }catch(e){showToast('âŒ Erreur chargement joueurs : '+e.message);}
+  }catch(e){showToast('❌ Erreur chargement joueurs : '+e.message);}
 }
 
-// â”€â”€ Sauvegarde donnÃ©es MJ (journal + PNJ + objets) â”€â”€
+// ── Sauvegarde données MJ (journal + PNJ + objets) ──
 async function saveMJData(){
   if(!currentUser||!currentCampaignId)return;
   try{
@@ -76,9 +76,9 @@ async function saveMJData(){
       userId:currentUser.uid,campaignId:currentCampaignId,
       updatedAt:firebase.firestore.FieldValue.serverTimestamp()
     },{merge:true});
-  }catch(e){showToast('âŒ Erreur sauvegarde : '+e.message);}
+  }catch(e){showToast('❌ Erreur sauvegarde : '+e.message);}
 }
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────
 // TAB JOUEURS
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────
