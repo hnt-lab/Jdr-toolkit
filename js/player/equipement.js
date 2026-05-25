@@ -1,17 +1,17 @@
-﻿// TAB: Ã‰QUIPEMENT
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// TAB: ÉQUIPEMENT
+// ═══════════════════════════════════════
 function tabEquipement(p){
   const eq=p.equip||{};
   const slotHtml=s=>{const item=eq[s.id];const isMagic=item&&item.magic;return`<div class="eq-slot${item?' filled':''}${isMagic?' magic-slot':''}" style="${isMagic?'border-color:#9b59b6':''}" onclick="openEquipSlot('${s.id}')">
     <div class="eq-slot-label">${s.icon} ${s.label}</div>
-    ${item?`<div class="eq-slot-item">${esc(item.name)}${isMagic?' âœ¨':''}</div><button class="btn bsm" onclick="event.stopPropagation();unequipSlot('${s.id}')" style="width:100%;margin-top:4px;color:#e53935;border-color:rgba(229,57,53,.3);font-size:10px;padding:2px 0">âœ• Retirer</button>`:`<div class="eq-slot-empty">Vide</div>`}
+    ${item?`<div class="eq-slot-item">${esc(item.name)}${isMagic?' ✨':''}</div><button class="btn bsm" onclick="event.stopPropagation();unequipSlot('${s.id}')" style="width:100%;margin-top:4px;color:#e53935;border-color:rgba(229,57,53,.3);font-size:10px;padding:2px 0">✕ Retirer</button>`:`<div class="eq-slot-empty">Vide</div>`}
   </div>`;};
-  const left=[{id:'head',label:'TÃªte',icon:'ðŸª–'},{id:'shoulders',label:'Ã‰paules',icon:'ðŸ§¥'},{id:'chest',label:'Torse',icon:'ðŸ›¡'},{id:'hands',label:'Mains',icon:'ðŸ§¤'},{id:'legs',label:'Jambes',icon:'ðŸ‘–'}];
-  const right=[{id:'neck',label:'Cou',icon:'ðŸ“¿'},{id:'ring1',label:'Anneau G',icon:'ðŸ’'},{id:'ring2',label:'Anneau D',icon:'ðŸ’'},{id:'waist',label:'Ceinture',icon:'ðŸª¢'},{id:'feet',label:'Pieds',icon:'ðŸ‘¢'}];
-  const weapons=[{id:'mainhand',label:'Main droite',icon:'âš”ï¸'},{id:'offhand',label:'Main gauche',icon:'ðŸ—¡ï¸'},{id:'ranged',label:'Distance',icon:'ðŸ¹'}];
+  const left=[{id:'head',label:'Tête',icon:'🪖'},{id:'shoulders',label:'Épaules',icon:'🧥'},{id:'chest',label:'Torse',icon:'🛡'},{id:'hands',label:'Mains',icon:'🧤'},{id:'legs',label:'Jambes',icon:'👖'}];
+  const right=[{id:'neck',label:'Cou',icon:'📿'},{id:'ring1',label:'Anneau G',icon:'💍'},{id:'ring2',label:'Anneau D',icon:'💍'},{id:'waist',label:'Ceinture',icon:'🪢'},{id:'feet',label:'Pieds',icon:'👢'}];
+  const weapons=[{id:'mainhand',label:'Main droite',icon:'⚔️'},{id:'offhand',label:'Main gauche',icon:'🗡️'},{id:'ranged',label:'Distance',icon:'🏹'}];
   const eqImg=p.equipPortrait||p.portrait;
 
-  // MaÃ®trises armes & armures
+  // Maîtrises armes & armures
   const allWeapons=[...SRD.weapons];
   const allArmors=[...SRD.armors];
   const wProfs=p.weaponProfs||[];const aProfs=p.armorProfs||[];
@@ -20,21 +20,21 @@ function tabEquipement(p){
     <div class="eq-layout">
       <div class="eq-col">${left.map(slotHtml).join('')}</div>
       <div>
-        <div class="eq-portrait" onclick="document.getElementById('eqEquipImgInput').click()" title="Image d'Ã©quipement (indÃ©pendante du portrait)">${eqImg?`<img src="${eqImg}">`:`<div class="eq-portrait-hint">ðŸ“·<br>Image<br>Cliquer</div>`}</div>
+        <div class="eq-portrait" onclick="document.getElementById('eqEquipImgInput').click()" title="Image d'équipement (indépendante du portrait)">${eqImg?`<img src="${eqImg}">`:`<div class="eq-portrait-hint">📷<br>Image<br>Cliquer</div>`}</div>
         <input type="file" id="eqEquipImgInput" accept="image/jpeg,image/png,image/gif" style="display:none" onchange="uploadEquipPortrait(this)">
         ${eqImg?`<button class="btn bsm bdanger" style="width:100%;margin-top:4px" onclick="upd('equipPortrait',null);render()">Supprimer</button>`:''}
-        <div style="margin-top:8px">${slotHtml({id:'back',label:'Cape/Dos',icon:'ðŸ§£'})}</div>
+        <div style="margin-top:8px">${slotHtml({id:'back',label:'Cape/Dos',icon:'🧣'})}</div>
       </div>
       <div class="eq-col">${right.map(slotHtml).join('')}</div>
     </div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px">${weapons.map(slotHtml).join('')}</div>
 
-    <!-- MaÃ®trises armes & armures -->
+    <!-- Maîtrises armes & armures -->
     <div class="g2" style="gap:10px">
       <div class="panel">
         <div class="pt" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="_equipProfOpen.w=!_equipProfOpen.w;render()">
-          <span>MaÃ®trises d'armes</span>
-          <span style="display:flex;align-items:center;gap:8px">${isMJ()?`<span style="font-size:10px;color:var(--cp)">ðŸŽ² toggle</span>`:''}<span style="font-size:11px;color:var(--text3)">${_equipProfOpen.w?'â–´':'â–¾'}</span></span>
+          <span>Maîtrises d'armes</span>
+          <span style="display:flex;align-items:center;gap:8px">${isMJ()?`<span style="font-size:10px;color:var(--cp)">🎲 toggle</span>`:''}<span style="font-size:11px;color:var(--text3)">${_equipProfOpen.w?'▴':'▾'}</span></span>
         </div>
         ${_equipProfOpen.w?allWeapons.map(w=>{
           const prof=wProfs.some(pr=>pr.toLowerCase()===w.subtype.toLowerCase()||w.name.toLowerCase().includes(pr.toLowerCase()));
@@ -42,14 +42,14 @@ function tabEquipement(p){
             <span class="prof-dot ${prof?'yes':'no'}"></span>
             <span style="flex:1;font-size:12px;color:${prof?'var(--text)':'var(--text3)'}">${esc(w.name)}</span>
             <span style="font-size:10px;color:var(--text3)">${esc(w.subtype)}</span>
-            ${prof?`<span style="font-size:10px;color:#4caf50">âœ“</span>`:`<span style="font-size:10px;color:#e53935">âœ—</span>`}
+            ${prof?`<span style="font-size:10px;color:#4caf50">✓</span>`:`<span style="font-size:10px;color:#e53935">✗</span>`}
           </div>`;
         }).join(''):''}
       </div>
       <div class="panel">
         <div class="pt" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="_equipProfOpen.a=!_equipProfOpen.a;render()">
-          <span>MaÃ®trises d'armures</span>
-          <span style="display:flex;align-items:center;gap:8px">${isMJ()?`<span style="font-size:10px;color:var(--cp)">ðŸŽ² toggle</span>`:''}<span style="font-size:11px;color:var(--text3)">${_equipProfOpen.a?'â–´':'â–¾'}</span></span>
+          <span>Maîtrises d'armures</span>
+          <span style="display:flex;align-items:center;gap:8px">${isMJ()?`<span style="font-size:10px;color:var(--cp)">🎲 toggle</span>`:''}<span style="font-size:11px;color:var(--text3)">${_equipProfOpen.a?'▴':'▾'}</span></span>
         </div>
         ${_equipProfOpen.a?allArmors.map(a=>{
           const prof=aProfs.some(pr=>a.type.toLowerCase().includes(pr.toLowerCase())||a.name.toLowerCase().includes(pr.toLowerCase()));
@@ -57,7 +57,7 @@ function tabEquipement(p){
             <span class="prof-dot ${prof?'yes':'no'}"></span>
             <span style="flex:1;font-size:12px;color:${prof?'var(--text)':'var(--text3)'}">${esc(a.name)}</span>
             <span style="font-size:10px;color:var(--text3)">${esc(a.type)}</span>
-            ${prof?`<span style="font-size:10px;color:#4caf50">âœ“</span>`:`<span style="font-size:10px;color:#e53935">âœ—</span>`}
+            ${prof?`<span style="font-size:10px;color:#4caf50">✓</span>`:`<span style="font-size:10px;color:#e53935">✗</span>`}
           </div>`;
         }).join(''):''}
       </div>
@@ -65,12 +65,12 @@ function tabEquipement(p){
   </div>`;
 }
 
-const _TYPE_ICON={M:'âš”',R:'ðŸ¹',ST:'ðŸª„',RD:'ðŸ”±',WD:'âœ¨',W:'âœ¨',MA:'ðŸ›¡',HA:'ðŸ›¡',LA:'ðŸ›¡',S:'ðŸ›¡',A:'ðŸªƒ',G:'ðŸŽ’',RG:'ðŸ’',P:'ðŸ§ª',SC:'ðŸ“œ','$':'ðŸ’°'};
+const _TYPE_ICON={M:'⚔',R:'🏹',ST:'🪄',RD:'🔱',WD:'✨',W:'✨',MA:'🛡',HA:'🛡',LA:'🛡',S:'🛡',A:'🪃',G:'🎒',RG:'💍',P:'🧪',SC:'📜','$':'💰'};
 function _itemType(name,invItem){
   if(invItem&&invItem.itemType)return invItem.itemType;
   if(typeof ITEMS_DB!=='undefined'&&ITEMS_DB){const found=ITEMS_DB.find(x=>x.n===name);if(found)return found.t||'';}
   const arm=SRD.armors.find(a=>a.name===name);
-  if(arm)return arm.type==='Bouclier'?'S':arm.type==='LÃ©gÃ¨re'?'LA':arm.type==='IntermÃ©diaire'?'MA':'HA';
+  if(arm)return arm.type==='Bouclier'?'S':arm.type==='Légère'?'LA':arm.type==='Intermédiaire'?'MA':'HA';
   const wpn=SRD.weapons.find(w=>w.name===name);
   if(wpn)return wpn.subtype&&wpn.subtype.includes('distance')?'R':'M';
   return '';
@@ -118,9 +118,9 @@ function _calcArmorCA(p){
     const isBarbare=classes.some(c=>c.name==='Barbare');
     const isMoine=classes.some(c=>c.name==='Moine');
     const isEnsorceleurDrac=classes.some(c=>c.name==='Ensorceleur')&&(p.features||[]).some(f=>f.name==='Origine draconique');
-    if(isBarbare)base=10+dexM+conM;       // DÃ©fense sans armure Barbare : 10+DEX+CON
-    else if(isMoine)base=10+dexM+sagM;   // DÃ©fense sans armure Moine : 10+DEX+SAG
-    else if(isEnsorceleurDrac)base=13+dexM; // RÃ©silience draconique : 13+DEX
+    if(isBarbare)base=10+dexM+conM;       // Défense sans armure Barbare : 10+DEX+CON
+    else if(isMoine)base=10+dexM+sagM;   // Défense sans armure Moine : 10+DEX+SAG
+    else if(isEnsorceleurDrac)base=13+dexM; // Résilience draconique : 13+DEX
     else base=10+dexM;
   }
   if(eq.offhand&&eq.offhand.name){
@@ -128,8 +128,8 @@ function _calcArmorCA(p){
     if(shield)base+=2;
     else{const t=_itemType(eq.offhand.name,eq.offhand);if(t==='S'||(eq.offhand.desc||'').match(/bouclier|shield/i))base+=2;}
   }
-  // Style de combat DÃ©fense : +1 CA si une armure est portÃ©e
-  if(p.combatStyle==='DÃ©fense'&&eq.chest&&eq.chest.name)base+=1;
+  // Style de combat Défense : +1 CA si une armure est portée
+  if(p.combatStyle==='Défense'&&eq.chest&&eq.chest.name)base+=1;
   // Ajouter les bonus de CA depuis les statuts (anneaux, objets magiques, etc.)
   const caBonus=(p.statuses||[]).filter(s=>s.stat==='ca'||s.stat==='CA').reduce((sum,s)=>sum+(parseInt(s.value)||0),0);
   return base+caBonus;
@@ -138,15 +138,15 @@ function openEquipSlot(slotId){
   const p=P();
   const allInv=(p.inventory||[]).filter(i=>i.name&&i.qty>0);
   const inv=allInv.filter(item=>_slotAccepts(slotId,_itemType(item.name,item)));
-  const SLOT_LABELS={head:'ðŸª– TÃªte',shoulders:'ðŸ§¥ Ã‰paules',chest:'ðŸ›¡ Torse',hands:'ðŸ§¤ Mains',legs:'ðŸ‘– Jambes',feet:'ðŸ‘¢ Pieds',neck:'ðŸ“¿ Cou',ring1:'ðŸ’ Anneau G',ring2:'ðŸ’ Anneau D',waist:'ðŸª¢ Ceinture',back:'ðŸ§£ Dos',mainhand:'âš”ï¸ Main droite',offhand:'ðŸ—¡ï¸ Main gauche',ranged:'ðŸ¹ Distance'};
-  let html=`<div style="font-size:10px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">ðŸŽ’ Depuis ton sac</div>`;
-  html+=inv.length?inv.map(item=>`<div class="aci" onclick="equipItem('${slotId}','${esc(item.name)}','${esc(item.desc||'')}',${item.magic||false},'${esc(item.linkedTo||'')}')"><div class="ain">${esc(item.name)}${item.magic?` <span class="magic-badge">âœ¨</span>`:''}</div>${item.desc?`<div class="ais">${esc(item.desc)}</div>`:''}</div>`).join(''):`<div style="font-size:12px;color:var(--text3);padding:4px;font-style:italic">${allInv.length?'Aucun objet compatible dans le sac.':'Sac vide.'}</div>`;
+  const SLOT_LABELS={head:'🪖 Tête',shoulders:'🧥 Épaules',chest:'🛡 Torse',hands:'🧤 Mains',legs:'👖 Jambes',feet:'👢 Pieds',neck:'📿 Cou',ring1:'💍 Anneau G',ring2:'💍 Anneau D',waist:'🪢 Ceinture',back:'🧣 Dos',mainhand:'⚔️ Main droite',offhand:'🗡️ Main gauche',ranged:'🏹 Distance'};
+  let html=`<div style="font-size:10px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">🎒 Depuis ton sac</div>`;
+  html+=inv.length?inv.map(item=>`<div class="aci" onclick="equipItem('${slotId}','${esc(item.name)}','${esc(item.desc||'')}',${item.magic||false},'${esc(item.linkedTo||'')}')"><div class="ain">${esc(item.name)}${item.magic?` <span class="magic-badge">✨</span>`:''}</div>${item.desc?`<div class="ais">${esc(item.desc)}</div>`:''}</div>`).join(''):`<div style="font-size:12px;color:var(--text3);padding:4px;font-style:italic">${allInv.length?'Aucun objet compatible dans le sac.':'Sac vide.'}</div>`;
   openModal(`<div class="pt">${SLOT_LABELS[slotId]||slotId}</div><div style="max-height:400px;overflow-y:auto">${html}</div><button class="btn bsm" style="width:100%;margin-top:8px" onclick="closeModal()">Fermer</button>`);
 }
 function equipItem(slotId,name,desc,magic,linkedTo){
   const p=P();if(!p.equip)p.equip={};
   if(!p.statuses)p.statuses=[];
-  // Validation arme Ã  deux mains â†’ libÃ¨re la main gauche automatiquement
+  // Validation arme à deux mains → libère la main gauche automatiquement
   if(slotId==='mainhand'&&_isTwoHanded(name)){
     const oh=p.equip.offhand;
     if(oh&&oh.name){
@@ -155,15 +155,15 @@ function equipItem(slotId,name,desc,magic,linkedTo){
       if(ex)ex.qty++;else p.inventory.push({name:oh.name,qty:1,desc:oh.desc||'',magic:oh.magic,linkedTo:oh.linkedTo||''});
       p.statuses=p.statuses.filter(s=>s.source!=='equip_offhand');
       delete p.equip.offhand;
-      showToast('âš ï¸ '+name+' requiert deux mains â€” main gauche libÃ©rÃ©e.');
+      showToast('⚠️ '+name+' requiert deux mains — main gauche libérée.');
     }
   }
-  // Validation bouclier â†’ bloque si arme 2 mains en main droite
+  // Validation bouclier → bloque si arme 2 mains en main droite
   if(slotId==='offhand'){
     const t=_itemType(name,null);
     if(t==='S'||(desc||'').match(/bouclier|shield/i)){
       const mh=p.equip.mainhand;
-      if(mh&&mh.name&&_isTwoHanded(mh.name)){showToast('âš ï¸ Impossible â€” '+mh.name+' nÃ©cessite deux mains.');return;}
+      if(mh&&mh.name&&_isTwoHanded(mh.name)){showToast('⚠️ Impossible — '+mh.name+' nécessite deux mains.');return;}
     }
   }
   // Retirer les anciens bonus de ce slot
@@ -172,24 +172,24 @@ function equipItem(slotId,name,desc,magic,linkedTo){
   const invItem=(p.inventory||[]).find(i=>i.name===name);
   if(invItem&&invItem.statBonuses&&invItem.statBonuses.length){
     invItem.statBonuses.forEach(b=>{
-      p.statuses.push({name:name,type:b.value>0?'bonus':'malus',stat:b.stat,value:b.value,icon:'âœ¨',desc:'Bonus de l\'objet Ã©quipÃ©',source:'equip_'+slotId});
+      p.statuses.push({name:name,type:b.value>0?'bonus':'malus',stat:b.stat,value:b.value,icon:'✨',desc:'Bonus de l\'objet équipé',source:'equip_'+slotId});
     });
-    showToast('âœ¨ Bonus appliquÃ©s : '+invItem.statBonuses.map(b=>(b.value>0?'+':'')+b.value+' '+b.stat.toUpperCase()).join(', '));
+    showToast('✨ Bonus appliqués : '+invItem.statBonuses.map(b=>(b.value>0?'+':'')+b.value+' '+b.stat.toUpperCase()).join(', '));
   }
-  // Stocker le ca depuis items_db si disponible (amÃ©liore _calcArmorCA pour armures magiques)
+  // Stocker le ca depuis items_db si disponible (améliore _calcArmorCA pour armures magiques)
   let caStr=null;
   if(typeof ITEMS_DB!=='undefined'&&ITEMS_DB){const dbItem=ITEMS_DB.find(x=>x.n===name);if(dbItem&&dbItem.ac)caStr=String(dbItem.ac);}
   p.equip[slotId]={name,desc,magic:magic||false,linkedTo:linkedTo||'',...(caStr?{ca:caStr}:{})};
-  if(slotId==='chest'||slotId==='offhand'){const newCA=_calcArmorCA(p);if(p.ac!==newCA){p.ac=newCA;showToast('ðŸ›¡ CA mise Ã  jour : '+newCA);}}
+  if(slotId==='chest'||slotId==='offhand'){const newCA=_calcArmorCA(p);if(p.ac!==newCA){p.ac=newCA;showToast('🛡 CA mise à jour : '+newCA);}}
   closeModal();render();}
 function unequipSlot(slotId){
   const p=P();if(!p.equip)return;
   const item=p.equip[slotId];
   if(item){if(!p.inventory)p.inventory=[];const ex=p.inventory.find(i=>i.name===item.name);if(ex)ex.qty++;else p.inventory.push({name:item.name,qty:1,desc:item.desc||'',magic:item.magic,linkedTo:item.linkedTo});}
-  // Retirer les bonus liÃ©s Ã  ce slot
+  // Retirer les bonus liés à ce slot
   if(p.statuses)p.statuses=p.statuses.filter(s=>s.source!=='equip_'+slotId);
   delete p.equip[slotId];
-  if(slotId==='chest'||slotId==='offhand'){const newCA=_calcArmorCA(p);p.ac=newCA;showToast('ðŸ›¡ CA recalculÃ©e : '+newCA);}
+  if(slotId==='chest'||slotId==='offhand'){const newCA=_calcArmorCA(p);p.ac=newCA;showToast('🛡 CA recalculée : '+newCA);}
   render();}
 function mjToggleWeaponProf(subtype){
   const p=P();if(!p.weaponProfs)p.weaponProfs=[];
@@ -206,4 +206,4 @@ function mjToggleArmorProf(type){
   render();
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ═══════════════════════════════════════
