@@ -478,7 +478,7 @@ function mjTabRegles(){
         <div style="font-size:11px;color:var(--text3);margin-top:6px">5 ft = 1,5 m &nbsp;·&nbsp; 1 mile = 1,5 km &nbsp;·&nbsp; 1 lb = 500 g</div>
       </div>
     </div>`)}`)}
-    ${ds('s-temps-mort',`${gh('s-temps-mort','🌙 Temps morts (XGtE)')}
+    ${ds('s-temps-mort',`${gh('s-temps-mort','🌙 Temps morts')}
     ${rb('s-temps-mort',`
       <div class="regles-section" style="margin-bottom:10px">
         <div class="pt">👤 Antagonistes</div>
@@ -487,7 +487,7 @@ function mjTabRegles(){
         </div>
       </div>
       <div class="regles-section">
-        <div class="pt">📋 Activités (XGtE) — 1 semaine = 5 jours, 8h/jour minimum</div>
+        <div class="pt">📋 Activités — 1 semaine = 5 jours, 8h/jour minimum</div>
         <div style="max-height:380px;overflow-y:auto">
         <table class="regles-table" style="font-size:10px">
           <tr><th style="min-width:130px">Activité</th><th>Ressources</th><th>Jet / Résultat</th></tr>
