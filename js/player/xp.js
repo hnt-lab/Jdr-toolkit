@@ -292,13 +292,13 @@ const CLASS_LEVEL_DATA={
       8:["Amélioration de caractéristiques","Forme sauvage améliorée (vol autorisé)"],
       9:["Sorts du cercle niv.5"],
       10:["Capacité du cercle"],
-      11:[],
+      11:["Accès aux emplacements de sorts de niveau 6"],
       12:["Amélioration de caractéristiques"],
-      13:[],
+      13:["Accès aux emplacements de sorts de niveau 7"],
       14:["Capacité du cercle"],
-      15:[],
+      15:["Accès aux emplacements de sorts de niveau 8"],
       16:["Amélioration de caractéristiques"],
-      17:[],
+      17:["Accès aux emplacements de sorts de niveau 9"],
       18:["Corps intemporel (vieillissement ×10)","Sorts de bête"],
       19:["Amélioration de caractéristiques"],
       20:["Archidruide (Forme sauvage illimitée)"],
@@ -1004,6 +1004,7 @@ function luStepRecap(p,newLvl){
       ${LU.newSpells.length?`<div style="padding:6px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:600;color:var(--cp)">✨ Nouveaux sorts : ${LU.newSpells.join(', ')}</div></div>`:''}
       ${LU.secretsChoices.length?`<div style="padding:6px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:600;color:#9c27b0">🎭 Secrets Magiques : ${LU.secretsChoices.join(', ')}</div></div>`:''}
       ${LU.metamagicChoices.length?`<div style="padding:6px 0"><div style="font-size:13px;font-weight:600;color:var(--cp)">🔮 Métamagie : ${LU.metamagicChoices.join(', ')}</div></div>`:''}
+      ${(!explainFeats.length&&!LU.archetypeChoice&&!LU.styleChoice&&!(LU.asiChoice&&(LU.asiChoice.featName||(LU.asiChoice.stats&&LU.asiChoice.stats.length)))&&!LU.expertiseChoices.length&&!LU.newSpells.length&&!LU.secretsChoices.length&&!LU.metamagicChoices.length)?`<div style="font-size:12px;color:var(--text3);font-style:italic;padding:6px 0">Aucune nouvelle capacité de classe à ce niveau — tes points de vie augmentent.</div>`:''}
       `}
     </div>
 
