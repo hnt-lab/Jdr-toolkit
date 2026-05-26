@@ -131,6 +131,10 @@ const FEAT_DESCS={
   "Capacité du cercle":"Tu gagnes une nouvelle capacité de ton Cercle druidique.",
   "Corps intemporel (vieillissement ×10)":"Tu vieillis 10 fois plus lentement grâce à la magie druidique.",
   "Sorts de bête":"En forme sauvage, tu peux lancer des sorts avec composantes verbale et somatique.",
+  "Accès aux emplacements de sorts de niveau 6":"Tu débloques des emplacements de sorts de niveau 6. En tant que Druide préparé, tu peux préparer n'importe quel sort Druide de niveau 6 lors d'un repos long.",
+  "Accès aux emplacements de sorts de niveau 7":"Tu débloques des emplacements de sorts de niveau 7. En tant que Druide préparé, tu peux préparer n'importe quel sort Druide de niveau 7 lors d'un repos long.",
+  "Accès aux emplacements de sorts de niveau 8":"Tu débloques des emplacements de sorts de niveau 8. En tant que Druide préparé, tu peux préparer n'importe quel sort Druide de niveau 8 lors d'un repos long.",
+  "Accès aux emplacements de sorts de niveau 9":"Tu débloques des emplacements de sorts de niveau 9. En tant que Druide préparé, tu peux préparer n'importe quel sort Druide de niveau 9 lors d'un repos long.",
   "Archidruide (Forme sauvage illimitée)":"Tu peux utiliser la Forme sauvage un nombre illimité de fois.",
   // ── BARDE ──
   "Incantation":"Tu peux lancer des sorts en utilisant CHA comme modificateur de sort.",
