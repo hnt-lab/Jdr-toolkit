@@ -40,17 +40,18 @@ function tabCompetences(p){
         const combatFeatPrefixes=[...combatFeatNames];
         const chosenArchByClass={};
         (p.classes||[]).forEach(c=>{if((p.archetype||{})[c.name])chosenArchByClass[c.name]=(p.archetype||{})[c.name];});
+        const druLvl=((p.classes||[]).find(c=>c.name==='Druide')||{}).level||0;
         const displayFeats=(p.features||[]).filter(f=>{
           if(combatFeatPrefixes.some(cn=>f.name===cn||f.name.startsWith(cn+' (')||f.name.startsWith(cn+' :')))return false;
           if(f.name.startsWith('Sorts du cercle')||f.name.startsWith('Capacité du cercle'))return false;
           if(isFeatExcluded(f.name))return false;
           if(f.name.includes('(choix)')&&f.classe&&chosenArchByClass[f.classe])return false;
+          if((f.name.startsWith('Forme sauvage')||f.name.startsWith('Forme sauvage améliorée'))&&druLvl<2)return false;
           return true;
         });
         if(!displayFeats.length)return`<div style="font-size:12px;color:var(--text3);font-style:italic">Aucune capacité passive.</div>`;
 
         // Calcul du contexte Forme sauvage pour les Druides
-        const druLvl=((p.classes||[]).find(c=>c.name==='Druide')||{}).level||0;
         const fsCrMax=druLvl>=6?String(Math.floor(druLvl/3)):druLvl>=4?'1/2':'1/4';
         const fsVolNage=druLvl>=8?'Vol ✓ / Nage ✓':druLvl>=4?'Nage ✓ / Vol ✗':'Nage ✗ / Vol ✗';
         const fsUsed=(p.combatCharges||{})['Forme sauvage']!==undefined?p.combatCharges['Forme sauvage']:2;
@@ -67,7 +68,7 @@ function tabCompetences(p){
                 <div style="font-size:13px;font-weight:600;color:var(--cp)">${f.icon?f.icon+' ':''}${esc(f.name)}</div>
                 ${f.classe?`<div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:1px">${esc(f.classe)}</div>`:''}
               </div>
-              ${isFormeSauvage&&druLvl>=2?`<div style="display:flex;gap:3px;align-items:center;margin-right:8px">
+              ${isFormeSauvage&&druLvl>=2?druLvl>=20?`<span style="font-size:11px;color:var(--cp);margin-right:8px">∞</span>`:`<div style="display:flex;gap:3px;align-items:center;margin-right:8px">
                 ${Array.from({length:2},(_,fs)=>`<span class="slot-bubble${fs<fsUsed?'':' used'}" onclick="event.stopPropagation();useCombatCharge('Forme sauvage',2)"></span>`).join('')}
               </div>`:''}
               <span style="color:var(--text3);font-size:11px;margin-right:8px">▾</span>
@@ -77,11 +78,12 @@ function tabCompetences(p){
               <p>${esc(desc||'Consulter aidedd.org/regles/classes/ pour les détails.')}</p>
               ${isFormeSauvage&&druLvl>=2?`<div style="margin-top:8px;padding:6px 8px;background:var(--surface3);border-radius:6px;font-size:12px">
                 <div style="color:#4caf50;margin-bottom:4px">🐺 CR max actuel : <strong>${fsCrMax}</strong> — ${fsVolNage}</div>
-                <div style="display:flex;align-items:center;gap:8px">
+                ${druLvl>=20?`<div style="color:var(--cp);font-weight:600">✓ Archidruide — Utilisations illimitées</div>`:
+                `<div style="display:flex;align-items:center;gap:8px">
                   <div style="display:flex;gap:4px">${Array.from({length:2},(_,fs)=>`<span class="slot-bubble${fs<fsUsed?'':' used'}" onclick="useCombatCharge('Forme sauvage',2)" style="cursor:pointer"></span>`).join('')}</div>
                   <span style="color:var(--text3)">${fsUsed}/2 • Repos court</span>
                   <button class="btn bsm" onclick="recoverCombatCharge('Forme sauvage',2)">↺</button>
-                </div>
+                </div>`}
               </div>`:''}
             </div>
           </div>`;
