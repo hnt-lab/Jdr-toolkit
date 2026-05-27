@@ -12,15 +12,10 @@ function renderBarde(p) {
   const isSavoir = bardePath?.name==='Collège du savoir';
   const isVaillance = bardePath?.name==='Collège de la vaillance';
   const cc = p.combatCharges||{};
-  const ddSorts = 8 + pb(lvl) + chaM;
-  const atkSorts = pb(lvl) + chaM;
-
   const panels = [];
 
-  // ── Stats d'incantation ───────────────────────────────────
+  // ── Dé d'inspiration (seul stat unique au Barde) ─────────
   panels.push(`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-    <div class="sb hi" style="flex:1;min-width:70px"><div class="sn">DD sorts</div><div style="font-size:18px;font-weight:700;color:var(--cp)">${ddSorts}</div></div>
-    <div class="sb hi" style="flex:1;min-width:70px"><div class="sn">Atk sorts</div><div style="font-size:18px;font-weight:700;color:var(--cp)">${atkSorts>=0?'+':''}${atkSorts}</div></div>
     <div class="sb hi" style="flex:1;min-width:70px"><div class="sn">Dé inspiration</div><div style="font-size:18px;font-weight:700;color:var(--cp)">${bardDie}</div></div>
   </div>`);
 
