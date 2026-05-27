@@ -1,7 +1,8 @@
 function mjTabPNJ(){
   const sel=_mjSelectedNPC;
   const detail=sel!=null&&_mjNPCs[sel]?mjNPCDetail(_mjNPCs[sel],sel):'<div style="color:var(--text3);font-size:12px;font-style:italic;text-align:center;padding:20px">Sélectionnez un PNJ ou créez-en un nouveau.</div>';
-  const list=_mjNPCs.length?_mjNPCs.map((n,i)=>`<div class="pnj-card${i===sel?' pnj-selected':''}" onclick="mjSelectNPC(${i})">
+  const sortedNPCs=_mjNPCs.map((n,i)=>({n,i})).sort((a,b)=>(a.n.name||'').localeCompare(b.n.name||''));
+  const list=_mjNPCs.length?sortedNPCs.map(({n,i})=>`<div class="pnj-card${i===sel?' pnj-selected':''}" onclick="mjSelectNPC(${i})">
     <div style="display:flex;align-items:center;justify-content:space-between">
       <div>
         <div style="font-size:13px;font-weight:600;color:var(--text)">${esc(n.name||'?')}</div>
