@@ -25,6 +25,7 @@ const FEAT_DESCS={
   "Puissance indomptable (utiliser FOR min. = résultat de dé si inférieur)":"Si ton jet de Force est inférieur à ta valeur de Force, tu peux utiliser ta valeur à la place.",
   "Champion primitif (+4 FOR et CON, max 24)":"Tes scores de Force et de Constitution augmentent de 4. Leur maximum est 24.",
   "Voie primitive (choix)":"Tu choisis ta Voie primitive (Berserker ou Guerrier totem) qui définit tes capacités de rage avancées.",
+  "Capacité de la voie":"Tu gagnes une nouvelle capacité de ta Voie primitive (Berserker, Guerrier totem, ou Magie sauvage).",
   "3 rages":"Tu disposes maintenant de 3 utilisations de Rage par repos long.",
   "4 rages":"Tu disposes maintenant de 4 utilisations de Rage par repos long.",
   "5 rages":"Tu disposes maintenant de 5 utilisations de Rage par repos long.",
