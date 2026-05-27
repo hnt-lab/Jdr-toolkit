@@ -71,6 +71,7 @@ function mjFilterItems(q){
     }
   }
   if(rarF)items=items.filter(({it})=>_mjGetRarity(it)===rarF);
+  items.sort((a,b)=>(a.it.n||'').localeCompare(b.it.n||''));
   items=items.slice(0,30);
   el.innerHTML=items.length?items.map(({i,it})=>{
     const rar=_mjGetRarity(it);
