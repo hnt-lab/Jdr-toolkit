@@ -1,0 +1,63 @@
+// ENSORCELEUR — Panneau de combat + fonctions Points de sorcellerie / Métamagie
+// ═══════════════════════════════════════
+
+function renderEnsorceleur(p) {
+  const wsC = p.wildshape;
+  if (wsC?.active) return '';
+  const sorcLvl = ((p.classes||[]).find(c=>c.name==='Ensorceleur')||{}).level||0;
+  if (!sorcLvl) return '';
+  const chaM = mod(p.abilities[5]);
+  const sorcPath = (p.features||[]).find(f=>['Origine draconique','Magie sauvage'].includes(f.name));
+  const isSorcDraconique = sorcPath?.name==='Origine draconique';
+  const isSorcSauvage = sorcPath?.name==='Magie sauvage';
+  const sorcPtsMax = sorcLvl;
+  const sorcPts = (p.combatCharges||{})['SorcelleriePts']!==undefined?p.combatCharges['SorcelleriePts']:sorcPtsMax;
+  const sorcBubbles = Array.from({length:sorcPtsMax},(_,sp)=>`<span class="slot-bubble${sp<sorcPts?'':' used'}" onclick="toggleSorcPts(${sp},${sorcPtsMax})"></span>`).join('');
+  const flexButtons = [[1,2],[2,3],[3,5],[4,6],[5,7]].map(([niv,cout])=>`<button class="btn bsm" onclick="sorcCreateSlot(${niv},${cout},${sorcPtsMax})" ${sorcPts<cout?'disabled':''}>Niv.${niv} (${cout} pts)</button>`).join('');
+
+  return cs('cs-sorc',`<div class="panel mb10"><div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>✨ Points de sorcellerie — Ensorceleur</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:10px">${_featDesc('Ensorceleur','Points de sorcellerie')}</div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px">${sorcBubbles}</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:6px">${sorcPts}/${sorcPtsMax} pts • Repos long</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:4px">Magie flexible — Créer un emplacement :</div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px">${flexButtons}</div>
+        <button class="btn bsm" onclick="P().combatCharges=P().combatCharges||{};P().combatCharges['SorcelleriePts']=${sorcPtsMax};_markUnsaved();render()">↺ Repos long</button>
+        ${sorcLvl>=3?(()=>{const METAMAGIC_OPTIONS=[{n:'Magie distante',c:1,d:'Double la portée du sort (portée tactile → 9m).'},{n:'Magie discrète',c:1,d:'Supprime une ou deux composantes (V et/ou S) au choix.'},{n:'Magie prolongée',c:1,d:'Double la durée du sort (max 24h).'},{n:'Magie accélérée',c:2,d:"Réduit l'incantation à une action bonus (si 1 action normalement)."},{n:'Magie renforcée',c:1,d:'Relance jusqu\'à '+Math.max(1,chaM)+' dé(s) de dégâts (= mod. CHA). Doit conserver les nouveaux résultats.'},{n:'Magie jumelle',c:'=niv sort',d:'Cible une 2e créature admissible. Coût = niveau d\'emplacement (min 1 pt).'},{n:'Magie très précise',c:2,d:'Choisis quelle créature doit faire son JS (pour les sorts qui en demandent un).'},{n:'Magie élevée',c:2,d:'Lance un sort niv.1 sans dépenser d\'emplacement. 1 fois/repos long.'}];const maxOpts=sorcLvl>=17?4:sorcLvl>=10?3:2;const chosen=p.metamagicOptions||[];return`<div style="margin-top:12px;border-top:1px solid var(--border);padding-top:10px"><div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:4px">✨ Métamagie <span style="font-size:10px;color:var(--text3);font-weight:400">${chosen.length}/${maxOpts} options choisies</span></div><div style="display:flex;flex-wrap:wrap;gap:6px">${METAMAGIC_OPTIONS.map(m=>{const sel=chosen.includes(m.n);return`<div style="padding:6px 10px;background:${sel?'rgba(200,168,75,.15)':'var(--surface2)'};border:1px solid ${sel?'var(--cp)':'var(--border)'};border-radius:8px;cursor:pointer;flex:1;min-width:160px" onclick="toggleMetamagic('${m.n}',${maxOpts})"><div style="font-size:12px;font-weight:600;color:${sel?'var(--cp)':'var(--text2)'}">${m.n} <span style="font-size:10px;color:var(--text3)">${typeof m.c==='number'?m.c+' pt'+(m.c>1?'s':''):m.c}</span></div><div style="font-size:10px;color:var(--text3);margin-top:2px">${m.d}</div></div>`;}).join('')}</div></div>`;})():''}
+      ${sorcLvl>=20?`<div style="margin-top:12px;border-top:1px solid var(--border);padding-top:10px"><div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:4px">♻ Restauration d'ensorceleur (niv.20)</div><div style="font-size:11px;color:var(--text2)">Repos court : récupère 4 pts de sorcellerie. 1×/repos long.</div></div>`:''}
+      ${isSorcDraconique?`<div style="margin-top:12px;border-top:1px solid var(--border);padding-top:10px"><div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:6px">🐉 Origine draconique</div><div style="font-size:11px;color:var(--text2);padding:5px 8px;background:var(--surface2);border-radius:6px;margin-bottom:6px">Résistance draconique (niv.1) — CA 13+DEX si non armé · +${sorcLvl} PV bonus (1/niveau)</div>${sorcLvl>=6?`<div style="font-size:11px;color:var(--text2);padding:5px 8px;background:var(--surface2);border-radius:6px;margin-bottom:6px">Affinité élémentaire (niv.6) — +${chaM} aux dégâts de ton type draconique. Dépense 1 pt → résistance à ce type 1 heure</div>`:''} ${sorcLvl>=14?`<div style="font-size:11px;color:var(--text2);padding:5px 8px;background:var(--surface2);border-radius:6px;margin-bottom:6px">🦋 Ailes draconiques (niv.14) — Action bonus : faire apparaître des ailes, vitesse de vol = déplacement de base</div>`:''} ${sorcLvl>=18?(()=>{const pdActive=!!(p.combatCharges||{})['PresenceDracoSorcActive'];return`<div style="padding:6px 8px;background:${pdActive?'rgba(200,168,75,.1)':'var(--surface2)'};border:1px solid ${pdActive?'var(--cp)':'var(--border)'};border-radius:6px"><div style="font-size:11px;font-weight:600;color:var(--text2)">Présence draconique (niv.18) — Aura 18m, créatures charmées ou effrayées (1 min)</div><div style="display:flex;gap:6px;margin-top:4px"><button class="btn bsm" style="${pdActive?'color:var(--cp)':''}" onclick="(()=>{const p=P();if(!p.combatCharges)p.combatCharges={};if(!p.combatCharges['PresenceDracoSorcActive']){if((p.combatCharges['SorcelleriePts']||0)<5){showToast('❌ Pas assez de pts (5 requis)');return;}p.combatCharges['SorcelleriePts']=(p.combatCharges['SorcelleriePts']||0)-5;}p.combatCharges['PresenceDracoSorcActive']=!p.combatCharges['PresenceDracoSorcActive'];saveAll();render();})()">${pdActive?'↺ Mettre fin':'⚡ Activer (5 pts)'}</button></div></div>`;})():''}</div>`:''}
+      ${isSorcSauvage?`<div style="margin-top:12px;border-top:1px solid var(--border);padding-top:10px"><div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:6px">🌀 Magie sauvage</div>${(()=>{const mChaosUsed=!!(p.combatCharges||{})['MareeChaosUsed'];return`<div style="padding:6px 8px;background:${mChaosUsed?'rgba(200,168,75,.1)':'var(--surface2)'};border:1px solid ${mChaosUsed?'var(--cp)':'var(--border)'};border-radius:6px;margin-bottom:6px"><div style="font-size:11px;font-weight:600;color:var(--text2)">Marée du chaos (niv.1) — 1/repos long</div><div style="font-size:10px;color:var(--text3);margin:2px 0">Avantage sur 1 jet. La prochaine utilisation de sort provoque une surtension.</div><div style="margin-top:4px"><button class="btn bsm" style="${mChaosUsed?'color:var(--cp)':''}" onclick="(()=>{const p=P();if(!p.combatCharges)p.combatCharges={};p.combatCharges['MareeChaosUsed']=!p.combatCharges['MareeChaosUsed'];saveAll();render();})()">${mChaosUsed?'↺ Récupérer (repos long)':'⚡ Utiliser'}</button></div></div>`;})()}${sorcLvl>=6?`<div style="font-size:11px;color:var(--text2);padding:5px 8px;background:var(--surface2);border-radius:6px;margin-bottom:6px">Chance forcée (niv.6) — Réaction : dépense 2 pts, impose +1d4 ou −1d4 à un jet d'une créature à portée</div>`:''} ${sorcLvl>=14?`<div style="font-size:11px;color:var(--text2);padding:5px 8px;background:var(--surface2);border-radius:6px;margin-bottom:6px">Chaos contrôlé (niv.14) — Quand une surtension se produit, relance 2× et choisis l'effet</div>`:''} ${sorcLvl>=18?`<div style="font-size:11px;color:var(--text2);padding:5px 8px;background:var(--surface2);border-radius:6px">Bombardement de sort (niv.18) — Si un dé de dégâts sort son maximum, relance-le et ajoute le résultat</div>`:''}</div>`:''}
+      </div>`);
+}
+
+function toggleMetamagic(name, maxOpts) {
+  const p = P();
+  if (!p.metamagicOptions) p.metamagicOptions = [];
+  const idx = p.metamagicOptions.indexOf(name);
+  if (idx >= 0) {
+    p.metamagicOptions.splice(idx, 1);
+  } else {
+    if (p.metamagicOptions.length >= maxOpts) { showToast(`❌ Limite atteinte (${maxOpts} options max à ce niveau).`); return; }
+    p.metamagicOptions.push(name);
+  }
+  _markUnsaved(); render();
+}
+
+function toggleSorcPts(idx, max) {
+  const p = P();
+  if (!p.combatCharges) p.combatCharges = {};
+  const cur = p.combatCharges['SorcelleriePts']!==undefined?p.combatCharges['SorcelleriePts']:max;
+  p.combatCharges['SorcelleriePts'] = idx<cur?idx:Math.min(max,idx+1);
+  render();
+}
+
+function sorcCreateSlot(niv, cout, max) {
+  const p = P();
+  if (!p.combatCharges) p.combatCharges = {};
+  const cur = p.combatCharges['SorcelleriePts']!==undefined?p.combatCharges['SorcelleriePts']:max;
+  if (cur < cout) { showToast('❌ Pas assez de points ('+cout+' requis)'); return; }
+  p.combatCharges['SorcelleriePts'] = cur-cout;
+  if (!p.spellSlotsUsed) p.spellSlotsUsed = [];
+  p.spellSlotsUsed[niv-1] = Math.max(0,(p.spellSlotsUsed[niv-1]||1)-1);
+  render();
+  showToast('✓ Emplacement niv.'+niv+' créé (−'+cout+' pts)');
+}
