@@ -461,6 +461,8 @@ function openResistModal(){
   </div>`);
 }
 
+function toggleInspiration(){const p=P();p.inspiration=!p.inspiration;_markUnsaved();render();}
+
 // ── REPOS ──
 function doShortRest(){
   const p=P();const mc=mainClass(p);const cd=mc?SRD.classes.find(c=>c.name===mc.name):null;if(!cd)return;
