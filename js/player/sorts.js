@@ -14,11 +14,11 @@ function tabSorts(p){
   const prepCaster = isPrepCaster(p);
 
   // Sous-tabs
-  const hasMultiSubs=userIsMJ||magLvl>0;
+  const hasMultiSubs=userIsMJ||magLvl>0||prepCaster;
   if(!hasMultiSubs)_sortSubTab='mes-sorts';
   const subBar = hasMultiSubs?`<div style="display:flex;gap:6px;margin-bottom:12px">
     <button class="btn${_sortSubTab==='mes-sorts'?' bprimary':''}" onclick="_sortSubTab='mes-sorts';render()" style="flex:1">📖 Mes sorts</button>
-    ${userIsMJ?`<button class="btn${_sortSubTab==='compendium'?' bprimary':''}" onclick="_sortSubTab='compendium';render()" style="flex:1">📚 Ajouter (MJ)</button>`:''}
+    ${(userIsMJ||prepCaster)?`<button class="btn${_sortSubTab==='compendium'?' bprimary':''}" onclick="_sortSubTab='compendium';${prepCaster&&!userIsMJ?`_spellSearch.cls='${(mainClass(p)||{name:''}).name}';`:''}render()" style="flex:1">📚 ${userIsMJ?'Ajouter (MJ)':'Parcourir'}</button>`:''}
     ${magLvl?`<button class="btn${_sortSubTab==='apprendre'?' bprimary':''}" onclick="_sortSubTab='apprendre';render()" style="flex:1">📜 Apprendre</button>`:''}
   </div>`:'';
 
@@ -41,8 +41,8 @@ function tabSorts(p){
     </div>
   </div>`:`<div style="display:flex;gap:6px;margin-bottom:10px"><input id="concSpellInput" placeholder="Sort de concentration (optionnel)…" style="flex:1;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px"><button class="btn" style="white-space:nowrap;font-size:13px" onclick="activateConcentration()">🎯 Concentrer</button></div>`;
 
-  if(_sortSubTab === 'compendium' && userIsMJ){
-    return`<div>${subBar}${renderCompendiumSearch(p)}</div>`;
+  if(_sortSubTab === 'compendium' && (userIsMJ||prepCaster)){
+    return`<div>${subBar}${prepCaster&&!userIsMJ?`<div style="font-size:11px;color:var(--text3);padding:4px 0 8px">Cliquez sur un sort pour l'ajouter à votre liste. Vous pouvez ensuite le préparer depuis "Mes sorts".</div>`:''}${renderCompendiumSearch(p)}</div>`;
   }
 
   if(_sortSubTab === 'apprendre' && magLvl){
@@ -103,6 +103,24 @@ function tabSorts(p){
       <button class="btn bsm" style="margin-top:4px" onclick="upd('spellSlotsUsed',[]);render()">↺ Récupérer tous (repos long)</button>
     </div>`;
   })();
+  const circleSection=(()=>{
+    const druEntry=(p.classes||[]).find(c=>c.name==='Druide');
+    if(!druEntry||druEntry.level<3)return'';
+    const arch=(p.archetype||{})['Druide']||'';
+    if(!arch.toLowerCase().includes('terres'))return'';
+    const terrain=p.druidTerrain||'';
+    if(!terrain)return`<div style="font-size:11px;color:var(--text3);padding:8px 0;font-style:italic">⭐ Sorts du Cercle — terrain non configuré. Réinitialisez votre personnage (respec MJ) pour choisir un terrain.</div>`;
+    const cs=getDruidCircleSpells(p);
+    if(!cs.length)return'';
+    return`<div style="margin-bottom:10px;padding:10px;background:rgba(200,168,75,.06);border:1px solid rgba(200,168,75,.3);border-radius:10px">
+      <div style="font-size:11px;font-weight:700;color:var(--cp);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">⭐ Sorts du Cercle — ${esc(terrain)}</div>
+      <div style="font-size:10px;color:var(--text3);margin-bottom:8px;font-style:italic">Toujours préparés · Ne comptent pas dans le quota · Consomment un emplacement de sort au lancer</div>
+      ${cs.map(sp=>{const d=findSpellData(sp.name);return`<div style="font-size:12px;padding:5px 8px;margin-bottom:3px;background:var(--surface2);border-radius:6px;display:flex;align-items:center;gap:8px">
+        <span style="color:var(--cp);font-size:11px">⭐</span>
+        <div style="flex:1"><span style="font-weight:500">${esc(sp.name)}</span>${d?`<span style="font-size:10px;color:var(--text3);margin-left:6px">${sp.level===0?'Cantrip':'Niv.'+sp.level}${d.school?' · '+esc(d.school):''}${d.castTime?' · '+esc(d.castTime):''}</span>`:'<span style="font-size:10px;color:var(--text3);margin-left:6px">Niv.'+sp.level+'</span>'}</div>
+      </div>`;}).join('')}
+    </div>`;
+  })();
   return`<div>
     ${subBar}
     ${concBtn}
@@ -111,6 +129,7 @@ function tabSorts(p){
         <div class="pt" style="margin-bottom:0">Mes sorts (${knownCount})</div>
       </div>
       ${slotHtml}
+      ${circleSection}
       ${prepInfo}
       ${renderSpellList(p, false)}
     </div>
