@@ -626,6 +626,7 @@ function _mjSnapshotEditData(){
   const getVal=id=>document.getElementById(id)?.value||'';
   if(document.getElementById('mje_charname'))p.charName=getVal('mje_charname')||p.charName;
   if(document.getElementById('mje_race'))p.race=getVal('mje_race');
+  if(document.getElementById('mje_druid_terrain')){const t=getVal('mje_druid_terrain');if(t)p.druidTerrain=t;}
   if(document.getElementById('mje_background'))p.background=getVal('mje_background');
   if(document.getElementById('mje_cls_name_0'))p.classes=_mjReadClassFromDOM();
   if(document.getElementById('mje_hp'))p.hp=getNum('mje_hp');
@@ -708,6 +709,13 @@ function mjEditPlayerSheet(idx){
     ${sec('Classes & Niveaux')}
     <div id="mje_class_list" style="margin-bottom:4px">${_mjRenderClassList(classes)}</div>
     <button class="btn bsm" style="width:100%;margin-bottom:12px" onclick="mjEditAddClass()">+ Ajouter une classe</button>
+    ${(p.archetype||{})['Druide']==='Cercle des terres'?`<div style="margin-bottom:12px;padding:8px 10px;background:rgba(200,168,75,.08);border-radius:8px">
+      <div style="font-size:10px;color:var(--text3);margin-bottom:4px">🗺 Terrain du Cercle des terres</div>
+      <select id="mje_druid_terrain" style="width:100%;padding:5px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px">
+        <option value="">-- Choisir un terrain --</option>
+        ${['Arctique','Désert','Forêt','Littoral','Marais','Montagne','Outreterre','Plaine'].map(t=>`<option value="${t}"${p.druidTerrain===t?' selected':''}>${t}</option>`).join('')}
+      </select>
+    </div>`:''}
     ${sec('Expérience')}
     ${(()=>{const _xpLvl=classes.reduce((s,c)=>s+(c.level||0),0);const _xpCur=p.xp||0;const _xpCurT=XP_LEVELS[_xpLvl-1]||0;const _xpNextT=XP_LEVELS[_xpLvl]||XP_LEVELS[19];const _xpPct=Math.min(100,Math.round(((_xpCur-_xpCurT)/Math.max(1,_xpNextT-_xpCurT))*100));const _xpToNext=Math.max(0,_xpNextT-_xpCur);return`<div style="margin-bottom:12px"><div style="display:flex;align-items:baseline;gap:6px;margin-bottom:4px"><span style="font-size:20px;font-weight:700;color:var(--cp)">${_xpCur.toLocaleString()}</span><span style="font-size:11px;color:var(--text3)">XP actuels • Niv. ${_xpLvl}</span></div><div class="xp-bar-wrap"><div class="xp-bar-fill" style="width:${_xpPct}%"></div></div><div style="font-size:11px;color:var(--text3);margin-bottom:8px">${_xpToNext>0?`${_xpToNext.toLocaleString()} XP jusqu'au niveau ${_xpLvl+1}`:`✨ Prêt pour le niveau ${_xpLvl+1} !`}</div><div style="display:flex;gap:6px;margin-bottom:6px"><input id="mje_xp_add" type="number" min="0" placeholder="XP à ajouter..." class="fi" style="flex:1;font-size:12px"><button class="btn bsm bac" onclick="mjEditAddQuickXP(parseInt(document.getElementById('mje_xp_add').value)||0)" style="white-space:nowrap">+ Ajouter</button></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">${[[25,'Gobelin tué'],[50,'Rencontre facile'],[100,'Rencontre moyenne'],[200,'Rencontre difficile'],[450,'Boss tué'],[1000,'Jalon narratif']].map(([xp,lbl])=>`<div class="xp-reward" onclick="mjEditAddQuickXP(${xp})">+${xp} XP — ${lbl}</div>`).join('')}</div></div>`;})()}
     ${sec('Stats de combat')}
@@ -786,8 +794,19 @@ async function mjSavePlayerSheet(idx){
 }
 
 function mjWhisperPlayer(idx){
+  if(!currentTableId){showToast('❌ Rejoignez une campagne pour chuchoter.');return;}
   _whisperTarget=idx;
-  openWhisperModal();
+  const players=typeof _mjPlayersData!=='undefined'?_mjPlayersData:[];
+  openWideModal(`<div class="pt">🤫 Chuchoter à un joueur</div>
+    <div style="margin-bottom:10px">${players.length?players.map((pl,i)=>`<div class="lu-choice${idx===i?' selected':''}" style="padding:8px 12px;margin-bottom:6px;cursor:pointer" onclick="_whisperTarget=${i};document.querySelectorAll('#wideModal .lu-choice').forEach((el,j)=>{el.classList.toggle('selected',j===${i});})">
+      <div style="font-size:13px;font-weight:600">${esc(pl.playerName||'Joueur')}</div>
+      <div style="font-size:11px;color:var(--text3)">${esc((pl.charData||{}).charName||'?')}</div>
+    </div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:8px">Aucun joueur connecté.</div>'}</div>
+    <textarea id="whisperMsg" placeholder="Message secret..." style="width:100%;box-sizing:border-box;min-height:72px;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;resize:vertical;margin-bottom:8px"></textarea>
+    <div style="display:flex;gap:8px">
+      <button class="btn" onclick="closeModal()">Annuler</button>
+      <button class="btn bac" style="flex:1" onclick="_sendMJWhisper()">🤫 Envoyer</button>
+    </div>`);
 }
 
 function mjRespecPlayer(idx){
