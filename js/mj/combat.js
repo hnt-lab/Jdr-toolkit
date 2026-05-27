@@ -234,13 +234,17 @@ function mjOpenAddMonster(){
 
 function mjFilterMonsters(q){
   const el=document.getElementById('monResults');if(!el||!MONSTERS_DB)return;
-  if(!q.trim()){el.innerHTML=MONSTERS_DB.slice(0,15).map((m,i)=>`<div class="charlib-item" style="padding:5px 8px;cursor:pointer" onclick="mjFillMonster(${i})"><div style="flex:1"><div style="font-size:12px;font-weight:600">${esc(m.n)}</div><div style="font-size:11px;color:var(--text3)">CR ${m.cr||'?'} — CA ${m.ac||'?'} — ${m.hp||'?'} PV — ${m.t||''}</div></div><span style="color:var(--cp);font-size:11px">↑ Remplir</span></div>`).join('');return;}
+  if(!q.trim()){
+    const sorted=MONSTERS_DB.map((m,i)=>({i,m})).sort((a,b)=>(a.m.n||'').localeCompare(b.m.n||'')).slice(0,15);
+    el.innerHTML=sorted.map(({i,m})=>`<div class="charlib-item" style="padding:5px 8px;cursor:pointer" onclick="mjFillMonster(${i})"><div style="flex:1"><div style="font-size:12px;font-weight:600">${esc(m.n)}</div><div style="font-size:11px;color:var(--text3)">CR ${m.cr||'?'} — CA ${m.ac||'?'} — ${m.hp||'?'} PV — ${m.t||''}</div></div><span style="color:var(--cp);font-size:11px">↑ Remplir</span></div>`).join('');return;}
   const low=q.toLowerCase();
   const res=[];
-  for(let i=0;i<MONSTERS_DB.length&&res.length<20;i++){
+  for(let i=0;i<MONSTERS_DB.length;i++){
     if(MONSTERS_DB[i].n&&MONSTERS_DB[i].n.toLowerCase().includes(low))res.push({i,m:MONSTERS_DB[i]});
   }
-  el.innerHTML=res.length?res.map(({i,m})=>`<div class="charlib-item" style="padding:5px 8px;cursor:pointer" onclick="mjFillMonster(${i})">
+  res.sort((a,b)=>(a.m.n||'').localeCompare(b.m.n||''));
+  const res20=res.slice(0,20);
+  el.innerHTML=res20.length?res20.map(({i,m})=>`<div class="charlib-item" style="padding:5px 8px;cursor:pointer" onclick="mjFillMonster(${i})">
     <div style="flex:1">
       <div style="font-size:12px;font-weight:600">${esc(m.n)}</div>
       <div style="font-size:11px;color:var(--text3)">CR ${m.cr||'?'} — CA ${m.ac||'?'} — ${m.hp||'?'} PV — ${m.t||''}</div>
