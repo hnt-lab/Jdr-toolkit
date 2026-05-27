@@ -452,7 +452,7 @@ function openHubPlayerSheet(uid,campId){
 
 // ─── CHUCHOTEMENTS ───
 function startWhisperListener(tableId,uid){
-  if(!tableId||!uid)return;
+  if(!tableId||!uid||tableId==='__solo__')return;
   _whisperHistory=[];_whisperInited=false;
   const unsub=fbDb.collection('tables').doc(tableId).collection('whispers')
     .where('to','==',uid)
