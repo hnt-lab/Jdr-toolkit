@@ -131,7 +131,6 @@ function mjRespecCharacter(){
   p.conditions=[];
   p.exhaustion=0;
   p.eldritchInvocations=[];
-  p.pendingLevelUp=true;
   saveAll();render();showToast(`🔄 ${p.charName||'Personnage'} réinitialisé au niveau 1. L'XP est conservée.`);
 }
 
