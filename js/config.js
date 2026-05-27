@@ -265,7 +265,7 @@ function searchSpellsDB(query, filterClass, filterLevel, filterSchool){
     if(filterSchool && s.school !== filterSchool) return false;
     if(q && !s.name.toLowerCase().includes(q) && !s.nameEN.toLowerCase().includes(q)) return false;
     return true;
-  });
+  }).sort((a,b)=>a.level-b.level||(a.name||'').localeCompare(b.name||''));
 }
 
 const MC_SLOT_TABLE=[[2],[3],[4,2],[4,3],[4,3,2],[4,3,3],[4,3,3,1],[4,3,3,2],[4,3,3,3,1],[4,3,3,3,2],[4,3,3,3,2,1],[4,3,3,3,2,1,1],[4,3,3,3,2,1,1,1],[4,3,3,3,2,1,1,1],[4,3,3,3,2,1,1,1,1],[4,3,3,3,2,1,1,1,1],[4,3,3,3,2,1,1,1,1],[4,3,3,3,3,1,1,1,1],[4,3,3,3,3,2,1,1,1],[4,3,3,3,3,2,2,1,1]];
