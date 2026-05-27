@@ -601,6 +601,9 @@ async function enterCampaign(tableId,campaignId,tName,cName,preloadedCharData){
       currentTableMjId=tableData?.mjId||null;
       stopAllListeners();
       _groupData=[];
+      _groupHudOpen=true;
+      // Pré-charger le compendium de sorts en arrière-plan
+      if(!SPELLS_DB)loadSpellsDB();
       startPlayerListener(campaignId);
       startGroupListener(campaignId);
       if(currentTableMjId)startCombatListener(campaignId,currentTableMjId);
