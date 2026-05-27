@@ -134,7 +134,8 @@ function _showHudDetail(uid){
   const hp=p.hp||0;const hpMax=p.hpMax||1;
   const hpPct=Math.max(0,Math.min(100,hpMax?hp/hpMax*100:0));
   const hpColor=hpPct>50?'#4caf50':hpPct>25?'#ff9800':'#e53935';
-  const dead=hp<=0;
+  const down=hp<=0;
+  const dead=down&&(p.deathSaves?.fail>=3);
   const conds=p.conditions||[];
   const STATS_SH=['FOR','DEX','CON','INT','SAG','CHA'];
   const statsHtml=p.abilities?STATS_SH.map((s,i)=>{const v=p.abilities[i]||10;const m=Math.floor((v-10)/2);return`<div style="text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:3px"><div style="font-size:8px;color:var(--text3)">${s}</div><div style="font-size:12px;font-weight:700;color:var(--text)">${v}</div><div style="font-size:8px;color:var(--cp)">${m>=0?'+':''}${m}</div></div>`;}).join(''):'';
