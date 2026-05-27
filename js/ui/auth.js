@@ -18,14 +18,14 @@ async function doLogin(){
   const email=document.getElementById('loginEmail').value.trim();
   const pw=document.getElementById('loginPassword').value;
   if(!email||!pw){showAuthError('Remplissez tous les champs.');return;}
-  try{await fbAuth.signInWithEmailAndPassword(email,pw);}
+  try{await authService.signIn(email,pw);}
   catch(e){const m={'auth/user-not-found':'Aucun compte avec cet email.','auth/wrong-password':'Mot de passe incorrect.','auth/invalid-email':'Email invalide.','auth/invalid-credential':'Email ou mot de passe incorrect.'};showAuthError(m[e.code]||'Erreur : '+e.message);}
 }
 async function doResetPassword(){
   const email=document.getElementById('loginEmail').value.trim();
   if(!email){showAuthError('Entrez votre email ci-dessus, puis cliquez sur "Mot de passe oublié ?".');return;}
   try{
-    await fbAuth.sendPasswordResetEmail(email);
+    await authService.resetPassword(email);
     document.getElementById('authError').style.display='none';
     showToast('📧 Email de réinitialisation envoyé à '+email);
   }catch(e){const m={'auth/user-not-found':'Aucun compte avec cet email.','auth/invalid-email':'Email invalide.'};showAuthError(m[e.code]||'Erreur : '+e.message);}
@@ -37,16 +37,16 @@ async function doRegister(){
   if(!name||!email||!pw){showAuthError('Remplissez tous les champs.');return;}
   if(pw.length<6){showAuthError('Mot de passe : 6 caractères minimum.');return;}
   try{
-    const cred=await fbAuth.createUserWithEmailAndPassword(email,pw);
-    await fbDb.collection('users').doc(cred.user.uid).set({displayName:name,avatar:selectedAvatar,email,charLib:{},createdAt:firebase.firestore.FieldValue.serverTimestamp()});
-    await cred.user.updateProfile({displayName:name});
-    cred.user.sendEmailVerification().catch(()=>{});
+    const cred=await authService.register(email,pw);
+    await userService.createUser(cred.user.uid,{displayName:name,avatar:selectedAvatar,email,charLib:{}});
+    await authService.updateProfile({displayName:name});
+    authService.sendEmailVerification().catch(()=>{});
     showToast('📧 Un email de vérification a été envoyé à '+email);
   }catch(e){const m={'auth/email-already-in-use':'Email déjà utilisé.','auth/invalid-email':'Email invalide.','auth/weak-password':'Mot de passe trop faible.'};showAuthError(m[e.code]||'Erreur : '+e.message);}
 }
 async function doLogout(){
   stopAllListeners();
-  await fbAuth.signOut();
+  await authService.signOut();
   state={players:[],activeIdx:0,activeTab:'perso'};
   currentTableId=null;currentCampaignId=null;
   _userInfoCache={};
@@ -176,10 +176,9 @@ async function doChangeEmail(){
   const pwd=document.getElementById('reAuthPwdEmail')?.value;
   if(!newEmail||!pwd){showToast('❌ Remplissez tous les champs.');return;}
   try{
-    const cred=firebase.auth.EmailAuthProvider.credential(currentUser.email,pwd);
-    await currentUser.reauthenticateWithCredential(cred);
-    await currentUser.updateEmail(newEmail);
-    await fbDb.collection('users').doc(currentUser.uid).update({email:newEmail});
+    await authService.reauthenticate(currentUser.email,pwd);
+    await authService.updateEmail(newEmail);
+    await userService.updateUser(currentUser.uid,{email:newEmail});
     showToast('✅ Email mis à jour !');closeModal();
   }catch(e){
     const m={'auth/wrong-password':'Mot de passe incorrect.','auth/invalid-email':'Email invalide.','auth/email-already-in-use':'Email déjà utilisé.'};
@@ -208,9 +207,8 @@ async function doChangePassword(){
   if(newPwd!==newPwd2){showToast('❌ Les mots de passe ne correspondent pas.');return;}
   if(newPwd.length<6){showToast('❌ Mot de passe trop court (6 car. min.)');return;}
   try{
-    const cred=firebase.auth.EmailAuthProvider.credential(currentUser.email,oldPwd);
-    await currentUser.reauthenticateWithCredential(cred);
-    await currentUser.updatePassword(newPwd);
+    await authService.reauthenticate(currentUser.email,oldPwd);
+    await authService.updatePassword(newPwd);
     showToast('✅ Mot de passe mis à jour !');closeModal();
   }catch(e){
     const m={'auth/wrong-password':'Mot de passe actuel incorrect.','auth/weak-password':'Nouveau mot de passe trop faible.'};
@@ -236,10 +234,9 @@ async function doDeleteAccount(){
   if(confirm!=='SUPPRIMER'){showToast('❌ Tapez exactement SUPPRIMER pour confirmer.');return;}
   if(!pwd){showToast('❌ Mot de passe requis.');return;}
   try{
-    const cred=firebase.auth.EmailAuthProvider.credential(currentUser.email,pwd);
-    await currentUser.reauthenticateWithCredential(cred);
-    await fbDb.collection('users').doc(currentUser.uid).delete();
-    await currentUser.delete();
+    await authService.reauthenticate(currentUser.email,pwd);
+    await userService.deleteUser(currentUser.uid);
+    await authService.deleteAccount();
   }catch(e){
     const m={'auth/wrong-password':'Mot de passe incorrect.'};
     showToast('❌ '+(m[e.code]||e.message));
@@ -267,13 +264,7 @@ async function sendFeedback(){
   const msg=document.getElementById('fbMsg')?.value.trim();
   if(!msg){showToast('❌ Le message ne peut pas être vide.');return;}
   try{
-    await fbDb.collection('feedback').add({
-      userId:currentUser?.uid||'anonymous',
-      email:currentUser?.email||'',
-      type,
-      message:msg,
-      ts:firebase.firestore.FieldValue.serverTimestamp()
-    });
+    await userService.sendFeedback(currentUser?.uid,currentUser?.email,type,msg);
     closeModal();
     showToast('✅ Merci pour ton retour !');
   }catch(e){showToast('❌ Erreur : '+e.message);}
@@ -284,9 +275,9 @@ async function saveUserSettings(){
   if(!name){showToast('❌ Le pseudo ne peut pas être vide.');return;}
   const av=window._settingsAvatar||currentUserData.avatar||'⚔';
   try{
-    await fbDb.collection('users').doc(currentUser.uid).update({displayName:name,avatar:av});
+    await userService.updateUser(currentUser.uid,{displayName:name,avatar:av});
     currentUserData={...currentUserData,displayName:name,avatar:av};
-    await currentUser.updateProfile({displayName:name});
+    await authService.updateProfile({displayName:name});
     const btn=document.getElementById('hubUserBtn');
     if(btn) btn.innerHTML=`👤 ${esc(name)}`;
     closeModal();showToast('✅ Profil mis à jour !');
@@ -298,11 +289,11 @@ async function enterCampaignFromLib(campaignId, tableName, campaignName){
     await enterCampaign('__solo__',campaignId,'__solo__',campaignName);
     return;
   }
-  const tableSnap=await fbDb.collection('tables').where('memberIds','array-contains',currentUser.uid).get();
+  const tableSnap=await campaignService.getTablesByMember(currentUser.uid);
   let tableId=null;
   tableSnap.docs.forEach(d=>{if((d.data().memberIds||[]).includes(currentUser.uid)&&d.data().name===tableName)tableId=d.id;});
   if(!tableId){
-    const snap2=await fbDb.collection('tables').where('mjId','==',currentUser.uid).get();
+    const snap2=await campaignService.getTablesByMj(currentUser.uid);
     snap2.docs.forEach(d=>{if(d.data().name===tableName)tableId=d.id;});
   }
   if(tableId) await enterCampaign(tableId,campaignId,tableName,campaignName);
@@ -337,7 +328,7 @@ function importStandaloneChar(){
 async function exportCharacter(campId){
   const charName=(currentUserData&&currentUserData.charLib&&currentUserData.charLib[campId]&&currentUserData.charLib[campId].charName)||'personnage';
   try{
-    const doc=await fbDb.collection('characters').doc(currentUser.uid+'_'+campId).get();
+    const doc=await characterService.getCharacter(currentUser.uid,campId);
     if(!doc.exists){showToast('❌ Personnage introuvable.');return;}
     const data=doc.data().characterData||{};
     const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
@@ -376,10 +367,12 @@ function openCharOrCreate(tableId,campId){
 async function useExistingCharForCampaign(sourceCampId,tableId,campId){
   closeModal();
   try{
-    const doc=await fbDb.collection('characters').doc(currentUser.uid+'_'+sourceCampId).get();
+    const doc=await characterService.getCharacter(currentUser.uid,sourceCampId);
     if(!doc.exists){showToast('❌ Personnage introuvable.');return;}
     const data=JSON.parse(JSON.stringify(doc.data().characterData||{}));
     await enterCampaign(tableId,campId,null,null,data);
+    state.players=[typeof migratePlayer==='function'?migratePlayer(data):data];
+    render();
     await saveAll(true);
   }catch(e){showToast('❌ Erreur : '+e.message);}
 }
