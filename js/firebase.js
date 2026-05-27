@@ -80,6 +80,7 @@ let _suppressUnsavedMark=false;
 let _saveDebounce=null;
 let _ownWritePending=0;
 let _ownWriteData=null;
+let _ownWriteDataSet=new Set();
 function _stableJSON(v){if(v===null||v===undefined||typeof v!=='object')return JSON.stringify(v);if(Array.isArray(v))return'['+v.map(_stableJSON).join(',')+']';const keys=Object.keys(v).sort();return'{'+keys.map(k=>JSON.stringify(k)+':'+_stableJSON(v[k])).join(',')+'}';}
 
 let _userInfoCache={};
@@ -159,6 +160,8 @@ function startPlayerListener(campaignId){
       if(!newData)return;
       // Comparaison stable (indépendante de l'ordre des clés) pour éviter les faux positifs
       const newStr=_stableJSON(newData);
+      // Vérification secondaire : snapshot correspond à l'une de nos propres sauvegardes (snapshots tardifs)
+      if(_ownWriteDataSet.has(newStr)){_ownWriteDataSet.delete(newStr);_ownWriteData=null;return;}
       if(_ownWriteData&&_ownWriteData===newStr){_ownWriteData=null;return;}
       _ownWriteData=null;
       if(_stableJSON(state.players[0])===newStr)return;
@@ -182,7 +185,11 @@ function startGroupListener(campaignId){
       for(const change of snap.docChanges()){
         if(change.doc.id.endsWith('_mj'))continue;
         const data=change.doc.data();
-        if(data.ejectedFromCampaign)continue;
+        if(data.ejectedFromCampaign){
+          const wasPresent=_groupData.some(p=>p.docId===change.doc.id);
+          if(wasPresent){_groupData=_groupData.filter(p=>p.docId!==change.doc.id);changed=true;}
+          continue;
+        }
         const uid=data.userId;
         const info=await _getPlayerInfo(uid);
         const charData=data.characterData||{};
@@ -194,6 +201,7 @@ function startGroupListener(campaignId){
         }else if(change.type==='modified'){
           const idx=_groupData.findIndex(p=>p.docId===change.doc.id);
           if(idx>=0){_groupData[idx].charData=charData;changed=true;}
+          else{_groupData.push({uid,docId:change.doc.id,playerName:info.playerName,avatar:info.avatar,charData});changed=true;}
         }else if(change.type==='removed'){
           _groupData=_groupData.filter(p=>p.docId!==change.doc.id);changed=true;
         }
