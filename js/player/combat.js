@@ -18,7 +18,7 @@ function tabCombat(p){
     'Artificier':['Défense','Archerie'],
   };
   const availableStyles=[...new Set((p.classes||[]).flatMap(c=>COMBAT_STYLES_BY_CLASS[c.name]||[]))];
-  const combatStyle=p.combatStyle||'';
+  const combatStyle=availableStyles.includes(p.combatStyle)?p.combatStyle:'';
 
   // Bonus de rage Barbare selon niveau
   const barbareLvl=((p.classes||[]).find(c=>c.name==='Barbare')||{}).level||0;
