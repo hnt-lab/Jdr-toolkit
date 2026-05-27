@@ -4,7 +4,7 @@ function tabXP(p){
   const cur=p.xp||0;const lvl=totalLevel(p);
   const curT=XP_LEVELS[lvl-1]||0;const nextT=XP_LEVELS[lvl]||XP_LEVELS[19];
   const pct=Math.min(100,Math.round(((cur-curT)/Math.max(1,nextT-curT))*100));
-  const toNext=Math.max(0,nextT-cur);const canLvlUp=cur>=nextT&&lvl<20&&!p.pendingLevelUp;
+  const toNext=Math.max(0,nextT-cur);const canLvlUp=(isMJ()||cur>=nextT)&&lvl<20&&!p.pendingLevelUp;
 
   const xpBar=`<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px">
     <span style="font-size:28px;font-weight:700;color:var(--cp)">${cur.toLocaleString()}</span>
@@ -122,12 +122,15 @@ function mjRespecCharacter(){
   p.classes=[{name:mc.name,level:1}];
   const classNames=SRD.classes.map(c=>c.name);
   p.features=(p.features||[]).filter(f=>!f.classe||!classNames.includes(f.classe));
+  p.archetype={};
+  p.spellSlotsUsed=[];
   p.hpMax=Math.max(1,hd+conMod);
   p.hp=p.hpMax;
   p.combatCharges={};
   p.dmgResistances=(p.dmgResistances||[]).filter(r=>!['Contondant','Perforant','Tranchant','Feu','Froid','Foudre','Nécrotique','Acide','Tonnerre','Radiant','Poison'].includes(r));
   p.conditions=[];
   p.exhaustion=0;
+  p.eldritchInvocations=[];
   p.pendingLevelUp=true;
   saveAll();render();showToast(`🔄 ${p.charName||'Personnage'} réinitialisé au niveau 1. L'XP est conservée.`);
 }
@@ -179,7 +182,7 @@ const CLASS_LEVEL_DATA={
   Barbare:{
     archetypes:[
       {name:"Voie du berserker",desc:"Frénésie niv.3 (attaque bonus en rage, +1 épuisement à la fin). Rage aveugle niv.6 (immunité charme/peur en rage). Présence intimidante niv.10 (action : effraie une créature, JS SAG). Représailles niv.14 (réaction : attaque de mêlée si touché).",icon:"🔥"},
-      {name:"Voie du guerrier totem",desc:"Esprit totem niv.3 (choix : ours — résistances en rage / aigle — pas d'attaque d'opportunité en rage / loup — avantage allié). Aspect de la bête niv.6. Marcheur entre les mondes niv.10. Lien totémique niv.14.",icon:"🐺"},
+      {name:"Voie du guerrier totem",desc:"Esprit totem niv.3 (choix : ours — résistances en rage / aigle — pas d'attaque d'opportunité en rage / loup — avantage allié). Aspect de la bête niv.6. Marcheur spirituel niv.10 (Communion avec la nature rituel). Lien totémique niv.14.",icon:"🐺"},
       {name:"Voie de la magie sauvage",desc:"Sursaut sauvage niv.3 (effet magique aléatoire d8 à chaque rage). Réserve de magie niv.6. Réaction instable niv.10. Sursaut contrôlé niv.14.",icon:"✨"},
     ],
     levelFeatures:{
@@ -589,11 +592,93 @@ const CLASS_LEVEL_DATA={
 // ═══════════════════════════════════════
 let LU={
   step:1,steps:[],choice:null,mcTarget:null,
-  asiChoice:null,archetypeChoice:null,styleChoice:null,
+  asiChoice:null,archetypeChoice:null,styleChoice:null,terrainChoice:null,
   metamagicChoices:[],newSpells:[],
   expertiseChoices:[],secretsChoices:[],mcSkillChoices:[],invocationChoices:[],
 };
-function resetLU(){LU={step:1,steps:[],choice:null,mcTarget:null,asiChoice:null,archetypeChoice:null,styleChoice:null,metamagicChoices:[],newSpells:[],expertiseChoices:[],secretsChoices:[],mcSkillChoices:[],invocationChoices:[]};_luSpellSearch='';_luSecretsSearch='';}
+function resetLU(){LU={step:1,steps:[],choice:null,mcTarget:null,asiChoice:null,archetypeChoice:null,styleChoice:null,terrainChoice:null,metamagicChoices:[],newSpells:[],expertiseChoices:[],secretsChoices:[],mcSkillChoices:[],invocationChoices:[]};_luSpellSearch='';_luSecretsSearch='';}
+
+const DRUID_CIRCLE_FEATS={
+  'Cercle de la lune':{
+    6:{name:'Frappe primitive',desc:'Tes attaques en forme animale sont considérées comme magiques et ignorent les résistances aux dégâts non magiques.'},
+    10:{name:'Forme élémentaire',desc:'Tu peux dépenser 2 utilisations de Forme sauvage pour te transformer en un élémentaire de CR 5 ou moins (air, eau, terre, feu).'},
+    14:{name:'Mille formes',desc:"Tu peux utiliser Modification d'apparence à volonté (action bonus)."}
+  },
+  'Cercle des terres':{
+    6:{name:'Foulée tellurique',desc:'Les terrains difficiles non-magiques ne te coûtent pas de déplacement supplémentaire.'},
+    10:{name:'Protégée de dame Nature',desc:'Immunité aux poisons et maladies. Résistance aux types élémentaires. Insensible au charme et à la peur des fées et élémentaires.'},
+    14:{name:'Sanctuaire de dame Nature',desc:"Les bêtes et plantes doivent réussir un JS Sagesse DD 8+maîtrise+SAG pour t'attaquer, sinon elles choisissent une autre cible."}
+  }
+};
+function _resolveDruidCircleFeat(featName,circleArchetype,level){
+  if(featName!=='Capacité du cercle')return null;
+  const circleFeat=circleArchetype&&DRUID_CIRCLE_FEATS[circleArchetype];
+  return circleFeat&&circleFeat[level]?circleFeat[level]:null;
+}
+
+const DRUID_CIRCLE_SPELLS={
+  'Arctique':[
+    {name:'Immobilisation de personne',level:2},{name:'Spike Growth',level:2},
+    {name:'Tempête de grésil',level:3},{name:'Lenteur',level:3},
+    {name:'Liberté de mouvement',level:4},{name:'Tempête de glace',level:4},
+    {name:'Communion avec la nature',level:5},{name:'Cône de froid',level:5}
+  ],
+  'Désert':[
+    {name:'Flou',level:2},{name:'Silence',level:2},
+    {name:"Création de nourriture et d'eau",level:3},{name:"Protection contre l'énergie",level:3},
+    {name:'Flétrissement',level:4},{name:'Terrain hallucinatoire',level:4},
+    {name:"Nuée d'insectes",level:5},{name:'Mur de pierre',level:5}
+  ],
+  'Forêt':[
+    {name:"Peau d'écorce",level:2},{name:'Escalade',level:2},
+    {name:'Appel de la foudre',level:3},{name:'Croissance végétale',level:3},
+    {name:'Localisation de créature',level:4},{name:'Métamorphose',level:4},
+    {name:'Communion avec la nature',level:5},{name:'Déplacement sylvestre',level:5}
+  ],
+  'Littoral':[
+    {name:'Image miroir',level:2},{name:'Foulée brumeuse',level:2},
+    {name:'Respiration aquatique',level:3},{name:"Marche sur l'eau",level:3},
+    {name:"Contrôle de l'eau",level:4},{name:'Liberté de mouvement',level:4},
+    {name:"Invocation d'élémentaire",level:5},{name:'Scrutation',level:5}
+  ],
+  'Marais':[
+    {name:'Flèche acide de Melf',level:2},{name:'Ténèbres',level:2},
+    {name:"Marche sur l'eau",level:3},{name:'Nuage nauséabond',level:3},
+    {name:'Liberté de mouvement',level:4},{name:'Localisation de créature',level:4},
+    {name:"Nuée d'insectes",level:5},{name:'Scrutation',level:5}
+  ],
+  'Montagne':[
+    {name:'Escalade',level:2},{name:'Spike Growth',level:2},
+    {name:'Meld Into Stone',level:3},{name:'Éclair',level:3},
+    {name:'Façonnage de la pierre',level:4},{name:'Peau de pierre',level:4},
+    {name:'Passage dans les pierres',level:5},{name:'Transmutation de la roche',level:5}
+  ],
+  'Outreterre':[
+    {name:'Escalade',level:2},{name:'Toile',level:2},
+    {name:'Forme gazeuse',level:3},{name:'Nuage nauséabond',level:3},
+    {name:'Invisibilité supérieure',level:4},{name:'Façonnage de la pierre',level:4},
+    {name:"Nuée d'insectes",level:5},{name:'Nuage mortel',level:5}
+  ],
+  'Plaine':[
+    {name:'Invisibilité',level:2},{name:'Pass without Trace',level:2},
+    {name:'Lumière du jour',level:3},{name:'Hâte',level:3},
+    {name:'Divination',level:4},{name:'Liberté de mouvement',level:4},
+    {name:'Rêve',level:5},{name:"Nuée d'insectes",level:5}
+  ]
+};
+
+function getDruidCircleSpells(p){
+  const druEntry=(p.classes||[]).find(c=>c.name==='Druide');
+  if(!druEntry||druEntry.level<3)return[];
+  const arch=(p.archetype||{})['Druide']||'';
+  if(!arch.toLowerCase().includes('terres'))return[];
+  const terrain=p.druidTerrain||'';
+  if(!terrain)return[];
+  const spells=DRUID_CIRCLE_SPELLS[terrain]||[];
+  const druLvl=druEntry.level;
+  const maxSlotLvl=druLvl>=9?5:druLvl>=7?4:druLvl>=5?3:2;
+  return spells.filter(s=>s.level<=maxSlotLvl);
+}
 
 // Calcule les étapes nécessaires pour cette montée de niveau
 function calcLUSteps(p,className,newClassLevel){
@@ -717,14 +802,26 @@ function luStepArchetype(p){
   const mc=mainClass(p);const cd=mc?CLASS_LEVEL_DATA[mc.name]:null;
   const archs=cd&&cd.archetypes?cd.archetypes:[];
   window._luArchs=archs;
+  const isDruide=mc&&mc.name==='Druide';
+  const needsTerrain=isDruide&&LU.archetypeChoice==='Cercle des terres';
+  const terrains=['Arctique','Désert','Forêt','Littoral','Marais','Montagne','Outreterre','Plaine'];
+  const canContinue=LU.archetypeChoice&&(!needsTerrain||LU.terrainChoice);
+  const terrainSection=needsTerrain?`<div style="margin-top:12px;padding:10px;background:var(--surface2);border-radius:10px">
+    <div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:8px">🗺 Choisis ton terrain</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:8px">Détermine tes sorts de cercle — toujours préparés, ne comptent pas dans le quota.</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      ${terrains.map(t=>`<button class="btn bsm${LU.terrainChoice===t?' bprimary':''}" onclick="LU.terrainChoice='${t}';renderTab()">${t}</button>`).join('')}
+    </div>
+  </div>`:'';
   return`<div>
     <p style="font-size:13px;color:var(--text2);margin-bottom:12px">Choisis ton archétype pour ${esc(mc?mc.name:'')}. Ce choix est permanent.</p>
-    ${archs.map((a,i)=>`<div class="lu-choice${LU.archetypeChoice===a.name?' selected':''}" onclick="LU.archetypeChoice=window._luArchs[${i}].name;renderTab()">
+    ${archs.map((a,i)=>`<div class="lu-choice${LU.archetypeChoice===a.name?' selected':''}" onclick="LU.archetypeChoice=window._luArchs[${i}].name;LU.terrainChoice=null;renderTab()">
       <h3>${a.icon} ${esc(a.name)}</h3><p>${esc(a.desc)}</p>
     </div>`).join('')}
+    ${terrainSection}
     <div style="display:flex;gap:8px;margin-top:12px">
       <button class="btn" style="flex:1" onclick="LU.step--;renderTab()">← Retour</button>
-      <button class="btn bac" style="flex:2" onclick="LU.step++;renderTab()" ${LU.archetypeChoice?'':'disabled'}>Continuer →</button>
+      <button class="btn bac" style="flex:2" onclick="LU.step++;renderTab()" ${canContinue?'':'disabled'}>Continuer →</button>
     </div>
   </div>`;
 }
@@ -818,6 +915,10 @@ function _maxSpellLevelForLevelUp(p,className){
   return slots?slots.length:1;
 }
 function luStepSpells(p){
+  if(!SPELLS_DB){
+    loadSpellsDB(()=>renderTab());
+    return`<div><p style="font-size:13px;color:var(--text2);margin-bottom:12px">⏳ Chargement du compendium de sorts...</p><button class="btn" onclick="LU.step--;renderTab()">← Retour</button></div>`;
+  }
   const mc=mainClass(p);
   const cd=mc?CLASS_LEVEL_DATA[mc.name]:null;
   const entry=p.classes.find(c=>c.name===(mc?mc.name:''));
@@ -931,6 +1032,10 @@ function luToggleInvocation(name){const idx=LU.invocationChoices.indexOf(name);i
 // ── Secrets Magiques (Barde) ──
 let _luSecretsSearch='';
 function luStepSecretsM(p){
+  if(!SPELLS_DB){
+    loadSpellsDB(()=>renderTab());
+    return`<div><p style="font-size:13px;color:var(--text2);margin-bottom:12px">⏳ Chargement du compendium de sorts...</p><button class="btn" onclick="LU.step--;renderTab()">← Retour</button></div>`;
+  }
   const count=2;const sel=LU.secretsChoices;
   const knownNames=(p.spells||[]).map(s=>s.name).concat(LU.newSpells);
   const _spDb=getSpellsDB();
@@ -979,7 +1084,13 @@ function luStepRecap(p,newLvl){
   const entry=mc?p.classes.find(c=>c.name===mc.name):null;
   const newCLvl=entry?(entry.level+1):1;
   const cd=mc?CLASS_LEVEL_DATA[mc.name]:null;
-  const feats=(cd?((cd.levelFeatures||{})[newCLvl]||[]):[]).filter(f=>f&&!f.includes('Amélioration de caractéristiques'));
+  const druideCircle=mc&&mc.name==='Druide'&&p.archetype?p.archetype['Druide']:null;
+  const _PREPARED_RECAP=['Clerc','Druide','Paladin'];
+  const isPrepared=mc&&_PREPARED_RECAP.includes(mc.name);
+  const feats=(cd?((cd.levelFeatures||{})[newCLvl]||[]):[]).filter(f=>f&&!f.includes('Amélioration de caractéristiques')&&!f.startsWith('Sorts du cercle')&&!f.includes('(choix)')).map(f=>{
+    const resolved=_resolveDruidCircleFeat(f,druideCircle,newCLvl);
+    return resolved?resolved.name:f;
+  });
   const isMulti=LU.choice==='multiclass';
 
   // Texte explicatif des nouvelles capacités (depuis FEAT_DESCS)
@@ -997,6 +1108,7 @@ function luStepRecap(p,newLvl){
           <div style="font-size:12px;color:var(--text2);margin-top:2px;line-height:1.5">${esc(f.desc)}</div>
         </div>`).join('')}
       ${LU.archetypeChoice?`<div style="padding:6px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:600;color:var(--cp)">🎭 Archétype : ${esc(LU.archetypeChoice)}</div></div>`:''}
+      ${LU.terrainChoice?`<div style="padding:6px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:600;color:var(--cp)">🗺 Terrain du cercle : ${esc(LU.terrainChoice)}</div></div>`:''}
       ${LU.styleChoice?`<div style="padding:6px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:600;color:var(--cp)">⚔ Style : ${esc(LU.styleChoice)}</div></div>`:''}
       ${LU.asiChoice&&LU.asiChoice.type==='feat'&&LU.asiChoice.featName?`<div style="padding:6px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:600;color:#4caf50">🎯 Don : ${esc(LU.asiChoice.featName)}</div></div>`:''}
       ${LU.asiChoice&&LU.asiChoice.type!=='feat'&&LU.asiChoice.stats.length?`<div style="padding:6px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:600;color:#4caf50">📈 Amélioration : +${LU.asiChoice.val} à ${LU.asiChoice.stats.map(j=>ABILITIES[j]).join(' et ')}</div></div>`:''}
@@ -1008,9 +1120,10 @@ function luStepRecap(p,newLvl){
       `}
     </div>
 
-    <div style="padding:8px 12px;background:var(--cglow);border:1px solid var(--cp);border-radius:8px;margin-bottom:14px">
+    <div style="padding:8px 12px;background:var(--cglow);border:1px solid var(--cp);border-radius:8px;margin-bottom:8px">
       <div style="font-size:12px;color:var(--text2)">PV gagnés : <strong style="color:var(--cp)">${(()=>{const d=mc?SRD.classes.find(c=>c.name===mc.name):null;if(!d)return'?';const ab=p.abilities||[10,10,10,10,10,10];const avg=Math.floor(d.hdVal/2)+1;return`${avg} + CON (${fmt(mod(ab[2]))}) = ${Math.max(1,avg+mod(ab[2]))} PV supplémentaires`})()}</strong></div>
     </div>
+    ${!isMulti&&isPrepared?`<div style="padding:8px 12px;background:rgba(0,150,136,.08);border:1px solid rgba(0,150,136,.3);border-radius:8px;margin-bottom:8px;font-size:12px;color:var(--text2)">💡 <strong>Sorts :</strong> Tu peux préparer n'importe quel sort de ta liste de classe lors d'un repos long. Accède à <strong>Sorts → 📚 Parcourir</strong> pour ajouter de nouveaux sorts.</div>`:''}
 
     <div style="display:flex;gap:8px">
       <button class="btn" style="flex:1" onclick="LU.step--;renderTab()">← Retour</button>
@@ -1065,9 +1178,22 @@ function applyLevelUp(){
       'Récupération arcanique',
       'Magie de pacte',
       'Conduit divin',
+      'Sorts du cercle',
+      'Sorts du spécialiste',
+      'Accès aux emplacements',
+      'Capacité du domaine',
+      'Capacité du serment sacré',
+      'Capacité de la tradition monastique',
+      'Capacité du spécialiste',
+      'Infusions',
     ];
+    const druideCircle2=mc.name==='Druide'&&p.archetype?p.archetype['Druide']:null;
     const newFeats=getLevelFeatures(mc.name,newClassLevel)
-      .filter(f=>!EXCLUDED_FEATS.some(ex=>f.name===ex||f.name.startsWith(ex+' (')||f.name.startsWith(ex+' :')));
+      .filter(f=>!EXCLUDED_FEATS.some(ex=>f.name===ex||f.name.startsWith(ex+' (')||f.name.startsWith(ex+' :')))
+      .map(f=>{
+        const resolved=_resolveDruidCircleFeat(f.name,druideCircle2,newClassLevel);
+        return resolved?{name:resolved.name,desc:resolved.desc,classe:mc.name}:f;
+      });
     newFeats.forEach(f=>{if(!p.features.find(x=>x.name===f.name))p.features.push(f);});
   }
 
@@ -1080,11 +1206,18 @@ function applyLevelUp(){
     LU.asiChoice.stats.forEach(i=>{p.abilities[i]=Math.min(20,p.abilities[i]+LU.asiChoice.val);});
   }
 
-  // Archétype → ajouter comme capacité
+  // Archétype → ajouter comme capacité + mémoriser dans p.archetype
   if(LU.archetypeChoice){
     const cd=mc?CLASS_LEVEL_DATA[mc.name]:null;
     const arch=cd&&cd.archetypes?cd.archetypes.find(a=>a.name===LU.archetypeChoice):null;
-    if(arch)p.features.push({name:LU.archetypeChoice,desc:arch.desc,classe:mc?mc.name:''});
+    if(arch){
+      p.features.push({name:LU.archetypeChoice,desc:arch.desc,classe:mc?mc.name:''});
+      if(!p.archetype)p.archetype={};
+      p.archetype[mc.name]=LU.archetypeChoice;
+      if(mc&&mc.name==='Druide'&&LU.archetypeChoice==='Cercle des terres'&&LU.terrainChoice){
+        p.druidTerrain=LU.terrainChoice;
+      }
+    }
   }
 
   // Style de combat → ajouter comme capacité
