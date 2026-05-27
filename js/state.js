@@ -124,6 +124,13 @@ const FEAT_DESCS={
   "Forme sauvage (CR 1, vol)":"Forme sauvage : CR ≤ 1, les bêtes volantes sont autorisées.",
   "Forme sauvage (CR 2)":"Forme sauvage : CR ≤ 2.",
   "Cercle druidique (choix)":"Tu rejoins un Cercle druidique (Lune ou Terres) qui définit tes capacités avancées.",
+  "Frappe primitive":"Cercle de la lune niv.6 — En forme animale, tes attaques sont considérées comme magiques. Elles ignorent les résistances et immunités aux dégâts non magiques.",
+  "Forme élémentaire":"Cercle de la lune niv.10 — Tu peux dépenser 2 utilisations de Forme sauvage pour te transformer en élémentaire de CR 5 ou moins (air, eau, terre, feu). Tu récupères la Forme sauvage au repos long.",
+  "Mille formes":"Cercle de la lune niv.14 — Tu peux utiliser la magie de Modification d'apparence à volonté, sous forme d'action bonus.",
+  "Foulée tellurique":"Cercle des terres niv.6 — Les terrains difficiles non-magiques ne te coûtent pas de déplacement supplémentaire.",
+  "Protégée de dame Nature":"Cercle des terres niv.10 — Tu es immunisée aux poisons et maladies. Tu ne peux être charmée ni effrayée par des élémentaires ou des fées. Tu résistes aux types élémentaires.",
+  "Sanctuaire de dame Nature":"Cercle des terres niv.14 — Les bêtes et plantes doivent réussir un JS de Sagesse (DD 8 + bonus de maîtrise + mod. SAG) pour t'attaquer, ou elles choisissent une autre cible.",
+  "Récupération naturelle":"Cercle des terres niv.2 — Une fois par repos long, lors d'un repos court, tu récupères des emplacements de sorts dont le total de niveaux est ≤ à la moitié de ton niveau de druide (max niv.5).",
   "Sorts du cercle niv.2":"Tu prépares automatiquement les sorts de ton Cercle de niveau 2.",
   "Sorts du cercle niv.3":"Tu prépares automatiquement les sorts de ton Cercle de niveau 3.",
   "Sorts du cercle niv.4":"Tu prépares automatiquement les sorts de ton Cercle de niveau 4.",
@@ -265,6 +272,13 @@ const FEAT_EXCLUDE=[
   'Pacte (choix',                // choix narratif, pas de desc utile
   '1 sort mineur supplémentaire', // vague
   '2 sorts niv.',                 // entrées de grimoire magicien
+  'Capacité du domaine',          // générique Clerc — remplacé par la vraie capacité
+  'Capacité du serment sacré',    // générique Paladin
+  'Capacité de la tradition monastique', // générique Moine
+  'Capacité du spécialiste',      // générique Artificier
+  'Sorts du spécialiste',         // Artificier, même logique que Sorts du cercle
+  'Infusions',                    // compteur géré dans combat
+  'Accès aux emplacements',       // info de slot Druide, purement mécanique
 ];
 function isFeatExcluded(name){return FEAT_EXCLUDE.some(ex=>name.startsWith(ex)||name===ex||name.includes(ex));}  
 
@@ -313,6 +327,13 @@ function migratePlayer(p){
   if(p.deathSaves.success===undefined)p.deathSaves.success=0;
   if(p.deathSaves.fail===undefined)p.deathSaves.fail=0;
   if(p.equipPortrait===undefined)p.equipPortrait=null;
+  // Migration : reconstruire p.archetype depuis p.features pour les persos existants
+  if(!p.archetype&&p.features&&typeof CLASS_LEVEL_DATA!=='undefined'){
+    p.archetype={};
+    const allArchNames=new Set();
+    Object.values(CLASS_LEVEL_DATA).forEach(cd=>(cd.archetypes||[]).forEach(a=>allArchNames.add(a.name)));
+    p.features.forEach(f=>{if(f.name&&f.classe&&allArchNames.has(f.name))p.archetype[f.classe]=f.name;});
+  }
   // Correction maîtrises "non-métal" → valeurs propres
   p.weaponProfs=p.weaponProfs.map(pr=>pr.replace(' non-métal','').trim()).filter(Boolean);
   p.armorProfs=p.armorProfs.map(pr=>pr.replace(' non-métal','').trim()).filter(Boolean);
@@ -396,6 +417,7 @@ async function saveAll(silent=false){
     try{
       _ownWritePending++;
       _ownWriteData=_stableJSON(state.players[0]);
+      _ownWriteDataSet.add(_ownWriteData);
       const p=state.players[0];
       await fbDb.collection('characters').doc(currentUser.uid+'_'+currentCampaignId).set({
         userId:currentUser.uid,campaignId:currentCampaignId,tableId:currentTableId,
@@ -541,6 +563,8 @@ function renderTab(){
   el.innerHTML=(map[state.activeTab]||tabPerso)(p);
   setTimeout(autoGrowAll,0);
   setTimeout(()=>applyCombatOrder(_combatSectionOrder),10);
+  // Pré-remplir la liste de dons quand la recherche est vide (step ASI → Don)
+  setTimeout(()=>{if(typeof luFilterFeats==='function'&&document.getElementById('featResults'))luFilterFeats('');},0);
 }
 
 function switchPlayer(i){state.activeIdx=i;resetCS();render();}
@@ -834,6 +858,8 @@ function confirmCreation(){
     if(arch&&!p.features.find(f=>f.name===arch.name)){
       p.features.push({name:arch.name,desc:arch.desc,classe:CS.classe});
     }
+    if(!p.archetype)p.archetype={};
+    p.archetype[CS.classe]=CS.archetype;
     // Supprimer la feature "Origine d'ensorceleur (choix)..." générique si présente
     p.features=p.features.filter(f=>!f.name.includes('Origine d\'ensorceleur')&&!f.name.includes('Mécène d\'outremonde'));
   }
