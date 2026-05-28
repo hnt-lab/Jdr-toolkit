@@ -92,6 +92,33 @@ let _whisperTarget=-1;
 let _lastRollResultHtml='';
 let _journalDraft={title:'',content:''};
 
+// ─── MODE DÉS IRL ───
+function _isIRLMode(){return localStorage.getItem('irlDiceMode')==='1';}
+function showIRLRoll(html){
+  let ov=document.getElementById('irlRollOverlay');
+  if(!ov){
+    ov=document.createElement('div');
+    ov.id='irlRollOverlay';
+    ov.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;z-index:9990;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;';
+    ov.addEventListener('click',e=>{if(e.target===ov)ov.style.display='none';});
+    document.body.appendChild(ov);
+  }
+  ov.innerHTML=`<div style="background:var(--surface);border:2px solid var(--cp);border-radius:16px;padding:28px 24px;max-width:420px;width:100%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.8)">
+    <div style="font-size:11px;color:var(--cp);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px">🪄 Mode dés IRL — Lance tes dés !</div>
+    <div style="font-size:17px;color:var(--text);line-height:1.8;margin-bottom:24px">${html}</div>
+    <button class="btn bprimary" style="width:100%;font-size:16px;padding:14px;font-weight:700;letter-spacing:.03em" onclick="document.getElementById('irlRollOverlay').style.display='none'">✓ J'ai lancé !</button>
+  </div>`;
+  ov.style.display='flex';
+}
+function toggleIRLMode(){
+  const next=!_isIRLMode();
+  localStorage.setItem('irlDiceMode',next?'1':'0');
+  const btn=document.getElementById('diceFloat');
+  if(btn)btn.innerHTML=next?'🪄':'🎲';
+  _openDiceShortcuts();
+  showToast(next?'🪄 Mode dés IRL activé — les formules s\'affichent, vous lancez vos vrais dés !':'🎲 Mode dés virtuels activé');
+}
+
 function createDiceButton(){
   // Panel de raccourcis (appui long) — contenu reconstruit dynamiquement à l'ouverture
   const sp=document.createElement('div');
@@ -101,7 +128,7 @@ function createDiceButton(){
 
   const btn=document.createElement('div');
   btn.id='diceFloat';
-  btn.innerHTML='🎲';
+  btn.innerHTML=_isIRLMode()?'🪄':'🎲';
   btn.style.cssText=`position:fixed;bottom:24px;right:24px;z-index:888;width:52px;height:52px;border-radius:50%;background:var(--cp);color:#1a1400;font-size:22px;display:none;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.5);transition:transform .15s;user-select:none;`;
   btn.onmouseenter=()=>btn.style.transform='scale(1.1)';
   btn.onmouseleave=()=>btn.style.transform='scale(1)';
@@ -130,9 +157,17 @@ function _openDiceShortcuts(){
     :`<span style="font-size:20px">${currentUserData?.avatar||'⚔'}</span>`;
   sp.innerHTML=`
     <div style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:12px;color:${_isIRLMode()?'#ff9800':'var(--cp)'};background:var(--surface);padding:4px 10px;border-radius:20px;border:1px solid ${_isIRLMode()?'rgba(255,152,0,.4)':'var(--border)'};white-space:nowrap">${_isIRLMode()?'🪄 Dés IRL actif':'🎲 Dés virtuels'}</span>
+      <button style="width:44px;height:44px;border-radius:50%;background:${_isIRLMode()?'rgba(255,152,0,.15)':'var(--surface)'};border:2px solid ${_isIRLMode()?'#ff9800':'var(--cp)'};color:${_isIRLMode()?'#ff9800':'var(--cp)'};font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4)" onclick="toggleIRLMode()">${_isIRLMode()?'🪄':'🎲'}</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
       <span style="font-size:12px;color:var(--cp);background:var(--surface);padding:4px 10px;border-radius:20px;border:1px solid var(--border);white-space:nowrap">Journal</span>
       <button style="width:44px;height:44px;border-radius:50%;background:var(--surface);border:2px solid var(--cp);color:var(--cp);font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4)" onclick="_diceNav('journal')">📓</button>
     </div>
+    ${currentTableId?`<div style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:12px;color:var(--cp);background:var(--surface);padding:4px 10px;border-radius:20px;border:1px solid var(--border);white-space:nowrap">Chuchoter</span>
+      <button style="width:44px;height:44px;border-radius:50%;background:var(--surface);border:2px solid var(--cp);color:var(--cp);font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4)" onclick="_closeDiceShortcuts();openWhisperModal()">🤫</button>
+    </div>`:''}
     <div style="display:flex;align-items:center;gap:8px">
       <span style="font-size:12px;color:var(--cp);background:var(--surface);padding:4px 10px;border-radius:20px;border:1px solid var(--border);white-space:nowrap">Personnage</span>
       <button style="width:44px;height:44px;border-radius:50%;overflow:hidden;background:var(--surface);border:2px solid var(--cp);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4);padding:0" onclick="_diceNav('perso')">${avatarEl}</button>
@@ -358,19 +393,49 @@ function openWhisperModal(){
         <button class="btn bac" style="flex:1" onclick="_sendMJWhisper()">🤫 Envoyer</button>
       </div>`);
   }else{
-    if(!currentTableMjId){showToast('❌ MJ introuvable.');return;}
-    openModal(`<div class="pt">🤫 Chuchoter au MJ</div>
-      <textarea id="whisperMsg" placeholder="Message secret pour le MJ..." style="width:100%;box-sizing:border-box;min-height:72px;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;resize:vertical;margin-bottom:8px"></textarea>
-      <div style="display:flex;gap:8px">
-        <button class="btn" onclick="closeModal()">Annuler</button>
-        <button class="btn bac" style="flex:1" onclick="_sendPlayerWhisper()">🤫 Envoyer au MJ</button>
-      </div>`);
+    _openPlayerWhisperModal();
   }
+}
+async function _openPlayerWhisperModal(){
+  if(!currentCampaignId){showToast('❌ Rejoignez une campagne pour chuchoter.');return;}
+  openModal(`<div class="pt">🤫 Chuchoter à…</div><div id="whisperRecipList" style="margin-bottom:10px"><div style="font-size:12px;color:var(--text3);padding:8px;text-align:center">Chargement…</div></div>
+    <textarea id="whisperMsg" placeholder="Message secret..." style="width:100%;box-sizing:border-box;min-height:72px;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;resize:vertical;margin-bottom:8px"></textarea>
+    <div style="display:flex;gap:8px">
+      <button class="btn" onclick="closeModal()">Annuler</button>
+      <button class="btn bac" style="flex:1" onclick="_sendPlayerWhisper()">🤫 Envoyer</button>
+    </div>`);
+  window._whisperRecipients=[];
+  window._whisperTargetIdx=-1;
+  try{
+    const snap=await fbDb.collection('characters').where('campaignId','==',currentCampaignId).get();
+    const recips=[];
+    if(currentTableMjId)recips.push({uid:currentTableMjId,name:'Maître de Jeu',sub:'MJ',isMJ:true});
+    snap.docs.forEach(d=>{
+      const data=d.data();
+      if(d.id.endsWith('_mj'))return;
+      if(data.userId===currentUser?.uid)return;
+      if(data.leftCampaign||data.ejectedFromCampaign)return;
+      const cd=data.characterData||{};
+      recips.push({uid:data.userId,name:data.playerName||'Joueur',sub:cd.charName||'',isMJ:false});
+    });
+    window._whisperRecipients=recips;
+    const el=document.getElementById('whisperRecipList');
+    if(!el)return;
+    el.innerHTML=recips.length?recips.map((r,i)=>`<div class="lu-choice" style="padding:8px 12px;margin-bottom:6px;cursor:pointer" onclick="window._whisperTargetIdx=${i};document.querySelectorAll('#modal .lu-choice').forEach((e,j)=>e.classList.toggle('selected',j===${i}))">
+      <div style="font-size:13px;font-weight:600">${esc(r.name)}${r.isMJ?' 🎲':''}</div>
+      ${r.sub?`<div style="font-size:11px;color:var(--text3)">${esc(r.sub)}</div>`:''}
+    </div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:8px">Aucun autre participant dans cette campagne.</div>';
+  }catch(e){const el=document.getElementById('whisperRecipList');if(el)el.innerHTML='<div style="font-size:12px;color:#e53935;padding:8px">Erreur de chargement.</div>';}
 }
 function _sendPlayerWhisper(){
   const msg=document.getElementById('whisperMsg')?.value?.trim();
   if(!msg){showToast('❌ Message vide.');return;}
-  sendWhisperMsg(currentTableMjId,'Maître de Jeu',msg);
+  const recips=window._whisperRecipients||[];
+  const idx=window._whisperTargetIdx??-1;
+  if(idx<0||!recips[idx]){showToast('❌ Sélectionnez un destinataire.');return;}
+  const r=recips[idx];
+  sendWhisperMsg(r.uid,r.name,msg);
+  window._whisperTargetIdx=-1;
   closeModal();
 }
 function _sendMJWhisper(){
@@ -445,6 +510,12 @@ function diceRoll(die,label,bonus=0,rollType=''){
   const p=P();
   const n=parseInt(die.replace('d',''));
   const effects=rollType?getStatusEffects(p,rollType):{hasDisadv:false,hasAdv:false,bonusDie:null};
+  if(_isIRLMode()){
+    const advNote=effects.hasAdv&&!effects.hasDisadv?'<div style="margin-top:8px;color:#4caf50;font-size:14px">🟢 AVANTAGE — 2d20, garde le plus haut</div>':(effects.hasDisadv&&!effects.hasAdv?'<div style="margin-top:8px;color:#e53935;font-size:14px">🔴 DÉSAVANTAGE — 2d20, garde le plus bas</div>':'');
+    const bonusDieNote=effects.bonusDie?` + <span style="color:#ffd54f">${effects.bonusDie}</span>`:'';
+    showIRLRoll(`<strong style="font-size:22px;color:var(--cp)">${label}</strong><br><span style="font-size:20px">Lance <strong>${die}</strong>${bonus?' <span style="color:var(--text3)">'+fmt(bonus)+'</span>':''}</span>${bonusDieNote}${advNote}`);
+    return;
+  }
 
   // Avantage / désavantage → 2 dés, garde le plus haut/bas
   const roll1=Math.ceil(Math.random()*n);
