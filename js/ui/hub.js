@@ -31,7 +31,7 @@ async function toggleCampExpand(tableId,campId){
                 if(cdoc.id.endsWith('_mj'))continue;
                 const cdata=cdoc.data();
                 if(cdata.userId===t.mjId)continue;
-                if(cdata.ejectedFromCampaign)continue;
+                if(cdata.ejectedFromCampaign||cdata.leftCampaign)continue;
                 const charData=cdata.characterData||{};
                 const priv=charData.privacy||{name:true,hp:true,abilities:false,notes:false};
                 const uid=cdata.userId;
@@ -134,7 +134,7 @@ function renderHubHTML(tables){
         </div>`:'';
         const charBlock=isMJ
           ?`<button class="btn bac" style="width:100%;margin-top:8px;font-weight:600" onclick="enterCampaign('${t.id}','${c.id}')">🎲 Gérer la campagne</button>`
-          :(charInfo
+          :(charInfo&&!charInfo.leftCampaign
             ?`<div style="margin-top:8px">
                 <div style="display:flex;align-items:center;gap:6px;padding:8px;background:rgba(200,168,75,.06);border-radius:6px 6px 0 0;border:1px solid rgba(200,168,75,.15);border-bottom:none">
                   <span style="font-size:18px">${currentUserData&&currentUserData.avatar||'⚔'}</span>
@@ -143,7 +143,18 @@ function renderHubHTML(tables){
                 </div>
                 <button class="btn bac" style="width:100%;font-weight:600;border-radius:0 0 6px 6px" onclick="joinGroupOnly('${t.id}','${c.id}')">👥 Rejoindre le groupe</button>
               </div>`
-            :`<button class="btn bprimary" style="width:100%;margin-top:8px" onclick="openCharOrCreate('${t.id}','${c.id}')">+ Créer mon personnage</button>`);
+            :(charInfo&&charInfo.leftCampaign
+              ?`<div style="margin-top:8px">
+                  <div style="display:flex;align-items:center;gap:6px;padding:8px;background:rgba(255,255,255,.03);border-radius:6px 6px 0 0;border:1px solid var(--border);border-bottom:none">
+                    <span style="font-size:18px;opacity:.5">${currentUserData&&currentUserData.avatar||'⚔'}</span>
+                    <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--text3)">${esc(charInfo.charName||'?')}</div><div style="font-size:11px;color:var(--text3)">Inactif — vous avez quitté cette campagne</div></div>
+                  </div>
+                  <div style="display:flex;gap:6px;border-radius:0 0 6px 6px;overflow:hidden">
+                    <button class="btn bprimary" style="flex:2;font-weight:600;border-radius:0" onclick="playerRejoinCampaign('${c.id}')">↩ Rejoindre</button>
+                    <button class="btn" style="flex:1;color:#e53935;border-color:rgba(229,57,53,.35);border-radius:0" onclick="deleteCharFromLib('${c.id}')">🗑</button>
+                  </div>
+                </div>`
+              :`<button class="btn bprimary" style="width:100%;margin-top:8px" onclick="openCharOrCreate('${t.id}','${c.id}')">+ Créer mon personnage</button>`));
         const mjEditHtml=isMJ?`
           <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">
             <button class="btn bsm" onclick="openEditCampaign('${t.id}','${c.id}')">✏ Modifier</button>
@@ -450,12 +461,14 @@ async function hubKickMember(tableId,uid){
   }catch(e){showToast('❌ Erreur : '+e.message);}
 }
 function playerLeaveCharacter(campId){
+  const c=currentUserData&&currentUserData.charLib&&currentUserData.charLib[campId];
+  const charName=c&&c.charName||'votre personnage';
   window._pendingLeave=campId;
   openModal(`<div class="pt" style="color:#e53935">Quitter la campagne ?</div>
-    <div style="font-size:13px;color:var(--text2);margin-bottom:16px">Votre personnage sera définitivement supprimé de cette campagne. Cette action est irréversible.</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:16px"><b>${esc(charName)}</b> sera conservé dans votre bibliothèque. Vous pourrez rejoindre à nouveau cette campagne à tout moment.</div>
     <div style="display:flex;gap:8px">
       <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
-      <button class="btn" style="flex:2;color:#e53935;border-color:rgba(229,57,53,.5)" onclick="confirmPlayerLeave()">✕ Confirmer</button>
+      <button class="btn" style="flex:2;color:#e53935;border-color:rgba(229,57,53,.5)" onclick="confirmPlayerLeave()">✕ Quitter</button>
     </div>`);
 }
 async function confirmPlayerLeave(){
@@ -463,10 +476,20 @@ async function confirmPlayerLeave(){
   if(!campId||!currentUser)return;
   closeModal();
   try{
-    await fbDb.collection('characters').doc(currentUser.uid+'_'+campId).delete();
-    await fbDb.collection('users').doc(currentUser.uid).update({['charLib.'+campId]:firebase.firestore.FieldValue.delete()});
-    if(currentUserData&&currentUserData.charLib)delete currentUserData.charLib[campId];
-    showToast('✅ Personnage supprimé de la campagne.');
+    await fbDb.collection('characters').doc(currentUser.uid+'_'+campId).update({leftCampaign:true});
+    await fbDb.collection('users').doc(currentUser.uid).update({['charLib.'+campId+'.leftCampaign']:true});
+    if(currentUserData&&currentUserData.charLib&&currentUserData.charLib[campId])currentUserData.charLib[campId].leftCampaign=true;
+    showToast('✅ Vous avez quitté la campagne. Votre personnage est conservé.');
+    renderHub();
+  }catch(e){showToast('❌ Erreur : '+e.message);}
+}
+async function playerRejoinCampaign(campId){
+  if(!campId||!currentUser)return;
+  try{
+    await fbDb.collection('characters').doc(currentUser.uid+'_'+campId).update({leftCampaign:firebase.firestore.FieldValue.delete()});
+    await fbDb.collection('users').doc(currentUser.uid).update({['charLib.'+campId+'.leftCampaign']:firebase.firestore.FieldValue.delete()});
+    if(currentUserData&&currentUserData.charLib&&currentUserData.charLib[campId])delete currentUserData.charLib[campId].leftCampaign;
+    showToast('✅ Bienvenue de retour ! Votre personnage est actif.');
     renderHub();
   }catch(e){showToast('❌ Erreur : '+e.message);}
 }
