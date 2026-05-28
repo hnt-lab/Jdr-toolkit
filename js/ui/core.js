@@ -37,6 +37,8 @@ function showAuthScreen(){
   document.getElementById('authScreen').style.display='flex';
   document.getElementById('hubScreen').style.display='none';
   document.getElementById('app').style.display='none';
+  const _df=document.getElementById('diceFloat');if(_df)_df.style.display='none';
+  const _ds=document.getElementById('diceShortcuts');if(_ds)_ds.style.display='none';
 }
 async function joinGroupOnly(tableId,campaignId){
   const tableData=_hubCache&&_hubCache.find(t=>t.id===tableId);
@@ -62,6 +64,7 @@ async function joinGroupOnly(tableId,campaignId){
 function showHub(){
   stopAllListeners();
   _groupData=[];_activeCombatState=null;_combatListenerInitialized=false;_prevCombatTurnUid=null;_groupHudOpen=false;_groupOnlyMode=false;_hideHudDetail();
+  const _df=document.getElementById('diceFloat');if(_df)_df.style.display='none';
   const hud=document.getElementById('partyHud');if(hud)hud.style.display='none';
   const banner=document.getElementById('combatTurnBanner');if(banner)banner.style.display='none';
   const mjBadge=document.getElementById('hubMJBadge');if(mjBadge)mjBadge.style.display='none';
@@ -80,6 +83,7 @@ function showApp(){
   document.getElementById('hubScreen').style.display='none';
   document.getElementById('app').style.display='block';
   document.getElementById('mjScreen').style.display='none';
+  const _df=document.getElementById('diceFloat');if(_df)_df.style.display='flex';
   mjMode=false;
   const mjBtn=document.getElementById('mjBtn');
   if(mjBtn) mjBtn.style.display='none';
