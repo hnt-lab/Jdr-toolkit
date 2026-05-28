@@ -43,7 +43,7 @@ function mjTabJoueurs(){
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:8px">
           <div style="background:var(--surface2);border-radius:6px;padding:8px;text-align:center">
             <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px">PV</div>
-            <div style="font-size:17px;font-weight:600;color:${hpColor}">${hp}/${hpMax}</div>
+            <div style="font-size:${hp<=0?'11':'17'}px;font-weight:600;color:${hpColor}">${hp<=0?'💀 À terre':hp+'/'+hpMax}</div>
             <div class="hp-bar"><div class="hp-fill" style="width:${hpPct}%;background:${hpColor}"></div></div>
           </div>
           <div style="background:var(--surface2);border-radius:6px;padding:8px;text-align:center">
