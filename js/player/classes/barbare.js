@@ -61,6 +61,30 @@ function renderBarbare(p) {
     <div style="font-size:11px;color:var(--text3)">Sans armure : CA = 10 + DEX (${dexMod>=0?'+':''}${dexMod}) + CON (${conMod>=0?'+':''}${conMod}) = <strong style="color:var(--cp)">${10+dexMod+conMod}</strong></div>
   </div>`);
 
+  // ── Jets avec avantage (en rage) ─────────────────────────
+  if (rageActive) {
+    const forMod = mod(p.abilities[0]);
+    panels.push(`<div style="margin-bottom:10px;padding:8px;background:rgba(229,57,53,.07);border-radius:6px;border:1px solid rgba(229,57,53,.5);animation:combatPulse 3s ease-in-out infinite">
+      <div style="font-size:12px;font-weight:600;color:#e53935;margin-bottom:6px">🔥 Avantage en rage — Force</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+        <button class="btn bsm" style="background:rgba(229,57,53,.15);color:#e53935;border-color:#e53935;font-weight:600" onclick="rollSave('JS FOR',${forMod},1)">🔥⚡ JS FOR (avantage)</button>
+        <button class="btn bsm" style="background:rgba(229,57,53,.15);color:#e53935;border-color:#e53935;font-weight:600" onclick="rollSave('Jet FOR',${forMod},1)">🔥⚡ Jet FOR (avantage)</button>
+      </div>
+      <div style="font-size:10px;color:var(--text3);line-height:1.5">Avantage sur tous les jets de Force en rage : sauvegardes <em>et</em> jets de compétence (Athlétisme, etc.).<br>Pour les compétences physiques hors app, applique l'avantage dans l'outil Dés ou lance deux fois et garde le meilleur.</div>
+    </div>`);
+  }
+
+  // ── Sens du danger (niv.2+) ───────────────────────────────
+  if (barbareLvl>=2) {
+    panels.push(`<div style="margin-bottom:10px;padding:8px;background:var(--surface2);border-radius:6px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <span style="font-size:12px;font-weight:600;color:var(--cp)">👁 Sens du danger</span>
+        <button class="btn bsm" onclick="rollSave('JS DEX',${dexMod},1)">⚡ JS DEX (avantage)</button>
+      </div>
+      <div style="font-size:11px;color:var(--text3)">Avantage aux JS DEX contre les effets visibles (pièges, sorts, effets de zone). Pas d'application si aveuglé, sourd, ou incapable d'agir.</div>
+    </div>`);
+  }
+
   // ── Attaque téméraire (niv.2+) ────────────────────────────
   if (barbareLvl>=2) {
     const temActive = cc['Témérité']===true;
@@ -73,20 +97,22 @@ function renderBarbare(p) {
     </div>`);
   }
 
-  // ── Épuisement ────────────────────────────────────────────
-  const exh = p.exhaustion||0;
-  const exhDesc = ['Aucun épuisement','Désavantage aux jets de caractéristique','Vitesse divisée par 2','Désavantage aux attaques et jets de sauvegarde','Vitesse réduite à 0','Désavantage à tous les jets de sauvegarde','☠ La créature meurt'];
-  panels.push(`<div style="margin-bottom:10px;padding:8px;background:${exh>=3?'rgba(229,57,53,.08)':'var(--surface2)'};border-radius:6px;border:1px solid ${exh>=3?'rgba(229,57,53,.4)':'var(--border)'}">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-      <span style="font-size:12px;font-weight:600;color:${exh>=3?'#e53935':'var(--text2)'}">💀 Épuisement — ${exh}/6</span>
-      <div style="display:flex;gap:4px">
-        <button class="btn bsm" onclick="P().exhaustion=Math.min(6,(P().exhaustion||0)+1);_markUnsaved();render()">+1</button>
-        <button class="btn bsm" onclick="P().exhaustion=Math.max(0,(P().exhaustion||0)-1);_markUnsaved();render()">-1</button>
+  // ── Épuisement — affiché seulement pour Berserker (Frénésie en cause) ───
+  if (isBerserker && barbareLvl>=3) {
+    const exh = p.exhaustion||0;
+    const exhDesc = ['Aucun épuisement','Désavantage aux jets de caractéristique','Vitesse divisée par 2','Désavantage aux attaques et jets de sauvegarde','Vitesse réduite à 0','Désavantage à tous les jets de sauvegarde','☠ La créature meurt'];
+    panels.push(`<div style="margin-bottom:10px;padding:8px;background:${exh>=3?'rgba(229,57,53,.08)':'var(--surface2)'};border-radius:6px;border:1px solid ${exh>=3?'rgba(229,57,53,.4)':'var(--border)'}">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:12px;font-weight:600;color:${exh>=3?'#e53935':'var(--text2)'}">💀 Épuisement (Frénésie) — ${exh}/6</span>
+        <div style="display:flex;gap:4px">
+          <button class="btn bsm" onclick="P().exhaustion=Math.min(6,(P().exhaustion||0)+1);_markUnsaved();render()">+1</button>
+          <button class="btn bsm" onclick="P().exhaustion=Math.max(0,(P().exhaustion||0)-1);_markUnsaved();render()">-1</button>
+        </div>
       </div>
-    </div>
-    <div style="display:flex;gap:3px;margin-bottom:6px">${Array.from({length:6},(_,i)=>`<span style="width:18px;height:18px;border-radius:50%;border:2px solid ${i<exh?'#e53935':'var(--border)'};background:${i<exh?'rgba(229,57,53,.35)':'transparent'};display:inline-block"></span>`).join('')}</div>
-    <div style="font-size:11px;color:${exh>=3?'#e53935':'var(--text3)'}">${exhDesc[exh]||''}</div>
-  </div>`);
+      <div style="display:flex;gap:3px;margin-bottom:6px">${Array.from({length:6},(_,i)=>`<span style="width:18px;height:18px;border-radius:50%;border:2px solid ${i<exh?'#e53935':'var(--border)'};background:${i<exh?'rgba(229,57,53,.35)':'transparent'};display:inline-block"></span>`).join('')}</div>
+      <div style="font-size:11px;color:${exh>=3?'#e53935':'var(--text3)'}">Pallier actuel : ${exhDesc[exh]||''}</div>
+    </div>`);
+  }
 
   // ── BERSERKER ─────────────────────────────────────────────
   if (isBerserker && barbareLvl>=3) {
