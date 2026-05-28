@@ -22,7 +22,7 @@ function renderRodeur(p) {
     ${rodeurLvl>=18?`<div style="margin-bottom:8px;padding:6px 8px;background:var(--surface2);border-radius:6px;font-size:11px;color:var(--text2)">👂 Sens sauvages (niv.18) — Pas de désavantage pour attaquer une créature invisible à portée. Localise les créatures invisibles à 9m</div>`:''}
     ${rodeurLvl>=20?`<div style="margin-bottom:8px;padding:6px 8px;background:rgba(200,168,75,.07);border:1px solid rgba(200,168,75,.3);border-radius:6px;font-size:11px;color:var(--text2)">🎯 Tueur implacable (niv.20) — 1×/tour : +${sagM} aux jets d'attaque ou de dégâts contre un ennemi juré</div>`:''}
     ${isChasseur&&rodeurLvl>=3?`<div style="border-top:1px solid var(--border);padding-top:10px;margin-top:8px"><div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:6px">🎯 Chasseur</div><div style="font-size:11px;color:var(--text2);padding:5px 8px;background:var(--surface2);border-radius:6px;margin-bottom:4px">Proie du chasseur (niv.3) — Tueur de colosses (+1d8 si cible sous max PV) / Tueur de géants (réaction contre grande créature) / Briseur de hordes (attaque bonus contre cible adjacente)</div>${rodeurLvl>=7?`<div style="font-size:11px;color:var(--text2);padding:5px 8px;background:var(--surface2);border-radius:6px;margin-bottom:4px">Tactiques défensives (niv.7) — Échapper à la horde (désav. AO) / Défense multi-attaques (+4 CA contre même cible ce tour) / Moral d'acier (avantage JS Peur)</div>`:''} ${rodeurLvl>=11?`<div style="font-size:11px;color:var(--text2);padding:5px 8px;background:var(--surface2);border-radius:6px;margin-bottom:4px">Attaques multiples (niv.11) — Volée (tir sur N cibles dans 3m d'un point ciblé) / Attaque tourbillonnante (corps à corps sur toutes créatures à 1,5m)</div>`:''} ${rodeurLvl>=15?`<div style="font-size:11px;color:var(--text2);padding:5px 8px;background:var(--surface2);border-radius:6px">Défense supérieure (niv.15) — Esquive totale / Retour de bâton (réaction : retourner l'attaque manquée vers une autre créature) / Esquive instinctive (réaction : dégâts de moitié)</div>`:''}</div>`:''}
-    ${isMdB&&rodeurLvl>=3?`<div style="border-top:1px solid var(--border);padding-top:10px;margin-top:8px"><div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:6px">🐾 Maître des bêtes</div><div style="font-size:11px;color:var(--text2);padding:5px 8px;background:var(--surface2);border-radius:6px;margin-bottom:4px">Compagnon du rôdeur (niv.3) — Bête taille M max, CR ≤ 1/4. PV = max(normal, 4×niv). Agit à ton tour sur ordre.</div>${rodeurLvl>=7?`<div style="font-size:11px;color:var(--text2);padding:5px 8px;background:var(--surface2);border-radius:6px;margin-bottom:4px">Entraînement exceptionnel (niv.7) — Action bonus : commander Aider/Foncer/Désengager. Attaques du compagnon = magiques.</div>`:''} ${rodeurLvl>=11?`<div style="font-size:11px;color:var(--text2);padding:5px 8px;background:var(--surface2);border-radius:6px;margin-bottom:4px">Fureur bestiale (niv.11) — Sur ordre Attaquer : le compagnon peut attaquer 2×.</div>`:''} ${rodeurLvl>=15?`<div style="font-size:11px;color:var(--text2);padding:5px 8px;background:var(--surface2);border-radius:6px">Partage des sorts (niv.15) — Un sort te ciblant affecte aussi le compagnon s'il est à 9m ou moins.</div>`:''}</div>`:''}
+    ${isMdB&&rodeurLvl>=3?`<div style="border-top:1px solid var(--border);padding-top:10px;margin-top:8px"><div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:6px">🐾 Maître des bêtes</div><div style="font-size:11px;color:var(--text2);padding:5px 8px;background:var(--surface2);border-radius:6px;margin-bottom:4px">Compagnon du rôdeur (niv.3) — Bête taille M max, CR ≤ 1/4. PV = 4 × niveau Rôdeur. Agit à ton tour sur ordre.</div>${rodeurLvl>=7?`<div style="font-size:11px;color:var(--text2);padding:5px 8px;background:var(--surface2);border-radius:6px;margin-bottom:4px">Entraînement exceptionnel (niv.7) — Action bonus : commander Aider/Foncer/Désengager. Attaques du compagnon = magiques.</div>`:''} ${rodeurLvl>=11?`<div style="font-size:11px;color:var(--text2);padding:5px 8px;background:var(--surface2);border-radius:6px;margin-bottom:4px">Fureur bestiale (niv.11) — Sur ordre Attaquer : le compagnon peut attaquer 2×.</div>`:''} ${rodeurLvl>=15?`<div style="font-size:11px;color:var(--text2);padding:5px 8px;background:var(--surface2);border-radius:6px">Partage des sorts (niv.15) — Un sort te ciblant affecte aussi le compagnon s'il est à 9m ou moins.</div>`:''}</div>`:''}
   </div>`);
 }
 
@@ -57,9 +57,9 @@ function renderCompagnonAnimal(p) {
 
 function openBeastCompanionModal() {
   const rodeurLvl = ((P().classes||[]).find(c=>c.name==='Rôdeur')||{}).level||1;
-  const hpMax = 5*rodeurLvl;
+  const hpMax = 4*rodeurLvl;
   openWideModal(`<div class="pt">🐾 Choisir un compagnon animal</div>
-    <div style="font-size:12px;color:var(--text3);margin-bottom:12px">PV du compagnon = 5 × niveau Rôdeur (${hpMax} PV). Choisissez la forme de base :</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:12px">PV du compagnon = 4 × niveau Rôdeur (${hpMax} PV). Choisissez la forme de base :</div>
     <div class="crd-grid">${BEAST_FORMS.map((b,i)=>`<div class="crd" onclick="bcShowDetail(${i},${hpMax})" style="text-align:center">
       <div style="font-size:30px">${b.icon}</div>
       <h3>${b.name}</h3>
@@ -89,7 +89,7 @@ function bcShowDetail(idx, hpMax) {
 function setBeastCompanion(idx) {
   const p = P(); const b = BEAST_FORMS[idx];
   const rodeurLvl = ((p.classes||[]).find(c=>c.name==='Rôdeur')||{}).level||1;
-  const hpMax = 5*rodeurLvl;
+  const hpMax = 4*rodeurLvl;
   p.beastCompanion = {name:b.name,icon:b.icon,hpMax,hpCur:hpMax,ac:b.ac,speed:b.speed,ab:[...b.ab],attacks:b.attacks.map(a=>({...a})),traits:[...b.traits],active:true};
   closeModal(); saveAll(); render(); showToast(`🐾 ${b.name} est maintenant ton compagnon !`);
 }
