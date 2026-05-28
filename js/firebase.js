@@ -149,6 +149,24 @@ function startMJPlayersListener(campaignId){
     },err=>console.warn('MJ sync error:',err));
   _unsubscribes.push(unsub);
 }
+let _implacableDC=10,_implacableConMod=0;
+function _showRageImplacablePopup(p){
+  const uses=(p.combatCharges||{})['RageImplacableUses']||0;
+  _implacableDC=10+uses*5;
+  const conVal=(p.abilities&&p.abilities[2]!==undefined)?p.abilities[2]:10;
+  _implacableConMod=Math.floor((conVal-10)/2);
+  openModal(`<div class="pt">💪 Rage implacable — 0 PV !</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:12px">Tu tombes à 0 PV pendant ta rage.<br>Lance un <strong>JS CON DD ${_implacableDC}</strong> pour rester à 1 PV !</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:16px">DD actuel : ${_implacableDC}${uses>0?' ('+uses+' usage'+(uses>1?'s':'')+')'':''}. +5 par usage, remis à 0 au repos.</div>
+    <button class="btn bac" style="width:100%;margin-bottom:8px" onclick="_doRageImplacableRoll()">🎲 Lancer JS CON DD ${_implacableDC}</button>
+    <button class="btn" style="width:100%" onclick="closeModal()">✕ Lancer physiquement</button>`);
+}
+function _doRageImplacableRoll(){
+  const p=P();
+  if(p){if(!p.combatCharges)p.combatCharges={};p.combatCharges['RageImplacableUses']=(p.combatCharges['RageImplacableUses']||0)+1;_markUnsaved();saveAll();}
+  rollSave('JS CON',_implacableConMod);
+  closeModal();
+}
 function startPlayerListener(campaignId){
   const docId=currentUser.uid+'_'+campaignId;
   const unsub=fbDb.collection('characters').doc(docId)
@@ -165,10 +183,16 @@ function startPlayerListener(campaignId){
       if(_ownWriteData&&_ownWriteData===newStr){_ownWriteData=null;return;}
       _ownWriteData=null;
       if(_stableJSON(state.players[0])===newStr)return;
+      // Rage implacable : détecter la chute à 0 PV pendant la rage
+      const _oldHp=(state.players[0]?.hp??0);
+      const _newHp=(newData.hp??0);
+      const _rageActive=(newData.combatCharges||{})['RageActive']===true;
+      const _barbLvl=((newData.classes||[]).find(c=>c.name==='Barbare')||{}).level||0;
       state.players[0]=newData;
       _suppressUnsavedMark=true;render();
       _flashSyncDot('playerSyncDot');
       showToast('🎲 Fiche mise à jour par le MJ');
+      if(_barbLvl>=11&&_rageActive&&_oldHp>0&&_newHp<=0)_showRageImplacablePopup(newData);
     },err=>console.warn('Player sync error:',err));
   _unsubscribes.push(unsub);
 }
@@ -245,10 +269,14 @@ async function _rollMyInitiative(){
   const p=P();if(!p||!currentUser||!currentCampaignId)return;
   const dexVal=(p.abilities&&p.abilities[1]!==undefined)?p.abilities[1]:10;
   const dexMod=Math.floor((dexVal-10)/2);
-  const d20=Math.ceil(Math.random()*20);
+  const barbareLvl=((p.classes||[]).find(c=>c.name==='Barbare')||{}).level||0;
+  const hasAdv=barbareLvl>=7;
+  const d20a=Math.ceil(Math.random()*20);
+  const d20b=hasAdv?Math.ceil(Math.random()*20):null;
+  const d20=hasAdv?Math.max(d20a,d20b):d20a;
   const total=d20+dexMod;
   const sub=document.getElementById('combatPopupSub');
-  if(sub)sub.innerHTML=`<div style="font-size:52px;font-weight:800;color:var(--cp);font-family:var(--F);line-height:1">${total}</div><div style="font-size:13px;color:var(--text3);margin-top:4px">d20(${d20}) ${dexMod>=0?'+':''}${dexMod} DEX</div>`;
+  if(sub)sub.innerHTML=`<div style="font-size:52px;font-weight:800;color:var(--cp);font-family:var(--F);line-height:1">${total}</div><div style="font-size:13px;color:var(--text3);margin-top:4px">d20(${hasAdv?d20a+','+d20b+'→'+d20:d20}) ${dexMod>=0?'+':''}${dexMod} DEX${hasAdv?' 🦅':''}</div>`;
   try{await fbDb.collection('characters').doc(currentUser.uid+'_'+currentCampaignId).update({'characterData.pendingInitiative':total});}catch(e){}
   const popup=document.getElementById('combatPopup');
   if(popup){clearTimeout(popup._timer);popup._timer=setTimeout(()=>{popup.className='';},3000);}
@@ -365,7 +393,7 @@ function openPlayerReadonlySheetFull(p,priv,playerInfo,isMJ){
       const eq=p.equip||{};const forM=Math.floor((abilities[0]-10)/2);const dexM=Math.floor((abilities[1]-10)/2);
       const weapons=['mainhand','offhand','ranged'].map(slot=>{const it=eq[slot];return it&&it.name?{...it,slot}:null;}).filter(Boolean);
       const weaponsHtml=weapons.length?`${roSection('Armes équipées')}${weapons.map(w=>{
-        const srdW=SRD?.weapons?.find(sw=>sw.name===w.name);
+        const srdW=findSRDWeapon(w.name);
         const finesse=srdW&&(srdW.properties||'').includes('Finesse');
         const atkM=finesse?Math.max(forM,dexM):w.slot==='ranged'?dexM:forM;
         const bonus=pb+atkM;
