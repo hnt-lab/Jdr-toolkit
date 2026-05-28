@@ -51,7 +51,7 @@ function renderClerc(p) {
         <span style="font-size:12px;font-weight:600;color:var(--cp)">🙏 Intervention divine</span>
         ${idUsed?`<button class="btn bsm" onclick="(()=>{const p=P();if(!p.combatCharges)p.combatCharges={};delete p.combatCharges['InterventionDivine'];saveAll();render();})()">↺ Repos long</button>`:`<button class="btn bsm" onclick="(()=>{const p=P();if(!p.combatCharges)p.combatCharges={};p.combatCharges['InterventionDivine']=false;saveAll();render();})()">Invoquer</button>`}
       </div>
-      <div style="font-size:11px;color:var(--text3)">${isLvl20?'Niv.20 — Réussit automatiquement, aucun jet nécessaire.':idUsed?'Utilisé — Recharge dans 7 jours ou repos long.':` Action : lancer 1d100. Si résultat ≤ ${clercLvl} → divinité intervient (effet du MJ). Recharge : 7 jours si succès, repos long si échec.`}</div>
+      <div style="font-size:11px;color:var(--text3)">${isLvl20?'Niv.20 — Réussit automatiquement, aucun jet nécessaire.':idUsed?'Utilisé — Recharge dans 7 jours ou repos long.':`Action : lancer 1d100. Si résultat ≤ ${clercLvl} → divinité intervient (effet du MJ). Recharge : 7 jours si succès, repos long si échec. <button class="btn bsm" style="font-size:10px;margin-top:4px" onclick="(()=>{const r=Math.ceil(Math.random()*100);showToast('🙏 Intervention divine : d100 = <strong>'+r+'</strong> '+(r<=${clercLvl}?' ✅ Succès !':' ❌ Échec'))})()">🎲 d100</button>`}</div>
     </div>`);
   }
 
@@ -75,7 +75,7 @@ function renderClerc(p) {
       dc += _clercPanel('💚 Disciple de la vie','niv.1','',`Sorts de soin de niv.1+ : la cible récupère <strong>2 + niveau du sort</strong> PV supplémentaires.`);
       dc += _clercPanel('✝ Préservation de la vie','Conduit divin','',`Action : dépenser 1 conduit — distribuer <strong>${5*clercLvl} PV</strong> entre des créatures à 9m (max ½ PV max chacune). Pas d'effet sur morts-vivants/artificiels.`);
       if (clercLvl>=6)  dc += _clercPanel('🌟 Guérisseur béni','niv.6','',`Quand tu soignes un allié avec un sort de niv.1+, tu récupères toi-même <strong>2 + niveau du sort</strong> PV.`);
-      if (clercLvl>=8)  dc += _clercPanel(`⚡ Frappe divine`,'niv.8','',`1×/tour, quand tu touches avec une arme : <strong>+${clercLvl>=14?'2d8':'1d8'} radiants</strong>.`);
+      if (clercLvl>=8)  dc += _clercPanel(`⚡ Frappe divine`,'niv.8','',`1×/tour, quand tu touches avec une arme : <strong>+${clercLvl>=14?'2d8':'1d8'} radiants</strong>. <button class="btn bsm" style="font-size:10px;margin-top:4px" onclick="rollCustomDmg('${clercLvl>=14?'2d8':'1d8'}','Frappe divine')">🎲 ${clercLvl>=14?'2d8':'1d8'}</button>`);
       if (clercLvl>=17) dc += _clercPanel('✨ Guérison suprême','niv.17','',`Sorts de soin : applique directement le maximum de chaque dé (ex. 2d6 → 12 PV).`);
     }
 
@@ -102,7 +102,7 @@ function renderClerc(p) {
       dc += _clercPanel('🌿 Acolyte de la nature','niv.1','',`Sort mineur de druide au choix (compte comme sort de clerc). Maîtrise au choix : Dressage, Nature ou Survie.`);
       if (clercLvl>=2) dc += _clercPanel('🐾 Charme des animaux et des plantes','Conduit divin','',`Action : créatures de type Bête ou Plante à 9m → JS SAG DD ${ddSorts} ou charmées 1 min (ou jusqu'aux dégâts). Amicales pendant la durée.`);
       if (clercLvl>=6) dc += _clercPanel('🛡 Atténuation des éléments','Réaction • niv.6','',`Réaction : quand toi ou une créature à 9m subit des dégâts d'acide, froid, feu, foudre ou tonnerre — accorder la résistance à ce type.`);
-      if (clercLvl>=8) dc += _clercPanel(`⚡ Frappe divine`,'niv.8','',`1×/tour, quand tu touches avec une arme : <strong>+${clercLvl>=14?'2d8':'1d8'} froid, feu ou foudre</strong> (au choix).`);
+      if (clercLvl>=8) dc += _clercPanel(`⚡ Frappe divine`,'niv.8','',`1×/tour, quand tu touches avec une arme : <strong>+${clercLvl>=14?'2d8':'1d8'} froid, feu ou foudre</strong> (au choix). <button class="btn bsm" style="font-size:10px;margin-top:4px" onclick="rollCustomDmg('${clercLvl>=14?'2d8':'1d8'}','Frappe divine')">🎲 ${clercLvl>=14?'2d8':'1d8'}</button>`);
       if (clercLvl>=17) dc += _clercPanel('🌳 Maître de la nature','niv.17','',`Action bonus : commander verbalement les animaux et plantes charmés par Charme des animaux et des plantes.`);
     }
 
@@ -122,7 +122,7 @@ function renderClerc(p) {
       </div>`;
       if (clercLvl>=2) dc += _clercPanel('💥 Fureur destructrice','Conduit divin','',`Quand tu infliges des dégâts de foudre ou tonnerre : dépenser 1 conduit pour infliger le maximum sans lancer les dés.`);
       if (clercLvl>=6) dc += _clercPanel('🌩 Frappe de l\'éclair','niv.6','',`Quand tu infliges des dégâts de foudre à une créature de taille G ou moins : tu peux la repousser de 3m.`);
-      if (clercLvl>=8) dc += _clercPanel(`⚡ Frappe divine`,'niv.8','',`1×/tour, quand tu touches avec une arme : <strong>+${clercLvl>=14?'2d8':'1d8'} tonnerre</strong>.`);
+      if (clercLvl>=8) dc += _clercPanel(`⚡ Frappe divine`,'niv.8','',`1×/tour, quand tu touches avec une arme : <strong>+${clercLvl>=14?'2d8':'1d8'} tonnerre</strong>. <button class="btn bsm" style="font-size:10px;margin-top:4px" onclick="rollCustomDmg('${clercLvl>=14?'2d8':'1d8'}','Frappe divine')">🎲 ${clercLvl>=14?'2d8':'1d8'}</button>`);
       if (clercLvl>=17) dc += _clercPanel('🌪 Enfant de la tempête','niv.17','',`Vitesse de vol égale à ta vitesse de déplacement (sauf sous terre ou en intérieur).`);
     }
 
@@ -131,7 +131,7 @@ function renderClerc(p) {
       dc += _clercPanel('🎭 Bénédiction de l\'escroc','Action • niv.1','',`Toucher une créature consentante (pas toi) : avantage aux jets de Discrétion (DEX) pendant 1h. Se remplace si réutilisé.`);
       if (clercLvl>=2) dc += _clercPanel('🪞 Invocation de réplique','Conduit divin','',`Action : illusion parfaite de toi dans un espace visible à 9m (conc. 1 min). Action bonus : déplacer l'illusion à 9m. Tu peux lancer des sorts depuis sa position. Avantage aux attaques contre créatures à 1,5m de l'illusion.`);
       if (clercLvl>=6) dc += _clercPanel('🌑 Linceul d\'ombre','Conduit divin • niv.6','',`Action : dépenser 1 conduit — devenir invisible jusqu'à la fin de ton prochain tour. Fin anticipée si tu attaques ou lances un sort.`);
-      if (clercLvl>=8) dc += _clercPanel(`⚡ Frappe divine`,'niv.8','',`1×/tour, quand tu touches avec une arme : <strong>+${clercLvl>=14?'2d8':'1d8'} poison</strong>.`);
+      if (clercLvl>=8) dc += _clercPanel(`⚡ Frappe divine`,'niv.8','',`1×/tour, quand tu touches avec une arme : <strong>+${clercLvl>=14?'2d8':'1d8'} poison</strong>. <button class="btn bsm" style="font-size:10px;margin-top:4px" onclick="rollCustomDmg('${clercLvl>=14?'2d8':'1d8'}','Frappe divine')">🎲 ${clercLvl>=14?'2d8':'1d8'}</button>`);
       if (clercLvl>=17) dc += _clercPanel('🪞 Réplique améliorée','niv.17','',`Invocation de réplique crée jusqu'à 4 doublons. Action bonus : déplacer plusieurs (max 9m chacun, max 36m de toi).`);
     }
 
@@ -150,7 +150,7 @@ function renderClerc(p) {
       </div>`;
       if (clercLvl>=2) dc += _clercPanel('🎯 Frappe guidée','Conduit divin','',`Quand tu fais un jet d'attaque : dépenser 1 conduit pour ajouter <strong>+10</strong> au jet (après avoir vu le résultat, avant l'annonce du MJ).`);
       if (clercLvl>=6) dc += _clercPanel('🛡 Bénédiction du dieu de la guerre','Conduit divin • niv.6','',`Réaction : quand une créature à 9m fait un jet d'attaque — dépenser 1 conduit pour lui donner <strong>+10</strong> (après avoir vu le résultat, avant l'annonce).`);
-      if (clercLvl>=8) dc += _clercPanel(`⚡ Frappe divine`,'niv.8','',`1×/tour, quand tu touches avec une arme : <strong>+${clercLvl>=14?'2d8':'1d8'} du même type que l'arme</strong>.`);
+      if (clercLvl>=8) dc += _clercPanel(`⚡ Frappe divine`,'niv.8','',`1×/tour, quand tu touches avec une arme : <strong>+${clercLvl>=14?'2d8':'1d8'} du même type que l'arme</strong>. <button class="btn bsm" style="font-size:10px;margin-top:4px" onclick="rollCustomDmg('${clercLvl>=14?'2d8':'1d8'}','Frappe divine')">🎲 ${clercLvl>=14?'2d8':'1d8'}</button>`);
       if (clercLvl>=17) dc += _clercPanel('👑 Avatar de bataille','niv.17','',`Résistance aux dégâts contondants, perforants et tranchants provenant d'attaques non magiques.`);
     }
 
@@ -177,7 +177,7 @@ function renderClerc(p) {
       dc += _clercPanel('🔨 Bénédiction de la forge','niv.1','',`Fin d'un repos long : toucher une armure ou arme courante/de guerre non magique → <strong>+1</strong> CA ou +1 attaque/dégâts jusqu'au prochain repos long. 1×/repos long.`);
       if (clercLvl>=2) dc += _clercPanel('⚒ Bénédiction de l\'artisan','Conduit divin','',`Rituel 1h : créer un objet métallique non magique de valeur ≤ 100 po (arme, armure, munitions, outils…). Le métal utilisé se transforme.`);
       if (clercLvl>=6) dc += _clercPanel('🛡 Âme de la forge','niv.6','',`Résistance aux dégâts de feu. +1 à la CA quand tu portes une armure lourde.`);
-      if (clercLvl>=8) dc += _clercPanel(`⚡ Frappe divine`,'niv.8','',`1×/tour, quand tu touches avec une arme : <strong>+${clercLvl>=14?'2d8':'1d8'} feu</strong>.`);
+      if (clercLvl>=8) dc += _clercPanel(`⚡ Frappe divine`,'niv.8','',`1×/tour, quand tu touches avec une arme : <strong>+${clercLvl>=14?'2d8':'1d8'} feu</strong>. <button class="btn bsm" style="font-size:10px;margin-top:4px" onclick="rollCustomDmg('${clercLvl>=14?'2d8':'1d8'}','Frappe divine')">🎲 ${clercLvl>=14?'2d8':'1d8'}</button>`);
       if (clercLvl>=17) dc += _clercPanel('🏰 Saint de la forge et du feu','niv.17','',`Immunité aux dégâts de feu. En armure lourde : résistance aux dégâts contondants, perforants et tranchants d'attaques non magiques.`);
     }
 
