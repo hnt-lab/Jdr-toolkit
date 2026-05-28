@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(\\(Get-Content \"c:\\\\Users\\\\mika_\\\\Desktop\\\\Projet Toolkit jdr\\\\MJ Toolkit dev project\\\\index.html\"\\).Count)",
+      "PowerShell(Get-ChildItem \"c:\\\\Users\\\\mika_\\\\Desktop\\\\Projet Toolkit jdr\\\\MJ Toolkit dev project\\\\\" | Select-Object Name, @{N='Taille';E={if\\($_.Length -gt 1MB\\){\"$\\([math]::Round\\($_.Length/1MB,1\\)\\) MB\"}elseif\\($_.Length -gt 1KB\\){\"$\\([math]::Round\\($_.Length/1KB,1\\)\\) KB\"}else{\"$\\($_.Length\\) B\"}}})"
+    ]
+  }
+}
