@@ -205,7 +205,7 @@ const FEAT_DESCS={
   "Explorateur-né (3 terrains)":"Tu as maintenant 3 terrains de prédilection.",
   "Conscience primitive":"Action : concentrer 1 min sur un terrain de prédilection pour détecter les types d'ennemis jurés à 1,5 km (nature) ou 300m (ailleurs).",
   "Archétype (choix)":"Tu choisis ton archétype de rôdeur (Chasseur ou Maître des bêtes).",
-  "Capacité de l'archétype":"Tu gagnes une nouvelle capacité de ton archétype de rôdeur.",
+  "Capacité de l'archétype de rôdeur":"Tu gagnes une nouvelle capacité de ton archétype de rôdeur.",
   "Attaque supplémentaire":"Tu peux attaquer deux fois lorsque tu prends l'action Attaquer.",
   "Déplacement sylvestre":"Tu peux traverser une végétation non magique sans être ralenti ni blessé.",
   "Camouflage naturel":"Tu peux te cacher si partiellement dissimulé par la végétation, même légère.",
@@ -280,6 +280,11 @@ const FEAT_EXCLUDE=[
   'Sorts du spécialiste',         // Artificier, même logique que Sorts du cercle
   'Infusions',                    // compteur géré dans combat
   'Accès aux emplacements',       // info de slot Druide, purement mécanique
+  // Barbare — compteurs redondants (affichés dans le panneau Combat)
+  '2 rages','3 rages','4 rages','5 rages','6 rages','Rages illimitées',
+  'Bonus dégâts rage',
+  // Sorts — couvert par l'onglet Sorts
+  'Incantation',
 ];
 function isFeatExcluded(name){return FEAT_EXCLUDE.some(ex=>name.startsWith(ex)||name===ex||name.includes(ex));}  
 
