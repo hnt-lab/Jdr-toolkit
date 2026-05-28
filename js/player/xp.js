@@ -114,7 +114,7 @@ function mjAdjustLevel(delta){
   render();showToast(`🎲 MJ — Niveau ${mc.name} → ${newLvl}`);
 }
 function mjRespecCharacter(){
-  if(!confirm('Réinitialiser ce personnage au niveau 1 ?\n\nToutes les capacités de classe acquises seront perdues. L\'XP sera conservée et le personnage pourra passer à nouveau tous ses niveaux.'))return;
+  if(!confirm('Réinitialiser ce personnage au niveau 1 ?\n\nToutes les capacités de classe et l\'XP seront réinitialisées. Le personnage repart à 0 XP, niveau 1.'))return;
   const p=P();const mc=mainClass(p);if(!mc){showToast('❌ Aucune classe principale détectée.');return;}
   const dSrd=SRD.classes.find(c=>c.name===mc.name);
   const hd=dSrd?dSrd.hdVal:8;
@@ -131,7 +131,8 @@ function mjRespecCharacter(){
   p.conditions=[];
   p.exhaustion=0;
   p.eldritchInvocations=[];
-  saveAll();render();showToast(`🔄 ${p.charName||'Personnage'} réinitialisé au niveau 1. L'XP est conservée.`);
+  p.xp=0;
+  saveAll();render();showToast(`🔄 ${p.charName||'Personnage'} réinitialisé au niveau 1 (0 XP).`);
 }
 
 // ═══════════════════════════════════════
@@ -386,15 +387,15 @@ const CLASS_LEVEL_DATA={
       4:["Amélioration de caractéristiques"],
       5:["Attaque supplémentaire"],
       6:["Ennemi juré amélioré (2ème type)","Explorateur-né amélioré (2ème terrain)"],
-      7:["Capacité de l'archétype"],
+      7:["Capacité de l'archétype de rôdeur"],
       8:["Amélioration de caractéristiques","Foulée tellurique (terrain difficile non magique ne coûte plus de mouvement)"],
       9:[],
       10:["Explorateur-né amélioré (3ème terrain)","Camouflage naturel (+10 Discrétion immobile)"],
-      11:["Capacité de l'archétype"],
+      11:["Capacité de l'archétype de rôdeur"],
       12:["Amélioration de caractéristiques"],
       13:[],
       14:["Ennemi juré amélioré (3ème type)","Disparition (Se cacher en action bonus)"],
-      15:["Capacité de l'archétype"],
+      15:["Capacité de l'archétype de rôdeur"],
       16:["Amélioration de caractéristiques"],
       17:[],
       18:["Sens sauvages (attaquer l'invisible sans désavantage, position des créatures invisibles à 9m)"],
@@ -595,7 +596,7 @@ let LU={
   metamagicChoices:[],newSpells:[],
   expertiseChoices:[],secretsChoices:[],mcSkillChoices:[],invocationChoices:[],
 };
-function resetLU(){LU={step:1,steps:[],choice:null,mcTarget:null,asiChoice:null,archetypeChoice:null,styleChoice:null,terrainChoice:null,metamagicChoices:[],newSpells:[],expertiseChoices:[],secretsChoices:[],mcSkillChoices:[],invocationChoices:[]};_luSpellSearch='';_luSecretsSearch='';}
+function resetLU(){LU={step:1,steps:[],choice:null,mcTarget:null,asiChoice:null,archetypeChoice:null,styleChoice:null,terrainChoice:null,metamagicChoices:[],newSpells:[],expertiseChoices:[],secretsChoices:[],mcSkillChoices:[],invocationChoices:[],hpRoll:null};_luSpellSearch='';_luSecretsSearch='';}
 
 const DRUID_CIRCLE_FEATS={
   'Cercle de la lune':{
@@ -1120,7 +1121,23 @@ function luStepRecap(p,newLvl){
     </div>
 
     <div style="padding:8px 12px;background:var(--cglow);border:1px solid var(--cp);border-radius:8px;margin-bottom:8px">
-      <div style="font-size:12px;color:var(--text2)">PV gagnés : <strong style="color:var(--cp)">${(()=>{const d=mc?SRD.classes.find(c=>c.name===mc.name):null;if(!d)return'?';const ab=p.abilities||[10,10,10,10,10,10];const avg=Math.floor(d.hdVal/2)+1;return`${avg} + CON (${fmt(mod(ab[2]))}) = ${Math.max(1,avg+mod(ab[2]))} PV supplémentaires`})()}</strong></div>
+      ${(()=>{
+        const d=mc?SRD.classes.find(c=>c.name===mc.name):null;
+        if(!d)return'<div style="font-size:12px;color:var(--text2)">PV gagnés : ?</div>';
+        const ab=p.abilities||[10,10,10,10,10,10];
+        const conM=mod(ab[2]);
+        const avg=Math.floor(d.hdVal/2)+1;
+        const used=LU.hpRoll!==null?LU.hpRoll:avg;
+        const total=Math.max(1,used+conM);
+        const rolledTag=LU.hpRoll!==null?`<span style="font-size:9px;color:#4caf50;margin-left:4px">🎲 dé lancé</span>`:`<span style="font-size:9px;color:var(--text3);margin-left:4px">(moyenne)</span>`;
+        return`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <div style="font-size:12px;color:var(--text2)">PV gagnés : <strong style="color:var(--cp)">${used} + CON (${fmt(conM)}) = <span style="font-size:15px">${total}</span></strong>${rolledTag}</div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn bsm${LU.hpRoll===null?' bac':''}" onclick="LU.hpRoll=null;renderTab()" style="flex:1;font-size:11px">${avg} Moyenne</button>
+          <button class="btn bsm${LU.hpRoll!==null?' bac':''}" onclick="LU.hpRoll=Math.ceil(Math.random()*${d.hdVal});renderTab()" style="flex:1;font-size:11px">🎲 Lancer 1${esc('d'+d.hdVal)}${LU.hpRoll!==null?' ('+LU.hpRoll+')':''}</button>
+        </div>`;
+      })()}
     </div>
     ${!isMulti&&isPrepared?`<div style="padding:8px 12px;background:rgba(0,150,136,.08);border:1px solid rgba(0,150,136,.3);border-radius:8px;margin-bottom:8px;font-size:12px;color:var(--text2)">💡 <strong>Sorts :</strong> Tu peux préparer n'importe quel sort de ta liste de classe lors d'un repos long. Accède à <strong>Sorts → 📚 Parcourir</strong> pour ajouter de nouveaux sorts.</div>`:''}
 
@@ -1146,7 +1163,8 @@ function applyLevelUp(){
     // PV multiclasse
     const dSrd=SRD.classes.find(c=>c.name===LU.mcTarget);
     const avg=dSrd?Math.floor(dSrd.hdVal/2)+1:4;
-    p.hpMax+=Math.max(1,avg+mod(p.abilities[2]));
+    const hpGain=LU.hpRoll!==null?LU.hpRoll:avg;
+    p.hpMax+=Math.max(1,hpGain+mod(p.abilities[2]));
     if(p.race==='Nain des collines')p.hpMax+=1; // Ténacité naine
     p.hp=p.hpMax;
     // Capacités niveau 1 multiclasse
@@ -1162,7 +1180,8 @@ function applyLevelUp(){
     if(entry)entry.level++;
     const dSrd=SRD.classes.find(c=>c.name===mc.name);
     const avg=dSrd?Math.floor(dSrd.hdVal/2)+1:4;
-    p.hpMax+=Math.max(1,avg+mod(p.abilities[2]));
+    const hpGain=LU.hpRoll!==null?LU.hpRoll:avg;
+    p.hpMax+=Math.max(1,hpGain+mod(p.abilities[2]));
     if(p.race==='Nain des collines')p.hpMax+=1; // Ténacité naine
     p.hp=p.hpMax;
     // Capacités du nouveau niveau — exclure ASI et les pures mécaniques de compteur
@@ -1185,6 +1204,9 @@ function applyLevelUp(){
       'Capacité de la tradition monastique',
       'Capacité du spécialiste',
       'Infusions',
+      '2 rages','3 rages','4 rages','5 rages','6 rages','Rages illimitées',
+      'Bonus dégâts rage',
+      'Incantation',
     ];
     const druideCircle2=mc.name==='Druide'&&p.archetype?p.archetype['Druide']:null;
     const newFeats=getLevelFeatures(mc.name,newClassLevel)
