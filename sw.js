@@ -1,4 +1,4 @@
-const CACHE = 'boite-outils-v0.7.7';
+const CACHE = 'boite-outils-v0.8.0';
 
 // Fichiers à mettre en cache dès l'installation
 const PRECACHE = [
