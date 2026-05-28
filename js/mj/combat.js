@@ -19,7 +19,7 @@ function mjTabCombat(){
       </div>
       <div style="display:flex;align-items:center;gap:4px">
         <div style="text-align:center;min-width:60px">
-          <div style="font-size:11px;color:${hpColor};font-weight:600">${c.hp}/${c.hpMax}</div>
+          <div style="font-size:11px;color:${hpColor};font-weight:600">${isDead?'💀 À terre':c.hp+'/'+c.hpMax}</div>
           <div class="hp-bar" style="width:60px"><div class="hp-fill" style="width:${hpPct}%;background:${hpColor}"></div></div>
         </div>
         <button class="btn bsm" style="padding:2px 7px;font-size:14px" onclick="mjHpChange(${realIdx},-1)">−</button>
@@ -66,7 +66,7 @@ function _extractPlayerCombatData(p){
     const w=(p.equip||{})[slot];
     if(!w||!w.name)return;
     const isRanged=slot==='ranged';
-    const srdW=SRD.weapons.find(sw=>sw.name===w.name);
+    const srdW=findSRDWeapon(w.name);
     if(srdW){
       const finesse=(srdW.properties||'').includes('Finesse');
       const atkM=finesse?Math.max(forM,dexM):isRanged?dexM:forM;
