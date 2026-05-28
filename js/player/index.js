@@ -102,7 +102,7 @@ function createDiceButton(){
   const btn=document.createElement('div');
   btn.id='diceFloat';
   btn.innerHTML='🎲';
-  btn.style.cssText=`position:fixed;bottom:24px;right:24px;z-index:888;width:52px;height:52px;border-radius:50%;background:var(--cp);color:#1a1400;font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.5);transition:transform .15s;user-select:none;`;
+  btn.style.cssText=`position:fixed;bottom:24px;right:24px;z-index:888;width:52px;height:52px;border-radius:50%;background:var(--cp);color:#1a1400;font-size:22px;display:none;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.5);transition:transform .15s;user-select:none;`;
   btn.onmouseenter=()=>btn.style.transform='scale(1.1)';
   btn.onmouseleave=()=>btn.style.transform='scale(1)';
   let _pressTimer=null,_longActivated=false;
@@ -147,7 +147,7 @@ function _diceNav(tab){
     setTab(tab);
   }else if(P()){
     showApp();setTimeout(()=>setTab(tab),0);
-  }else if(currentTableId&&currentCampaignId&&!isMJ()){
+  }else if(currentTableId&&currentCampaignId&&!isMJ()&&!_groupOnlyMode){
     enterCampaign(currentTableId,currentCampaignId).then(()=>{if(tab!=='perso')setTab(tab);}).catch(()=>{});
   }else{
     showToast('Ouvrez votre fiche depuis le Hub pour utiliser ce raccourci.');
@@ -191,6 +191,23 @@ function renderDicePanel(){
     return v+bonus;
   });
 
+  const _athProf=(p.skillProf||{})['Athlétisme']||0;
+  const _acrProf=(p.skillProf||{})['Acrobaties']||0;
+  const _athBonus=mod(finalAbilities[0])+(_athProf===1?pb(lvl):_athProf===2?pb(lvl)*2:0);
+  const _acrBonus=mod(finalAbilities[1])+(_acrProf===1?pb(lvl):_acrProf===2?pb(lvl)*2:0);
+  const _envRageFor=rageActive&&barbareLvl>0;
+  const _totemPath=(p.features||[]).find(f=>f.name==='Voie du guerrier totem');
+  const _totemChoice=(p.combatCharges||{})['TotemSpirit']||'';
+  const _isTotemOurs6=!!_totemPath&&barbareLvl>=6&&_totemChoice==='Ours';
+  const _envForAdv=_envRageFor||_isTotemOurs6;
+  const _envRT=_envForAdv?'for-carac':'carac';
+  const _envBtnColor=_envRageFor?'#e53935':(_isTotemOurs6?'#4caf50':'var(--text2)');
+  const _envBtnBg=_envRageFor?'rgba(229,57,53,.08)':(_isTotemOurs6?'rgba(76,175,80,.08)':'var(--surface2)');
+  const _envBtnBorder=_envRageFor?'#e53935':(_isTotemOurs6?'#4caf50':'var(--border)');
+  const _envBtnIcon=_envRageFor?' 🔥':(_isTotemOurs6?' 🐻':'');
+  const _envStr=finalAbilities[0];
+  const _envStrMod=mod(finalAbilities[0]);
+
   panel.innerHTML=`
   <div style="font-family:var(--F);font-size:13px;color:var(--cp);letter-spacing:.06em;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
     <span>🎲 Lanceur de dés</span>
@@ -220,13 +237,15 @@ function renderDicePanel(){
     ${ABILITIES.map((ab,i)=>{
       const m=mod(finalAbilities[i]);
       const isRageFor=rageActive&&i===0;
-      const rollType=isRageFor?'for-carac':'';
-      const btnBorder=isRageFor?'#e53935':'var(--border)';
-      const btnColor=isRageFor?'#e53935':'var(--text2)';
-      const btnBg=isRageFor?'rgba(229,57,53,.08)':'var(--surface2)';
+      const _isTotemOursFor=i===0&&barbareLvl>=6&&(p.combatCharges||{})['TotemSpirit']==='Ours'&&!!(p.features||[]).find(f=>f.name==='Voie du guerrier totem');
+      const _isPuissFor=i===0&&barbareLvl>=18;
+      const rollType=(isRageFor||_isTotemOursFor||_isPuissFor)?'for-carac':'';
+      const btnBorder=isRageFor?'#e53935':(_isTotemOursFor?'#4caf50':'var(--border)');
+      const btnColor=isRageFor?'#e53935':(_isTotemOursFor?'#4caf50':'var(--text2)');
+      const btnBg=isRageFor?'rgba(229,57,53,.08)':(_isTotemOursFor?'rgba(76,175,80,.08)':'var(--surface2)');
       return`<button onclick="diceRoll('d20','${ab}',${m},'${rollType}')" style="padding:6px 4px;border:1px solid ${btnBorder};border-radius:6px;font-size:11px;cursor:pointer;background:${btnBg};color:${btnColor};transition:all .15s;font-family:var(--B);text-align:center" onmouseenter="this.style.borderColor='var(--cp)';this.style.color='var(--cp)'" onmouseleave="this.style.borderColor='${btnBorder}';this.style.color='${btnColor}'">
         <div style="font-weight:600">${ABILITIES_SH[i]}</div>
-        <div style="color:${isRageFor?'#e53935':'var(--cp)'};font-size:12px">${fmt(m)}${isRageFor?' 🔥':''}</div>
+        <div style="color:${isRageFor?'#e53935':(_isTotemOursFor?'#4caf50':'var(--cp)')};font-size:12px">${fmt(m)}${isRageFor?' 🔥':(_isTotemOursFor?' 🐻':(_isPuissFor?' 💪':''))}</div>
       </button>`;
     }).join('')}
   </div>
@@ -238,15 +257,17 @@ function renderDicePanel(){
       const hasSave=saves.includes(i);
       const m=mod(finalAbilities[i])+(hasSave?pb(lvl):0);
       const isRageFor=rageActive&&i===0;
-      const rollType=isRageFor?'for-save':'';
+      const _isTotemOursSave=i===0&&barbareLvl>=6&&(p.combatCharges||{})['TotemSpirit']==='Ours'&&!!(p.features||[]).find(f=>f.name==='Voie du guerrier totem');
+      const _isPuissSave=i===0&&barbareLvl>=18;
+      const rollType=(isRageFor||_isTotemOursSave||_isPuissSave)?'for-save':'';
       const baseBorder=hasSave?'var(--cp)':'var(--border)';
       const baseColor=hasSave?'var(--cp)':'var(--text2)';
-      const btnBorder=isRageFor?'#e53935':baseBorder;
-      const btnColor=isRageFor?'#e53935':baseColor;
-      const btnBg=isRageFor?'rgba(229,57,53,.08)':'var(--surface2)';
+      const btnBorder=isRageFor?'#e53935':(_isTotemOursSave?'#4caf50':baseBorder);
+      const btnColor=isRageFor?'#e53935':(_isTotemOursSave?'#4caf50':baseColor);
+      const btnBg=isRageFor?'rgba(229,57,53,.08)':(_isTotemOursSave?'rgba(76,175,80,.08)':'var(--surface2)');
       return`<button onclick="diceRoll('d20','JS ${ab}',${m},'${rollType}')" style="padding:6px 4px;border:1px solid ${btnBorder};border-radius:6px;font-size:11px;cursor:pointer;background:${btnBg};color:${btnColor};transition:all .15s;font-family:var(--B);text-align:center" onmouseenter="this.style.borderColor='var(--cp)';this.style.color='var(--cp)'" onmouseleave="this.style.borderColor='${btnBorder}';this.style.color='${btnColor}'">
         <div style="font-weight:600">${ab}</div>
-        <div style="font-size:12px">${fmt(m)}${isRageFor?' 🔥':''}</div>
+        <div style="font-size:12px">${fmt(m)}${isRageFor?' 🔥':(_isTotemOursSave?' 🐻':(_isPuissSave?' 💪':''))}</div>
       </button>`;
     }).join('')}
   </div>
@@ -259,16 +280,44 @@ function renderDicePanel(){
       const bonus=mod(finalAbilities[sk.ab])+(prof===1?pb(lvl):prof===2?pb(lvl)*2:0);
       const hasMaîtrise=prof>0;
       const isRageFor=rageActive&&sk.ab===0;
-      const rollType=isRageFor?'for-carac':'';
-      const btnBorder=isRageFor?'#e53935':hasMaîtrise?'var(--cp)':'var(--border)';
-      const labelColor=isRageFor?'#e53935':hasMaîtrise?'var(--cp)':'var(--text2)';
-      return`<button onclick="diceRoll('d20','${sk.name}',${bonus},'${rollType}')" style="display:flex;align-items:center;gap:8px;padding:5px 8px;border:1px solid ${btnBorder};border-radius:6px;font-size:12px;cursor:pointer;background:${isRageFor?'rgba(229,57,53,.08)':'var(--surface2)'};color:var(--text2);transition:all .15s;font-family:var(--B);text-align:left;width:100%" onmouseenter="this.style.background='var(--surface3)'" onmouseleave="this.style.background='${isRageFor?'rgba(229,57,53,.08)':'var(--surface2)'}'">
-        <span style="width:10px;height:10px;border-radius:50%;background:${isRageFor?'#e53935':prof===2?'var(--cp)':prof===1?'var(--cp)':'var(--border)'};border:1px solid ${isRageFor?'#e53935':hasMaîtrise?'var(--cp)':'var(--border)'};opacity:${prof===2?1:.5};flex-shrink:0"></span>
-        <span style="flex:1;color:${labelColor}">${sk.name}${isRageFor?' 🔥':''}</span>
+      const _isTotemSkFor=sk.ab===0&&barbareLvl>=6&&(p.combatCharges||{})['TotemSpirit']==='Ours'&&!!(p.features||[]).find(f=>f.name==='Voie du guerrier totem');
+      const _isPuissSkFor=sk.ab===0&&barbareLvl>=18;
+      const rollType=(isRageFor||_isTotemSkFor||_isPuissSkFor)?'for-carac':'';
+      const _skColor=isRageFor?'#e53935':(_isTotemSkFor?'#4caf50':null);
+      const btnBorder=_skColor||(hasMaîtrise?'var(--cp)':'var(--border)');
+      const labelColor=_skColor||(hasMaîtrise?'var(--cp)':'var(--text2)');
+      const _skBg=isRageFor?'rgba(229,57,53,.08)':(_isTotemSkFor?'rgba(76,175,80,.08)':'var(--surface2)');
+      return`<button onclick="diceRoll('d20','${sk.name}',${bonus},'${rollType}')" style="display:flex;align-items:center;gap:8px;padding:5px 8px;border:1px solid ${btnBorder};border-radius:6px;font-size:12px;cursor:pointer;background:${_skBg};color:var(--text2);transition:all .15s;font-family:var(--B);text-align:left;width:100%" onmouseenter="this.style.background='var(--surface3)'" onmouseleave="this.style.background='${_skBg}'">
+        <span style="width:10px;height:10px;border-radius:50%;background:${_skColor||(prof>=1?'var(--cp)':'var(--border)')};border:1px solid ${btnBorder};opacity:${prof===2?1:.5};flex-shrink:0"></span>
+        <span style="flex:1;color:${labelColor}">${sk.name}${isRageFor?' 🔥':(_isTotemSkFor?' 🐻':(_isPuissSkFor?' 💪':''))}</span>
         <span style="font-size:11px;color:var(--text3)">${ABILITIES_SH[sk.ab]}</span>
         <span style="font-weight:600;color:${labelColor};min-width:28px;text-align:right">${fmt(bonus)}</span>
       </button>`;
     }).join('')}
+  </div>
+
+  <!-- Interactions avec l'environnement -->
+  <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Environnement</div>
+  <div style="margin-bottom:12px">
+    <div style="padding:7px 9px;background:var(--surface2);border-radius:6px;margin-bottom:6px;font-size:11px">
+      <div style="font-weight:600;color:var(--text2);margin-bottom:3px">🦘 Sauter <span style="font-size:10px;font-weight:400;color:var(--text3)">(automatique — pas de jet)</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;color:var(--text3)">
+        <div>Longueur élan : <strong style="color:var(--cp)">${(_envStr*0.3).toFixed(1)}m</strong></div>
+        <div>Sur place : <strong style="color:var(--cp)">${(_envStr*0.15).toFixed(1)}m</strong></div>
+        <div>Hauteur élan : <strong style="color:var(--cp)">${Math.max(0,(3+_envStrMod)*0.3).toFixed(1)}m</strong></div>
+        <div>Sur place : <strong style="color:var(--cp)">${Math.max(0,(3+_envStrMod)*0.15).toFixed(1)}m</strong></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:3px">
+      ${[
+        {l:'🧗 Escalader',b:_athBonus,rt:_envRT,dd:'DD 10–15'},
+        {l:'🏊 Nager',b:_athBonus,rt:_envRT,dd:'DD 10'},
+        {l:'💪 Pousser / Agripper',b:_athBonus,rt:_envRT,dd:'Opposé'},
+        {l:'🚪 Forcer une porte',b:_athBonus,rt:_envRT,dd:'DD 10–25'},
+        {l:'🔨 Briser un objet',b:_envStrMod,rt:_envRT,dd:'DD ?'},
+        {l:'⚖ Équilibre',b:_acrBonus,rt:'carac',dd:'DD 10'},
+      ].map(a=>{const h=a.rt==='for-carac';return`<button onclick="diceRoll('d20','${a.l}',${a.b},'${a.rt}')" style="display:flex;align-items:center;gap:8px;padding:5px 8px;border:1px solid ${h?_envBtnBorder:'var(--border)'};border-radius:6px;font-size:12px;cursor:pointer;background:${h?_envBtnBg:'var(--surface2)'};color:var(--text2);transition:all .15s;font-family:var(--B);text-align:left;width:100%" onmouseenter="this.style.background='var(--surface3)'" onmouseleave="this.style.background='${h?_envBtnBg:'var(--surface2)'}'"><span style="flex:1;color:${h?_envBtnColor:'var(--text2)'}">${a.l}${h?_envBtnIcon:''}</span><span style="font-size:10px;color:var(--text3);margin-right:4px">${a.dd}</span><span style="font-weight:600;color:var(--cp);min-width:28px;text-align:right">${fmt(a.b)}</span></button>`;}).join('')}
+    </div>
   </div>
 
   <!-- Historique -->
@@ -336,7 +385,7 @@ function _sendMJWhisper(){
 
 // Détecte avantage/désavantage/bonus-dé selon les statuts actifs
 function getStatusEffects(p,rollType){
-  // rollType: 'attaque' | 'carac' | 'save' | 'dex-save' | 'for-save' | 'skill' | 'for-carac'
+  // rollType: 'attaque' | 'carac' | 'save' | 'dex-save' | 'for-save' | 'skill' | 'for-carac' | 'initiative'
   const statuses=p.statuses||[];
   let hasDisadv=false,hasAdv=false,bonusDie=null;
 
@@ -345,6 +394,13 @@ function getStatusEffects(p,rollType){
   if(barbareLvl&&(p.combatCharges||{})['RageActive']===true){
     if(rollType==='for-carac'||rollType==='for-save')hasAdv=true;
   }
+  // Guerrier Totem Ours (niv.6+) → avantage permanent sur jets de Force checks ET sauvegardes
+  if(barbareLvl>=6&&(p.combatCharges||{})['TotemSpirit']==='Ours'){
+    const _totemF=(p.features||[]).find(f=>f.name==='Voie du guerrier totem');
+    if(_totemF&&(rollType==='for-carac'||rollType==='for-save'))hasAdv=true;
+  }
+  // Instinct sauvage (Barbare niv.7+) → avantage permanent sur jets d'initiative
+  if(barbareLvl>=7&&rollType==='initiative')hasAdv=true;
 
   function matchesRoll(target,rt){
     if(!target)return false;
@@ -377,6 +433,11 @@ function getStatusEffects(p,rollType){
     }
   });
 
+  // Épuisement — effets automatiques selon le niveau
+  const exhaustion=p.exhaustion||0;
+  if(exhaustion>=1&&(rollType==='carac'||rollType==='skill'||rollType==='for-carac'))hasDisadv=true;
+  if(exhaustion>=3&&(rollType==='save'||rollType==='for-save'||rollType==='dex-save'))hasDisadv=true;
+
   return{hasDisadv,hasAdv,bonusDie};
 }
 
@@ -395,9 +456,17 @@ function diceRoll(die,label,bonus=0,rollType=''){
   let bonusDieRoll=0;
   if(effects.bonusDie){const bd=parseInt(effects.bonusDie.replace('d',''));bonusDieRoll=Math.ceil(Math.random()*bd);}
 
-  const total=usedRoll+bonus+bonusDieRoll;
+  let total=usedRoll+bonus+bonusDieRoll;
   const isCrit=die==='d20'&&usedRoll===20;
   const isFumble=die==='d20'&&usedRoll===1;
+
+  // Puissance indomptable (Barbare niv.18+) — minimum = valeur de Force sur jets de Force
+  let puissanceTag='';
+  const barbLvl=((p.classes||[]).find(c=>c.name==='Barbare')||{}).level||0;
+  if(barbLvl>=18&&(rollType==='for-carac'||rollType==='for-save')&&total<p.abilities[0]){
+    puissanceTag=` <span style="font-size:10px;color:#ff9800">💪 →${p.abilities[0]} (Puissance indomptable)</span>`;
+    total=p.abilities[0];
+  }
 
   // Historique
   diceHistory.push({die,label,roll:usedRoll,bonus,result:total,adv:effects.hasAdv,disadv:effects.hasDisadv});
@@ -416,7 +485,7 @@ function diceRoll(die,label,bonus=0,rollType=''){
   }
   if(bonus)msg+=` ${fmt(bonus)}`;
   if(bonusDieRoll)msg+=` <span style="color:#ffd54f">+${effects.bonusDie}(${bonusDieRoll})</span>`;
-  msg+=` = <strong style="font-size:16px;color:${isCrit?'#ffd54f':isFumble?'#e53935':'var(--cp)'}">${total}</strong>`;
+  msg+=` = <strong style="font-size:16px;color:${isCrit?'#ffd54f':isFumble?'#e53935':'var(--cp)'}">${total}</strong>${puissanceTag}`;
   if(isCrit)msg+=` 🎉 CRITIQUE !`;
   if(isFumble)msg+=` 💀 FUMBLE !`;
   showToast(msg);
