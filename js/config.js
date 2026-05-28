@@ -125,6 +125,32 @@ spells:[
 ]
 };
 
+// Noms anglais → français pour les armes SRD (items importés depuis outils EN)
+const _WEAPON_EN_FR={
+  'dagger':'Dague','club':'Gourdin','handaxe':'Hachette','quarterstaff':'Bâton',
+  'shortbow':'Arc court','light crossbow':'Arbalète légère','shortsword':'Épée courte',
+  'rapier':'Rapière','longsword':'Épée longue','battleaxe':'Hache de guerre',
+  'greataxe':'Grande hache','greatsword':'Épée à deux mains','longbow':'Arc long',
+  'javelin':'Javeline','spear':'Lance','lance':'Lance',
+  'mace':'Masse d\'armes','morningstar':'Morgenstern','warhammer':'Marteau de guerre',
+  'flail':'Fléau','trident':'Trident','war pick':'Pic de guerre',
+  'greatclub':'Gourdin lourd','light hammer':'Marteau léger','sickle':'Serpe',
+  'dart':'Fléchette','sling':'Fronde','hand crossbow':'Arbalète de poing',
+  'heavy crossbow':'Arbalète lourde','glaive':'Coutille','halberd':'Hallebarde',
+  'maul':'Masse à deux mains','pike':'Pique','whip':'Fouet','net':'Filet',
+  'scimitar':'Cimeterre','blowgun':'Sarbacane',
+};
+function findSRDWeapon(name){
+  if(!name)return null;
+  let w=SRD.weapons.find(w=>w.name===name);
+  if(w)return w;
+  const low=name.toLowerCase().trim();
+  w=SRD.weapons.find(w=>w.name.toLowerCase()===low);
+  if(w)return w;
+  const fr=_WEAPON_EN_FR[low];
+  return fr?SRD.weapons.find(w=>w.name===fr)||null:null;
+}
+
 const BACKGROUNDS=[
   {name:"Acolyte",skills:["Intuition","Religion"],tools:"",langs:2,desc:"Serviteur d'un temple."},
   {name:"Artisan de guilde",skills:["Investigation","Persuasion"],tools:"Outils d'artisan au choix",langs:1,desc:"Membre d'une guilde."},
