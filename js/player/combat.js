@@ -8,6 +8,7 @@ function tabCombat(p){
   const slots=calcSpellSlots(p);const slotsUsed=p.spellSlotsUsed||[];
   const warlockSlots=getWarlockSlots(p);
   const hasCaster=(p.classes||[]).some(c=>{const d=SRD.classes.find(cl=>cl.name===c.name);return d&&d.spellcaster;});
+  const cc=p.combatCharges||{};
   const weapons=['mainhand','offhand','ranged'].map(slot=>{const i=(p.equip||{})[slot];return i&&i.name?{...i,slot}:null;}).filter(Boolean);
 
   // Style de combat
@@ -23,6 +24,8 @@ function tabCombat(p){
   // Bonus de rage Barbare selon niveau
   const barbareLvl=((p.classes||[]).find(c=>c.name==='Barbare')||{}).level||0;
   const rageBonus=barbareLvl>=16?4:barbareLvl>=9?3:2;
+  const rageActive=barbareLvl>0&&cc['RageActive']===true;
+  const temActive=barbareLvl>0&&cc['Témérité']===true;
   const barbarePath=(p.features||[]).find(f=>['Voie du berserker','Voie du guerrier totem','Voie de la magie sauvage'].includes(f.name));
   const isBerserker=barbarePath?.name==='Voie du berserker';
   const isTotem=barbarePath?.name==='Voie du guerrier totem';
@@ -86,7 +89,7 @@ function tabCombat(p){
 
   // Collecte les capacités de combat — exclut par classe celles gérées par un panneau dédié
   const _DEDICATED_PANEL_FEATS_BY_CLASS={
-    'Barbare':['Rage'],
+    'Barbare':['Rage','Défense sans armure'],
     'Barde':['Inspiration bardique','Contre-charme','Inspiration supérieure'],
     'Moine':['Points de ki'],
     'Ensorceleur':['Points de sorcellerie'],
@@ -149,17 +152,19 @@ function tabCombat(p){
         const mainhandSrd=mainhandWpn?SRD.weapons.find(sw=>sw.name===mainhandWpn.name):null;
         const mainhandIsLegere=mainhandSrd?(mainhandSrd.properties||'').toLowerCase().includes('légère'):false;
         const offhandLegereOk=!isOffhand||(isLegere&&mainhandIsLegere);
-        const dmgBonus=isOffhand?(combatStyle==='Combat à deux armes'?atkM:0):isDueling?2:0;
+        const rageMeleeBonus=rageActive&&!isRanged?rageBonus:0;
+        const dmgBonus=(isOffhand?(combatStyle==='Combat à deux armes'?atkM:0):isDueling?2:0)+rageMeleeBonus;
         const isMagic=w.magic;
         const slotLabel=isRanged?'Distance':w.slot==='mainhand'?'Main droite':'Main gauche';
         const ammoItem=isRanged&&w.ammoLink?(p.inventory||[]).find(i=>i.name===w.ammoLink):null;
         const ammoCount=ammoItem?ammoItem.qty:null;
         let styleBadge='';
-        if(isDueling)styleBadge=`<span style="font-size:10px;color:#4caf50;margin-left:4px">+2 dégâts (Duel)</span>`;
-        else if(archerieBonus)styleBadge=`<span style="font-size:10px;color:#4caf50;margin-left:4px">+2 att. (Archerie)</span>`;
-        else if(isTwoHandedStyle)styleBadge=`<span style="font-size:10px;color:#4caf50;margin-left:4px">Relance 1-2 (2 mains)</span>`;
-        else if(isOffhand&&combatStyle==='Combat à deux armes'&&atkM!==0)styleBadge=`<span style="font-size:10px;color:#4caf50;margin-left:4px">${atkM>0?'+':''}${atkM} dégâts (2 armes)</span>`;
-        else if(isOffhand&&!offhandLegereOk)styleBadge=`<span style="font-size:10px;color:#e53935;margin-left:4px">⚠ Légère requis</span>`;
+        if(rageActive&&!isRanged)styleBadge+=`<span style="font-size:10px;color:#e53935;margin-left:4px">🔥 +${rageBonus} rage</span>`;
+        if(isDueling)styleBadge+=`<span style="font-size:10px;color:#4caf50;margin-left:4px">+2 dégâts (Duel)</span>`;
+        else if(archerieBonus)styleBadge+=`<span style="font-size:10px;color:#4caf50;margin-left:4px">+2 att. (Archerie)</span>`;
+        else if(isTwoHandedStyle)styleBadge+=`<span style="font-size:10px;color:#4caf50;margin-left:4px">Relance 1-2 (2 mains)</span>`;
+        else if(isOffhand&&combatStyle==='Combat à deux armes'&&atkM!==0)styleBadge+=`<span style="font-size:10px;color:#4caf50;margin-left:4px">${atkM>0?'+':''}${atkM} dégâts (2 armes)</span>`;
+        else if(isOffhand&&!offhandLegereOk)styleBadge+=`<span style="font-size:10px;color:#e53935;margin-left:4px">⚠ Légère requis</span>`;
         return`<div style="background:var(--surface2);border:1px solid ${isMagic?'#9b59b6':'var(--border)'};border-radius:6px;padding:10px;margin-bottom:6px">
           <div style="display:flex;justify-content:space-between;align-items:center">
             <span style="font-size:14px;font-weight:600">${esc(w.name)}${isMagic?` <span class="magic-badge">✨ Magique${w.linkedTo?' • Lié: '+esc(w.linkedTo):''}</span>`:''}</span>
@@ -172,14 +177,14 @@ function tabCombat(p){
             ${w.ammoLink?`<button class="btn bsm" style="font-size:10px" onclick="unlinkRangedAmmo()">↩ Délier ${esc(w.ammoLink)}</button>`:
             `<button class="btn bsm" style="font-size:10px" onclick="openLinkAmmoModal()">🏹 Lier des munitions</button>`}
           </div>`:''}
-          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">${isOffhand?`<button class="btn bsm" onclick="rollAttack('${esc(w.name)}',${atkBonus},'${esc(dmgStr)}','${w.slot}',${dmgBonus},false)">🎲 Att. bonus</button>`:Array.from({length:attackCount},(_,ai)=>`<button class="btn bsm" onclick="rollAttack('${esc(w.name)}',${atkBonus},'${esc(dmgStr)}','${w.slot}',${dmgBonus},${isTwoHandedStyle})">🎲${attackCount>1?' Att.'+(ai+1):'  Attaque'}</button>`).join('')}</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">${isOffhand?`<button class="btn bsm${temActive?' bac':''}" onclick="rollAttack('${esc(w.name)}',${atkBonus},'${esc(dmgStr)}','${w.slot}',${dmgBonus},false,${temActive&&!isRanged?1:0})">🎲${temActive?' ⚡':''} Att. bonus</button>`:Array.from({length:attackCount},(_,ai)=>`<button class="btn bsm${temActive&&!isRanged?' bac':''}" onclick="rollAttack('${esc(w.name)}',${atkBonus},'${esc(dmgStr)}','${w.slot}',${dmgBonus},${isTwoHandedStyle},${temActive&&!isRanged?1:0})">🎲${temActive&&!isRanged?' ⚡':''}${attackCount>1?' Att.'+(ai+1):'  Attaque'}</button>`).join('')}</div>
         </div>`;
       }).join(''):`<div style="font-size:12px;color:var(--text3);font-style:italic">Aucune arme équipée.</div>`}
       <div style="margin-top:10px;display:flex;gap:5px;flex-wrap:wrap">${['d4','d6','d8','d10','d12','d20'].map(d=>`<button class="dice-btn" onclick="rollDie('${d}')">🎲 ${d}</button>`).join('')}</div>
       <div id="rollResult" style="margin-top:8px;padding:8px;background:var(--surface2);border-radius:6px;display:${_lastRollResultHtml?'block':'none'};font-size:14px;font-weight:600;color:var(--cp);text-align:center">${_lastRollResultHtml}</div>
     </div>`)}
   ${cs('cs-sauvegardes',`<div class="panel"><div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>Sauvegardes</div>
-      ${ABILITIES_SH.map((ab,i)=>{const saves=CLASS_SAVES[mc?mc.name:'']||[];const hasSave=saves.includes(i);const m=mod(p.abilities[i])+(hasSave?pb(lvl):0);return`<div class="save-btn" onclick="rollSave('${ab}',${m})"><span class="save-dot${hasSave?' p':''}"></span><span style="flex:1;font-size:13px">${ab}</span><span style="color:var(--cp);font-weight:600">${fmt(m)}</span><span style="font-size:10px;color:var(--text3)">🎲</span></div>`;}).join('')}
+      ${ABILITIES_SH.map((ab,i)=>{const saves=CLASS_SAVES[mc?mc.name:'']||[];const hasSave=saves.includes(i);const m=mod(p.abilities[i])+(hasSave?pb(lvl):0);const forRageAdv=i===0&&rageActive;return forRageAdv?`<div style="display:flex;align-items:center;gap:3px"><div class="save-btn" style="flex:1" onclick="rollSave('${ab}',${m})"><span class="save-dot${hasSave?' p':''}"></span><span style="flex:1;font-size:13px">${ab}</span><span style="color:var(--cp);font-weight:600">${fmt(m)}</span><span style="font-size:10px;color:var(--text3)">🎲</span></div><button class="btn bsm" style="padding:2px 6px;color:#e53935;border-color:#e53935;font-size:10px;flex-shrink:0" onclick="rollSave('${ab}',${m},1)" title="Avantage (rage)">🔥⚡</button></div>`:`<div class="save-btn" onclick="rollSave('${ab}',${m})"><span class="save-dot${hasSave?' p':''}"></span><span style="flex:1;font-size:13px">${ab}</span><span style="color:var(--cp);font-weight:600">${fmt(m)}</span><span style="font-size:10px;color:var(--text3)">🎲</span></div>`;}).join('')}
     </div>`)}
   ${!wsC?.active&&(allCombatFeats.length||isMJ())?cs('cs-capacites',`<div class="panel mb10"><div class="pt" style="display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span><span>Capacités de combat</span></div>${isMJ()?`<button class="btn bsm" onclick="openFeatSearch()">+ Ajouter</button>`:''}</div>
       ${allCombatFeats.map(f=>{
@@ -265,11 +270,18 @@ function recoverCombatCharge(name,max){const p=P();if(!p.combatCharges)p.combatC
 function setWeaponPref(slot,key,value){const p=P();if(!p.weaponPrefs)p.weaponPrefs={};if(!p.weaponPrefs[slot])p.weaponPrefs[slot]={};p.weaponPrefs[slot][key]=value;_markUnsaved();render();}
 function toggleDraconicBreath(){const p=P();if(!p.combatCharges)p.combatCharges={};if(p.combatCharges['SouffleDraconique'])delete p.combatCharges['SouffleDraconique'];else p.combatCharges['SouffleDraconique']=true;saveAll();render();}
 function toggleSlot(ni,si,total){const p=P();if(!p.spellSlotsUsed)p.spellSlotsUsed=[];const u=p.spellSlotsUsed[ni]||0;p.spellSlotsUsed[ni]=u>si?u-1:Math.min(total,u+1);render();}
-function rollAttack(name,bonus,dmg,slot,dmgBonus=0,rerollLow=false){
-  const atk=Math.ceil(Math.random()*20);
+// advantageMode: 0=normal, 1=avantage (2d20 highest), -1=désavantage (2d20 lowest)
+function rollAttack(name,bonus,dmg,slot,dmgBonus=0,rerollLow=false,advantageMode=0){
+  let atk,atkAlt=null;
+  if(advantageMode!==0){
+    const r1=Math.ceil(Math.random()*20),r2=Math.ceil(Math.random()*20);
+    atk=advantageMode>0?Math.max(r1,r2):Math.min(r1,r2);
+    atkAlt=advantageMode>0?Math.min(r1,r2):Math.max(r1,r2);
+  }else{atk=Math.ceil(Math.random()*20);}
   const total=atk+bonus;
   const isCrit=atk===20;const isFumble=atk===1;
   const col=isCrit?'#ffd54f':isFumble?'#e53935':'var(--cp)';
+  const advTag=atkAlt!==null?(advantageMode>0?`<span style="font-size:10px;color:#4caf50;margin-left:3px">AVT(${atk},~~${atkAlt}~~)</span>`:`<span style="font-size:10px;color:#e53935;margin-left:3px">DES(~~${atk}~~,${atkAlt})</span>`):'';
   let dmgHtml='';
   if(!isFumble){
     const m=(dmg+'').match(/(\d+)d(\d+)([+-]\d+)?/);
@@ -283,7 +295,7 @@ function rollAttack(name,bonus,dmg,slot,dmgBonus=0,rerollLow=false){
       dmgHtml=`<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.1);font-size:13px">Dégâts : <span style="color:var(--text2)">${rolls.join('+')}${fixedBonus?fmt(fixedBonus):''}</span> = <b style="color:var(--cp);font-size:17px">${totalDmg}</b>${dmgType?` <span style="font-size:11px;color:var(--text3)">${esc(dmgType)}${isCrit?' (critique — dés doublés)':''}</span>`:''}</div>`;
     }
   }
-  _lastRollResultHtml=`<div>⚔ ${esc(name)} — d20(${atk})${fmt(bonus)} = <span style="font-size:20px;color:${col};font-weight:800">${total}</span>${isCrit?' 🎉 CRITIQUE!':isFumble?' 💀 FUMBLE!':''}</div>${dmgHtml}`;
+  _lastRollResultHtml=`<div>⚔ ${esc(name)} — d20(${atk})${advTag}${fmt(bonus)} = <span style="font-size:20px;color:${col};font-weight:800">${total}</span>${isCrit?' 🎉 CRITIQUE!':isFumble?' 💀 FUMBLE!':''}</div>${dmgHtml}`;
   const el=document.getElementById('rollResult');
   if(el){el.style.display='block';el.innerHTML=_lastRollResultHtml;}
   if(slot==='ranged'){const p=P();const eq=(p.equip||{})[slot];if(eq&&eq.ammoLink){const ai=(p.inventory||[]).findIndex(i=>i.name===eq.ammoLink);if(ai>=0){p.inventory[ai].qty=Math.max(0,p.inventory[ai].qty-1);if(p.inventory[ai].qty===0)showToast('⚠️ Plus de '+eq.ammoLink+' !');saveAll();}}}
@@ -310,7 +322,14 @@ function linkRangedAmmo(itemName){
 function unlinkRangedAmmo(){
   const p=P();if(p.equip&&p.equip.ranged)delete p.equip.ranged.ammoLink;render();
 }
-function rollSave(ab,m){const r=Math.ceil(Math.random()*20);showToast(`JS ${ab}: d20(${r}) ${fmt(m)} = <strong>${r+m}</strong>${r===20?' 🎉':r===1?' 💀':''}`);}
+function rollSave(ab,m,advantageMode=0){
+  let r,alt=null;
+  if(advantageMode!==0){const r1=Math.ceil(Math.random()*20),r2=Math.ceil(Math.random()*20);r=advantageMode>0?Math.max(r1,r2):Math.min(r1,r2);alt=advantageMode>0?Math.min(r1,r2):Math.max(r1,r2);}
+  else{r=Math.ceil(Math.random()*20);}
+  const total=r+m;
+  const altTag=alt!==null?(advantageMode>0?` <span style="color:#4caf50;font-size:10px">AVT(${r},~~${alt}~~)</span>`:`<span style="color:#e53935;font-size:10px">DES(${r},~~${alt}~~)</span>`):'';
+  showToast(`JS ${ab}: d20(${r})${altTag}${fmt(m)} = <strong>${total}</strong>${r===20?' 🎉':r===1?' 💀':''}`);
+}
 
 function rollSpellPlayer(name,dmgStr,saveStat){
   const p=P();
