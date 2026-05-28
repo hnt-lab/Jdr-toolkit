@@ -488,6 +488,20 @@ function toggleInspiration(){const p=P();p.inspiration=!p.inspiration;_markUnsav
 // ── REPOS ──
 function doShortRest(){
   const p=P();const mc=mainClass(p);const cd=mc?SRD.classes.find(c=>c.name===mc.name):null;if(!cd)return;
+  if(_isIRLMode()){
+    const conMod=mod(p.abilities[2]);
+    const _effMaxSR=(p.exhaustion||0)>=4?Math.floor(p.hpMax/2):p.hpMax;
+    const recovMax=Math.max(0,_effMaxSR-(p.hp||0));
+    openModal(`<div class="pt">☕ Repos court — Dé de vie</div>
+      <div style="font-size:14px;color:var(--text2);margin-bottom:6px">Lance : <strong style="color:var(--cp)">${cd.hd} ${conMod>=0?'+':''}${conMod} CON</strong></div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:12px">PV récupérables : jusqu'à <strong>${recovMax}</strong></div>
+      <input type="number" id="irlRestResult" min="1" max="${_effMaxSR}" placeholder="Résultat du dé..." style="width:100%;padding:10px;font-size:20px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);margin-bottom:12px;box-sizing:border-box">
+      <div style="display:flex;gap:8px">
+        <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
+        <button class="btn bac" style="flex:2" onclick="_applyIRLShortRest()">✓ Appliquer</button>
+      </div>`);
+    return;
+  }
   const roll=Math.ceil(Math.random()*cd.hdVal)+mod(p.abilities[2]);
   const _effMaxSR=(p.exhaustion||0)>=4?Math.floor(p.hpMax/2):p.hpMax;
   const healed=Math.max(1,roll);p.hp=Math.min(_effMaxSR,p.hp+healed);
@@ -502,6 +516,19 @@ function doShortRest(){
   (p.customCombatFeats||[]).forEach(f=>{if(f.recovery==='short'&&f.charges>0)p.combatCharges[f.name]=f.charges;});
   if((p.classes||[]).find(c=>c.name==='Occultiste'))p.spellSlotsUsed=[];
   render();saveAll();showToast(`☕ Repos court — ${cd.hd}(${roll-mod(p.abilities[2])})+CON = <strong>+${healed} PV</strong>`);
+}
+function _applyIRLShortRest(){
+  const val=parseInt(document.getElementById('irlRestResult')?.value)||0;
+  if(!val||val<1){showToast('❌ Résultat invalide.');return;}
+  const p=P();const mc=mainClass(p);const cd=mc?SRD.classes.find(c=>c.name===mc.name):null;if(!cd)return;
+  const _effMaxSR=(p.exhaustion||0)>=4?Math.floor(p.hpMax/2):p.hpMax;
+  const healed=Math.max(1,val);
+  p.hp=Math.min(_effMaxSR,p.hp+healed);
+  if(!p.combatCharges)p.combatCharges={};
+  (p.classes||[]).forEach(cls=>{const d=SRD.classes.find(c=>c.name===cls.name);if(!d||!d.combatFeatures)return;d.combatFeatures.forEach(f=>{if(f.recovery==='short'){const max=getChargesMax(f,p);p.combatCharges[f.name]=max;}});});
+  (p.customCombatFeats||[]).forEach(f=>{if(f.recovery==='short'&&f.charges>0)p.combatCharges[f.name]=f.charges;});
+  if((p.classes||[]).find(c=>c.name==='Occultiste'))p.spellSlotsUsed=[];
+  closeModal();render();saveAll();showToast(`☕ Repos court — +${healed} PV`);
 }
 function doLongRest(){
   const p=P();
