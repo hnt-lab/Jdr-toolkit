@@ -3,7 +3,7 @@
 
 function renderBarde(p) {
   const bardeLvl = ((p.classes||[]).find(c=>c.name==='Barde')||{}).level||0;
-  if (!bardeLvl) return '';
+  if (!bardeLvl || p.wildshape?.active) return '';
   const lvl = totalLevel(p);
   const chaM = mod(p.abilities[5]);
   const bardDie = bardeLvl>=15?'d12':bardeLvl>=10?'d10':bardeLvl>=5?'d8':'d6';
@@ -14,9 +14,11 @@ function renderBarde(p) {
   const cc = p.combatCharges||{};
   const panels = [];
 
-  // ── Dé d'inspiration (seul stat unique au Barde) ─────────
+  // ── Dé d'inspiration + stats sorts ───────────────────────
   panels.push(`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
     <div class="sb hi" style="flex:1;min-width:70px"><div class="sn">Dé inspiration</div><div style="font-size:18px;font-weight:700;color:var(--cp)">${bardDie}</div></div>
+    <div class="sb hi" style="flex:1;min-width:70px"><div class="sn">DD sorts</div><div style="font-size:18px;font-weight:700;color:var(--cp)">${8+pb(lvl)+chaM}</div></div>
+    <div class="sb hi" style="flex:1;min-width:70px"><div class="sn">Atk sorts</div><div style="font-size:18px;font-weight:700;color:var(--cp)">${pb(lvl)+chaM>=0?'+':''}${pb(lvl)+chaM}</div></div>
   </div>`);
 
   // ── Inspiration bardique ──────────────────────────────────
