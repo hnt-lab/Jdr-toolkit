@@ -14,7 +14,7 @@ const BARBARE_SURSAUT = [
 
 function renderBarbare(p) {
   const barbareLvl = ((p.classes||[]).find(c=>c.name==='Barbare')||{}).level||0;
-  if (!barbareLvl) return '';
+  if (!barbareLvl || p.wildshape?.active) return '';
   const lvl = totalLevel(p);
   const dexMod = mod(p.abilities[1]);
   const conMod = mod(p.abilities[2]);
@@ -30,6 +30,8 @@ function renderBarbare(p) {
   const rageActive = cc['RageActive']===true;
   const totemChoice = cc['TotemSpirit']||'';
   const rem = cc['RageCharges']!==undefined ? cc['RageCharges'] : rageMax;
+  const rageTurns = cc['RageTurns']!==undefined ? cc['RageTurns'] : 10;
+  const isPersistante = barbareLvl >= 15;
 
   const panels = [];
 
@@ -51,6 +53,7 @@ function renderBarbare(p) {
       <span style="font-size:12px;font-weight:600;color:${rageActive?'#e53935':'var(--text3)'}">${rageActive?'🔥 En rage':'💤 Hors rage'}</span>
       <button class="btn bsm" style="${rageActive?'color:#e53935;border-color:#e53935;':''}" onclick="toggleRageActive()">${rageActive?'⬛ Sortir de la rage':'🔥 Entrer en rage'}</button>
     </div>
+    ${rageActive?`<div style="margin-bottom:8px">${isPersistante?`<div style="font-size:11px;color:#ff9800;margin-bottom:4px">♾ Rage persistante — durée illimitée.</div>`:`<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><div style="display:flex;gap:2px">${Array.from({length:10},(_,i)=>`<span style="width:14px;height:14px;border-radius:2px;border:1px solid ${i<rageTurns?'#e53935':'var(--border)'};background:${i<rageTurns?'rgba(229,57,53,.35)':'transparent'};display:inline-block"></span>`).join('')}</div><span style="font-size:11px;color:${rageTurns<=3?'#e53935':'var(--text3)'}">⏱ ${rageTurns}/10 tours</span></div><button class="btn bsm" style="color:#e53935;border-color:#e53935;margin-bottom:4px" onclick="endRageTurn()">⏩ Fin de tour</button>`}</div>`:''}
     <div style="font-size:11px;color:var(--text3);margin-bottom:4px">Résistances actives en rage :</div>
     <div style="display:flex;gap:4px;flex-wrap:wrap">${baseResTags}${totemOursTags}${berserkerImmuTag}</div>
   </div>`);
@@ -85,6 +88,22 @@ function renderBarbare(p) {
     </div>`);
   }
 
+  // ── Déplacement rapide (niv.5+) ──────────────────────────
+  if (barbareLvl>=5) {
+    const chestName = ((p.equip||{}).chest||{}).name||'';
+    const chestSrd = chestName ? SRD.armors.find(a=>a.name===chestName) : null;
+    const isHeavy = !!(chestSrd && chestSrd.type !== 'Bouclier' && chestSrd.type !== 'Légère' && chestSrd.type !== 'Intermédiaire');
+    const baseSpeed = p.speed||9;
+    const fastSpeed = isHeavy ? baseSpeed : baseSpeed + 3;
+    panels.push(`<div style="margin-bottom:10px;padding:8px;background:var(--surface2);border-radius:6px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
+        <span style="font-size:12px;font-weight:600;color:var(--cp)">💨 Déplacement rapide</span>
+        <span style="font-size:16px;font-weight:700;color:${isHeavy?'var(--text3)':'var(--cp)'}">${fastSpeed}m${isHeavy?'':' <span style="font-size:10px;color:var(--text3)">+3m</span>'}</span>
+      </div>
+      <div style="font-size:11px;color:var(--text3)">${isHeavy?'⚠ Armure lourde — +3m inactif.':'Vitesse '+baseSpeed+'m + 3m (sans armure lourde).'}</div>
+    </div>`);
+  }
+
   // ── Attaque téméraire (niv.2+) ────────────────────────────
   if (barbareLvl>=2) {
     const temActive = cc['Témérité']===true;
@@ -100,7 +119,7 @@ function renderBarbare(p) {
   // ── Épuisement — affiché seulement pour Berserker (Frénésie en cause) ───
   if (isBerserker && barbareLvl>=3) {
     const exh = p.exhaustion||0;
-    const exhDesc = ['Aucun épuisement','Désavantage aux jets de caractéristique','Vitesse divisée par 2','Désavantage aux attaques et jets de sauvegarde','Vitesse réduite à 0','Désavantage à tous les jets de sauvegarde','☠ La créature meurt'];
+    const exhDesc = ['Aucun épuisement','Désavantage aux jets de caractéristique','Vitesse divisée par 2','Désavantage aux jets d\'attaque et de sauvegarde','PV maximum réduits de moitié','Vitesse réduite à 0','☠ La créature meurt'];
     panels.push(`<div style="margin-bottom:10px;padding:8px;background:${exh>=3?'rgba(229,57,53,.08)':'var(--surface2)'};border-radius:6px;border:1px solid ${exh>=3?'rgba(229,57,53,.4)':'var(--border)'}">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
         <span style="font-size:12px;font-weight:600;color:${exh>=3?'#e53935':'var(--text2)'}">💀 Épuisement (Frénésie) — ${exh}/6</span>
@@ -174,12 +193,16 @@ function renderBarbare(p) {
     }
 
     if (barbareLvl>=14) {
+      const chestNL=((p.equip||{}).chest||{}).name||'';
+      const chestSrdL=chestNL?SRD.armors.find(a=>a.name===chestNL):null;
+      const isHeavyL=!!(chestSrdL&&chestSrdL.type!=='Bouclier'&&chestSrdL.type!=='Légère'&&chestSrdL.type!=='Intermédiaire');
+      const lienFlySpeed=(p.speed||9)+(barbareLvl>=5&&!isHeavyL?3:0);
       const lienDesc = ({
         Ours:'🐻 En rage, les créatures hostiles à 1,5m de toi ont un désavantage sur leurs attaques contre toute cible autre que toi.',
-        Aigle:'🦅 En rage, tu as une vitesse de vol égale à ta vitesse de marche.',
-        Loup:'🐺 En rage, quand tu touches une créature Grande ou plus petite, tu peux utiliser une action bonus pour la faire tomber à terre.'
+        Aigle:rageActive?`🦅 Vitesse de vol active : <strong style="color:var(--cp)">${lienFlySpeed}m</strong> (= vitesse de marche).`:'🦅 En rage, tu as une vitesse de vol égale à ta vitesse de marche.',
+        Loup:`🐺 En rage, quand tu touches une créature Grande ou plus petite, tu peux utiliser une action bonus pour la faire tomber à terre.${rageActive?' <button class="btn bsm" style="margin-left:6px" onclick="showToast(\'⚡ Action bonus : cible tombée à terre.\')">⚡ Renverser</button>':''}`
       })[totemChoice]||'<em style="color:var(--text3)">Choisissez d\'abord votre esprit totem.</em>';
-      panels.push(`<div style="margin-bottom:10px;padding:8px;background:var(--surface2);border-radius:6px">
+      panels.push(`<div style="margin-bottom:10px;padding:8px;background:${rageActive&&totemChoice?'rgba(33,150,243,.07)':'var(--surface2)'};border-radius:6px;border:1px solid ${rageActive&&totemChoice?'rgba(33,150,243,.3)':'var(--border)'}">
         <div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:4px">🔗 Lien totémique</div>
         <div style="font-size:11px;color:var(--text3)">${lienDesc}</div>
       </div>`);
@@ -189,8 +212,45 @@ function renderBarbare(p) {
   // ── MAGIE SAUVAGE ─────────────────────────────────────────
   if (isMagieSauvage && barbareLvl>=3) {
     const srsResult = cc['SursautResult'];
+    const srsResult2 = cc['SursautResult2'];
     const sensMagieMax = pb(lvl);
     const sensMagieCur = cc['SensMagie']!==undefined ? cc['SensMagie'] : sensMagieMax;
+    const sursautDC_con = 8+pb(lvl)+conMod;
+    const sursautDC_dex = 8+pb(lvl)+mod(p.abilities[1]);
+
+    const _sursBtn = idx => {
+      if (idx===0) return `<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px"><button class="btn bsm bac" onclick="rollCustomDmg('1d12','Nécrotique cible (DD CON ${sursautDC_con})')">🎲 1d12 nécro</button><button class="btn bsm" onclick="rollCustomDmg('1d12+${lvl}','PV temporaires (toi)')">💚 1d12+${lvl} PV temp</button></div>`;
+      if (idx===2) return `<div style="margin-top:4px"><button class="btn bsm bac" onclick="rollCustomDmg('1d6','Force explosion (DD DEX ${sursautDC_dex})')">🎲 1d6 force</button></div>`;
+      if (idx===3) return `<div style="margin-top:4px"><button class="btn bsm bac" onclick="rollCustomDmg('1d6','Lumière radiant (DD CON ${sursautDC_con})')">🎲 1d6 radiant</button></div>`;
+      if (idx===4) return `<div style="margin-top:4px"><button class="btn bsm bac" onclick="rollCustomDmg('1d6','Représailles passives force (réaction)')">🎲 1d6 force</button></div>`;
+      return '';
+    };
+
+    const sursLancerOnClick = barbareLvl>=14
+      ? `(()=>{const r1=Math.floor(Math.random()*8);const r2=Math.floor(Math.random()*8);const p=P();if(!p.combatCharges)p.combatCharges={};p.combatCharges['SursautResult2']=[r1,r2];delete p.combatCharges['SursautResult'];_markUnsaved();render();showToast('Sursaut contrôlé — '+(r1+1)+'/8 ou '+(r2+1)+'/8')})()`
+      : `(()=>{const r=Math.floor(Math.random()*8);const p=P();if(!p.combatCharges)p.combatCharges={};p.combatCharges['SursautResult']=r;delete p.combatCharges['SursautResult2'];_markUnsaved();render();showToast('Sursaut — '+(r+1)+'/8')})()`;
+
+    let srsHtml;
+    if (srsResult2 && Array.isArray(srsResult2) && srsResult2.length===2) {
+      srsHtml = `<div style="font-size:11px;color:#9c27b0;font-weight:600;margin-bottom:6px">🎯 Choisissez un résultat :</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
+        <div style="padding:6px;background:rgba(156,39,176,.1);border:1px solid rgba(156,39,176,.3);border-radius:6px;cursor:pointer" onclick="(()=>{const p=P();if(!p.combatCharges)p.combatCharges={};p.combatCharges['SursautResult']=${srsResult2[0]};delete p.combatCharges['SursautResult2'];_markUnsaved();render();})()">
+          <div style="font-size:11px;font-weight:600;color:#9c27b0">${srsResult2[0]+1}/8</div>
+          <div style="font-size:10px;color:var(--text3);line-height:1.3">${BARBARE_SURSAUT[srsResult2[0]]||''}</div>
+          <div style="font-size:10px;color:#9c27b0;margin-top:3px">✓ Choisir</div>
+        </div>
+        <div style="padding:6px;background:rgba(156,39,176,.1);border:1px solid rgba(156,39,176,.3);border-radius:6px;cursor:pointer" onclick="(()=>{const p=P();if(!p.combatCharges)p.combatCharges={};p.combatCharges['SursautResult']=${srsResult2[1]};delete p.combatCharges['SursautResult2'];_markUnsaved();render();})()">
+          <div style="font-size:11px;font-weight:600;color:#9c27b0">${srsResult2[1]+1}/8</div>
+          <div style="font-size:10px;color:var(--text3);line-height:1.3">${BARBARE_SURSAUT[srsResult2[1]]||''}</div>
+          <div style="font-size:10px;color:#9c27b0;margin-top:3px">✓ Choisir</div>
+        </div>
+      </div>`;
+    } else if (srsResult!==undefined) {
+      srsHtml = `<div style="padding:6px 10px;background:rgba(156,39,176,.1);border:1px solid rgba(156,39,176,.3);border-radius:6px;font-size:11px;color:var(--text2);margin-bottom:6px"><strong style="color:#9c27b0">Résultat ${srsResult+1}/8 :</strong> ${BARBARE_SURSAUT[srsResult]||''}</div>${_sursBtn(srsResult)}<div style="margin-top:6px"><button class="btn bsm" onclick="(()=>{const p=P();if(!p.combatCharges)p.combatCharges={};delete p.combatCharges['SursautResult'];_markUnsaved();render();})()">↺ Effacer</button></div>`;
+    } else {
+      srsHtml = `<div style="font-size:11px;color:var(--text3);font-style:italic">Lancé automatiquement quand tu entres en rage.</div>`;
+    }
+
     let msContent = `<div style="margin-bottom:10px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
         <span style="font-size:11px;font-weight:600;color:var(--text2)">🔍 Sens de la magie (${sensMagieCur}/${sensMagieMax})</span>
@@ -199,18 +259,20 @@ function renderBarbare(p) {
       <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:4px">${Array.from({length:sensMagieMax},(_,i)=>`<span class="slot-bubble${i<sensMagieCur?'':' used'}" onclick="useCombatCharge('SensMagie',${sensMagieMax})" title="Utiliser Sens de la magie"></span>`).join('')}</div>
       <div style="font-size:10px;color:var(--text3)">Action : détecter sorts/objets magiques à 18m jusqu'à la fin de ton prochain tour. Récup. repos long.</div>
     </div>
-    <div>
+    <div style="margin-bottom:8px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
         <span style="font-size:11px;font-weight:600;color:var(--text2)">⚡ Sursaut sauvage</span>
-        <button class="btn bsm bac" onclick="(()=>{const r=Math.floor(Math.random()*8);P().combatCharges=P().combatCharges||{};P().combatCharges['SursautResult']=r;_markUnsaved();render();showToast('Sursaut — '+(r+1)+'/8')})()">🎲 Lancer</button>
+        <div style="display:flex;gap:4px">${barbareLvl>=10?`<button class="btn bsm" onclick="(()=>{const r=Math.floor(Math.random()*8);const p=P();if(!p.combatCharges)p.combatCharges={};p.combatCharges['SursautResult']=r;delete p.combatCharges['SursautResult2'];_markUnsaved();render();showToast('Sursaut réaction — '+(r+1)+'/8')})()">⚡ Réaction</button>`:''}<button class="btn bsm bac" onclick="${sursLancerOnClick}">🎲 Lancer${barbareLvl>=14?' (×2)':''}</button></div>
       </div>
-      ${srsResult!==undefined?`<div style="padding:6px 10px;background:rgba(156,39,176,.1);border:1px solid rgba(156,39,176,.3);border-radius:6px;font-size:11px;color:var(--text2);margin-bottom:6px"><strong style="color:#9c27b0">Résultat ${srsResult+1}/8 :</strong> ${BARBARE_SURSAUT[srsResult]||''}</div><button class="btn bsm" onclick="P().combatCharges=P().combatCharges||{};delete P().combatCharges['SursautResult'];_markUnsaved();render()">↺ Effacer</button>`:'<div style="font-size:11px;color:var(--text3);font-style:italic">Lancé automatiquement quand tu entres en rage.</div>'}
+      ${srsHtml}
     </div>`;
-    if (barbareLvl>=6) msContent += `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"><div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:2px">⚡ Réserve de magie</div><div style="font-size:11px;color:var(--text3)">Si tu n'as plus de charges de rage au début de ton tour, tu en regagnes 1 automatiquement.</div></div>`;
-    if (barbareLvl>=10) msContent += `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"><div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:2px">🌀 Réaction instable</div><div style="font-size:11px;color:var(--text3)">Réaction : quand tu subis les effets d'un sort, tu peux déclencher un Sursaut sauvage.</div></div>`;
-    if (barbareLvl>=14) msContent += `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"><div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:2px">🎯 Sursaut contrôlé</div><div style="font-size:11px;color:var(--text3)">Lors d'un Sursaut sauvage, tu peux choisir entre deux résultats tirés du d8.</div></div>`;
-    panels.push(`<div style="margin-bottom:10px;padding:8px;background:var(--surface2);border-radius:6px">
-      <div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:10px">✨ Magie sauvage</div>
+
+    if (barbareLvl>=6) msContent += `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"><div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:2px">⚡ Réserve de magie</div><div style="font-size:11px;color:var(--text3)">Si tu n'as plus de charges de rage au début de ton tour (clique <em>Fin de tour</em> dans le panneau rage), tu en regagnes 1 automatiquement.</div></div>`;
+    if (barbareLvl>=10) msContent += `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"><div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:2px">🌀 Réaction instable</div><div style="font-size:11px;color:var(--text3)">Réaction : quand tu subis les effets d'un sort, tu peux déclencher un Sursaut sauvage. Utilise le bouton ⚡ Réaction ci-dessus.</div></div>`;
+    if (barbareLvl>=14) msContent += `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"><div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:2px">🎯 Sursaut contrôlé</div><div style="font-size:11px;color:var(--text3)">Lors d'un Sursaut sauvage, deux résultats sont tirés (🎲 ×2). Choisissez le résultat à appliquer en cliquant dessus.</div></div>`;
+
+    panels.push(`<div style="margin-bottom:10px;padding:10px;background:rgba(156,39,176,.07);border:1px solid rgba(156,39,176,.2);border-radius:8px">
+      <div style="font-size:12px;font-weight:700;color:#9c27b0;margin-bottom:10px">✨ Magie sauvage</div>
       ${msContent}
     </div>`);
   }
@@ -225,14 +287,26 @@ function renderBarbare(p) {
   }
   if (barbareLvl>=7) {
     panels.push(`<div style="margin-bottom:10px;padding:8px;background:var(--surface2);border-radius:6px">
-      <div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:2px">🦅 Instinct sauvage</div>
-      <div style="font-size:11px;color:var(--text3)">Avantage sur les jets d'initiative. Si tu es surpris, tu peux quand même entrer en rage au premier tour — tu agis normalement.</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <span style="font-size:12px;font-weight:600;color:var(--cp)">🦅 Instinct sauvage</span>
+        <button class="btn bsm" onclick="diceRoll('d20','🦅 Initiative',${dexMod},'initiative')">🎲 Initiative (avantage)</button>
+      </div>
+      <div style="font-size:11px;color:var(--text3)">Avantage sur les jets d'initiative. Si surpris, tu peux entrer en rage au premier tour.</div>
     </div>`);
   }
   if (barbareLvl>=11) {
-    panels.push(`<div style="margin-bottom:10px;padding:8px;background:var(--surface2);border-radius:6px">
-      <div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:2px">💪 Rage implacable</div>
-      <div style="font-size:11px;color:var(--text3)">Si tu tombes à 0 PV en rage sans mourir sur le coup : JS CON DD 10 (+5 à chaque usage consécutif, remis à zéro après un repos). Succès → tu reviens à 1 PV.</div>
+    const implacableUses = cc['RageImplacableUses']||0;
+    const implacableDC = 10 + implacableUses * 5;
+    panels.push(`<div style="margin-bottom:10px;padding:8px;background:${rageActive?'rgba(229,57,53,.07)':'var(--surface2)'};border-radius:6px;border:1px solid ${rageActive?'rgba(229,57,53,.3)':'var(--border)'}">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <span style="font-size:12px;font-weight:600;color:var(--cp)">💪 Rage implacable</span>
+        <span style="font-size:10px;color:var(--text3)">DD ${implacableDC}${implacableUses>0?' ('+implacableUses+' usage'+(implacableUses>1?'s':'')+')'':''}</span>
+      </div>
+      ${rageActive?`<button class="btn bsm" style="color:#e53935;border-color:#e53935;margin-bottom:6px;width:100%" onclick="(()=>{const p=P();if(!p.combatCharges)p.combatCharges={};p.combatCharges['RageImplacableUses']=(p.combatCharges['RageImplacableUses']||0)+1;saveAll();rollSave('JS CON',${conMod});render();})()">🎲 JS CON DD ${implacableDC} (à 0 PV en rage)</button>`:''}
+      <div style="display:flex;gap:6px;align-items:center">
+        <button class="btn bsm" onclick="P().combatCharges=P().combatCharges||{};P().combatCharges['RageImplacableUses']=0;_markUnsaved();render()">↺ Repos (remettre à zéro)</button>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px">À 0 PV en rage : JS CON DD ${implacableDC}. Succès → 1 PV. DD +5 par usage consécutif (remis à 0 au repos).</div>
     </div>`);
   }
   if (barbareLvl>=15) {
@@ -242,9 +316,11 @@ function renderBarbare(p) {
     </div>`);
   }
   if (barbareLvl>=18) {
-    panels.push(`<div style="margin-bottom:10px;padding:8px;background:var(--surface2);border-radius:6px">
-      <div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:2px">🏋 Puissance indomptable</div>
-      <div style="font-size:11px;color:var(--text3)">Si le résultat brut d'un jet de Force est inférieur à ta valeur de Force, tu peux utiliser la valeur à la place du résultat.</div>
+    const forScore = p.abilities[0]||10;
+    panels.push(`<div style="margin-bottom:10px;padding:8px;background:rgba(255,152,0,.07);border-radius:6px;border:1px solid rgba(255,152,0,.3)">
+      <div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:4px">💪 Puissance indomptable <span style="font-size:10px;color:#ff9800">Actif</span></div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:4px">Si le résultat brut d'un jet de Force est inférieur à ta valeur de Force (${forScore}), la valeur est utilisée à la place. S'applique automatiquement à tous tes jets FOR via le panneau Dés <span style="font-size:12px">💪</span>.</div>
+      <div style="font-size:10px;color:#ff9800">Valeur minimum appliquée : <strong>${forScore}</strong></div>
     </div>`);
   }
   if (barbareLvl>=20) {
@@ -282,7 +358,7 @@ function toggleRageActive() {
       p.combatCharges['FrénésieActive'] = false;
       showToast('💀 Frénésie — +1 niveau d\'épuisement');
     }
-    if (isMagieSauvage) delete p.combatCharges['SursautResult'];
+    if (isMagieSauvage) { delete p.combatCharges['SursautResult']; delete p.combatCharges['SursautResult2']; }
     delete p.combatCharges['Témérité'];
   } else {
     const unlimited = barbareLvl>=20;
@@ -290,6 +366,7 @@ function toggleRageActive() {
     if (!unlimited && cur<=0) { showToast('❌ Plus de charges de rage disponibles !'); return; }
     if (!unlimited) p.combatCharges['RageCharges'] = cur-1;
     p.combatCharges['RageActive'] = true;
+    p.combatCharges['RageTurns'] = 10;
     p.dmgResistances = p.dmgResistances||[];
     RAGE_RES.forEach(r=>{ if(!p.dmgResistances.includes(r)) p.dmgResistances.push(r); });
     if (isTotem && totemChoice==='Ours') {
@@ -299,10 +376,48 @@ function toggleRageActive() {
       p.conditions = (p.conditions||[]).filter(c=>!['Charmé','Effrayé'].includes(c));
     }
     if (isMagieSauvage) {
-      const r = Math.floor(Math.random()*8);
-      p.combatCharges['SursautResult'] = r;
-      showToast(`✨ Sursaut sauvage — résultat ${r+1}/8`);
+      if (barbareLvl>=14) {
+        const r1 = Math.floor(Math.random()*8);
+        const r2 = Math.floor(Math.random()*8);
+        p.combatCharges['SursautResult2'] = [r1, r2];
+        delete p.combatCharges['SursautResult'];
+        showToast(`✨ Sursaut contrôlé — ${r1+1}/8 ou ${r2+1}/8`);
+      } else {
+        const r = Math.floor(Math.random()*8);
+        p.combatCharges['SursautResult'] = r;
+        delete p.combatCharges['SursautResult2'];
+        showToast(`✨ Sursaut sauvage — résultat ${r+1}/8`);
+      }
     }
   }
   saveAll(); render();
+}
+
+function endRageTurn() {
+  const p = P();
+  if (!p.combatCharges) p.combatCharges = {};
+  if (!p.combatCharges['RageActive']) return;
+  const barbareLvl = ((p.classes||[]).find(c=>c.name==='Barbare')||{}).level||0;
+  if (barbareLvl >= 15) { showToast('♾ Rage persistante — durée illimitée.'); return; }
+
+  // Réserve de magie (niv.6) : si 0 charges au début de ce tour, regagne 1
+  const _msPath = (p.features||[]).find(f=>f.name==='Voie de la magie sauvage');
+  if (_msPath && barbareLvl>=6) {
+    const _rMax = barbareLvl>=17?6:barbareLvl>=12?5:barbareLvl>=6?4:barbareLvl>=3?3:2;
+    const _cur = p.combatCharges['RageCharges']!==undefined ? p.combatCharges['RageCharges'] : _rMax;
+    if (_cur <= 0) {
+      p.combatCharges['RageCharges'] = 1;
+      showToast('⚡ Réserve de magie — 1 charge de rage regagnée !');
+    }
+  }
+
+  const turns = Math.max(0, (p.combatCharges['RageTurns']||0) - 1);
+  if (turns <= 0) {
+    showToast('🔥 Rage terminée — 10 tours écoulés.');
+    toggleRageActive();
+  } else {
+    p.combatCharges['RageTurns'] = turns;
+    saveAll(); render();
+    showToast('⏱ Fin de tour — ' + turns + ' tour' + (turns>1?'s':'') + ' de rage restant' + (turns>1?'s':'') + '.');
+  }
 }
