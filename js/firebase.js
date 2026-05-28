@@ -157,7 +157,7 @@ function _showRageImplacablePopup(p){
   _implacableConMod=Math.floor((conVal-10)/2);
   openModal(`<div class="pt">💪 Rage implacable — 0 PV !</div>
     <div style="font-size:13px;color:var(--text2);margin-bottom:12px">Tu tombes à 0 PV pendant ta rage.<br>Lance un <strong>JS CON DD ${_implacableDC}</strong> pour rester à 1 PV !</div>
-    <div style="font-size:12px;color:var(--text3);margin-bottom:16px">DD actuel : ${_implacableDC}${uses>0?' ('+uses+' usage'+(uses>1?'s':'')+')'':''}. +5 par usage, remis à 0 au repos.</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:16px">DD actuel : ${_implacableDC}${uses>0?' ('+uses+' usage'+(uses>1?'s':'')+')':''} . +5 par usage, remis à 0 au repos.</div>
     <button class="btn bac" style="width:100%;margin-bottom:8px" onclick="_doRageImplacableRoll()">🎲 Lancer JS CON DD ${_implacableDC}</button>
     <button class="btn" style="width:100%" onclick="closeModal()">✕ Lancer physiquement</button>`);
 }
