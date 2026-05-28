@@ -6,7 +6,9 @@ function tabPerso(p){
   const mc=mainClass(p);const cd=mc?SRD.classes.find(c=>c.name===mc.name):null;const rd=SRD.races.find(r=>r.name===p.race);
   const lvl=totalLevel(p);const dexM=mod(p.abilities[1]);
   const ws=p.wildshape;
-  const pct=Math.max(0,Math.min(100,Math.round((ws?.active?ws.beast.hpCur/Math.max(1,ws.beast.hpMax):p.hp/Math.max(1,p.hpMax))*100)));
+  const _exhLvl=p.exhaustion||0;
+  const effectiveHpMax=_exhLvl>=4?Math.floor(p.hpMax/2):p.hpMax;
+  const pct=Math.max(0,Math.min(100,Math.round((ws?.active?ws.beast.hpCur/Math.max(1,ws.beast.hpMax):p.hp/Math.max(1,effectiveHpMax))*100)));
   const hpColor=ws?.active?'#4caf50':pct>50?'#4caf50':pct>25?'#ff9800':'#e53935';
 
   // Calcul CA affichée avec statuts
@@ -91,9 +93,13 @@ function tabPerso(p){
         <div class="sb"><div class="sn">Initiative</div><div class="sm" style="font-size:20px;font-weight:600">${fmt(Math.floor((ws.beast.ab[1]-10)/2))}</div></div>
         <div class="sb" style="border-color:#4caf50"><div class="sn" style="color:#4caf50">Vitesse</div><div style="font-size:14px;font-weight:600;color:#4caf50">${ws.beast.speed}</div></div>
       </div>`:`
+      ${p.hp<=0&&!ws?.active?`<div style="background:rgba(229,57,53,.15);border:1px solid #e53935;border-radius:8px;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;animation:combatPulse 2s ease-in-out infinite">
+        <span style="font-size:14px;font-weight:700;color:#e53935">💀 À TERRE — 0 PV</span>
+        <span style="font-size:11px;color:var(--text3)">${p.deathSaves?.fail>=3?'☠ Mort':'Lancez vos jets de mort'}</span>
+      </div>`:''}
       <div class="g3 mb6">
-        <div class="sb hi"><div class="sn">PV actuels</div><div style="font-size:20px;font-weight:700;color:${hpBonus?'var(--cp)':'var(--text)'}">${p.hp}${hpBonus?`<span style="font-size:12px;color:#4caf50"> +${hpBonus}</span>`:''}</div><div class="sm">${p.hp}/${p.hpMax}</div></div>
-        <div class="sb"><div class="sn">PV max</div>${isMJ()?`<input type="number" min="1" max="999" value="${p.hpMax}" oninput="P().hpMax=Math.max(1,parseInt(this.value)||1);render()" style="width:100%;text-align:center;font-size:18px;font-weight:700;background:transparent;border:none;color:var(--cp);outline:none;padding:2px 0">`:` <div style="font-size:20px;font-weight:700">${p.hpMax}</div>`}</div>
+        <div class="sb hi" style="${p.hp<=0&&!ws?.active?'border-color:#e53935;box-shadow:0 0 8px rgba(229,57,53,.3)':''}"><div class="sn">PV actuels</div><div style="font-size:20px;font-weight:700;color:${p.hp<=0?'#e53935':hpBonus?'var(--cp)':'var(--text)'}">${p.hp}${hpBonus?`<span style="font-size:12px;color:#4caf50"> +${hpBonus}</span>`:''}</div><div class="sm">${p.hp}/${effectiveHpMax}${_exhLvl>=4?`<span style="color:#e53935"> ½</span>`:''}</div></div>
+        <div class="sb" style="${_exhLvl>=4?'border-color:rgba(229,57,53,.4)':''}"><div class="sn">PV max</div>${isMJ()?`<input type="number" min="1" max="999" value="${p.hpMax}" oninput="P().hpMax=Math.max(1,parseInt(this.value)||1);render()" style="width:100%;text-align:center;font-size:18px;font-weight:700;background:transparent;border:none;color:var(--cp);outline:none;padding:2px 0">`:` <div style="font-size:20px;font-weight:700;color:${_exhLvl>=4?'#e53935':'var(--text)'}">${effectiveHpMax}${_exhLvl>=4?`<div style="font-size:9px;color:#e53935;margin-top:1px">÷2 😵 Épuisement</div>`:''}</div>`}</div>
         <div class="sb"><div class="sn">PV temp.</div>${isMJ()?`<input type="number" min="0" max="999" value="${p.hpTemp||0}" oninput="P().hpTemp=Math.max(0,parseInt(this.value)||0)" style="width:100%;text-align:center;font-size:18px;font-weight:700;background:transparent;border:none;color:var(--text);outline:none;padding:2px 0">`:` <div style="font-size:20px;font-weight:700">${p.hpTemp||0}</div>`}</div>
       </div>
       <div class="hp-bar"><div class="hp-fill" style="width:${pct}%;background:${hpColor}"></div></div>
@@ -105,7 +111,22 @@ function tabPerso(p){
       <div class="g3 mt8">
         <div class="sb"><div class="sn">CA</div><div style="font-size:20px;font-weight:700;color:${caBonus?'var(--cp)':'var(--text)'}">${caDisplay}</div></div>
         <div class="sb"><div class="sn">Initiative</div><div class="sm" style="font-size:20px;font-weight:600">${fmt(dexM)}</div></div>
-        <div class="sb"><div class="sn">Vitesse (m)</div><input type="number" min="0" max="99" value="${p.speed||9}" oninput="P().speed=parseInt(this.value)||9;saveAll()" style="width:100%;text-align:center;font-size:18px;font-weight:700;background:transparent;border:none;color:var(--text);outline:none;padding:2px 0"></div>
+        ${(()=>{
+          const _barbLvl=((p.classes||[]).find(c=>c.name==='Barbare')||{}).level||0;
+          const _chestSrd=((p.equip||{}).chest?.name)?SRD.armors.find(a=>a.name===((p.equip||{}).chest?.name)):null;
+          const _isHeavy=!!(_chestSrd&&_chestSrd.type!=='Bouclier'&&_chestSrd.type!=='Légère'&&_chestSrd.type!=='Intermédiaire');
+          const _fastMove=_barbLvl>=5&&!_isHeavy;
+          const _spdBase=(p.speed||9)+(_fastMove?3:0);
+          const _exhS=p.exhaustion||0;
+          const _spd=_exhS>=5?0:(_exhS>=2?Math.floor(_spdBase/2):_spdBase);
+          const _spdExhNote=_exhS>=5?'<div style="font-size:9px;color:#e53935;margin-top:1px">😵 Vitesse 0</div>':(_exhS>=2?'<div style="font-size:9px;color:#ff9800;margin-top:1px">÷2 😰 Épuisement</div>':'');
+          const _spdBorder=_fastMove?'border-color:rgba(229,57,53,.4)':(_exhS>=5?'border-color:#e53935':(_exhS>=2?'border-color:rgba(255,152,0,.4)':''));
+          return`<div class="sb" style="${_spdBorder}"><div class="sn">Vitesse (m)</div>
+            <div style="font-size:18px;font-weight:700;color:${_fastMove?'#e53935':(_exhS>=5?'#e53935':(_exhS>=2?'#ff9800':'var(--text))'))}">${_spd}</div>
+            ${_fastMove?'<div style="font-size:9px;color:#e53935;margin-top:1px">+3m 💨 Déplacement rapide</div>':''}${_spdExhNote}
+            <input type="number" min="0" max="99" value="${p.speed||9}" oninput="P().speed=parseInt(this.value)||9;saveAll()" style="width:100%;text-align:center;font-size:10px;background:transparent;border:none;border-top:1px solid var(--border);color:var(--text3);outline:none;padding:2px 0;margin-top:2px" title="Vitesse de base">
+          </div>`;
+        })()}
       </div>`}
       <!-- Jets de mort -->
       ${ws?.active?'':`<div style="margin-top:10px"><div class="fl mb6">Jets de mort</div>
@@ -295,7 +316,8 @@ function applyHp(sign){
       ws.beast.hpCur=Math.min(ws.beast.hpMax,ws.beast.hpCur+delta);
     }
   } else {
-    p.hp=Math.max(0,Math.min(p.hpMax+(p.hpTemp||0),p.hp+sign*delta));
+    const _effMax=(p.exhaustion||0)>=4?Math.floor(p.hpMax/2):p.hpMax;
+    p.hp=Math.max(0,Math.min(_effMax+(p.hpTemp||0),p.hp+sign*delta));
     if(sign<0&&(p.statuses||[]).some(s=>s.name==='Concentration'))showToast(`⚠️ Concentration — Lance ton JS CON (onglet Sorts) !`,3500);
   }
   _markUnsaved();render();
@@ -467,7 +489,8 @@ function toggleInspiration(){const p=P();p.inspiration=!p.inspiration;_markUnsav
 function doShortRest(){
   const p=P();const mc=mainClass(p);const cd=mc?SRD.classes.find(c=>c.name===mc.name):null;if(!cd)return;
   const roll=Math.ceil(Math.random()*cd.hdVal)+mod(p.abilities[2]);
-  const healed=Math.max(1,roll);p.hp=Math.min(p.hpMax,p.hp+healed);
+  const _effMaxSR=(p.exhaustion||0)>=4?Math.floor(p.hpMax/2):p.hpMax;
+  const healed=Math.max(1,roll);p.hp=Math.min(_effMaxSR,p.hp+healed);
   if(!p.combatCharges)p.combatCharges={};
   (p.classes||[]).forEach(cls=>{
     const d=SRD.classes.find(c=>c.name===cls.name);
@@ -481,7 +504,9 @@ function doShortRest(){
   render();saveAll();showToast(`☕ Repos court — ${cd.hd}(${roll-mod(p.abilities[2])})+CON = <strong>+${healed} PV</strong>`);
 }
 function doLongRest(){
-  const p=P();p.hp=p.hpMax;p.spellSlotsUsed=[];
+  const p=P();
+  const _effMaxLR=(p.exhaustion||0)>=4?Math.floor(p.hpMax/2):p.hpMax;
+  p.hp=_effMaxLR;p.spellSlotsUsed=[];
   p.deathSaves={success:0,fail:0};
   p.conditions=[];
   if(!p.combatCharges)p.combatCharges={};
