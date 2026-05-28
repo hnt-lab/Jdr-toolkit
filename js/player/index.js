@@ -181,6 +181,8 @@ function renderDicePanel(){
   }
   const mc=mainClass(p);const lvl=totalLevel(p);
   const saves=CLASS_SAVES[mc?mc.name:'']||[];
+  const barbareLvl=((p.classes||[]).find(c=>c.name==='Barbare')||{}).level||0;
+  const rageActive=barbareLvl>0&&(p.combatCharges||{})['RageActive']===true;
 
   // Stats avec bonus statuts
   const finalAbilities=p.abilities.map((v,i)=>{
@@ -217,9 +219,14 @@ function renderDicePanel(){
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:12px">
     ${ABILITIES.map((ab,i)=>{
       const m=mod(finalAbilities[i]);
-      return`<button onclick="diceRoll('d20','${ab}',${m})" style="padding:6px 4px;border:1px solid var(--border);border-radius:6px;font-size:11px;cursor:pointer;background:var(--surface2);color:var(--text2);transition:all .15s;font-family:var(--B);text-align:center" onmouseenter="this.style.borderColor='var(--cp)';this.style.color='var(--cp)'" onmouseleave="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">
+      const isRageFor=rageActive&&i===0;
+      const rollType=isRageFor?'for-carac':'';
+      const btnBorder=isRageFor?'#e53935':'var(--border)';
+      const btnColor=isRageFor?'#e53935':'var(--text2)';
+      const btnBg=isRageFor?'rgba(229,57,53,.08)':'var(--surface2)';
+      return`<button onclick="diceRoll('d20','${ab}',${m},'${rollType}')" style="padding:6px 4px;border:1px solid ${btnBorder};border-radius:6px;font-size:11px;cursor:pointer;background:${btnBg};color:${btnColor};transition:all .15s;font-family:var(--B);text-align:center" onmouseenter="this.style.borderColor='var(--cp)';this.style.color='var(--cp)'" onmouseleave="this.style.borderColor='${btnBorder}';this.style.color='${btnColor}'">
         <div style="font-weight:600">${ABILITIES_SH[i]}</div>
-        <div style="color:var(--cp);font-size:12px">${fmt(m)}</div>
+        <div style="color:${isRageFor?'#e53935':'var(--cp)'};font-size:12px">${fmt(m)}${isRageFor?' 🔥':''}</div>
       </button>`;
     }).join('')}
   </div>
@@ -230,9 +237,16 @@ function renderDicePanel(){
     ${ABILITIES_SH.map((ab,i)=>{
       const hasSave=saves.includes(i);
       const m=mod(finalAbilities[i])+(hasSave?pb(lvl):0);
-      return`<button onclick="diceRoll('d20','JS ${ab}',${m})" style="padding:6px 4px;border:1px solid ${hasSave?'var(--cp)':'var(--border)'};border-radius:6px;font-size:11px;cursor:pointer;background:var(--surface2);color:${hasSave?'var(--cp)':'var(--text2)'};transition:all .15s;font-family:var(--B);text-align:center" onmouseenter="this.style.borderColor='var(--cp)';this.style.color='var(--cp)'" onmouseleave="this.style.borderColor='${hasSave?'var(--cp)':'var(--border)'}';this.style.color='${hasSave?'var(--cp)':'var(--text2)'}'">
+      const isRageFor=rageActive&&i===0;
+      const rollType=isRageFor?'for-save':'';
+      const baseBorder=hasSave?'var(--cp)':'var(--border)';
+      const baseColor=hasSave?'var(--cp)':'var(--text2)';
+      const btnBorder=isRageFor?'#e53935':baseBorder;
+      const btnColor=isRageFor?'#e53935':baseColor;
+      const btnBg=isRageFor?'rgba(229,57,53,.08)':'var(--surface2)';
+      return`<button onclick="diceRoll('d20','JS ${ab}',${m},'${rollType}')" style="padding:6px 4px;border:1px solid ${btnBorder};border-radius:6px;font-size:11px;cursor:pointer;background:${btnBg};color:${btnColor};transition:all .15s;font-family:var(--B);text-align:center" onmouseenter="this.style.borderColor='var(--cp)';this.style.color='var(--cp)'" onmouseleave="this.style.borderColor='${btnBorder}';this.style.color='${btnColor}'">
         <div style="font-weight:600">${ab}</div>
-        <div style="font-size:12px">${fmt(m)}</div>
+        <div style="font-size:12px">${fmt(m)}${isRageFor?' 🔥':''}</div>
       </button>`;
     }).join('')}
   </div>
@@ -244,11 +258,15 @@ function renderDicePanel(){
       const prof=(p.skillProf||{})[sk.name]||0;
       const bonus=mod(finalAbilities[sk.ab])+(prof===1?pb(lvl):prof===2?pb(lvl)*2:0);
       const hasMaîtrise=prof>0;
-      return`<button onclick="diceRoll('d20','${sk.name}',${bonus})" style="display:flex;align-items:center;gap:8px;padding:5px 8px;border:1px solid ${hasMaîtrise?'var(--cp)':'var(--border)'};border-radius:6px;font-size:12px;cursor:pointer;background:var(--surface2);color:var(--text2);transition:all .15s;font-family:var(--B);text-align:left;width:100%" onmouseenter="this.style.background='var(--surface3)'" onmouseleave="this.style.background='var(--surface2)'">
-        <span style="width:10px;height:10px;border-radius:50%;background:${prof===2?'var(--cp)':prof===1?'var(--cp)':'var(--border)'};border:1px solid ${hasMaîtrise?'var(--cp)':'var(--border)'};opacity:${prof===2?1:.5};flex-shrink:0"></span>
-        <span style="flex:1;color:${hasMaîtrise?'var(--cp)':'var(--text2)'}">${sk.name}</span>
+      const isRageFor=rageActive&&sk.ab===0;
+      const rollType=isRageFor?'for-carac':'';
+      const btnBorder=isRageFor?'#e53935':hasMaîtrise?'var(--cp)':'var(--border)';
+      const labelColor=isRageFor?'#e53935':hasMaîtrise?'var(--cp)':'var(--text2)';
+      return`<button onclick="diceRoll('d20','${sk.name}',${bonus},'${rollType}')" style="display:flex;align-items:center;gap:8px;padding:5px 8px;border:1px solid ${btnBorder};border-radius:6px;font-size:12px;cursor:pointer;background:${isRageFor?'rgba(229,57,53,.08)':'var(--surface2)'};color:var(--text2);transition:all .15s;font-family:var(--B);text-align:left;width:100%" onmouseenter="this.style.background='var(--surface3)'" onmouseleave="this.style.background='${isRageFor?'rgba(229,57,53,.08)':'var(--surface2)'}'">
+        <span style="width:10px;height:10px;border-radius:50%;background:${isRageFor?'#e53935':prof===2?'var(--cp)':prof===1?'var(--cp)':'var(--border)'};border:1px solid ${isRageFor?'#e53935':hasMaîtrise?'var(--cp)':'var(--border)'};opacity:${prof===2?1:.5};flex-shrink:0"></span>
+        <span style="flex:1;color:${labelColor}">${sk.name}${isRageFor?' 🔥':''}</span>
         <span style="font-size:11px;color:var(--text3)">${ABILITIES_SH[sk.ab]}</span>
-        <span style="font-weight:600;color:${hasMaîtrise?'var(--cp)':'var(--text2)'};min-width:28px;text-align:right">${fmt(bonus)}</span>
+        <span style="font-weight:600;color:${labelColor};min-width:28px;text-align:right">${fmt(bonus)}</span>
       </button>`;
     }).join('')}
   </div>
@@ -318,19 +336,25 @@ function _sendMJWhisper(){
 
 // Détecte avantage/désavantage/bonus-dé selon les statuts actifs
 function getStatusEffects(p,rollType){
-  // rollType: 'attaque' | 'carac' | 'save' | 'dex-save' | 'for-save' | 'skill'
+  // rollType: 'attaque' | 'carac' | 'save' | 'dex-save' | 'for-save' | 'skill' | 'for-carac'
   const statuses=p.statuses||[];
   let hasDisadv=false,hasAdv=false,bonusDie=null;
+
+  // Barbare en rage → avantage sur tous les jets de Force
+  const barbareLvl=((p.classes||[]).find(c=>c.name==='Barbare')||{}).level||0;
+  if(barbareLvl&&(p.combatCharges||{})['RageActive']===true){
+    if(rollType==='for-carac'||rollType==='for-save')hasAdv=true;
+  }
 
   function matchesRoll(target,rt){
     if(!target)return false;
     if(target==='un')return true; // s'applique à n'importe quel jet (Inspiré)
     if(target==='attaque'&&rt==='attaque')return true;
-    if(target==='carac'&&(rt==='carac'||rt==='skill'))return true;
+    if(target==='carac'&&(rt==='carac'||rt==='skill'||rt==='for-carac'))return true;
     if(target==='save'&&(rt==='save'||rt==='dex-save'||rt==='for-save'))return true;
     if(target==='dex-save'&&rt==='dex-save')return true;
     if(target==='for-save'&&rt==='for-save')return true;
-    if(target==='compétence'&&rt==='skill')return true;
+    if(target==='compétence'&&(rt==='skill'||rt==='for-carac'))return true;
     return false;
   }
 
