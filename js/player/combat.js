@@ -259,6 +259,7 @@ function tabCombat(p){
 }
 
 function rollCustomDmg(dice,name){
+  if(_isIRLMode()){showIRLRoll(`<strong style="font-size:20px;color:var(--cp)">${name}</strong><br>Lance <strong style="font-size:26px">${dice}</strong>`);return;}
   const m=dice.match(/(\d+)d(\d+)([+-]\d+)?/);
   if(!m){showToast(`🎲 ${name} : dés non reconnus`);return;}
   let total=0;const rolls=[];
@@ -278,6 +279,21 @@ function rollAttack(name,bonus,dmg,slot,dmgBonus=0,rerollLow=false,advantageMode
   // Épuisement niv.3+ → désavantage aux jets d'attaque (avantage+désavantage = normal per D&D rules)
   const _exh=P().exhaustion||0;
   if(_exh>=3){if(advantageMode>0)advantageMode=0;else if(advantageMode===0)advantageMode=-1;}
+  if(_isIRLMode()){
+    const advNote=advantageMode>0?'<div style="color:#4caf50;font-size:14px;margin-top:4px">🟢 AVANTAGE — 2d20, garde le plus haut</div>':advantageMode<0?'<div style="color:#e53935;font-size:14px;margin-top:4px">🔴 DÉSAVANTAGE — 2d20, garde le plus bas</div>':'';
+    const dmgFull=dmg+(dmgBonus?fmt(dmgBonus):'');
+    showIRLRoll(`<strong style="font-size:20px;color:var(--cp)">⚔ ${name}</strong>
+      <div style="margin-top:12px;padding:10px;background:var(--surface2);border-radius:8px">
+        <div style="font-size:12px;color:var(--text3);margin-bottom:4px">ATTAQUE</div>
+        <div style="font-size:22px">d20 <span style="color:var(--text3)">${fmt(bonus)}</span></div>
+        ${advNote}
+      </div>
+      <div style="margin-top:8px;padding:10px;background:var(--surface2);border-radius:8px">
+        <div style="font-size:12px;color:var(--text3);margin-bottom:4px">DÉGÂTS SI TOUCHE</div>
+        <div style="font-size:22px;color:var(--cp)">${esc(dmgFull)}</div>
+      </div>`);
+    return;
+  }
   let atk,atkAlt=null;
   if(advantageMode!==0){
     const r1=Math.ceil(Math.random()*20),r2=Math.ceil(Math.random()*20);
@@ -335,6 +351,11 @@ function rollSave(ab,m,advantageMode=0){
   // Épuisement niv.3+ → désavantage (avantage + désavantage = normal per D&D rules)
   const _p=P();const _exh=_p?((_p.exhaustion)||0):0;
   if(_exh>=3){if(advantageMode>0)advantageMode=0;else if(advantageMode===0)advantageMode=-1;}
+  if(_isIRLMode()){
+    const advNote=advantageMode>0?'<div style="color:#4caf50;font-size:14px;margin-top:8px">🟢 AVANTAGE — 2d20, garde le plus haut</div>':advantageMode<0?'<div style="color:#e53935;font-size:14px;margin-top:8px">🔴 DÉSAVANTAGE — 2d20, garde le plus bas</div>':'';
+    showIRLRoll(`<strong style="font-size:20px;color:var(--cp)">Jet de sauvegarde ${ab}</strong><br><span style="font-size:26px">d20 <span style="color:var(--text3)">${fmt(m)}</span></span>${advNote}`);
+    return;
+  }
   let r,alt=null;
   if(advantageMode!==0){const r1=Math.ceil(Math.random()*20),r2=Math.ceil(Math.random()*20);r=advantageMode>0?Math.max(r1,r2):Math.min(r1,r2);alt=advantageMode>0?Math.min(r1,r2):Math.max(r1,r2);}
   else{r=Math.ceil(Math.random()*20);}
