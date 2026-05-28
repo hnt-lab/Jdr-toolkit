@@ -30,6 +30,7 @@ function tabCombat(p){
   const isBerserker=barbarePath?.name==='Voie du berserker';
   const isTotem=barbarePath?.name==='Voie du guerrier totem';
   const isMagieSauvage=barbarePath?.name==='Voie de la magie sauvage';
+  const frenActive=isBerserker&&barbareLvl>=3&&rageActive&&cc['FrénésieActive']===true;
 
   // Bonus ki Moine selon niveau
   const moineLvl=((p.classes||[]).find(c=>c.name==='Moine')||{}).level||0;
@@ -83,7 +84,8 @@ function tabCombat(p){
   const isFdB=artPath?.name==='Forgeron de bataille';
   const artsMartiauxDie=moineLvl>=17?'d10':moineLvl>=11?'d8':moineLvl>=5?'d6':'d4';
   const snkDice=Math.ceil(roublardLvl/2);
-  const hasExtraAttack=(p.classes||[]).some(c=>['Guerrier','Barbare','Paladin','Rôdeur','Moine'].includes(c.name)&&(c.level||0)>=5);
+  const isVaillance=(p.features||[]).some(f=>f.name==='Collège de la vaillance');
+  const hasExtraAttack=(p.classes||[]).some(c=>['Guerrier','Barbare','Paladin','Rôdeur','Moine'].includes(c.name)&&(c.level||0)>=5)||(isVaillance&&bardeLvl>=6);
   const attackCount=guerrierLvl>=20?4:guerrierLvl>=11?3:hasExtraAttack?2:1;
   const wsC=p.wildshape;
 
@@ -128,7 +130,7 @@ function tabCombat(p){
     </div>`:`<div class="panel mb10"><div class="pt" style="display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>Armes équipées</div>${attackCount>1?`<span style="font-size:10px;font-weight:600;color:var(--cp);border:1px solid rgba(200,168,75,.4);border-radius:10px;padding:2px 8px">⚔ ×${attackCount} attaques</span>`:''}</div>
       ${availableStyles.length?`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:11px;color:var(--text3)">🗡 Style :</span><select style="font-size:12px;background:var(--surface3,var(--surface2));border:1px solid var(--border);border-radius:6px;padding:3px 6px;color:var(--text)" onchange="P().combatStyle=this.value;P().ac=_calcArmorCA(P());_markUnsaved();render()"><option value="">— Aucun</option>${availableStyles.map(s=>`<option value="${s}"${combatStyle===s?' selected':''}>${s}</option>`).join('')}</select></div>`:''}
       ${weapons.length?weapons.map(w=>{
-        const srdW=SRD.weapons.find(sw=>sw.name===w.name);
+        const srdW=findSRDWeapon(w.name);
         const props=(srdW?.properties||'').toLowerCase();
         const isFinesse=props.includes('finesse');
         const isPolyvalente=props.includes('polyvalente');
@@ -149,7 +151,7 @@ function tabCombat(p){
         const isDueling=combatStyle==='Duel'&&!isRanged&&w.slot==='mainhand'&&!hasOffhandWeapon;
         const isTwoHandedStyle=combatStyle==='Armes à deux mains'&&props.includes('deux mains');
         const mainhandWpn=(p.equip||{}).mainhand;
-        const mainhandSrd=mainhandWpn?SRD.weapons.find(sw=>sw.name===mainhandWpn.name):null;
+        const mainhandSrd=mainhandWpn?findSRDWeapon(mainhandWpn.name):null;
         const mainhandIsLegere=mainhandSrd?(mainhandSrd.properties||'').toLowerCase().includes('légère'):false;
         const offhandLegereOk=!isOffhand||(isLegere&&mainhandIsLegere);
         const rageMeleeBonus=rageActive&&!isRanged?rageBonus:0;
@@ -178,6 +180,7 @@ function tabCombat(p){
             `<button class="btn bsm" style="font-size:10px" onclick="openLinkAmmoModal()">🏹 Lier des munitions</button>`}
           </div>`:''}
           <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">${isOffhand?`<button class="btn bsm${temActive?' bac':''}" onclick="rollAttack('${esc(w.name)}',${atkBonus},'${esc(dmgStr)}','${w.slot}',${dmgBonus},false,${temActive&&!isRanged?1:0})">🎲${temActive?' ⚡':''} Att. bonus</button>`:Array.from({length:attackCount},(_,ai)=>`<button class="btn bsm${temActive&&!isRanged?' bac':''}" onclick="rollAttack('${esc(w.name)}',${atkBonus},'${esc(dmgStr)}','${w.slot}',${dmgBonus},${isTwoHandedStyle},${temActive&&!isRanged?1:0})">🎲${temActive&&!isRanged?' ⚡':''}${attackCount>1?' Att.'+(ai+1):'  Attaque'}</button>`).join('')}</div>
+          ${frenActive&&!isRanged&&!isOffhand?`<div style="margin-top:4px"><button class="btn bsm" style="border-color:#b71c1c;color:#b71c1c;background:rgba(183,28,28,.12)" onclick="rollAttack('${esc(w.name)}',${atkBonus},'${esc(dmgStr)}','${w.slot}',${dmgBonus},false,${temActive?1:0})">💢 Frénésie (bonus)</button></div>`:''}
         </div>`;
       }).join(''):`<div style="font-size:12px;color:var(--text3);font-style:italic">Aucune arme équipée.</div>`}
       <div style="margin-top:10px;display:flex;gap:5px;flex-wrap:wrap">${['d4','d6','d8','d10','d12','d20'].map(d=>`<button class="dice-btn" onclick="rollDie('${d}')">🎲 ${d}</button>`).join('')}</div>
@@ -272,6 +275,9 @@ function toggleDraconicBreath(){const p=P();if(!p.combatCharges)p.combatCharges=
 function toggleSlot(ni,si,total){const p=P();if(!p.spellSlotsUsed)p.spellSlotsUsed=[];const u=p.spellSlotsUsed[ni]||0;p.spellSlotsUsed[ni]=u>si?u-1:Math.min(total,u+1);render();}
 // advantageMode: 0=normal, 1=avantage (2d20 highest), -1=désavantage (2d20 lowest)
 function rollAttack(name,bonus,dmg,slot,dmgBonus=0,rerollLow=false,advantageMode=0){
+  // Épuisement niv.3+ → désavantage aux jets d'attaque (avantage+désavantage = normal per D&D rules)
+  const _exh=P().exhaustion||0;
+  if(_exh>=3){if(advantageMode>0)advantageMode=0;else if(advantageMode===0)advantageMode=-1;}
   let atk,atkAlt=null;
   if(advantageMode!==0){
     const r1=Math.ceil(Math.random()*20),r2=Math.ceil(Math.random()*20);
@@ -287,12 +293,15 @@ function rollAttack(name,bonus,dmg,slot,dmgBonus=0,rerollLow=false,advantageMode
     const m=(dmg+'').match(/(\d+)d(\d+)([+-]\d+)?/);
     if(m){
       const dq=parseInt(m[1]),ds=parseInt(m[2]),fixedBonus=(m[3]?parseInt(m[3]):0)+(dmgBonus||0);
-      const numDice=isCrit?dq*2:dq;
+      const barbLvl=((P().classes||[]).find(c=>c.name==='Barbare')||{}).level||0;
+      const brutCritExtra=isCrit&&barbLvl>=9&&slot!=='ranged'?(barbLvl>=17?3:barbLvl>=13?2:1):0;
+      const numDice=isCrit?dq*2+brutCritExtra:dq;
       const rolls=[];for(let i=0;i<numDice;i++){let r=Math.ceil(Math.random()*ds);if(rerollLow&&(r===1||r===2))r=Math.ceil(Math.random()*ds);rolls.push(r);}
       const totalDmg=rolls.reduce((s,v)=>s+v,0)+fixedBonus;
       const typeMatch=(dmg+'').match(/\d+d\d+[+-]?\d*\s+(.*)/);
       const dmgType=typeMatch?typeMatch[1].trim():'';
-      dmgHtml=`<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.1);font-size:13px">Dégâts : <span style="color:var(--text2)">${rolls.join('+')}${fixedBonus?fmt(fixedBonus):''}</span> = <b style="color:var(--cp);font-size:17px">${totalDmg}</b>${dmgType?` <span style="font-size:11px;color:var(--text3)">${esc(dmgType)}${isCrit?' (critique — dés doublés)':''}</span>`:''}</div>`;
+      const critNote=isCrit?(brutCritExtra>0?' (critique + '+brutCritExtra+' dé'+(brutCritExtra>1?'s':'')+' brutal)':' (critique — dés doublés)'):'';
+      dmgHtml=`<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.1);font-size:13px">Dégâts : <span style="color:var(--text2)">${rolls.join('+')}${fixedBonus?fmt(fixedBonus):''}</span> = <b style="color:var(--cp);font-size:17px">${totalDmg}</b>${dmgType?` <span style="font-size:11px;color:var(--text3)">${esc(dmgType)}${critNote}</span>`:''}</div>`;
     }
   }
   _lastRollResultHtml=`<div>⚔ ${esc(name)} — d20(${atk})${advTag}${fmt(bonus)} = <span style="font-size:20px;color:${col};font-weight:800">${total}</span>${isCrit?' 🎉 CRITIQUE!':isFumble?' 💀 FUMBLE!':''}</div>${dmgHtml}`;
@@ -323,12 +332,17 @@ function unlinkRangedAmmo(){
   const p=P();if(p.equip&&p.equip.ranged)delete p.equip.ranged.ammoLink;render();
 }
 function rollSave(ab,m,advantageMode=0){
+  // Épuisement niv.3+ → désavantage (avantage + désavantage = normal per D&D rules)
+  const _p=P();const _exh=_p?((_p.exhaustion)||0):0;
+  if(_exh>=3){if(advantageMode>0)advantageMode=0;else if(advantageMode===0)advantageMode=-1;}
   let r,alt=null;
   if(advantageMode!==0){const r1=Math.ceil(Math.random()*20),r2=Math.ceil(Math.random()*20);r=advantageMode>0?Math.max(r1,r2):Math.min(r1,r2);alt=advantageMode>0?Math.min(r1,r2):Math.max(r1,r2);}
   else{r=Math.ceil(Math.random()*20);}
-  const total=r+m;
+  let total=r+m;
   const altTag=alt!==null?(advantageMode>0?` <span style="color:#4caf50;font-size:10px">AVT(${r},~~${alt}~~)</span>`:`<span style="color:#e53935;font-size:10px">DES(${r},~~${alt}~~)</span>`):'';
-  showToast(`JS ${ab}: d20(${r})${altTag}${fmt(m)} = <strong>${total}</strong>${r===20?' 🎉':r===1?' 💀':''}`);
+  let piTag='';
+  if(_p){const _bLvl=((_p.classes||[]).find(c=>c.name==='Barbare')||{}).level||0;if(_bLvl>=18&&ab.includes('FOR')&&total<(_p.abilities[0]||10)){piTag=` <span style="font-size:10px;color:#ff9800">💪 →${_p.abilities[0]} (Puissance indomptable)</span>`;total=_p.abilities[0];}}
+  showToast(`JS ${ab}: d20(${r})${altTag}${fmt(m)} = <strong>${total}</strong>${piTag}${r===20?' 🎉':r===1?' 💀':''}`);
 }
 
 function rollSpellPlayer(name,dmgStr,saveStat){
