@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(\\(Get-Content \"c:\\\\Users\\\\mika_\\\\Desktop\\\\Projet Toolkit jdr\\\\MJ Toolkit dev project\\\\index.html\"\\).Count)",
+      "Read(//c/Users/mika_/Desktop/**)",
+      "Read(//c/Users/mika_/Downloads/**)",
+      "PowerShell($content = Get-Content \"c:\\\\Users\\\\mika_\\\\Downloads\\\\Khar \\(3\\).xml\" -Raw -Encoding UTF8; Write-Output \"Length: $\\($content.Length\\)\"; Write-Output $content)",
+      "WebSearch",
+      "Bash(wc -l \"/mnt/c/Users/mika_/Desktop/Projet Toolkit jdr/MJ Toolkit dev project/index.html\")",
+      "Read(//mnt/c/Users/mika_/Desktop/Projet Toolkit jdr/MJ Toolkit dev project/**)",
+      "Bash(powershell -Command \"\\(Get-Content items_db.json -Raw\\).Substring\\(0,500\\)\")",
+      "Bash(powershell -Command \"\\(Get-Content spells_db.json -Raw\\).Substring\\(0,600\\)\")",
+      "Bash(powershell -Command \"\\(Get-Content monsters_db.json -Raw\\).Substring\\(0,600\\)\")",
+      "Bash(powershell -Command \"\\(Get-Content feats_db.json -Raw\\).Substring\\(0,400\\)\")",
+      "Bash(powershell -Command \"\\(Get-Content races_db.json -Raw\\).Substring\\(0,400\\)\")",
+      "Bash(powershell -Command \"\\(Get-Content backgrounds_db.json -Raw\\).Substring\\(0,400\\)\")",
+      "Bash(powershell -Command \"\\(Get-Content classes_db.json -Raw\\).Substring\\(0,600\\)\")",
+      "PowerShell($r = Invoke-RestMethod 'https://api.open5e.com/v1/spells/?limit=1&document__slug__in=wotc-srd'; \"Spells: $\\($r.count\\)\")",
+      "Bash(node -e ' *)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\mika_\\.claude\\projects\\c--Users-mika--Desktop-Projet-Toolkit-jdr-MJ-Toolkit-dev-project\\memory"
+    ]
+  }
+}
