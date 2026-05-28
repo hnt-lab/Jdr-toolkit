@@ -300,7 +300,7 @@ function renderBarbare(p) {
     panels.push(`<div style="margin-bottom:10px;padding:8px;background:${rageActive?'rgba(229,57,53,.07)':'var(--surface2)'};border-radius:6px;border:1px solid ${rageActive?'rgba(229,57,53,.3)':'var(--border)'}">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
         <span style="font-size:12px;font-weight:600;color:var(--cp)">💪 Rage implacable</span>
-        <span style="font-size:10px;color:var(--text3)">DD ${implacableDC}${implacableUses>0?' ('+implacableUses+' usage'+(implacableUses>1?'s':'')+')'':''}</span>
+        <span style="font-size:10px;color:var(--text3)">DD ${implacableDC}${implacableUses>0?' ('+implacableUses+' usage'+(implacableUses>1?'s':'')+')':''}</span>
       </div>
       ${rageActive?`<button class="btn bsm" style="color:#e53935;border-color:#e53935;margin-bottom:6px;width:100%" onclick="(()=>{const p=P();if(!p.combatCharges)p.combatCharges={};p.combatCharges['RageImplacableUses']=(p.combatCharges['RageImplacableUses']||0)+1;saveAll();rollSave('JS CON',${conMod});render();})()">🎲 JS CON DD ${implacableDC} (à 0 PV en rage)</button>`:''}
       <div style="display:flex;gap:6px;align-items:center">
