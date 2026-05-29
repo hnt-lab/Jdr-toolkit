@@ -285,4 +285,172 @@ function removeSpellFromChar(name){
   showToast('🗑 '+name+' retiré.');
 }
 
+// ─── SORTS DE SOUTIEN GROUPE ───
+const _SUPPORT_SPELLS={
+  'Bénédiction':{buff:'Benediction',die:'d4',maxTargets:3,icon:'✨',detail:'+1d4 aux jets d\'attaque et sauvegardes',persistent:true},
+  'Assistance':{buff:'Assistance',die:'d4',maxTargets:1,icon:'🤝',detail:'+1d4 au prochain jet de compétence',persistent:false},
+  'Guidage':{buff:'Assistance',die:'d4',maxTargets:1,icon:'🤝',detail:'+1d4 au prochain jet de compétence',persistent:false},
+  'Mot de guérison':{heal:true,dieBase:'d4',maxTargets:1,icon:'💚',detail:'Soins à distance (action bonus)'},
+  'Soin':{heal:true,dieBase:'d8',maxTargets:1,icon:'💉',detail:'Soins au toucher (action)',canSelf:true},
+};
+let _supportPending=null,_supportTargetSel=[],_healIRLPending=null;
+
+function _openSupportSpellModal(name,def,spellMod,upcastLvl){
+  const p=P();
+  const allTargets=[];
+  if(def.heal||def.canSelf){allTargets.push({uid:currentUser?.uid,docId:null,name:p.charName||'Moi',isSelf:true,avatar:p.avatar||'⚔'});}
+  (typeof _groupData!=='undefined'?_groupData:[]).filter(gp=>gp.uid!==currentUser?.uid).forEach(gp=>{
+    allTargets.push({uid:gp.uid,docId:gp.docId,name:gp.charData?.charName||gp.playerName||'Joueur',isSelf:false,avatar:gp.avatar||'⚔'});
+  });
+  _supportPending={name,def,spellMod,upcastLvl,allTargets};
+  _supportTargetSel=[];
+  if(!allTargets.length){showToast('❌ Aucun allié connecté.');return;}
+  const diceCount=upcastLvl>0?upcastLvl:1;
+  const healLabel=def.heal?`${diceCount}${def.dieBase}${spellMod>=0?'+':''}${spellMod}`:'';
+  const rowStyle='display:flex;align-items:center;gap:10px;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;margin-bottom:6px';
+  if(def.maxTargets===1){
+    const listHtml=allTargets.map((t,i)=>`<div style="${rowStyle};cursor:pointer" onclick="closeModal();_applySupport([${i}])">`+
+      `<span style="font-size:18px">${t.avatar}</span><div style="flex:1"><div style="font-size:13px;font-weight:600">${esc(t.name)}</div></div>`+
+      `<span style="font-size:11px;color:var(--cp)">${def.heal?healLabel:'+1'+def.die} →</span></div>`).join('');
+    openModal(`<div class="pt">${def.icon} ${esc(name)}</div><div style="font-size:11px;color:var(--text3);margin-bottom:12px">${def.heal?`Soigne : <strong style="color:var(--cp)">${healLabel}</strong>`:esc(def.detail)}</div>${listHtml}<button class="btn" style="width:100%;margin-top:4px" onclick="closeModal()">Annuler</button>`);
+  }else{
+    const listHtml=allTargets.map((t,i)=>`<div id="starg_${i}" style="${rowStyle};cursor:pointer" onclick="_toggleSupTarget(${i})">`+
+      `<div id="stchk_${i}" style="width:18px;height:18px;border-radius:4px;border:2px solid var(--border);background:var(--surface);flex-shrink:0"></div>`+
+      `<span style="font-size:18px">${t.avatar}</span><div style="flex:1"><div style="font-size:13px;font-weight:600">${esc(t.name)}</div></div></div>`).join('');
+    openModal(`<div class="pt">${def.icon} ${esc(name)} — jusqu'à ${def.maxTargets} cibles</div><div style="font-size:11px;color:var(--text3);margin-bottom:10px">${esc(def.detail)}</div>${listHtml}<div style="display:flex;gap:8px;margin-top:8px"><button class="btn" style="flex:1" onclick="closeModal()">Annuler</button><button class="btn bac" id="stConfBtn" style="flex:2;opacity:.5" disabled onclick="_applySupport([..._supportTargetSel])">✓ Confirmer (<span id="stCnt">0</span>)</button></div>`);
+  }
+}
+function _toggleSupTarget(idx){
+  if(!_supportPending)return;
+  const max=_supportPending.def.maxTargets;
+  const ei=_supportTargetSel.indexOf(idx);
+  const chk=document.getElementById('stchk_'+idx),row=document.getElementById('starg_'+idx);
+  if(ei>=0){_supportTargetSel.splice(ei,1);if(chk){chk.style.background='var(--surface)';chk.style.borderColor='var(--border)';}if(row)row.style.borderColor='var(--border)';}
+  else if(_supportTargetSel.length<max){_supportTargetSel.push(idx);if(chk){chk.style.background='var(--cp)';chk.style.borderColor='var(--cp)';}if(row)row.style.borderColor='var(--cp)';}
+  else{showToast(`❌ Maximum ${max} cibles.`);return;}
+  const btn=document.getElementById('stConfBtn'),cnt=document.getElementById('stCnt');
+  if(btn){btn.disabled=!_supportTargetSel.length;btn.style.opacity=_supportTargetSel.length?'1':'.5';}
+  if(cnt)cnt.textContent=_supportTargetSel.length;
+}
+function _applySupport(indices){
+  if(!_supportPending)return;
+  const {name,def,spellMod,upcastLvl,allTargets}=_supportPending;
+  const targets=indices.map(i=>allTargets[i]).filter(Boolean);
+  closeModal();_supportPending=null;_supportTargetSel=[];
+  if(!targets.length){showToast('❌ Aucune cible.');return;}
+  const p=P();const sourceName=p.charName||'Allié';
+  if(def.heal){
+    const diceCount=upcastLvl>0?upcastLvl:1,dieSize=parseInt(def.dieBase.replace('d',''));
+    if(_isIRLMode()){
+      const formula=`${diceCount}${def.dieBase}${spellMod>=0?'+'+spellMod:spellMod}`;
+      _healIRLPending={targets,name};
+      openModal(`<div class="pt">${def.icon} ${esc(name)} — Mode IRL</div><div style="text-align:center;padding:12px 0"><div style="font-size:14px;color:var(--text2);margin-bottom:4px">Lance : <strong style="color:var(--cp)">${formula}</strong></div><div style="font-size:11px;color:var(--text3);margin-bottom:12px">Pour : <strong>${targets.map(t=>esc(t.name)).join(', ')}</strong></div><input class="fi" id="healIRLIn" type="number" min="1" style="text-align:center;font-size:22px;margin-bottom:12px"><div style="display:flex;gap:8px"><button class="btn" style="flex:1" onclick="closeModal()">Annuler</button><button class="btn bac" style="flex:2" onclick="(()=>{const v=parseInt(document.getElementById('healIRLIn').value)||0;if(v<1)return;_applyHealTargets(_healIRLPending.targets,v,_healIRLPending.name);_healIRLPending=null;closeModal();})()">✓ Soigner</button></div></div>`);
+    }else{
+      let total=spellMod;for(let i=0;i<diceCount;i++)total+=Math.ceil(Math.random()*dieSize);total=Math.max(1,total);
+      _applyHealTargets(targets,total,name);
+      showToast(`${def.icon} ${esc(name)} : <strong>+${total} PV</strong> pour ${targets.map(t=>esc(t.name)).join(', ')} !`,2500);
+    }
+  }else{
+    const buff={name:def.buff,die:def.die,sourceName,persistent:!!def.persistent};
+    targets.forEach(t=>{
+      if(t.isSelf){if(!p.activeBuffs)p.activeBuffs=[];if(!p.activeBuffs.some(b=>b.name===def.buff))p.activeBuffs.push(buff);saveAll();}
+      else if(t.docId&&typeof fbDb!=='undefined')fbDb.collection('characters').doc(t.docId).update({'characterData.activeBuffs':firebase.firestore.FieldValue.arrayUnion(buff)}).catch(()=>{});
+    });
+    render();showToast(`${def.icon} ${esc(name)} lancé sur ${targets.map(t=>esc(t.name)).join(', ')} !`,2500);
+  }
+}
+function _applyHealTargets(targets,amount,spellName){
+  const p=P();
+  targets.forEach(t=>{
+    if(t.isSelf){p.hp=Math.min(p.hpMax||1,(p.hp||0)+amount);saveAll();render();}
+    else if(t.docId&&typeof fbDb!=='undefined'){
+      const gp=(typeof _groupData!=='undefined'?_groupData:[]).find(x=>x.docId===t.docId);
+      if(gp){const newHp=Math.min(gp.charData.hpMax||1,(gp.charData.hp||0)+amount);fbDb.collection('characters').doc(t.docId).update({'characterData.hp':newHp}).catch(()=>{});}
+    }
+  });
+}
+
+function _clearGroupConcentrationBuff(spellName,casterName){
+  if(!spellName)return;
+  const def=_SUPPORT_SPELLS[spellName];
+  if(!def||!def.buff)return;
+  const buffName=def.buff;
+  const p=P();
+  // Retire le buff de la fiche du lanceur lui-même si nécessaire
+  if((p.activeBuffs||[]).some(b=>b.name===buffName)){
+    p.activeBuffs=(p.activeBuffs||[]).filter(b=>b.name!==buffName);
+    saveAll();
+  }
+  // Retire le buff de tous les alliés qui l'avaient reçu de ce lanceur
+  const affected=(typeof _groupData!=='undefined'?_groupData:[])
+    .filter(gp=>gp.uid!==currentUser?.uid&&(gp.charData?.activeBuffs||[]).some(b=>b.name===buffName&&b.sourceName===casterName));
+  if(!affected.length){render();return;}
+  affected.forEach(gp=>{
+    const newBuffs=(gp.charData.activeBuffs||[]).filter(b=>!(b.name===buffName&&b.sourceName===casterName));
+    if(typeof fbDb!=='undefined')fbDb.collection('characters').doc(gp.docId).update({'characterData.activeBuffs':newBuffs}).catch(()=>{});
+  });
+  showToast(`✕ ${esc(spellName)} terminé — buff retiré de ${affected.map(g=>esc(g.charData?.charName||g.playerName||'Joueur')).join(', ')}.`,3000);
+  render();
+}
+
+// ─── LANCER UN SORT ───
+let _castPendingSlots=null;
+function castSpell(name,level){
+  const p=P();const d=findSpellData(name);
+  if(!level){_finalizeCast(name,d,0,false);return;}
+  const isConc=!!(d&&d.duration&&/concentration/i.test(d.duration));
+  if(isConc&&(p.statuses||[]).some(s=>s.name==='Concentration')){
+    if(!confirm(`Concentration active sur "${p.concentrationSpell||'?'}". Briser pour lancer ${name} ?`))return;
+    const _prevConc=p.concentrationSpell,_prevName=p.charName||'';
+    p.statuses=(p.statuses||[]).filter(s=>s.name!=='Concentration');p.concentrationSpell='';
+    if(_prevConc)_clearGroupConcentrationBuff(_prevConc,_prevName);
+  }
+  const slots=calcSpellSlots(p);const su=p.spellSlotsUsed||[];const wSlots=getWarlockSlots(p);
+  const available=[];
+  if(slots){for(let ni=level-1;ni<=8;ni++){const tot=slots[ni]||0;const used=su[ni]||0;if(tot>0&&used<tot)available.push({ni,label:`Niv.${ni+1} — ${tot-used}/${tot} dispo`});}}
+  if(wSlots&&level<=wSlots[1]){const wUsed=su[9]||0,wTot=wSlots[0];if(wUsed<wTot)available.push({ni:9,label:`Pacte Niv.${wSlots[1]} — ${wTot-wUsed}/${wTot} dispo`,wLvl:wSlots[1]});}
+  if(!available.length){showToast('❌ Aucun emplacement disponible pour ce sort !');return;}
+  if(available.length===1){_spendAndCast(name,level,available[0],d,isConc);return;}
+  _castPendingSlots={name,level,available,d,isConc};
+  openModal(`<div>
+    <div style="font-size:15px;font-weight:700;color:var(--cp);margin-bottom:4px">✦ ${esc(name)}</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:14px">Choisir l'emplacement de sort :</div>
+    ${available.map((sl,i)=>`<button class="btn bprimary" style="width:100%;margin-bottom:8px;padding:10px 14px;text-align:left;font-size:13px" onclick="closeModal();_confirmCastSlot(${i})">${esc(sl.label)}</button>`).join('')}
+    <button class="btn" style="width:100%;font-size:12px;margin-top:4px" onclick="closeModal();_castPendingSlots=null">Annuler</button>
+  </div>`);
+}
+function _confirmCastSlot(idx){if(!_castPendingSlots)return;const{name,level,available,d,isConc}=_castPendingSlots;_castPendingSlots=null;_spendAndCast(name,level,available[idx],d,isConc);}
+function _spendAndCast(name,minLevel,slot,d,isConc){
+  const p=P();if(!p.spellSlotsUsed)p.spellSlotsUsed=[];
+  p.spellSlotsUsed[slot.ni]=(p.spellSlotsUsed[slot.ni]||0)+1;
+  const usedLvl=slot.wLvl||(slot.ni+1);
+  if(isConc){if(!p.statuses)p.statuses=[];if(!p.statuses.some(s=>s.name==='Concentration'))p.statuses.push({name:'Concentration'});p.concentrationSpell=name;}
+  saveAll();render();
+  _finalizeCast(name,d,usedLvl>minLevel?usedLvl:0,isConc);
+}
+function _finalizeCast(name,d,upcastLvl,isConc){
+  const p=P();const dmg=d?d.damage||'':'';const save=d?d.savingThrow||'':'';
+  const mc=mainClass(p);const cd=mc?SRD.classes.find(c=>c.name===mc.name):null;
+  const sagM=mod(p.abilities[4]||10),intM=mod(p.abilities[3]||10),chaM=mod(p.abilities[5]||10);
+  const spellMod=cd?({CHA:chaM,SAG:sagM,INT:intM}[cd.saves&&cd.saves[1]]||intM):intM;
+  const spellDC=8+pb(totalLevel(p))+spellMod;
+  const suppDef=_SUPPORT_SPELLS[name];
+  if(suppDef){
+    const hasAllies=(typeof _groupData!=='undefined')&&_groupData.some(gp=>gp.uid!==currentUser?.uid);
+    if(hasAllies||suppDef.heal||suppDef.canSelf){_openSupportSpellModal(name,suppDef,spellMod,upcastLvl);return;}
+  }
+  if(_isIRLMode()){
+    let html=`<strong style="font-size:16px">${esc(name)}</strong>`;
+    if(upcastLvl)html+=` <span style="font-size:11px;color:var(--cp)">(amplifié niv.${upcastLvl})</span>`;
+    if(isConc)html+=`<br><span style="font-size:12px;color:#ffd54f">🎯 Concentration activée</span>`;
+    if(save)html+=`<br>JS <strong>${esc(save)}</strong> — DD <strong style="font-size:20px;color:var(--cp)">${spellDC}</strong>`;
+    if(dmg)html+=`<br>Dégâts : lance <strong style="font-size:15px">${esc(dmg)}</strong>`;
+    if(!dmg&&!save)html+=`<br><span style="font-size:12px;color:var(--text3)">Applique l'effet du sort</span>`;
+    showIRLRoll(html);
+  }else{
+    rollSpellPlayer(name,dmg,save);
+    if(upcastLvl)showToast(`✦ ${name} — amplifié au niveau ${upcastLvl} !`,2500);
+  }
+}
+
 // ═══════════════════════════════════════
