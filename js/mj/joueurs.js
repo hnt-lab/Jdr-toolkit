@@ -37,6 +37,7 @@ function mjTabJoueurs(){
           <button class="btn bsm bprimary" onclick="mjAddPlayerToCombat(${i})">⚡ Combat</button>
           <button class="btn bsm" style="color:#ff9800;border-color:rgba(255,152,0,.3)" onclick="mjRespecPlayer(${i})" title="Réinitialiser les niveaux">↩ Respec</button>
           <button class="btn bsm" style="color:#9c27b0;border-color:rgba(156,39,176,.3)" onclick="mjWhisperPlayer(${i})" title="Chuchoter à ce joueur">🤫</button>
+          ${(p.features||[]).some(f=>f.name==='Magie sauvage')?`<button class="btn bsm" style="color:#ce93d8;border-color:rgba(206,147,216,.3)" onclick="mjTriggerSurtension(${i})" title="Déclencher une surtension de magie sauvage">🌀 Surtension</button>`:''}
           ${p.familiar?.active?`<button class="btn bsm" style="border-color:rgba(200,168,75,.5);color:var(--cp)" onclick="mjAddFamiliarToCombat(${i})" title="Ajouter le familier au combat">🦉 ${esc(p.familiar.name)}</button>`:''}
           <button class="btn bsm" style="color:#e53935;border-color:rgba(229,57,53,.3)" onclick="mjModerationModal(${i})" title="Modérer ce joueur">🗑</button>
         </div>
@@ -797,16 +798,42 @@ function mjWhisperPlayer(idx){
   if(!currentTableId){showToast('❌ Rejoignez une campagne pour chuchoter.');return;}
   _whisperTarget=idx;
   const players=typeof _mjPlayersData!=='undefined'?_mjPlayersData:[];
-  openWideModal(`<div class="pt">🤫 Chuchoter à un joueur</div>
-    <div style="margin-bottom:10px">${players.length?players.map((pl,i)=>`<div class="lu-choice${idx===i?' selected':''}" style="padding:8px 12px;margin-bottom:6px;cursor:pointer" onclick="_whisperTarget=${i};document.querySelectorAll('#wideModal .lu-choice').forEach((el,j)=>{el.classList.toggle('selected',j===${i});})">
-      <div style="font-size:13px;font-weight:600">${esc(pl.playerName||'Joueur')}</div>
-      <div style="font-size:11px;color:var(--text3)">${esc((pl.charData||{}).charName||'?')}</div>
-    </div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:8px">Aucun joueur connecté.</div>'}</div>
-    <textarea id="whisperMsg" placeholder="Message secret..." style="width:100%;box-sizing:border-box;min-height:72px;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;resize:vertical;margin-bottom:8px"></textarea>
+  const targetUid=players[idx]?.uid||'';
+  openWideModal(`<div class="pt" style="margin-bottom:8px">🤫 Chuchoter à un joueur</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+      ${players.map((pl,i)=>`<button class="btn bsm${idx===i?' bprimary':''}" id="mjwrecip_${i}" style="padding:5px 10px" onclick="_mjSelectWhisperPlayer(${i})">${esc(pl.playerName||'Joueur')}${(pl.charData||{}).charName?` <span style="font-size:10px;opacity:.7">(${esc((pl.charData||{}).charName)})</span>`:''}</button>`).join('')}
+    </div>
+    <div id="mjWhisperHistory" style="min-height:80px;max-height:180px;overflow-y:auto;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px;margin-bottom:8px">${typeof _whisperConvHtml==='function'?_whisperConvHtml(targetUid):'<div style="font-size:12px;color:var(--text3);font-style:italic;text-align:center;padding:8px">Aucun message échangé.</div>'}</div>
+    <textarea id="whisperMsg" placeholder="Message secret..." style="width:100%;box-sizing:border-box;min-height:64px;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;resize:vertical;margin-bottom:8px"></textarea>
     <div style="display:flex;gap:8px">
-      <button class="btn" onclick="closeModal()">Annuler</button>
-      <button class="btn bac" style="flex:1" onclick="_sendMJWhisper()">🤫 Envoyer</button>
+      <button class="btn" onclick="closeModal()">Fermer</button>
+      <button class="btn bac" style="flex:1" onclick="_sendMJWhisperAndRefresh()">🤫 Envoyer</button>
     </div>`);
+  setTimeout(()=>{const h=document.getElementById('mjWhisperHistory');if(h)h.scrollTop=h.scrollHeight;},50);
+}
+function _mjSelectWhisperPlayer(idx){
+  _whisperTarget=idx;
+  document.querySelectorAll('[id^="mjwrecip_"]').forEach((el,j)=>{el.classList.toggle('bprimary',j===idx);});
+  const players=typeof _mjPlayersData!=='undefined'?_mjPlayersData:[];
+  const h=document.getElementById('mjWhisperHistory');
+  if(!h)return;
+  h.innerHTML=typeof _whisperConvHtml==='function'?_whisperConvHtml(players[idx]?.uid||''):'';
+  h.scrollTop=h.scrollHeight;
+}
+function _sendMJWhisperAndRefresh(){
+  const msg=document.getElementById('whisperMsg')?.value?.trim();
+  if(!msg){showToast('❌ Message vide.');return;}
+  const players=typeof _mjPlayersData!=='undefined'?_mjPlayersData:[];
+  if(_whisperTarget<0||!players[_whisperTarget]){showToast('❌ Sélectionnez un destinataire.');return;}
+  const pl=players[_whisperTarget];
+  sendWhisperMsg(pl.uid,pl.playerName||'Joueur',msg);
+  const ta=document.getElementById('whisperMsg');if(ta)ta.value='';
+  setTimeout(()=>{
+    const h=document.getElementById('mjWhisperHistory');
+    if(!h)return;
+    h.innerHTML=typeof _whisperConvHtml==='function'?_whisperConvHtml(pl.uid):'';
+    h.scrollTop=h.scrollHeight;
+  },400);
 }
 
 function mjRespecPlayer(idx){
@@ -905,6 +932,82 @@ async function mjKickFromTable(idx){
     showToast(`✅ ${playerName} exclu(e) de la table.`);
     // Les docs supprimés déclenchent le listener onSnapshot (type='removed') — pas besoin de loadMJPlayersData
   }catch(e){showToast('❌ Erreur : '+e.message);}
+}
+
+// ─────────────────────────────────────────
+// MAGIE SAUVAGE — TABLE & TRIGGER
+// ─────────────────────────────────────────
+const WILD_MAGIC_SURGE_TABLE = [
+  {range:'01-02', icon:'🔁', title:'Boucle chaotique',        effect:'Lance ce dé au début de chacun de tes tours pendant 1 min (ignore ce résultat sur les relances).'},
+  {range:'03-04', icon:'👁', title:'Vision mystique',          effect:'Pendant 1 min, tu vois les créatures invisibles si tu as une ligne de vue vers elles.'},
+  {range:'05-06', icon:'🤖', title:'Modron invoqué',           effect:'Un modron apparaît dans un espace libre à 1,5m de toi, puis disparaît après 1 min.'},
+  {range:'07-08', icon:'🔥', title:'Boule de feu sur soi',     effect:'Tu lances Boule de feu (niv.3) centrée sur toi-même.'},
+  {range:'09-10', icon:'✨', title:'Missiles magiques (niv.5)', effect:'Tu lances Missiles magiques comme un sort de niveau 5.'},
+  {range:'11-12', icon:'📏', title:'Changement de taille',     effect:'Lance 1d10 : si impair, tu rapetisses du résultat en pouces ; si pair, tu grandis.'},
+  {range:'13-14', icon:'😵', title:'Confusion',                effect:'Tu lances Confusion centré sur toi-même.'},
+  {range:'15-16', icon:'💚', title:'Régénération',             effect:'Pendant 1 min, tu récupères 5 PV au début de chacun de tes tours.'},
+  {range:'17-18', icon:'🐦', title:'Barbe de plumes',          effect:'Tu fais pousser une longue barbe de plumes jusqu\'à ton prochain éternuement.'},
+  {range:'19-20', icon:'🛢', title:'Sol gras',                 effect:'Tu lances Sol gras centré sur toi-même.'},
+  {range:'21-22', icon:'⚡', title:'Sorts amplifiés',          effect:'Les créatures ont le désavantage aux JS contre ton prochain sort dans la minute.'},
+  {range:'23-24', icon:'🔵', title:'Peau bleue',               effect:'Ta peau vire au bleu vif. Seul Délivrance des malédictions peut annuler l\'effet.'},
+  {range:'25-26', icon:'👀', title:'Troisième œil',            effect:'Un œil apparaît sur ton front pendant 1 min : avantage aux tests de Perception (vue).'},
+  {range:'27-28', icon:'⏩', title:'Sorts accélérés',          effect:'Pendant 1 min, tes sorts de 1 action passent en action bonus.'},
+  {range:'29-30', icon:'💨', title:'Téléportation',            effect:'Tu te téléportes jusqu\'à 18m vers un espace libre que tu peux voir.'},
+  {range:'31-32', icon:'🌌', title:'Plan astral',              effect:'Tu es transporté dans le Plan Astral jusqu\'à la fin de ton prochain tour.'},
+  {range:'33-34', icon:'💥', title:'Dégâts maximisés',         effect:'Le prochain sort infligeant des dégâts est automatiquement maximisé (dans la minute).'},
+  {range:'35-36', icon:'⏳', title:'Changement d\'âge',        effect:'Lance 1d10 : si impair, tu rajeunit d\'autant d\'années ; si pair, tu vieillit.'},
+  {range:'37-38', icon:'🦋', title:'Flumphs',                  effect:'1d6 flumphs apparaissent dans un rayon de 18m, effrayés de toi. Disparaissent après 1 min.'},
+  {range:'39-40', icon:'💖', title:'Soin spontané',            effect:'Tu récupères 2d10 PV.'},
+  {range:'41-42', icon:'🌿', title:'Plante en pot',            effect:'Tu deviens une plante en pot jusqu\'au début de ton prochain tour (incapable d\'agir, vulnérable à tout).'},
+  {range:'43-44', icon:'🏃', title:'Téléportation bonus',      effect:'Pendant 1 min, tu peux te téléporter de 6m en action bonus à chaque tour.'},
+  {range:'45-46', icon:'🎈', title:'Lévitation',               effect:'Tu lances Lévitation sur toi-même.'},
+  {range:'47-48', icon:'🦄', title:'Licorne invoquée',         effect:'Une licorne apparaît dans un espace libre à 1,5m de toi et disparaît après 1 min.'},
+  {range:'49-50', icon:'💬', title:'Bulles roses',             effect:'Tu ne peux pas parler pendant 1 min. Tes tentatives produisent des bulles roses.'},
+  {range:'51-52', icon:'🛡', title:'Bouclier spectral',        effect:'Pendant 1 min, +2 CA et immunité aux Missiles magiques.'},
+  {range:'53-54', icon:'🍺', title:'Sobriété totale',          effect:'Tu deviens immunisé à l\'ivresse alcoolique pendant 5d6 jours.'},
+  {range:'55-56', icon:'💈', title:'Calvitie temporaire',      effect:'Tes cheveux tombent mais repoussent dans les 24h.'},
+  {range:'57-58', icon:'🔥', title:'Toucher enflammé',         effect:'Pendant 1 min, tout objet inflammable que tu touches (non porté) s\'enflamme.'},
+  {range:'59-60', icon:'✨', title:'Sort récupéré',            effect:'Tu récupères ton emplacement de sort le plus bas dépensé.'},
+  {range:'61-62', icon:'📢', title:'Cris involontaires',       effect:'Tu dois crier tout ce que tu dis pendant 1 min.'},
+  {range:'63-64', icon:'🌫', title:'Brouillard',               effect:'Tu lances Nappe de brouillard centré sur toi-même.'},
+  {range:'65-66', icon:'⚡', title:'Foudre multiple',          effect:'Jusqu\'à 3 créatures de ton choix dans un rayon de 9m reçoivent 4d10 dégâts de foudre.'},
+  {range:'67-68', icon:'😨', title:'Terreur soudaine',         effect:'Tu es effrayé par la créature la plus proche jusqu\'à la fin de ton prochain tour.'},
+  {range:'69-70', icon:'👻', title:'Invisibilité de masse',    effect:'Les créatures à 9m de toi deviennent invisibles pendant 1 min (fin si elles attaquent ou lancent un sort).'},
+  {range:'71-72', icon:'🔰', title:'Résistance totale',        effect:'Tu gagnes la résistance à tous les dégâts pendant 1 min.'},
+  {range:'73-74', icon:'☠', title:'Poison aléatoire',         effect:'Une créature aléatoire dans un rayon de 18m est empoisonnée pendant 1d4 heures.'},
+  {range:'75-76', icon:'✨', title:'Halo éblouissant',         effect:'Tu rayonnes une lumière vive (9m) pendant 1 min. Créatures à 1,5m aveuglées jusqu\'à fin de leur prochain tour.'},
+  {range:'77-78', icon:'🐑', title:'Métamorphose',             effect:'Tu lances Métamorphose sur toi-même. En cas d\'échec au JS, tu deviens un mouton.'},
+  {range:'79-80', icon:'🦋', title:'Papillons illusoires',     effect:'Des papillons et pétales de fleurs tourbillonnent à 3m de toi pendant 1 min.'},
+  {range:'81-82', icon:'⚡', title:'Action supplémentaire',    effect:'Tu peux immédiatement effectuer une action supplémentaire.'},
+  {range:'83-84', icon:'💜', title:'Drain nécrotique',         effect:'Les créatures à 9m de toi reçoivent 1d10 dégâts nécrotiques. Tu récupères autant de PV.'},
+  {range:'85-86', icon:'🪞', title:'Image miroir',             effect:'Tu lances Image miroir.'},
+  {range:'87-88', icon:'🦅', title:'Vol aléatoire',            effect:'Tu lances Vol sur une créature aléatoire dans un rayon de 18m.'},
+  {range:'89-90', icon:'🌑', title:'Invisibilité',             effect:'Tu deviens invisible jusqu\'au début de ton prochain tour ou jusqu\'à ton prochain sort/attaque.'},
+  {range:'91-92', icon:'💫', title:'Résurrection imminente',   effect:'Si tu meurs dans la minute, tu reviens à la vie comme par Réincarnation.'},
+  {range:'93-94', icon:'🔼', title:'Taille augmentée',        effect:'Tu grandis d\'une catégorie de taille pendant 1 min.'},
+  {range:'95-96', icon:'📌', title:'Vulnérabilité perçante',   effect:'Toi et les créatures à 9m êtes vulnérables aux dégâts perforants pendant 1 min.'},
+  {range:'97-98', icon:'🎵', title:'Musique éthérée',          effect:'Tu es entouré d\'une musique éthérée douce pendant 1 min.'},
+  {range:'99-00', icon:'✨', title:'Points de sorcellerie',    effect:'Tu récupères tous tes points de sorcellerie dépensés.'},
+];
+
+function mjTriggerSurtension(idx){
+  const pp=_mjPlayersData[idx];if(!pp)return;
+  const charName=esc((pp.charData||{}).charName||'Le personnage');
+  const roll=Math.floor(Math.random()*100)+1;
+  const display=roll===100?'00':String(roll).padStart(2,'0');
+  let entry=WILD_MAGIC_SURGE_TABLE[Math.floor((roll-1)/2)];
+  if(!entry)entry=WILD_MAGIC_SURGE_TABLE[WILD_MAGIC_SURGE_TABLE.length-1];
+  openWideModal(
+    '<div style="padding:4px">'
+    +'<div style="font-size:15px;font-weight:700;color:#ce93d8;margin-bottom:6px">🌀 Surtension de magie sauvage</div>'
+    +'<div style="font-size:12px;color:var(--text2);margin-bottom:10px">'+charName+' — d100 = <strong style="font-size:15px;color:#ce93d8">'+display+'</strong> (entrée '+entry.range+')</div>'
+    +'<div style="padding:12px;background:rgba(156,39,176,.12);border:1px solid rgba(156,39,176,.4);border-radius:8px;margin-bottom:14px">'
+    +'<div style="font-size:14px;font-weight:600;margin-bottom:5px">'+entry.icon+' '+entry.title+'</div>'
+    +'<div style="font-size:13px;color:var(--text2);line-height:1.5">'+entry.effect+'</div>'
+    +'</div>'
+    +'<div style="text-align:right"><button class="btn bsm" onclick="closeModal()">✓ Fermer</button></div>'
+    +'</div>'
+  );
 }
 
 // ─────────────────────────────────────────
