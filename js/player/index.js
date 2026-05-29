@@ -398,18 +398,26 @@ function openWhisperModal(){
 }
 async function _openPlayerWhisperModal(){
   if(!currentCampaignId){showToast('❌ Rejoignez une campagne pour chuchoter.');return;}
-  openModal(`<div class="pt">🤫 Chuchoter à…</div><div id="whisperRecipList" style="margin-bottom:10px"><div style="font-size:12px;color:var(--text3);padding:8px;text-align:center">Chargement…</div></div>
-    <textarea id="whisperMsg" placeholder="Message secret..." style="width:100%;box-sizing:border-box;min-height:72px;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;resize:vertical;margin-bottom:8px"></textarea>
-    <div style="display:flex;gap:8px">
-      <button class="btn" onclick="closeModal()">Annuler</button>
-      <button class="btn bac" style="flex:1" onclick="_sendPlayerWhisper()">🤫 Envoyer</button>
-    </div>`);
+  openModal(`<div style="display:flex;flex-direction:column;gap:8px">
+    <div class="pt" style="margin-bottom:0">🤫 Chuchoter</div>
+    <div id="whisperRecipList" style="display:flex;gap:6px;flex-wrap:wrap;padding:2px 0"><div style="font-size:12px;color:var(--text3)">Chargement…</div></div>
+    <div id="whisperHistory" style="min-height:80px;max-height:200px;overflow-y:auto;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px">
+      <div style="font-size:12px;color:var(--text3);font-style:italic;text-align:center;padding:8px">Sélectionnez un destinataire.</div>
+    </div>
+    <div style="display:flex;gap:6px;align-items:flex-end">
+      <textarea id="whisperMsg" placeholder="Message secret..." style="flex:1;min-height:56px;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;resize:vertical"></textarea>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <button class="btn bac" style="white-space:nowrap" onclick="_sendPlayerWhisper()">🤫 Envoyer</button>
+        <button class="btn" onclick="closeModal()">Fermer</button>
+      </div>
+    </div>
+  </div>`);
   window._whisperRecipients=[];
   window._whisperTargetIdx=-1;
   try{
     const snap=await fbDb.collection('characters').where('campaignId','==',currentCampaignId).get();
     const recips=[];
-    if(currentTableMjId)recips.push({uid:currentTableMjId,name:'Maître de Jeu',sub:'MJ',isMJ:true});
+    if(currentTableMjId)recips.push({uid:currentTableMjId,name:'MJ',sub:'Maître de Jeu',isMJ:true});
     snap.docs.forEach(d=>{
       const data=d.data();
       if(d.id.endsWith('_mj'))return;
@@ -421,11 +429,40 @@ async function _openPlayerWhisperModal(){
     window._whisperRecipients=recips;
     const el=document.getElementById('whisperRecipList');
     if(!el)return;
-    el.innerHTML=recips.length?recips.map((r,i)=>`<div class="lu-choice" style="padding:8px 12px;margin-bottom:6px;cursor:pointer" onclick="window._whisperTargetIdx=${i};document.querySelectorAll('#modal .lu-choice').forEach((e,j)=>e.classList.toggle('selected',j===${i}))">
-      <div style="font-size:13px;font-weight:600">${esc(r.name)}${r.isMJ?' 🎲':''}</div>
-      ${r.sub?`<div style="font-size:11px;color:var(--text3)">${esc(r.sub)}</div>`:''}
-    </div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:8px">Aucun autre participant dans cette campagne.</div>';
-  }catch(e){const el=document.getElementById('whisperRecipList');if(el)el.innerHTML='<div style="font-size:12px;color:#e53935;padding:8px">Erreur de chargement.</div>';}
+    el.innerHTML=recips.length?recips.map((r,i)=>`<button class="btn bsm" id="wrecip_${i}" style="padding:5px 10px" onclick="_selectWhisperRecip(${i})">${esc(r.name)}${r.isMJ?' 🎲':''}</button>`).join(''):'<div style="font-size:12px;color:var(--text3)">Aucun participant.</div>';
+  }catch(e){const el=document.getElementById('whisperRecipList');if(el)el.innerHTML='<div style="font-size:12px;color:#e53935">Erreur de chargement.</div>';}
+}
+function _selectWhisperRecip(i){
+  window._whisperTargetIdx=i;
+  document.querySelectorAll('[id^="wrecip_"]').forEach((el,j)=>{el.classList.toggle('bprimary',j===i);});
+  _refreshWhisperHistoryDisplay();
+}
+function _whisperConvHtml(recipUid){
+  const msgs=(_whisperHistory||[]).filter(w=>w.sent?w.to===recipUid:w.from===recipUid)
+    .slice().sort((a,b)=>(a.ts?.seconds||0)-(b.ts?.seconds||0));
+  if(!msgs.length)return'<div style="font-size:12px;color:var(--text3);font-style:italic;text-align:center;padding:8px">Aucun message échangé.</div>';
+  return msgs.map(w=>{
+    const isSent=!!w.sent;
+    const ts=w.ts?.seconds?new Date(w.ts.seconds*1000).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}):'';
+    return`<div style="margin-bottom:6px;display:flex;flex-direction:column;align-items:${isSent?'flex-end':'flex-start'}">
+      <div style="max-width:82%;background:${isSent?'rgba(200,168,75,.12)':'var(--surface)'};border:1px solid ${isSent?'rgba(200,168,75,.35)':'var(--border)'};border-radius:${isSent?'10px 10px 2px 10px':'10px 10px 10px 2px'};padding:5px 10px">
+        <div style="font-size:12px;color:var(--text);line-height:1.4">${esc(w.message||'')}</div>
+      </div>
+      ${ts?`<div style="font-size:10px;color:var(--text3);margin-top:2px">${ts}</div>`:''}
+    </div>`;
+  }).join('');
+}
+function _refreshWhisperHistoryDisplay(){
+  const el=document.getElementById('whisperHistory');
+  if(!el)return;
+  const recips=window._whisperRecipients||[];
+  const idx=window._whisperTargetIdx??-1;
+  if(idx<0||!recips[idx]){
+    el.innerHTML='<div style="font-size:12px;color:var(--text3);font-style:italic;text-align:center;padding:8px">Sélectionnez un destinataire.</div>';
+    return;
+  }
+  el.innerHTML=_whisperConvHtml(recips[idx].uid);
+  el.scrollTop=el.scrollHeight;
 }
 function _sendPlayerWhisper(){
   const msg=document.getElementById('whisperMsg')?.value?.trim();
@@ -435,8 +472,8 @@ function _sendPlayerWhisper(){
   if(idx<0||!recips[idx]){showToast('❌ Sélectionnez un destinataire.');return;}
   const r=recips[idx];
   sendWhisperMsg(r.uid,r.name,msg);
-  window._whisperTargetIdx=-1;
-  closeModal();
+  const ta=document.getElementById('whisperMsg');if(ta)ta.value='';
+  setTimeout(()=>_refreshWhisperHistoryDisplay(),400);
 }
 function _sendMJWhisper(){
   const msg=document.getElementById('whisperMsg')?.value?.trim();
@@ -506,6 +543,17 @@ function getStatusEffects(p,rollType){
   return{hasDisadv,hasAdv,bonusDie};
 }
 
+let _luckyPendingRoll=null;
+function _isHalfling(p){return p&&(p.race==='Halfelin pied-léger'||p.race==='Halfelin robuste');}
+function _luckyCheckRolls(rolls,idx,onDone){
+  while(idx<rolls.length&&rolls[idx]!==1)idx++;
+  if(idx>=rolls.length){onDone(rolls);return;}
+  _luckyPendingRoll={rolls,idx,onDone};
+  openModal('<div style="text-align:center;padding:20px 16px"><div style="font-size:36px;margin-bottom:8px">🍀</div><div class="pt" style="margin-bottom:6px">Chanceux</div><div style="font-size:14px;color:var(--text2);margin-bottom:20px">Vous avez obtenu un <strong style="color:#e53935;font-size:18px">1</strong> !<br>Voulez-vous relancer ce dé ?<br><span style="font-size:11px;color:var(--text3)">∞ Illimité — fonctionne même avec avantage/désavantage</span></div><div style="display:flex;gap:8px;justify-content:center"><button class="btn bprimary" style="min-width:80px" onclick="_luckyReroll()">✅ Oui</button><button class="btn" style="min-width:80px" onclick="_luckySkip()">❌ Non</button></div></div>');
+}
+function _luckyReroll(){if(!_luckyPendingRoll)return;const{rolls,idx,onDone}=_luckyPendingRoll;_luckyPendingRoll=null;closeModal();rolls[idx]=Math.ceil(Math.random()*20);_luckyCheckRolls(rolls,idx,onDone);}
+function _luckySkip(){if(!_luckyPendingRoll)return;const{rolls,idx,onDone}=_luckyPendingRoll;_luckyPendingRoll=null;closeModal();_luckyCheckRolls(rolls,idx+1,onDone);}
+
 function diceRoll(die,label,bonus=0,rollType=''){
   const p=P();
   const n=parseInt(die.replace('d',''));
@@ -513,55 +561,48 @@ function diceRoll(die,label,bonus=0,rollType=''){
   if(_isIRLMode()){
     const advNote=effects.hasAdv&&!effects.hasDisadv?'<div style="margin-top:8px;color:#4caf50;font-size:14px">🟢 AVANTAGE — 2d20, garde le plus haut</div>':(effects.hasDisadv&&!effects.hasAdv?'<div style="margin-top:8px;color:#e53935;font-size:14px">🔴 DÉSAVANTAGE — 2d20, garde le plus bas</div>':'');
     const bonusDieNote=effects.bonusDie?` + <span style="color:#ffd54f">${effects.bonusDie}</span>`:'';
-    showIRLRoll(`<strong style="font-size:22px;color:var(--cp)">${label}</strong><br><span style="font-size:20px">Lance <strong>${die}</strong>${bonus?' <span style="color:var(--text3)">'+fmt(bonus)+'</span>':''}</span>${bonusDieNote}${advNote}`);
+    const luckyNote=_isHalfling(p)&&die==='d20'?'<div style="margin-top:6px;font-size:12px;color:#8d6e63">🍀 Si résultat = 1, vous pouvez relancer</div>':'';
+    showIRLRoll(`<strong style="font-size:22px;color:var(--cp)">${label}</strong><br><span style="font-size:20px">Lance <strong>${die}</strong>${bonus?' <span style="color:var(--text3)">'+fmt(bonus)+'</span>':''}</span>${bonusDieNote}${advNote}${luckyNote}`);
     return;
   }
-
-  // Avantage / désavantage → 2 dés, garde le plus haut/bas
   const roll1=Math.ceil(Math.random()*n);
-  let roll2=null,usedRoll=roll1;
-  if(effects.hasAdv&&!effects.hasDisadv){roll2=Math.ceil(Math.random()*n);usedRoll=Math.max(roll1,roll2);}
-  else if(effects.hasDisadv&&!effects.hasAdv){roll2=Math.ceil(Math.random()*n);usedRoll=Math.min(roll1,roll2);}
-
-  // Bonus de dé (Béni, Inspiré…)
-  let bonusDieRoll=0;
-  if(effects.bonusDie){const bd=parseInt(effects.bonusDie.replace('d',''));bonusDieRoll=Math.ceil(Math.random()*bd);}
-
-  let total=usedRoll+bonus+bonusDieRoll;
-  const isCrit=die==='d20'&&usedRoll===20;
-  const isFumble=die==='d20'&&usedRoll===1;
-
-  // Puissance indomptable (Barbare niv.18+) — minimum = valeur de Force sur jets de Force
-  let puissanceTag='';
-  const barbLvl=((p.classes||[]).find(c=>c.name==='Barbare')||{}).level||0;
-  if(barbLvl>=18&&(rollType==='for-carac'||rollType==='for-save')&&total<p.abilities[0]){
-    puissanceTag=` <span style="font-size:10px;color:#ff9800">💪 →${p.abilities[0]} (Puissance indomptable)</span>`;
-    total=p.abilities[0];
+  let roll2=null;
+  if(effects.hasAdv&&!effects.hasDisadv)roll2=Math.ceil(Math.random()*n);
+  else if(effects.hasDisadv&&!effects.hasAdv)roll2=Math.ceil(Math.random()*n);
+  function _finishRoll(finalRolls){
+    const fr1=finalRolls[0],fr2=finalRolls.length>1?finalRolls[1]:null;
+    let usedRoll=fr1;
+    if(fr2!==null){usedRoll=effects.hasAdv&&!effects.hasDisadv?Math.max(fr1,fr2):Math.min(fr1,fr2);}
+    let bonusDieRoll=0;
+    if(effects.bonusDie){const bd=parseInt(effects.bonusDie.replace('d',''));bonusDieRoll=Math.ceil(Math.random()*bd);}
+    let total=usedRoll+bonus+bonusDieRoll;
+    const isCrit=die==='d20'&&usedRoll===20;
+    const isFumble=die==='d20'&&usedRoll===1;
+    let puissanceTag='';
+    const barbLvl=((p.classes||[]).find(c=>c.name==='Barbare')||{}).level||0;
+    if(barbLvl>=18&&(rollType==='for-carac'||rollType==='for-save')&&total<p.abilities[0]){
+      puissanceTag=` <span style="font-size:10px;color:#ff9800">💪 →${p.abilities[0]} (Puissance indomptable)</span>`;
+      total=p.abilities[0];
+    }
+    diceHistory.push({die,label,roll:usedRoll,bonus,result:total,adv:effects.hasAdv,disadv:effects.hasDisadv});
+    if(diceHistory.length>10)diceHistory.shift();
+    let msg=`<strong>${label}</strong> : `;
+    if(fr2!==null){
+      const keptVal=usedRoll,droppedVal=usedRoll===fr1?fr2:fr1;
+      msg+=`[${keptVal} ${effects.hasAdv?'🟢':'🔴'}, ${droppedVal} ${effects.hasAdv?'🔴':'🟢'}]`;
+      msg+=effects.hasAdv?` <span style="font-size:10px;color:#4caf50">AVANTAGE</span>`:`<span style="font-size:10px;color:#e53935"> DÉSAVANTAGE</span>`;
+    }else{msg+=`d20(${usedRoll})`;}
+    if(bonus)msg+=` ${fmt(bonus)}`;
+    if(bonusDieRoll)msg+=` <span style="color:#ffd54f">+${effects.bonusDie}(${bonusDieRoll})</span>`;
+    msg+=` = <strong style="font-size:16px;color:${isCrit?'#ffd54f':isFumble?'#e53935':'var(--cp)'}">${total}</strong>${puissanceTag}`;
+    if(isCrit)msg+=` 🎉 CRITIQUE !`;
+    if(isFumble)msg+=` 💀 FUMBLE !`;
+    showToast(msg);
+    if(diceOpen)renderDicePanel();
   }
-
-  // Historique
-  diceHistory.push({die,label,roll:usedRoll,bonus,result:total,adv:effects.hasAdv,disadv:effects.hasDisadv});
-  if(diceHistory.length>10)diceHistory.shift();
-
-  // Toast
-  let msg=`<strong>${label}</strong> : `;
-  if(roll2!==null){
-    const kept=effects.hasAdv?'🟢':'🔴';
-    const dropped=effects.hasAdv?'🔴':'🟢';
-    const keptVal=usedRoll,droppedVal=usedRoll===roll1?roll2:roll1;
-    msg+=`[${keptVal} ${kept}, ${droppedVal} ${dropped}]`;
-    msg+=effects.hasAdv?` <span style="font-size:10px;color:#4caf50">AVANTAGE</span>`:`<span style="font-size:10px;color:#e53935"> DÉSAVANTAGE</span>`;
-  } else {
-    msg+=`d20(${usedRoll})`;
-  }
-  if(bonus)msg+=` ${fmt(bonus)}`;
-  if(bonusDieRoll)msg+=` <span style="color:#ffd54f">+${effects.bonusDie}(${bonusDieRoll})</span>`;
-  msg+=` = <strong style="font-size:16px;color:${isCrit?'#ffd54f':isFumble?'#e53935':'var(--cp)'}">${total}</strong>${puissanceTag}`;
-  if(isCrit)msg+=` 🎉 CRITIQUE !`;
-  if(isFumble)msg+=` 💀 FUMBLE !`;
-  showToast(msg);
-
-  if(diceOpen)renderDicePanel();
+  const rawRolls=roll2!==null?[roll1,roll2]:[roll1];
+  if(die==='d20'&&_isHalfling(p))_luckyCheckRolls(rawRolls,0,_finishRoll);
+  else _finishRoll(rawRolls);
 }
 
 function diceRollFree(d){
