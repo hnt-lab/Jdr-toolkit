@@ -125,6 +125,48 @@
   /* Boutons plus compacts */
   .btn{padding:5px 10px;font-size:12px}
   .bsm{padding:3px 7px;font-size:11px}
+  /* Hub */
+  .hub-hdr{padding:8px 12px}
+  .hub-hdr-title{font-size:15px}
+  .hub-section-title{flex-wrap:wrap;gap:6px}
+  .table-card-hdr{flex-wrap:wrap;gap:8px}
+  /* Vue joueur — hdr-char se compresse sans déborder */
+  .hdr-char{min-width:0;overflow:hidden}
+  /* MJ player cards */
+  .mj-player-card{padding:10px}
+}
+/* Breakpoint téléphone (≤480px) */
+@media(max-width:480px){
+  .hub-body{padding:8px 8px 80px}
+  .table-card{padding:12px}
+  .camp-expanded{padding:8px}
+  .hub-hdr-title{font-size:13px}
+  /* Empile le nom de table et les boutons MJ verticalement */
+  .table-card-hdr{flex-direction:column;align-items:stretch;gap:6px}
+  /* Boutons de section plus compacts */
+  .hub-section-title .btn,.hub-section-title .bsm{font-size:11px;padding:3px 8px}
+  /* Carte membre : wrap du nom long */
+  .member-badge{max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  /* Vue joueur header — plus compact */
+  #app,#mjScreen{padding:4px 4px 80px}
+  .hdr{gap:5px;padding:6px 8px}
+  .hdr-char{font-size:11px}
+  /* MJ header et cartes */
+  .mj-hdr{padding:6px 10px;gap:5px}
+  .mj-player-card{padding:8px}
+  /* Modale encore plus large sur tout petit écran */
+  .modal-box{width:99%;padding:10px}
+  /* Bulles de charges : plus petites et avec wrap */
+  .slot-bubble{width:16px!important;height:16px!important;margin:1px}
+  .ds-circle{width:16px!important;height:16px!important}
+  .feat-head{flex-wrap:wrap;row-gap:3px}
+  .feat-bubbles{max-width:160px}
+  /* Sort/feat rows : nom sur première ligne, actions dessous */
+  .sort-head{flex-wrap:wrap;row-gap:3px}
+  .sort-head > div:first-child{flex-basis:100%}
+  /* Combat row MJ : boutons sur 2e ligne, CA reste sur la 1re */
+  .combat-row{gap:4px 6px}
+  .cbt-actions{order:10;flex-basis:100%;padding:2px 0}
 }
 /* Breakpoint très petit (iPhone SE, etc.) */
 @media(max-width:380px){
