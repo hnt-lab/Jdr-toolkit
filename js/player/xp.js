@@ -598,6 +598,43 @@ let LU={
 };
 function resetLU(){LU={step:1,steps:[],choice:null,mcTarget:null,asiChoice:null,archetypeChoice:null,styleChoice:null,terrainChoice:null,metamagicChoices:[],newSpells:[],expertiseChoices:[],secretsChoices:[],mcSkillChoices:[],invocationChoices:[],hpRoll:null};_luSpellSearch='';_luSecretsSearch='';}
 
+function _parseFeatAbilityGrants(tx){
+  if(!tx)return[];
+  const keys=['Force','Dextérité','Constitution','Intelligence','Sagesse','Charisme'];
+  const m=tx.match(/Augmentez votre score de ([\wÀ-ÿ,\s']+?) de 1/i);
+  if(!m)return[];
+  const part=m[1];
+  return keys.reduce((acc,k,i)=>part.includes(k)?[...acc,i]:acc,[]);
+}
+
+function _checkFeatPrereqs(f,p){
+  // Retourne null si aucun prérequis connu, sinon {ok:bool, reasons:[{label,ok}]}
+  const nm=f.n||'';
+  const checks=[];
+  const ap=p.armorProfs||[];
+  const hasArmor=t=>ap.some(a=>a.toLowerCase().includes(t));
+  const _canCast=(p)=>(p.spells||[]).length>0||(p.classes||[]).some(c=>{const d=SRD.classes.find(cl=>cl.name===c.name);return d&&d.spellcaster;});
+  // Armures
+  if(/lourdement blind/i.test(nm))
+    checks.push({label:'Armure intermédiaire maîtrisée',ok:hasArmor('interm')});
+  if(/mod[eé]r[eé]ment blind/i.test(nm))
+    checks.push({label:'Armure légère maîtrisée',ok:ap.some(a=>/l[eé]g[eè]re?/i.test(a))});
+  if(/maître des armures lourdes/i.test(nm))
+    checks.push({label:'Armure lourde maîtrisée',ok:hasArmor('lourde')});
+  if(/maître des armures moyennes/i.test(nm))
+    checks.push({label:'Armure intermédiaire maîtrisée',ok:hasArmor('interm')});
+  // Incantation
+  if(/lanceur de guerre/i.test(nm))
+    checks.push({label:'Pouvoir lancer au moins 1 sort',ok:_canCast(p)});
+  if(/adepte de m[eé]tamagie/i.test(nm))
+    checks.push({label:'Classe Ensorceleur requise',ok:(p.classes||[]).some(c=>c.name==='Ensorceleur')});
+  // Race
+  if(/haute magie.*elfe|magie des elfes|magie des svirfnebelin|drow haute/i.test(nm))
+    checks.push({label:'Race Elfe / Drow requise',ok:/elfe|drow|svirfnebelin/i.test(p.race||'')});
+  if(!checks.length)return null;
+  return{ok:checks.every(c=>c.ok),reasons:checks};
+}
+
 const DRUID_CIRCLE_FEATS={
   'Cercle de la lune':{
     6:{name:'Frappe primitive',desc:'Tes attaques en forme animale sont considérées comme magiques et ignorent les résistances aux dégâts non magiques.'},
@@ -831,15 +868,35 @@ function luStepASI(p){
   const ab=p.abilities||[10,10,10,10,10,10];
   const choice=LU.asiChoice||{type:'double',stats:[],val:1};
   const isFeat=choice.type==='feat';
-  const valid=isFeat?!!choice.featName:(choice.type==='asi'&&choice.stats.length===1)||(choice.type==='double'&&choice.stats.length===2);
+  const selFeatData=isFeat&&choice.featName&&FEATS_DB?FEATS_DB.find(f=>f.n===choice.featName):null;
+  const featGrants=selFeatData?_parseFeatAbilityGrants(selFeatData.tx):[];
+  const needStatPick=featGrants.length>1;
+  const valid=isFeat?!!choice.featName&&(!needStatPick||choice.stats.length>0):(choice.type==='asi'&&choice.stats.length===1)||(choice.type==='double'&&choice.stats.length===2);
+
+  const statPickerSection=needStatPick?`<div style="margin-top:10px;padding:10px;background:var(--surface2);border-radius:8px">
+    <div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:8px">Ce don accorde <strong>+1</strong> à une caractéristique de ton choix :</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+      ${featGrants.map(i=>`<div onclick="LU.asiChoice.stats=[${i}];renderTab()" style="text-align:center;padding:8px 4px;background:${choice.stats[0]===i?'rgba(76,175,80,.18)':'var(--surface)'};border:2px solid ${choice.stats[0]===i?'#4caf50':'var(--border)'};border-radius:8px;cursor:pointer;transition:all .2s">
+        <div style="font-size:10px;color:var(--text3)">${ABILITIES[i]}</div>
+        <div style="font-size:18px;font-weight:700;color:${choice.stats[0]===i?'#4caf50':'var(--text)'}">${ab[i]}</div>
+        <div style="font-size:11px;color:var(--cp)">${fmt(mod(ab[i]))}</div>
+        ${choice.stats[0]===i?`<div style="font-size:9px;color:#4caf50">+1 ✓</div>`:''}
+      </div>`).join('')}
+    </div>
+  </div>`:'';
+
+  const featGrantInfo=featGrants.length===1?`<div style="margin-top:6px;font-size:11px;color:#4caf50">+1 ${ABILITIES[featGrants[0]]} inclus automatiquement</div>`:'';
 
   const featSection=isFeat?(FEATS_DB?`
     <input class="fi" id="featSearch" placeholder="Rechercher un don (ex: Alert, Actor...)..." oninput="luFilterFeats(this.value)" style="margin-bottom:8px">
-    ${choice.featName?`<div style="padding:10px;background:rgba(76,175,80,.1);border:1px solid #4caf50;border-radius:8px;margin-bottom:8px">
+    ${choice.featName?(()=>{const selPrereq=selFeatData?_checkFeatPrereqs(selFeatData,p):null;const prereqRow=selPrereq?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px">${selPrereq.reasons.map(r=>`<span style="font-size:10px;color:${r.ok?'#4caf50':'#e53935'};background:${r.ok?'rgba(76,175,80,.1)':'rgba(229,57,53,.1)'};border-radius:3px;padding:2px 6px">${r.ok?'✅':'❌'} ${esc(r.label)}</span>`).join('')}</div>`:'';return`<div style="padding:10px;background:rgba(76,175,80,.1);border:1px solid #4caf50;border-radius:8px;margin-bottom:8px">
       <div style="font-size:13px;font-weight:600;color:#4caf50">✓ ${esc(choice.featName)}</div>
-      <div style="font-size:11px;color:var(--text2);margin-top:4px">${esc((FEATS_DB.find(f=>f.n===choice.featName)||{}).tx||'')}</div>
-      <button class="btn bsm" style="margin-top:6px;font-size:11px" onclick="LU.asiChoice.featName='';renderTab()">Changer</button>
-    </div>`:''}
+      <div style="font-size:11px;color:var(--text2);margin-top:4px;line-height:1.4">${esc(selFeatData?selFeatData.tx:''||'')}</div>
+      ${prereqRow}
+      ${featGrantInfo}
+      ${statPickerSection}
+      <button class="btn bsm" style="margin-top:8px;font-size:11px" onclick="LU.asiChoice.featName='';LU.asiChoice.stats=[];renderTab()">Changer</button>
+    </div>`})():''}
     <div id="featResults"></div>
   `:`<div style="text-align:center;padding:14px;color:var(--text3);font-size:12px">Compendium non chargé — patiente un instant puis reviens à cet écran.</div>`):'';
 
@@ -882,15 +939,37 @@ function luToggleASI(i){
 }
 function luFilterFeats(q){
   const el=document.getElementById('featResults');if(!el||!FEATS_DB)return;
-  const _featHasPrereq=f=>!!(f.tx&&(f.tx.includes('Prérequis')||f.tx.toLowerCase().includes('prerequisite')));
-  const _featCard=f=>{const hasPre=_featHasPrereq(f);return`<div class="lu-choice" style="margin-bottom:6px;padding:8px 10px;cursor:pointer" onclick="LU.asiChoice.featName='${esc(f.n)}';renderTab()"><h3 style="font-size:13px;margin-bottom:4px">${esc(f.n)}${hasPre?` <span style="font-size:10px;color:#ff9800;font-weight:400">⚠ Prérequis</span>`:''}</h3><p style="font-size:11px;color:var(--text2);line-height:1.4">${esc(f.tx||'')}</p></div>`;};
-  if(!q.trim()){const preview=FEATS_DB.slice(0,24);el.innerHTML=preview.map(_featCard).join('')+`<div style="font-size:11px;color:var(--text3);text-align:center;padding:4px">…et ${FEATS_DB.length-24} autres. Tapez pour filtrer.</div>`;return;}
+  const p=P();
+  const _featCard=(f,prereq)=>{
+    const grants=_parseFeatAbilityGrants(f.tx);
+    const grantBadge=grants.length?` <span style="font-size:10px;color:#4caf50;font-weight:400;background:rgba(76,175,80,.12);border-radius:3px;padding:1px 5px">+1 ${grants.map(i=>ABILITIES_SH[i]).join('/')}</span>`:'';
+    const prereqFail=prereq&&!prereq.ok;
+    const prereqRow=prereq?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">${prereq.reasons.map(r=>`<span style="font-size:10px;color:${r.ok?'#4caf50':'#e53935'};background:${r.ok?'rgba(76,175,80,.1)':'rgba(229,57,53,.1)'};border-radius:3px;padding:1px 5px">${r.ok?'✅':'❌'} ${esc(r.label)}</span>`).join('')}</div>`:'';
+    return`<div class="lu-choice" style="margin-bottom:6px;padding:8px 10px;cursor:pointer;opacity:${prereqFail?.55:1}" onclick="LU.asiChoice.featName='${esc(f.n)}';LU.asiChoice.stats=[];renderTab()">
+      <h3 style="font-size:13px;margin-bottom:4px">${esc(f.n)}${grantBadge}</h3>
+      <p style="font-size:11px;color:var(--text2);line-height:1.4">${esc(f.tx||'')}</p>
+      ${prereqRow}
+    </div>`;
+  };
+  const _sortAndCard=(list)=>{
+    const withPrereq=list.map(f=>({f,prereq:_checkFeatPrereqs(f,p)}));
+    withPrereq.sort((a,b)=>{
+      const aOk=!a.prereq||a.prereq.ok;const bOk=!b.prereq||b.prereq.ok;
+      return aOk===bOk?0:aOk?-1:1;
+    });
+    return withPrereq.map(({f,prereq})=>_featCard(f,prereq)).join('');
+  };
+  if(!q.trim()){
+    const preview=FEATS_DB.slice(0,24);
+    el.innerHTML=_sortAndCard(preview)+`<div style="font-size:11px;color:var(--text3);text-align:center;padding:4px">…et ${FEATS_DB.length-24} autres. Tapez pour filtrer.</div>`;
+    return;
+  }
   const low=q.toLowerCase();
   const res=[];
-  for(let i=0;i<FEATS_DB.length&&res.length<12;i++){
+  for(let i=0;i<FEATS_DB.length&&res.length<18;i++){
     if(FEATS_DB[i].n&&FEATS_DB[i].n.toLowerCase().includes(low))res.push(FEATS_DB[i]);
   }
-  el.innerHTML=res.length?res.map(_featCard).join(''):'<div style="font-size:12px;color:var(--text3);text-align:center;padding:8px">Aucun résultat.</div>';
+  el.innerHTML=res.length?_sortAndCard(res):'<div style="font-size:12px;color:var(--text3);text-align:center;padding:8px">Aucun résultat.</div>';
 }
 
 // ── Sorts ──
@@ -1110,7 +1189,7 @@ function luStepRecap(p,newLvl){
       ${LU.archetypeChoice?`<div style="padding:6px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:600;color:var(--cp)">🎭 Archétype : ${esc(LU.archetypeChoice)}</div></div>`:''}
       ${LU.terrainChoice?`<div style="padding:6px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:600;color:var(--cp)">🗺 Terrain du cercle : ${esc(LU.terrainChoice)}</div></div>`:''}
       ${LU.styleChoice?`<div style="padding:6px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:600;color:var(--cp)">⚔ Style : ${esc(LU.styleChoice)}</div></div>`:''}
-      ${LU.asiChoice&&LU.asiChoice.type==='feat'&&LU.asiChoice.featName?`<div style="padding:6px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:600;color:#4caf50">🎯 Don : ${esc(LU.asiChoice.featName)}</div></div>`:''}
+      ${LU.asiChoice&&LU.asiChoice.type==='feat'&&LU.asiChoice.featName?(()=>{const rf=FEATS_DB&&FEATS_DB.find(f=>f.n===LU.asiChoice.featName);const rg=rf?_parseFeatAbilityGrants(rf.tx):[];const ri=LU.asiChoice.stats[0];const statNote=rg.length>1&&ri!==undefined?` <span style="font-size:11px;font-weight:400">(+1 ${ABILITIES[ri]})</span>`:rg.length===1?` <span style="font-size:11px;font-weight:400">(+1 ${ABILITIES[rg[0]]})</span>`:'';return`<div style="padding:6px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:600;color:#4caf50">🎯 Don : ${esc(LU.asiChoice.featName)}${statNote}</div></div>`;})():''}
       ${LU.asiChoice&&LU.asiChoice.type!=='feat'&&LU.asiChoice.stats.length?`<div style="padding:6px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:600;color:#4caf50">📈 Amélioration : +${LU.asiChoice.val} à ${LU.asiChoice.stats.map(j=>ABILITIES[j]).join(' et ')}</div></div>`:''}
       ${LU.expertiseChoices.length?`<div style="padding:6px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:600;color:#4caf50">🎯 Expertise : ${LU.expertiseChoices.join(', ')}</div></div>`:''}
       ${LU.newSpells.length?`<div style="padding:6px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:600;color:var(--cp)">✨ Nouveaux sorts : ${LU.newSpells.join(', ')}</div></div>`:''}
@@ -1164,9 +1243,10 @@ function applyLevelUp(){
     const dSrd=SRD.classes.find(c=>c.name===LU.mcTarget);
     const avg=dSrd?Math.floor(dSrd.hdVal/2)+1:4;
     const hpGain=LU.hpRoll!==null?LU.hpRoll:avg;
-    p.hpMax+=Math.max(1,hpGain+mod(p.abilities[2]));
-    if(p.race==='Nain des collines')p.hpMax+=1; // Ténacité naine
-    p.hp=p.hpMax;
+    const hpEff=Math.max(1,hpGain+mod(p.abilities[2]));
+    p.hpMax+=hpEff;
+    if(p.race==='Nain des collines')p.hpMax+=1;
+    p.hp=Math.min(p.hpMax,p.hp+hpEff+(p.race==='Nain des collines'?1:0));
     // Capacités niveau 1 multiclasse
     const newFeats=getLevel1Features(LU.mcTarget);
     newFeats.forEach(f=>{if(!p.features.find(x=>x.name===f.name))p.features.push(f);});
@@ -1181,9 +1261,10 @@ function applyLevelUp(){
     const dSrd=SRD.classes.find(c=>c.name===mc.name);
     const avg=dSrd?Math.floor(dSrd.hdVal/2)+1:4;
     const hpGain=LU.hpRoll!==null?LU.hpRoll:avg;
-    p.hpMax+=Math.max(1,hpGain+mod(p.abilities[2]));
-    if(p.race==='Nain des collines')p.hpMax+=1; // Ténacité naine
-    p.hp=p.hpMax;
+    const hpEff=Math.max(1,hpGain+mod(p.abilities[2]));
+    p.hpMax+=hpEff;
+    if(p.race==='Nain des collines')p.hpMax+=1;
+    p.hp=Math.min(p.hpMax,p.hp+hpEff+(p.race==='Nain des collines'?1:0));
     // Capacités du nouveau niveau — exclure ASI et les pures mécaniques de compteur
     const newClassLevel=entry?entry.level:1;
     const EXCLUDED_FEATS=[
@@ -1219,12 +1300,28 @@ function applyLevelUp(){
   }
 
   // ASI ou Don
+  const _conModBefore=mod(p.abilities[2]);
   if(LU.asiChoice&&LU.asiChoice.type==='feat'&&LU.asiChoice.featName){
     const feat=FEATS_DB?FEATS_DB.find(f=>f.n===LU.asiChoice.featName):null;
     if(!p.features)p.features=[];
     p.features.push({name:LU.asiChoice.featName,desc:(feat?feat.tx:'')||'',classe:'Don'});
+    // Appliquer le bonus de caractéristique accordé par le don
+    const grants=feat?_parseFeatAbilityGrants(feat.tx):[];
+    if(grants.length===1){
+      p.abilities[grants[0]]=Math.min(20,p.abilities[grants[0]]+1);
+    } else if(grants.length>1&&LU.asiChoice.stats.length>0){
+      p.abilities[LU.asiChoice.stats[0]]=Math.min(20,p.abilities[LU.asiChoice.stats[0]]+1);
+    }
   } else if(LU.asiChoice&&LU.asiChoice.stats.length){
     LU.asiChoice.stats.forEach(i=>{p.abilities[i]=Math.min(20,p.abilities[i]+LU.asiChoice.val);});
+  }
+  // SRD : si le modificateur de CON augmente, +1 PV max par niveau déjà atteint
+  const _conModAfter=mod(p.abilities[2]);
+  if(_conModAfter>_conModBefore){
+    const lvls=totalLevel(p);
+    const _conHpBonus=(_conModAfter-_conModBefore)*lvls;
+    p.hpMax+=_conHpBonus;
+    p.hp=Math.min(p.hpMax,p.hp+_conHpBonus);
   }
 
   // Archétype → ajouter comme capacité + mémoriser dans p.archetype
