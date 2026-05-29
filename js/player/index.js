@@ -114,9 +114,9 @@ function toggleIRLMode(){
   const next=!_isIRLMode();
   localStorage.setItem('irlDiceMode',next?'1':'0');
   const btn=document.getElementById('diceFloat');
-  if(btn)btn.innerHTML=next?'🪄':'🎲';
-  _openDiceShortcuts();
-  showToast(next?'🪄 Mode dés IRL activé — les formules s\'affichent, vous lancez vos vrais dés !':'🎲 Mode dés virtuels activé');
+  if(btn){btn.innerHTML=next?'🎲':'🎲';btn.style.background=next?'#ff9800':'var(--cp)';btn.style.color=next?'#000':'#1a1400';btn.style.boxShadow=next?'0 4px 16px rgba(255,152,0,.5)':'0 4px 16px rgba(0,0,0,.5)';}
+  if(document.getElementById('dicePanel')?.style.display!=='none')renderDicePanel();
+  showToast(next?'🪄 Mode dés IRL activé':'🎲 Mode dés virtuels activé',2000);
 }
 
 function createDiceButton(){
@@ -128,8 +128,9 @@ function createDiceButton(){
 
   const btn=document.createElement('div');
   btn.id='diceFloat';
-  btn.innerHTML=_isIRLMode()?'🪄':'🎲';
-  btn.style.cssText=`position:fixed;bottom:24px;right:24px;z-index:888;width:52px;height:52px;border-radius:50%;background:var(--cp);color:#1a1400;font-size:22px;display:none;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.5);transition:transform .15s;user-select:none;`;
+  btn.innerHTML='🎲';
+  const _irlNow=_isIRLMode();
+  btn.style.cssText=`position:fixed;bottom:24px;right:24px;z-index:888;width:52px;height:52px;border-radius:50%;background:${_irlNow?'#ff9800':'var(--cp)'};color:${_irlNow?'#000':'#1a1400'};font-size:22px;display:none;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px ${_irlNow?'rgba(255,152,0,.5)':'rgba(0,0,0,.5)'};transition:transform .15s;user-select:none;`;
   btn.onmouseenter=()=>btn.style.transform='scale(1.1)';
   btn.onmouseleave=()=>btn.style.transform='scale(1)';
   let _pressTimer=null,_longActivated=false;
@@ -156,10 +157,6 @@ function _openDiceShortcuts(){
     ?`<img src="${portrait}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block">`
     :`<span style="font-size:20px">${currentUserData?.avatar||'⚔'}</span>`;
   sp.innerHTML=`
-    <div style="display:flex;align-items:center;gap:8px">
-      <span style="font-size:12px;color:${_isIRLMode()?'#ff9800':'var(--cp)'};background:var(--surface);padding:4px 10px;border-radius:20px;border:1px solid ${_isIRLMode()?'rgba(255,152,0,.4)':'var(--border)'};white-space:nowrap">${_isIRLMode()?'🪄 Dés IRL actif':'🎲 Dés virtuels'}</span>
-      <button style="width:44px;height:44px;border-radius:50%;background:${_isIRLMode()?'rgba(255,152,0,.15)':'var(--surface)'};border:2px solid ${_isIRLMode()?'#ff9800':'var(--cp)'};color:${_isIRLMode()?'#ff9800':'var(--cp)'};font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4)" onclick="toggleIRLMode()">${_isIRLMode()?'🪄':'🎲'}</button>
-    </div>
     <div style="display:flex;align-items:center;gap:8px">
       <span style="font-size:12px;color:var(--cp);background:var(--surface);padding:4px 10px;border-radius:20px;border:1px solid var(--border);white-space:nowrap">Journal</span>
       <button style="width:44px;height:44px;border-radius:50%;background:var(--surface);border:2px solid var(--cp);color:var(--cp);font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4)" onclick="_diceNav('journal')">📓</button>
@@ -199,19 +196,26 @@ function toggleDicePanel(){
   diceOpen=!diceOpen;
   const panel=document.getElementById('dicePanel');
   if(!panel)return;
-  if(diceOpen){renderDicePanel();panel.style.display='block';}
-  else panel.style.display='none';
+  if(diceOpen){_closeDiceShortcuts();renderDicePanel();panel.style.display='block';}
+  else{panel.style.display='none';_closeDiceShortcuts();}
 }
 
+function _irlToggleHtml(){
+  const irl=_isIRLMode();
+  return`<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-radius:8px;background:${irl?'rgba(255,152,0,.1)':'var(--surface2)'};border:1px solid ${irl?'rgba(255,152,0,.4)':'var(--border)'};margin-bottom:12px;cursor:pointer" onclick="toggleIRLMode()">
+    <div><div style="font-size:12px;font-weight:600;color:${irl?'#ff9800':'var(--text2)'}">${irl?'🪄 Mode IRL actif':'🎲 Mode virtuel actif'}</div><div style="font-size:10px;color:var(--text3)">${irl?'Vous lancez vos vrais dés':'Les dés sont lancés automatiquement'}</div></div>
+    <div style="width:36px;height:20px;border-radius:10px;background:${irl?'#ff9800':'var(--surface3,#333)'};position:relative;transition:background .2s"><div style="position:absolute;top:3px;${irl?'right:3px':'left:3px'};width:14px;height:14px;border-radius:50%;background:white;transition:all .2s"></div></div>
+  </div>`;
+}
 function renderDicePanel(){
   const panel=document.getElementById('dicePanel');if(!panel)return;
   const p=P();
   if(!p||!p.abilities){
     panel.innerHTML=`<div style="font-family:var(--F);font-size:13px;color:var(--cp);letter-spacing:.06em;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center"><span>🎲 Lanceur de dés</span><span onclick="toggleDicePanel()" style="cursor:pointer;color:var(--text3);font-size:16px">×</span></div>
+    ${_irlToggleHtml()}
     <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px">${['d4','d6','d8','d10','d12','d20','d100'].map(d=>`<button onclick="diceRollFree('${d}')" style="padding:5px 9px;border:1px solid var(--border);border-radius:6px;font-size:12px;cursor:pointer;background:var(--surface2);color:var(--text2);font-family:var(--B)" onmouseenter="this.style.borderColor='var(--cp)';this.style.color='var(--cp)'" onmouseleave="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">${d}</button>`).join('')}</div>
     <div id="diceResultFree" style="padding:8px;background:var(--surface2);border-radius:6px;display:none;font-size:14px;font-weight:600;color:var(--cp);text-align:center;margin-bottom:8px"></div>
-    <div style="font-size:11px;color:var(--text3);text-align:center;font-style:italic">Entrez dans une campagne pour les jets de caractéristiques.</div>
-    ${currentTableId?`<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">Chuchotements</div><button onclick="openWhisperModal()" style="padding:4px 10px;border:1px solid var(--cp);border-radius:6px;font-size:11px;cursor:pointer;background:transparent;color:var(--cp);font-family:var(--B)">🤫 Chuchoter</button></div>${(typeof _whisperHistory!=='undefined'&&_whisperHistory.length)?_whisperHistory.slice(0,5).map(w=>`<div style="padding:5px 8px;background:var(--surface2);border-radius:6px;margin-bottom:4px;font-size:11px"><div style="color:var(--cp);font-weight:600;margin-bottom:1px">${esc(w.fromName||'?')}</div><div style="color:var(--text2)">${esc(w.message||'')}</div></div>`).join(''):'<div style="font-size:11px;color:var(--text3);font-style:italic">Aucun chuchotement reçu.</div>'}</div>`:''}`;
+    <div style="font-size:11px;color:var(--text3);text-align:center;font-style:italic">Entrez dans une campagne pour les jets de caractéristiques.</div>`;
     return;
   }
   const mc=mainClass(p);const lvl=totalLevel(p);
@@ -248,6 +252,7 @@ function renderDicePanel(){
     <span>🎲 Lanceur de dés</span>
     <span onclick="toggleDicePanel()" style="cursor:pointer;color:var(--text3);font-size:16px">×</span>
   </div>
+  ${_irlToggleHtml()}
 
   <!-- Statuts actifs -->
   ${(()=>{const p=P();const activeStatus=(p.statuses||[]).filter(s=>s.rollPenalty||s.rollBonus||s.name==='Invisible');if(!activeStatus.length)return'';return`<div style="padding:6px 8px;background:var(--surface2);border-radius:6px;margin-bottom:10px;font-size:11px"><span style="color:var(--text3)">Statuts actifs :</span> ${activeStatus.map(s=>`<span class="status-badge ${s.type}" style="font-size:10px;padding:2px 6px">${s.icon} ${esc(s.name)}</span>`).join(' ')}</div>`;})()}
