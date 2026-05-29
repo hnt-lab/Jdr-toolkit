@@ -23,23 +23,32 @@ function renderBarde(p) {
 
   // ── Inspiration bardique ──────────────────────────────────
   const biUsed = cc['InspBardique']!==undefined ? cc['InspBardique'] : bardInspiMax;
+  const hasAllies = (typeof _groupData!=='undefined')&&_groupData.some(gp=>gp.uid!==(typeof currentUser!=='undefined'?currentUser?.uid:null));
   panels.push(`<div style="margin-bottom:10px;padding:8px;background:var(--surface2);border-radius:6px">
-    <div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:6px">🎵 Inspiration bardique</div>
+    <div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:6px">🎵 Inspiration bardique <span style="font-size:10px;color:var(--cp)">🔸</span></div>
     <div style="font-size:11px;color:var(--text3);margin-bottom:4px">Utilisations (mod CHA = ${Math.max(1,chaM)}) • Récup. repos ${bardeLvl>=5?'court':'long'}</div>
-    <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px">${Array.from({length:bardInspiMax},(_,i)=>`<span class="slot-bubble${i<biUsed?'':' used'}" onclick="useCombatCharge('InspBardique',${bardInspiMax})" title="Dépenser une inspiration"></span>`).join('')}</div>
+    <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">${Array.from({length:bardInspiMax},(_,i)=>`<span class="slot-bubble${i<biUsed?'':' used'}" onclick="useCombatCharge('InspBardique',${bardInspiMax})" title="Dépenser une inspiration"></span>`).join('')}</div>
     <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
       <button class="btn bsm" onclick="recoverCombatCharge('InspBardique',${bardInspiMax})">↺ Récupérer</button>
-      <button class="btn bsm bac" onclick="rollCustomDmg('1${bardDie}','Inspiration bardique')">🎲 Lancer ${bardDie}</button>
+      ${hasAllies&&biUsed>0?`<button class="btn bsm bac" onclick="openGiveInspirationModal('${bardDie}',${bardInspiMax})">🎵 Donner à un allié</button>`:''}
+      ${!hasAllies?`<button class="btn bsm bac" onclick="rollCustomDmg('1${bardDie}','Inspiration bardique')">🎲 Lancer ${bardDie}</button>`:''}
     </div>
-    <div style="font-size:10px;color:var(--text3);margin-top:6px">Action bonus : donne un dé ${bardDie} à un allié à 18m. Il peut l'ajouter à un jet d'attaque, compétence ou sauvegarde (dans les 10 min).</div>
+    <div style="font-size:10px;color:var(--text3);margin-top:6px">Action bonus : donne un dé ${bardDie} à un allié. Il peut l'ajouter à un jet d'attaque, compétence ou sauvegarde.</div>
   </div>`);
 
   // ── Chant reposant (niv.2+) ───────────────────────────────
   if (bardeLvl>=2) {
     const chantDie = bardeLvl>=17?'d12':bardeLvl>=13?'d10':bardeLvl>=9?'d8':'d6';
-    panels.push(`<div style="margin-bottom:10px;padding:8px;background:var(--surface2);border-radius:6px">
-      <div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:2px">🎶 Chant reposant (${chantDie})</div>
-      <div style="font-size:11px;color:var(--text3)">Pendant un repos court, les alliés qui t'entendent récupèrent <strong>${chantDie}</strong> PV supplémentaires quand ils dépensent des dés de vie.</div>
+    const chantResult = cc['ChantReposantResult'];
+    const hasResult = chantResult !== undefined;
+    panels.push(`<div style="margin-bottom:10px;padding:8px;background:${hasResult?'rgba(76,175,80,.07)':'var(--surface2)'};border-radius:6px;border:1px solid ${hasResult?'rgba(76,175,80,.35)':'var(--border)'}">
+      <div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:4px">🎶 Chant reposant (${chantDie})</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:8px">Au prochain repos court, chaque allié qui dépense des dés de vie récupère <strong>${chantDie}</strong> PV supplémentaires. Lance le dé et annonce le résultat.</div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="btn bsm${hasResult?'':' bac'}" onclick="rollChantReposant('${chantDie}')">🎶 ${hasResult?'Relancer':'Déclarer le chant'}</button>
+        ${hasResult?`<span style="font-size:16px;font-weight:700;color:#4caf50">+${chantResult} PV</span><span style="font-size:10px;color:var(--text3)">annoncé aux alliés</span>`:''}
+      </div>
+      ${hasResult?`<div style="font-size:10px;color:var(--text3);margin-top:6px">💡 Alliés : ajoutez <strong style="color:#4caf50">+${chantResult}</strong> à votre récupération de dés de vie. Se réinitialise après le repos.</div>`:''}
     </div>`);
   }
 
@@ -125,4 +134,68 @@ function renderBarde(p) {
     <div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>🎵 Barde — Capacités</div>
     ${panels.join('')}
   </div>`);
+}
+
+function openGiveInspirationModal(die, maxCharges) {
+  const p = P();
+  const allies = (typeof _groupData!=='undefined' ? _groupData : [])
+    .filter(gp => gp.uid !== (typeof currentUser!=='undefined' ? currentUser?.uid : null));
+  if (!allies.length) { showToast('❌ Aucun allié en ligne dans la campagne.'); return; }
+  const listHtml = allies.map((gp,i) => {
+    const cd = gp.charData || {};
+    const already = (cd.activeBuffs||[]).some(b=>b.name==='InspirationBardique');
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px;background:${already?'rgba(200,168,75,.06)':'var(--surface2)'};border:1px solid ${already?'var(--cp)':'var(--border)'};border-radius:8px;margin-bottom:6px;cursor:${already?'default':'pointer'}" ${already?'':`onclick="_confirmGiveInspiration('${gp.docId}','${esc(gp.playerName||'')}','${die}',${maxCharges})"`}>
+      <span style="font-size:18px">${gp.avatar||'⚔'}</span>
+      <div style="flex:1"><div style="font-size:13px;font-weight:600">${esc(cd.charName||gp.playerName||'Joueur')}</div><div style="font-size:10px;color:var(--text3)">${esc(gp.playerName||'')}</div></div>
+      ${already?`<span style="font-size:10px;color:var(--cp);border:1px solid var(--cp);border-radius:8px;padding:2px 8px">🎵 Déjà inspiré</span>`:`<span style="font-size:11px;color:var(--cp)">+1${die} →</span>`}
+    </div>`;
+  }).join('');
+  openModal(`<div class="pt">🎵 Donner l'inspiration bardique</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:12px">Choisissez l'allié qui reçoit le dé ${die}. Dépense 1 charge.</div>
+    ${listHtml}
+    <button class="btn" style="width:100%;margin-top:4px" onclick="closeModal()">Annuler</button>`);
+}
+
+function _confirmGiveInspiration(targetDocId, targetName, die, maxCharges) {
+  const p = P();
+  if (!p.combatCharges) p.combatCharges = {};
+  const current = p.combatCharges['InspBardique'] !== undefined ? p.combatCharges['InspBardique'] : maxCharges;
+  if (current <= 0) { showToast('❌ Plus d\'inspiration disponible !'); return; }
+  p.combatCharges['InspBardique'] = current - 1;
+  _markUnsaved(); render();
+  const buff = { name: 'InspirationBardique', die, sourceName: p.charName || 'Le barde' };
+  if (typeof fbDb !== 'undefined' && targetDocId) {
+    fbDb.collection('characters').doc(targetDocId)
+      .update({'characterData.activeBuffs': firebase.firestore.FieldValue.arrayUnion(buff)})
+      .catch(() => {});
+  }
+  closeModal();
+  showToast(`🎵 Inspiration bardique envoyée à <strong>${esc(targetName)}</strong> — dé ${die} !`, 3000);
+}
+
+function rollChantReposant(die) {
+  const p = P();
+  if (!p.combatCharges) p.combatCharges = {};
+  if (_isIRLMode()) {
+    const dieSize = parseInt(die.replace('d',''));
+    openModal(`<div class="pt">🎶 Chant reposant — Mode IRL</div>
+      <div style="text-align:center;padding:12px 0">
+        <div style="font-size:32px;margin-bottom:8px">🎶</div>
+        <div style="font-size:14px;color:var(--text2);margin-bottom:4px">Lance ton dé de chant :</div>
+        <div style="font-size:28px;font-weight:700;color:var(--cp);margin-bottom:12px">${die}</div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:16px">Entre le résultat obtenu — tes alliés l'ajouteront à leurs soins de repos court.</div>
+        <input class="fi" id="chantIRLInput" type="number" min="1" max="${dieSize}" placeholder="Résultat du ${die}" style="text-align:center;font-size:20px;margin-bottom:14px">
+        <div style="display:flex;gap:8px">
+          <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
+          <button class="btn bac" style="flex:2" onclick="(()=>{const v=parseInt(document.getElementById('chantIRLInput').value)||0;if(v<1)return;P().combatCharges['ChantReposantResult']=v;saveAll();closeModal();render();showToast('🎶 Chant reposant : +'+v+' PV annoncés aux alliés !',3000);})()">✓ Confirmer</button>
+        </div>
+      </div>`);
+  } else {
+    const dieSize = parseInt(die.replace('d',''));
+    const roll = Math.ceil(Math.random() * dieSize);
+    p.combatCharges['ChantReposantResult'] = roll;
+    saveAll();
+    render();
+    showToast(`🎶 Chant reposant : ${die}(${roll}) — annonce <strong>+${roll} PV</strong> à tes alliés !`, 3500);
+  }
 }
