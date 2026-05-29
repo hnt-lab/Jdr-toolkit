@@ -124,6 +124,16 @@ function openUserSettings(){
       </div>
     </details>
     <details class="acc">
+      <summary>🔄 Mise à jour</summary>
+      <div class="acc-body">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div><div style="font-size:12px;color:var(--text2)">Version installée</div><div style="font-size:16px;font-weight:700;color:var(--cp);font-family:monospace">v${typeof APP_VERSION!=='undefined'?APP_VERSION:'—'}</div></div>
+          ${typeof _pendingSwUpdate!=='undefined'&&_pendingSwUpdate?`<span style="font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(200,168,75,.15);border:1px solid var(--cp);color:var(--cp)">Mise à jour disponible</span>`:'<span style="font-size:11px;color:var(--text3)">✓ À jour</span>'}
+        </div>
+        ${typeof _pendingSwUpdate!=='undefined'&&_pendingSwUpdate?`<button class="btn bac" style="width:100%" onclick="closeModal();_showUpdateOverlay()">✨ Installer la mise à jour</button>`:`<div style="font-size:11px;color:var(--text3);font-style:italic">Aucune mise à jour en attente. Le site vérifie automatiquement au chargement.</div>`}
+      </div>
+    </details>
+    <details class="acc">
       <summary>❓ Aide & Guide</summary>
       <div class="acc-body">
         <p style="font-size:12px;color:var(--text3);margin-bottom:10px">Revoir les guides de démarrage pas à pas.</p>
