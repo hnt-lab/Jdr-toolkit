@@ -585,6 +585,12 @@ async function enterCampaign(tableId,campaignId,tName,cName,preloadedCharData){
           _mjJournal=d.entries||[];
           _mjNPCs=d.npcs||[];
           _mjObjets=d.objets||[];
+          if(d.combatState?.active&&Array.isArray(d.combatState.combatants)&&d.combatState.combatants.length){
+            _mjCombatants=d.combatState.combatants;
+            _mjCombatStarted=true;
+            _mjCurrentTurn=d.combatState.currentTurn||0;
+            _mjRound=d.combatState.round||1;
+          }
         }
       }catch(e){}
       showMJScreen();
