@@ -137,6 +137,8 @@ function startMJPlayersListener(campaignId){
                 }
                 const newInit=data.characterData?.pendingInitiative;
                 if(newInit!==undefined)_mjCombatants[combIdx].initiative=newInit;
+                const newDs=data.characterData?.deathSaves;
+                if(newDs!==undefined)_mjCombatants[combIdx].deathSaves=newDs;
               }
               changed=true;
             }
@@ -199,6 +201,44 @@ function startPlayerListener(campaignId){
 // ═══ PARTY HUD ═══
 let _groupData=[];
 let _groupHudOpen=false;
+let _seenGroupBuffs=new Set();
+function _showBuffNotification(icon,title,detail,sourceName){
+  const ex=document.getElementById('_buffNotif');if(ex)ex.remove();
+  const d=document.createElement('div');d.id='_buffNotif';
+  d.innerHTML=`<div style="font-size:26px;margin-bottom:4px">${icon}</div><div style="font-size:13px;font-weight:700;color:var(--cp);margin-bottom:2px">${esc(title)}</div><div style="font-size:11px;color:var(--text2);margin-bottom:4px">${esc(detail)}</div>${sourceName?`<div style="font-size:10px;color:var(--text3)">par ${esc(sourceName)}</div>`:''}`;
+  document.body.appendChild(d);
+  const hide=()=>{d.style.transition='opacity .4s';d.style.opacity='0';setTimeout(()=>{if(d.parentNode)d.remove();},400);};
+  setTimeout(hide,4500);d.addEventListener('click',hide);
+}
+function _checkIncomingBuffs(oldCD,newCD){
+  const oldChant=oldCD?.combatCharges?.ChantReposantResult;
+  const newChant=newCD?.combatCharges?.ChantReposantResult;
+  if(newChant!==undefined&&newChant!==oldChant){
+    const src=newCD.charName||'Le barde';
+    const key=`ChantReposant:${src}:${newChant}`;
+    if(!_seenGroupBuffs.has(key)){_seenGroupBuffs.add(key);_showBuffNotification('🎶','Chant reposant',`+${newChant} PV au prochain repos court`,src);}
+  }
+  const _buffDefs=[
+    {name:'InspirationBardique',icon:'🎵',title:'Inspiration bardique',detail:b=>`+1${b.die} sur ton prochain jet`},
+    {name:'Benediction',icon:'✨',title:'Bénédiction',detail:()=>'+1d4 aux jets d\'attaque et sauvegardes (concentration)'},
+    {name:'Assistance',icon:'🤝',title:'Assistance',detail:()=>'+1d4 à ton prochain jet de compétence'},
+  ];
+  _buffDefs.forEach(def=>{
+    const oldB=(oldCD?.activeBuffs||[]).find(b=>b.name===def.name);
+    const newB=(newCD?.activeBuffs||[]).find(b=>b.name===def.name);
+    if(newB&&!oldB){
+      const src=newB.sourceName||'Un allié';
+      const key=`${def.name}:${src}:${Date.now()}`;
+      if(!_seenGroupBuffs.has(key)){_seenGroupBuffs.add(key);_showBuffNotification(def.icon,def.title,def.detail(newB),src);}
+    }
+  });
+  // Soins directs — détection d'une hausse de HP (Mot de guérison, Soin)
+  const oldHp=oldCD?.hp,newHp=newCD?.hp;
+  if(newHp!==undefined&&oldHp!==undefined&&newHp>oldHp){
+    const gain=newHp-oldHp;
+    _showBuffNotification('💚','Soins reçus',`+${gain} PV`,null);
+  }
+}
 let _groupOnlyMode=false;
 let _currentHudDetailUid=null;
 
@@ -224,8 +264,16 @@ function startGroupListener(campaignId){
           }
         }else if(change.type==='modified'){
           const idx=_groupData.findIndex(p=>p.docId===change.doc.id);
+          const oldCharData=idx>=0?_groupData[idx].charData:null;
           if(idx>=0){_groupData[idx].charData=charData;changed=true;}
           else{_groupData.push({uid,docId:change.doc.id,playerName:info.playerName,avatar:info.avatar,charData});changed=true;}
+          if(!change.doc.metadata.hasPendingWrites){
+            if(uid!==currentUser?.uid)_checkIncomingBuffs(oldCharData,charData);
+            if(uid===currentUser?.uid&&state?.players?.[state.activeIdx]){
+              state.players[state.activeIdx].activeBuffs=charData.activeBuffs||[];
+              if(typeof render==='function')render();
+            }
+          }
         }else if(change.type==='removed'){
           _groupData=_groupData.filter(p=>p.docId!==change.doc.id);changed=true;
         }
@@ -482,9 +530,10 @@ function openHubPlayerSheet(uid,campId){
 function startWhisperListener(tableId,uid){
   if(!tableId||!uid||tableId==='__solo__')return;
   _whisperHistory=[];_whisperInited=false;
-  const unsub=fbDb.collection('tables').doc(tableId).collection('whispers')
+  // Listener 1 : messages reçus
+  const unsub1=fbDb.collection('tables').doc(tableId).collection('whispers')
     .where('to','==',uid)
-    .limit(20)
+    .limit(30)
     .onSnapshot(snap=>{
       const firstBatch=!_whisperInited;
       _whisperInited=true;
@@ -492,16 +541,34 @@ function startWhisperListener(tableId,uid){
         if(change.type!=='added')return;
         const d=change.doc.data();
         if(!_whisperHistory.some(w=>w.id===change.doc.id)){
-          _whisperHistory.unshift({id:change.doc.id,...d});
+          _whisperHistory.unshift({id:change.doc.id,...d,sent:false});
           _whisperHistory.sort((a,b)=>(b.ts?.seconds||0)-(a.ts?.seconds||0));
-          if(_whisperHistory.length>20)_whisperHistory.pop();
+          if(_whisperHistory.length>60)_whisperHistory.pop();
           if(!firstBatch&&typeof showToast==='function'){
             showToast(`🤫 <strong>${typeof esc==='function'?esc(d.fromName||'?'):d.fromName||'?'}</strong> vous chuchote : "${typeof esc==='function'?esc(d.message||''):d.message||''}"`,8000);
+            if(typeof _refreshWhisperHistoryDisplay==='function')_refreshWhisperHistoryDisplay();
           }
         }
       });
     },err=>console.warn('Whisper listener error:',err));
-  _unsubscribes.push(unsub);
+  _unsubscribes.push(unsub1);
+  // Listener 2 : messages envoyés
+  const unsub2=fbDb.collection('tables').doc(tableId).collection('whispers')
+    .where('from','==',uid)
+    .limit(30)
+    .onSnapshot(snap=>{
+      snap.docChanges().forEach(change=>{
+        if(change.type!=='added')return;
+        const d=change.doc.data();
+        const id=change.doc.id;
+        if(!_whisperHistory.some(w=>w.id===id)){
+          _whisperHistory.unshift({id,...d,sent:true});
+          _whisperHistory.sort((a,b)=>(b.ts?.seconds||0)-(a.ts?.seconds||0));
+          if(_whisperHistory.length>60)_whisperHistory.pop();
+        }
+      });
+    },err=>console.warn('Whisper sent listener error:',err));
+  _unsubscribes.push(unsub2);
 }
 
 async function sendWhisperMsg(toUid,toName,message){
