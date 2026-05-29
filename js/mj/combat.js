@@ -10,14 +10,18 @@ function mjTabCombat(){
     const hpColor=hpPct>50?'#4caf50':hpPct>25?'#ff9800':'#e53935';
     const condHtml=c.conditions&&c.conditions.length?`<div style="margin-top:3px">${c.conditions.map((cd,ci)=>`<span class="status-badge malus" style="cursor:pointer" onclick="mjRemoveCond(${realIdx},${ci})">⚠ ${esc(cd)} ✕</span>`).join('')}</div>`:'';
     const speedHtml=c.speed?`<div style="font-size:10px;color:var(--text3);margin-top:1px">🚶 ${esc(c.speed)}</div>`:'';
-    return`<div class="combat-row${isActive?' active-turn':''}${isDead?' dead':''}">
+    const ds=c.deathSaves||{success:0,fail:0};
+    const dsaveHtml=isDead&&c.isPlayer?`<div style="margin-top:4px;display:flex;gap:4px;align-items:center;flex-wrap:wrap"><span style="font-size:10px;color:var(--text3)">JS mort :</span><span style="color:#4caf50;font-size:11px">${Array.from({length:3},(_,i)=>`<span style="opacity:${ds.success>i?1:0.3}">●</span>`).join('')}</span><span style="color:#e53935;font-size:11px">${Array.from({length:3},(_,i)=>`<span style="opacity:${ds.fail>i?1:0.3}">●</span>`).join('')}</span><button class="btn bsm" style="font-size:9px;padding:1px 4px;color:#4caf50;border-color:#4caf50" onclick="mjDsave(${realIdx},'success')">✓</button><button class="btn bsm" style="font-size:9px;padding:1px 4px;color:#e53935;border-color:#e53935" onclick="mjDsave(${realIdx},'fail')">✕</button><button class="btn bsm" style="font-size:9px;padding:1px 4px" onclick="mjDsave(${realIdx},'reset')">↺</button></div>`:'';
+    const isSurprised=!!c.surprised;
+    const surprisedBadge=isSurprised?`<span style="font-size:10px;background:rgba(229,57,53,.15);color:#e53935;border:1px solid rgba(229,57,53,.4);border-radius:6px;padding:1px 6px;margin-left:4px;vertical-align:middle">😵 SURPRIS</span>`:'';
+    return`<div class="combat-row${isActive?' active-turn':''}${isDead?' dead':''}" style="${isSurprised?'border-left:3px solid #e53935;padding-left:6px;':''}">
       ${_mjCombatStarted?`<div style="width:34px;text-align:center;cursor:pointer" title="Cliquer pour modifier" onclick="mjEditInitiative(${realIdx})"><span style="font-family:var(--F);font-size:14px;color:var(--cp);border-bottom:1px dashed rgba(200,168,75,.4)">${c.initiative||0}</span></div>`:''}
       <div style="width:26px;text-align:center;font-size:18px">${c.isPlayer?(c.avatar||'⚔'):'👾'}</div>
       <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:600;color:${isActive?'var(--cp)':'var(--text)'}">${esc(c.name)}${isActive?' ◀':''}</div>
-        ${speedHtml}${condHtml}
+        <div style="font-size:13px;font-weight:600;color:${isActive?'var(--cp)':'var(--text)'}">${esc(c.name)}${isActive?' ◀':''}${surprisedBadge}</div>
+        ${speedHtml}${condHtml}${dsaveHtml}
       </div>
-      <div style="display:flex;align-items:center;gap:4px">
+      <div class="cbt-actions" style="display:flex;align-items:center;gap:4px">
         <div style="text-align:center;min-width:60px">
           <div style="font-size:11px;color:${hpColor};font-weight:600">${isDead?'💀 À terre':c.hp+'/'+c.hpMax}</div>
           <div class="hp-bar" style="width:60px"><div class="hp-fill" style="width:${hpPct}%;background:${hpColor}"></div></div>
@@ -26,6 +30,7 @@ function mjTabCombat(){
         <button class="btn bsm" style="padding:2px 7px;font-size:14px" onclick="mjHpChange(${realIdx},1)">+</button>
         <button class="btn bsm" style="font-size:10px;padding:2px 6px" onclick="mjOpenHpModal(${realIdx})">✏</button>
         <button class="btn bsm" style="font-size:10px;padding:2px 6px" onclick="mjOpenCondModal(${realIdx})">⚠</button>
+        <button class="btn bsm" style="font-size:10px;padding:2px 6px${isSurprised?';background:rgba(229,57,53,.15);border-color:#e53935;color:#e53935':''}" onclick="mjToggleSurprise(${realIdx})" title="Basculer état : Surpris">😵</button>
         <button class="btn bsm" style="font-size:10px;padding:2px 6px;border-color:var(--cp);color:var(--cp)" onclick="mjOpenCombatDice(${realIdx})">🎲</button>
         <button class="btn bsm" style="font-size:10px;padding:2px 6px;color:#e53935;border-color:#e53935" onclick="mjRemoveCombatant(${realIdx})">✕</button>
         ${isActive?`<button class="btn bsm" style="font-size:10px;padding:2px 8px;border-color:#7c3aed;color:#a78bfa;font-weight:600" onclick="mjNextTurn()">⏩</button>`:''}
@@ -91,7 +96,7 @@ function mjAddPlayerToCombat(idx){
   if(_mjCombatants.find(c=>c.uid===pp.uid)){showToast('Déjà dans le combat.');return;}
   const mods=(p.abilities||[0,0,0,0,0,0]).map(v=>Math.floor((v-10)/2));
   const {attacks,spells,traits}=_extractPlayerCombatData(p);
-  _mjCombatants.push({id:'player_'+pp.uid,name:p.charName||pp.playerName||'Joueur',hp:p.hp||p.hpMax||1,hpMax:p.hpMax||1,ac:p.ac||10,speed:(p.speed!=null?p.speed:9)+'m',initiative:0,dexMod:mods[1]||0,conditions:[],isPlayer:true,avatar:pp.avatar||'⚔',uid:pp.uid,abilities:p.abilities||[10,10,10,10,10,10],attacks,spells,traits});
+  _mjCombatants.push({id:'player_'+pp.uid,name:p.charName||pp.playerName||'Joueur',hp:p.hp||p.hpMax||1,hpMax:p.hpMax||1,ac:p.ac||10,speed:(p.speed!=null?p.speed:9)+'m',initiative:0,dexMod:mods[1]||0,conditions:[],deathSaves:p.deathSaves||{success:0,fail:0},surprised:false,isPlayer:true,avatar:pp.avatar||'⚔',uid:pp.uid,abilities:p.abilities||[10,10,10,10,10,10],attacks,spells,traits});
   _mjCombatLog.push(`⚔ ${esc(p.charName||pp.playerName)} ajouté au combat.`);
   renderMJContent();
 }
@@ -331,7 +336,7 @@ function mjConfirmAddMonster(){
   _mjNewMonsterAttacks=[];_mjNewMonsterSpells=[];_mjNewMonsterTraits=[];
   for(let i=0;i<qty;i++){
     const label=qty>1?name+' '+(i+1):name;
-    _mjCombatants.push({id:'monster_'+Date.now()+'_'+i,name:label,hp,hpMax:hp,ac,initiative:0,dexMod:initBonus,conditions:[],isPlayer:false,abilities:[...abilities],attacks,spells,traits});
+    _mjCombatants.push({id:'monster_'+Date.now()+'_'+i,name:label,hp,hpMax:hp,ac,initiative:0,dexMod:initBonus,conditions:[],surprised:false,isPlayer:false,abilities:[...abilities],attacks,spells,traits});
   }
   _mjCombatLog.push(`👾 ${qty>1?qty+'× ':''}"${esc(name)}" ajouté(s) au combat.`);
   closeModal();renderMJContent();
@@ -560,9 +565,19 @@ async function mjGroupRestConfirm(type){
 async function _mjSaveCombatState(sorted,turnIdx){
   if(!currentUser||!currentCampaignId)return;
   const cur=sorted[turnIdx%sorted.length];
-  const combatState=cur?{active:true,currentTurnUid:cur.uid||null,currentTurnName:cur.name||'?',round:_mjRound}:{active:false};
+  const combatState=cur
+    ?{active:true,currentTurnUid:cur.uid||null,currentTurnName:cur.name||'?',round:_mjRound,currentTurn:turnIdx,combatants:_mjCombatants}
+    :{active:false};
   try{await fbDb.collection('characters').doc(currentUser.uid+'_'+currentCampaignId+'_mj').update({combatState});}
   catch(e){console.warn('Error saving combat state:',e);}
+}
+let _mjPersistTimer=null;
+function _mjPersistCombat(){
+  clearTimeout(_mjPersistTimer);
+  _mjPersistTimer=setTimeout(()=>{
+    const sorted=_mjCombatStarted?[..._mjCombatants].sort((a,b)=>b.initiative-a.initiative):_mjCombatants;
+    _mjSaveCombatState(sorted,_mjCurrentTurn);
+  },1000);
 }
 
 function mjStartCombat(){
@@ -574,13 +589,30 @@ function mjStartCombat(){
   renderMJContent();
 }
 
+function mjToggleSurprise(idx){
+  if(!_mjCombatants[idx])return;
+  _mjCombatants[idx].surprised=!_mjCombatants[idx].surprised;
+  renderMJContent();
+}
+
 function mjNextTurn(){
   const sorted=[..._mjCombatants].sort((a,b)=>b.initiative-a.initiative);
   if(!sorted.length)return;
   _mjCurrentTurn++;
-  if(_mjCurrentTurn>=sorted.length){_mjCurrentTurn=0;_mjRound++;_mjCombatLog.push(`🔄 Début du Round ${_mjRound}.`);}
+  if(_mjCurrentTurn>=sorted.length){
+    _mjCurrentTurn=0;_mjRound++;
+    _mjCombatLog.push(`🔄 Début du Round ${_mjRound}.`);
+    if(_mjRound===2){
+      _mjCombatants.forEach(c=>{c.surprised=false;});
+      _mjCombatLog.push(`👁 Surprise levée — tous les combattants agissent normalement.`);
+    }
+  }
   const cur=sorted[_mjCurrentTurn];
-  _mjCombatLog.push(`▶ Tour de ${esc(cur?.name||'?')}`);
+  if(cur?.surprised){
+    _mjCombatLog.push(`😵 SURPRIS — ${esc(cur?.name||'?')} ne peut pas agir ce tour !`);
+  }else{
+    _mjCombatLog.push(`▶ Tour de ${esc(cur?.name||'?')}`);
+  }
   _mjSaveCombatState(sorted,_mjCurrentTurn);
   renderMJContent();
 }
@@ -924,11 +956,18 @@ function _mjSyncPlayerHp(c){
     delete _mjHpSyncTimers[c.uid];
   },800);
 }
+function _mjSyncPlayerConditions(c){
+  if(!c.isPlayer||!c.uid||!currentCampaignId)return;
+  const pp=_mjPlayersData.find(p=>p.uid===c.uid);
+  if(!pp?.docId)return;
+  fbDb.collection('characters').doc(pp.docId).update({'characterData.conditions':c.conditions||[]}).catch(()=>{});
+}
 function mjHpChange(idx,dir){
   const c=_mjCombatants[idx];if(!c)return;
   c.hp=Math.max(0,Math.min(c.hpMax,c.hp+dir));
   if(c.hp===0)_mjCombatLog.push(`💀 ${esc(c.name)} tombe à 0 PV !`);
   _mjSyncPlayerHp(c);
+  _mjPersistCombat();
   renderMJContent();
 }
 
@@ -958,6 +997,7 @@ function mjApplyHpModal(idx){
   if(dmg) _mjCombatLog.push(`🗡 ${esc(c.name)} subit ${dmg} dégâts (→ ${c.hp}/${c.hpMax})`);
   if(c.hp===0)_mjCombatLog.push(`💀 ${esc(c.name)} tombe à 0 PV !`);
   _mjSyncPlayerHp(c);
+  _mjPersistCombat();
   closeModal();renderMJContent();
 }
 
@@ -1032,6 +1072,7 @@ function mjToggleCond(idx,cdOrIdx,el){
   const i=c.conditions.indexOf(cd);
   if(i>=0){c.conditions.splice(i,1);el.classList.remove('on');}
   else{c.conditions.push(cd);el.classList.add('on');}
+  _mjSyncPlayerConditions(c);
 }
 
 function mjAddCustomCond(idx){
@@ -1041,12 +1082,35 @@ function mjAddCustomCond(idx){
   if(!c.conditions)c.conditions=[];
   c.conditions.push(val);
   document.getElementById('condCustom').value='';
+  _mjSyncPlayerConditions(c);
   showToast(`✅ Condition "${val}" ajoutée.`);
 }
 
 function mjRemoveCond(idx,condIdx){
   const c=_mjCombatants[idx];if(!c||!c.conditions)return;
   c.conditions.splice(condIdx,1);
+  _mjSyncPlayerConditions(c);
+  renderMJContent();
+}
+
+function mjDsave(idx,type){
+  const c=_mjCombatants[idx];if(!c||!c.isPlayer)return;
+  if(!c.deathSaves)c.deathSaves={success:0,fail:0};
+  if(type==='success')c.deathSaves.success=Math.min(3,c.deathSaves.success+1);
+  else if(type==='fail')c.deathSaves.fail=Math.min(3,c.deathSaves.fail+1);
+  else c.deathSaves={success:0,fail:0};
+  if(c.deathSaves.success>=3){
+    _mjCombatLog.push(`🌟 ${esc(c.name)} : 3 succès — stabilisé !`);
+    c.hp=1;c.deathSaves={success:0,fail:0};
+    _mjSyncPlayerHp(c);
+  }else if(c.deathSaves.fail>=3){
+    _mjCombatLog.push(`💀 ${esc(c.name)} : 3 échecs aux JS de mort !`);
+    c.deathSaves={success:0,fail:0};
+  }
+  if(c.uid&&currentCampaignId){
+    const pp=_mjPlayersData.find(p=>p.uid===c.uid);
+    if(pp?.docId)fbDb.collection('characters').doc(pp.docId).update({'characterData.deathSaves':c.deathSaves}).catch(()=>{});
+  }
   renderMJContent();
 }
 
