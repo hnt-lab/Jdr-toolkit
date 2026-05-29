@@ -65,6 +65,7 @@ function showHub(){
   stopAllListeners();
   _groupData=[];_activeCombatState=null;_combatListenerInitialized=false;_prevCombatTurnUid=null;_groupHudOpen=false;_groupOnlyMode=false;_hideHudDetail();
   const _df=document.getElementById('diceFloat');if(_df)_df.style.display='none';
+  const vEl=document.getElementById('hubVersion');if(vEl&&typeof APP_VERSION!=='undefined')vEl.textContent='v'+APP_VERSION;
   const hud=document.getElementById('partyHud');if(hud)hud.style.display='none';
   const banner=document.getElementById('combatTurnBanner');if(banner)banner.style.display='none';
   const mjBadge=document.getElementById('hubMJBadge');if(mjBadge)mjBadge.style.display='none';
