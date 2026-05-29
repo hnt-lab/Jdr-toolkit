@@ -103,6 +103,7 @@ function tabPerso(p){
         <div class="sb"><div class="sn">PV temp.</div>${isMJ()?`<input type="number" min="0" max="999" value="${p.hpTemp||0}" oninput="P().hpTemp=Math.max(0,parseInt(this.value)||0)" style="width:100%;text-align:center;font-size:18px;font-weight:700;background:transparent;border:none;color:var(--text);outline:none;padding:2px 0">`:` <div style="font-size:20px;font-weight:700">${p.hpTemp||0}</div>`}</div>
       </div>
       <div class="hp-bar"><div class="hp-fill" style="width:${pct}%;background:${hpColor}"></div></div>
+      ${(p.shieldHp||0)>0?`<div style="margin-top:4px;padding:5px 8px;background:rgba(33,150,243,.08);border:1px solid rgba(33,150,243,.3);border-radius:6px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px"><span style="font-size:10px;font-weight:600;color:#42a5f5">🔵 Bouclier magique</span><span style="font-size:10px;color:#42a5f5;font-weight:700">${p.shieldHp} / ${p.shieldHpMax||p.shieldHp} PV</span></div><div style="height:5px;background:rgba(33,150,243,.15);border-radius:3px;overflow:hidden"><div style="height:100%;width:${Math.round((p.shieldHp/Math.max(1,p.shieldHpMax||p.shieldHp))*100)}%;background:#1565c0;border-radius:3px"></div></div></div>`:''}
       <div class="hp-ctrl">
         <input class="fi" id="hpDelta" type="number" placeholder="montant" style="width:70px">
         <button class="btn bsm" style="background:#b71c1c;color:#fff;border-color:#b71c1c" onclick="applyHp(-1)">Dégâts</button>
@@ -215,23 +216,29 @@ function tabPerso(p){
     </div>
 
     <!-- Repos -->
-    <div class="panel">
-      <div class="pt">Repos</div>
-      <div style="display:flex;gap:8px">
-        <div class="rest-btn short" onclick="doShortRest()">
-          <div style="font-size:16px">☕</div>
-          <div style="font-weight:600">Repos court</div>
-          <div style="font-size:10px;color:var(--text3);margin-top:1px">≥ 1 heure</div>
-          <div style="font-size:10px;margin-top:2px">Lance le dé de vie + CON</div>
+    ${(()=>{
+      const _chantG=(typeof _groupData!=='undefined'?_groupData:[]).find(gp=>gp.uid!==(typeof currentUser!=='undefined'?currentUser?.uid:null)&&gp.charData?.combatCharges?.ChantReposantResult!==undefined);
+      const _chantB=_chantG?.charData.combatCharges.ChantReposantResult;
+      const _chantSrc=_chantG?.charData.charName||'Barde';
+      return`<div class="panel">
+        <div class="pt">Repos</div>
+        <div style="display:flex;gap:8px;${_chantB?'padding:6px;border:2px solid var(--cp);border-radius:10px;background:rgba(200,168,75,.04)':''}">
+          <div class="rest-btn short" onclick="doShortRest()">
+            <div style="font-size:16px">☕</div>
+            <div style="font-weight:600">Repos court</div>
+            <div style="font-size:10px;color:var(--text3);margin-top:1px">≥ 1 heure</div>
+            <div style="font-size:10px;margin-top:2px">Lance le dé de vie + CON</div>
+            ${_chantB?`<div style="font-size:10px;color:var(--cp);font-weight:600;margin-top:4px;border-top:1px solid rgba(200,168,75,.3);padding-top:3px">🎶 +${_chantB} PV (${esc(_chantSrc)})</div>`:''}
+          </div>
+          <div class="rest-btn long" onclick="doLongRest()">
+            <div style="font-size:16px">🌙</div>
+            <div style="font-weight:600">Repos long</div>
+            <div style="font-size:10px;color:var(--text3);margin-top:1px">≥ 8 heures</div>
+            <div style="font-size:10px;margin-top:2px">PV max + sorts + charges</div>
+          </div>
         </div>
-        <div class="rest-btn long" onclick="doLongRest()">
-          <div style="font-size:16px">🌙</div>
-          <div style="font-weight:600">Repos long</div>
-          <div style="font-size:10px;color:var(--text3);margin-top:1px">≥ 8 heures</div>
-          <div style="font-size:10px;margin-top:2px">PV max + sorts + charges</div>
-        </div>
-      </div>
-    </div>
+      </div>`;
+    })()}
 
     <!-- Statuts -->
     <div class="panel mt10">
@@ -316,12 +323,35 @@ function applyHp(sign){
       ws.beast.hpCur=Math.min(ws.beast.hpMax,ws.beast.hpCur+delta);
     }
   } else {
-    const _effMax=(p.exhaustion||0)>=4?Math.floor(p.hpMax/2):p.hpMax;
-    p.hp=Math.max(0,Math.min(_effMax+(p.hpTemp||0),p.hp+sign*delta));
-    if(sign<0&&(p.statuses||[]).some(s=>s.name==='Concentration'))showToast(`⚠️ Concentration — Lance ton JS CON (onglet Sorts) !`,3500);
+    if(sign<0){
+      // 1. Bouclier magique absorbe en premier
+      let dmg=delta;
+      if((p.shieldHp||0)>0){
+        const absorbed=Math.min(p.shieldHp,dmg);
+        p.shieldHp-=absorbed;dmg-=absorbed;
+        showToast(`🔵 Bouclier magique absorbe ${absorbed} dégâts${p.shieldHp>0?' ('+p.shieldHp+' restants)':' (dissipé)'}`,3000);
+        if(dmg<=0){_markUnsaved();render();return;}
+      }
+      // 2. PV normaux
+      const _effMax=(p.exhaustion||0)>=4?Math.floor(p.hpMax/2):p.hpMax;
+      const _newHp=Math.max(0,Math.min(_effMax+(p.hpTemp||0),p.hp-dmg));
+      if(_newHp===0&&p.race==='Demi-Orc'&&!p.relentlessEnduranceUsed){
+        p.hp=0;_markUnsaved();render();
+        openModal('<div style="text-align:center;padding:20px 16px"><div style="font-size:36px;margin-bottom:8px">🧟</div><div class="pt" style="margin-bottom:6px">Endurance implacable</div><div style="font-size:14px;color:var(--text2);margin-bottom:20px">Vous tombez à 0 PV !<br>Utiliser <strong>Endurance implacable</strong> pour tomber à <strong style="color:#4caf50">1 PV</strong> ?<br><span style="font-size:11px;color:var(--text3)">(1 utilisation par repos long)</span></div><div style="display:flex;gap:8px;justify-content:center"><button class="btn bprimary" style="min-width:80px" onclick="useRelentlessEndurance()">✅ Oui</button><button class="btn" style="min-width:80px" onclick="closeModal()">❌ Non</button></div></div>');
+        return;
+      }
+      p.hp=_newHp;
+      if((p.statuses||[]).some(s=>s.name==='Concentration'))showToast(`⚠️ Concentration — Lance ton JS CON (onglet Sorts) !`,3500);
+    } else {
+      const _effMax=(p.exhaustion||0)>=4?Math.floor(p.hpMax/2):p.hpMax;
+      p.hp=Math.max(0,Math.min(_effMax+(p.hpTemp||0),p.hp+delta));
+    }
   }
   _markUnsaved();render();
 }
+function applyShieldHp(amount){const p=P();if(!amount||amount<=0)return;p.shieldHp=(p.shieldHp||0)+amount;if(!p.shieldHpMax||p.shieldHp>p.shieldHpMax)p.shieldHpMax=p.shieldHp;_markUnsaved();render();showToast(`🔵 Bouclier magique : +${amount} PV (total ${p.shieldHp})`,2500);}
+function removeShieldHp(){const p=P();delete p.shieldHp;delete p.shieldHpMax;_markUnsaved();render();showToast('🔵 Bouclier magique dissipé.',2000);}
+function useRelentlessEndurance(){const p=P();p.hp=1;p.relentlessEnduranceUsed=true;closeModal();showToast('🧟 Endurance implacable — tombé à 1 PV !');_markUnsaved();render();}
 function cycleDS(type,idx){const p=P();p.deathSaves[type]=p.deathSaves[type]>idx?idx:idx+1;_markUnsaved();render();}
 
 // ── STATUTS ──
@@ -437,7 +467,7 @@ function addCustomStatus(){
   closeModal();render();
 }
 function removeStatus(i){const p=P();if(p.statuses)p.statuses.splice(i,1);render();}
-function toggleConcentration(spellName){const p=P();if(!p.statuses)p.statuses=[];const idx=p.statuses.findIndex(s=>s.name==='Concentration');if(idx>=0){p.statuses.splice(idx,1);delete p.concentrationSpell;}else{const preset=STATUS_PRESETS.find(s=>s.name==='Concentration');p.statuses.push(preset?{...preset}:{name:'Concentration',type:'neutral',icon:'🎯',desc:'Sort de concentration actif.',rollPenalty:''});if(spellName)p.concentrationSpell=spellName;}_markUnsaved();render();}
+function toggleConcentration(spellName){const p=P();if(!p.statuses)p.statuses=[];const idx=p.statuses.findIndex(s=>s.name==='Concentration');if(idx>=0){const _endSpell=p.concentrationSpell,_endName=p.charName||'';p.statuses.splice(idx,1);delete p.concentrationSpell;if(_endSpell&&typeof _clearGroupConcentrationBuff==='function')_clearGroupConcentrationBuff(_endSpell,_endName);}else{const preset=STATUS_PRESETS.find(s=>s.name==='Concentration');p.statuses.push(preset?{...preset}:{name:'Concentration',type:'neutral',icon:'🎯',desc:'Sort de concentration actif.',rollPenalty:''});if(spellName)p.concentrationSpell=spellName;}_markUnsaved();render();}
 function activateConcentration(){const spell=(document.getElementById('concSpellInput')?.value||'').trim();toggleConcentration(spell||undefined);}
 function rollConcSave(dmg){
   const p=P();
@@ -450,7 +480,10 @@ function rollConcSave(dmg){
   const success=total>=dd;
   const modStr=bonus>=0?'+'+bonus:''+bonus;
   if(!success){
+    const _endSpell=p.concentrationSpell,_endName=p.charName||'';
     if(p.statuses){const idx=p.statuses.findIndex(s=>s.name==='Concentration');if(idx>=0)p.statuses.splice(idx,1);}
+    delete p.concentrationSpell;
+    if(_endSpell&&typeof _clearGroupConcentrationBuff==='function')_clearGroupConcentrationBuff(_endSpell,_endName);
   }
   showToast(`🎯 JS Concentration — d20(${d20})${modStr}${hasCON?' (maîtrise)':''} = <strong>${total}</strong> vs DD ${dd} — ${success?'<span style="color:#4caf50">✓ Réussi ! Concentration maintenue.</span>':'<span style="color:#e53935">✗ Raté ! Concentration brisée.</span>'}`,5000);
   render();
@@ -488,23 +521,11 @@ function toggleInspiration(){const p=P();p.inspiration=!p.inspiration;_markUnsav
 // ── REPOS ──
 function doShortRest(){
   const p=P();const mc=mainClass(p);const cd=mc?SRD.classes.find(c=>c.name===mc.name):null;if(!cd)return;
-  if(_isIRLMode()){
-    const conMod=mod(p.abilities[2]);
-    const _effMaxSR=(p.exhaustion||0)>=4?Math.floor(p.hpMax/2):p.hpMax;
-    const recovMax=Math.max(0,_effMaxSR-(p.hp||0));
-    openModal(`<div class="pt">☕ Repos court — Dé de vie</div>
-      <div style="font-size:14px;color:var(--text2);margin-bottom:6px">Lance : <strong style="color:var(--cp)">${cd.hd} ${conMod>=0?'+':''}${conMod} CON</strong></div>
-      <div style="font-size:11px;color:var(--text3);margin-bottom:12px">PV récupérables : jusqu'à <strong>${recovMax}</strong></div>
-      <input type="number" id="irlRestResult" min="1" max="${_effMaxSR}" placeholder="Résultat du dé..." style="width:100%;padding:10px;font-size:20px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);margin-bottom:12px;box-sizing:border-box">
-      <div style="display:flex;gap:8px">
-        <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
-        <button class="btn bac" style="flex:2" onclick="_applyIRLShortRest()">✓ Appliquer</button>
-      </div>`);
-    return;
-  }
+  const _chantGiver=(typeof _groupData!=='undefined'?_groupData:[]).find(gp=>gp.uid!==(typeof currentUser!=='undefined'?currentUser?.uid:null)&&gp.charData?.combatCharges?.ChantReposantResult!==undefined);
+  const _chantBonus=_chantGiver?.charData.combatCharges.ChantReposantResult||0;
   const roll=Math.ceil(Math.random()*cd.hdVal)+mod(p.abilities[2]);
   const _effMaxSR=(p.exhaustion||0)>=4?Math.floor(p.hpMax/2):p.hpMax;
-  const healed=Math.max(1,roll);p.hp=Math.min(_effMaxSR,p.hp+healed);
+  const healed=Math.max(1,roll);p.hp=Math.min(_effMaxSR,p.hp+healed+_chantBonus);
   if(!p.combatCharges)p.combatCharges={};
   (p.classes||[]).forEach(cls=>{
     const d=SRD.classes.find(c=>c.name===cls.name);
@@ -515,20 +536,36 @@ function doShortRest(){
   });
   (p.customCombatFeats||[]).forEach(f=>{if(f.recovery==='short'&&f.charges>0)p.combatCharges[f.name]=f.charges;});
   if((p.classes||[]).find(c=>c.name==='Occultiste'))p.spellSlotsUsed=[];
-  render();saveAll();showToast(`☕ Repos court — ${cd.hd}(${roll-mod(p.abilities[2])})+CON = <strong>+${healed} PV</strong>`);
+  // Reset Forme sauvage druide (repos court)
+  const _druRestLvl=((p.classes||[]).find(c=>c.name==='Druide')||{}).level||0;
+  if(_druRestLvl>0)p.combatCharges['Forme sauvage']=_druRestLvl>=20?99:2;
+  // Reset Ki moine (repos court)
+  const _moineRestLvl=((p.classes||[]).find(c=>c.name==='Moine')||{}).level||0;
+  if(_moineRestLvl>0)p.combatCharges['Ki']=_moineRestLvl;
+  delete p.combatCharges['ChantReposantResult'];
+  render();saveAll();showToast(`☕ Repos court — ${cd.hd}(${roll-mod(p.abilities[2])})+CON = <strong>+${healed}</strong>${_chantBonus?` + 🎶 <strong>+${_chantBonus}</strong>`:''} PV`);
 }
 function _applyIRLShortRest(){
   const val=parseInt(document.getElementById('irlRestResult')?.value)||0;
   if(!val||val<1){showToast('❌ Résultat invalide.');return;}
   const p=P();const mc=mainClass(p);const cd=mc?SRD.classes.find(c=>c.name===mc.name):null;if(!cd)return;
   const _effMaxSR=(p.exhaustion||0)>=4?Math.floor(p.hpMax/2):p.hpMax;
+  const _rlChantG=(typeof _groupData!=='undefined'?_groupData:[]).find(gp=>gp.uid!==(typeof currentUser!=='undefined'?currentUser?.uid:null)&&gp.charData?.combatCharges?.ChantReposantResult!==undefined);
+  const _rlChantB=_rlChantG?.charData.combatCharges.ChantReposantResult||0;
   const healed=Math.max(1,val);
-  p.hp=Math.min(_effMaxSR,p.hp+healed);
+  p.hp=Math.min(_effMaxSR,p.hp+healed+_rlChantB);
   if(!p.combatCharges)p.combatCharges={};
   (p.classes||[]).forEach(cls=>{const d=SRD.classes.find(c=>c.name===cls.name);if(!d||!d.combatFeatures)return;d.combatFeatures.forEach(f=>{if(f.recovery==='short'){const max=getChargesMax(f,p);p.combatCharges[f.name]=max;}});});
   (p.customCombatFeats||[]).forEach(f=>{if(f.recovery==='short'&&f.charges>0)p.combatCharges[f.name]=f.charges;});
   if((p.classes||[]).find(c=>c.name==='Occultiste'))p.spellSlotsUsed=[];
-  closeModal();render();saveAll();showToast(`☕ Repos court — +${healed} PV`);
+  // Reset Forme sauvage druide (repos court)
+  const _druIRLLvl=((p.classes||[]).find(c=>c.name==='Druide')||{}).level||0;
+  if(_druIRLLvl>0)p.combatCharges['Forme sauvage']=_druIRLLvl>=20?99:2;
+  // Reset Ki moine (repos court)
+  const _moineIRLLvl=((p.classes||[]).find(c=>c.name==='Moine')||{}).level||0;
+  if(_moineIRLLvl>0)p.combatCharges['Ki']=_moineIRLLvl;
+  delete p.combatCharges['ChantReposantResult'];
+  closeModal();render();saveAll();showToast(`☕ Repos court — <strong>+${healed}</strong>${_rlChantB?` + 🎶 <strong>+${_rlChantB}</strong>`:''} PV`);
 }
 function doLongRest(){
   const p=P();
@@ -539,6 +576,9 @@ function doLongRest(){
   if(!p.combatCharges)p.combatCharges={};
   (p.classes||[]).forEach(cls=>{const d=SRD.classes.find(c=>c.name===cls.name);if(!d||!d.combatFeatures)return;d.combatFeatures.forEach(f=>{if(f.recovery!=='passive'){const max=getChargesMax(f,p);p.combatCharges[f.name]=max;}});});
   (p.customCombatFeats||[]).forEach(f=>{if(f.recovery!=='passive'&&f.charges>0)p.combatCharges[f.name]=f.charges;});
+  delete p.relentlessEnduranceUsed;
+  delete p.combatCharges['ChantReposantResult'];
+  delete p.combatCharges['SortsInfernaux_Niv3'];delete p.combatCharges['SortsInfernaux_Niv5'];
   render();saveAll();showToast('🌙 Repos long — PV, sorts, charges et conditions récupérés !');
 }
 
