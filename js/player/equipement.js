@@ -29,14 +29,15 @@ function tabEquipement(p){
     </div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px">${weapons.map(slotHtml).join('')}</div>
 
-    <!-- Maîtrises armes & armures -->
-    <div class="g2" style="gap:10px">
-      <div class="panel">
-        <div class="pt" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="_equipProfOpen.w=!_equipProfOpen.w;render()">
-          <span>Maîtrises d'armes</span>
-          <span style="display:flex;align-items:center;gap:8px">${isMJ()?`<span style="font-size:10px;color:var(--cp)">🎲 toggle</span>`:''}<span style="font-size:11px;color:var(--text3)">${_equipProfOpen.w?'▴':'▾'}</span></span>
-        </div>
-        ${_equipProfOpen.w?allWeapons.map(w=>{
+    <!-- Maîtrises armes & armures — panneau fusionné -->
+    <div class="panel">
+      <div class="pt" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="_equipProfOpen.all=!_equipProfOpen.all;render()">
+        <span>Maîtrises</span>
+        <span style="display:flex;align-items:center;gap:8px">${isMJ()?`<span style="font-size:10px;color:var(--cp)">🎲 toggle</span>`:''}<span style="font-size:11px;color:var(--text3)">${_equipProfOpen.all?'▴':'▾'}</span></span>
+      </div>
+      ${_equipProfOpen.all?`
+        <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:4px 0 6px">⚔ Armes</div>
+        ${allWeapons.map(w=>{
           const prof=wProfs.some(pr=>pr.toLowerCase()===w.subtype.toLowerCase()||w.name.toLowerCase().includes(pr.toLowerCase()));
           return`<div class="prof-row" style="${isMJ()?'cursor:pointer':''}" onclick="${isMJ()?`mjToggleWeaponProf('${esc(w.subtype)}')`:''}" title="${isMJ()?'Cliquer pour modifier':''}">
             <span class="prof-dot ${prof?'yes':'no'}"></span>
@@ -44,14 +45,9 @@ function tabEquipement(p){
             <span style="font-size:10px;color:var(--text3)">${esc(w.subtype)}</span>
             ${prof?`<span style="font-size:10px;color:#4caf50">✓</span>`:`<span style="font-size:10px;color:#e53935">✗</span>`}
           </div>`;
-        }).join(''):''}
-      </div>
-      <div class="panel">
-        <div class="pt" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="_equipProfOpen.a=!_equipProfOpen.a;render()">
-          <span>Maîtrises d'armures</span>
-          <span style="display:flex;align-items:center;gap:8px">${isMJ()?`<span style="font-size:10px;color:var(--cp)">🎲 toggle</span>`:''}<span style="font-size:11px;color:var(--text3)">${_equipProfOpen.a?'▴':'▾'}</span></span>
-        </div>
-        ${_equipProfOpen.a?allArmors.map(a=>{
+        }).join('')}
+        <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:10px 0 6px">🛡 Armures</div>
+        ${allArmors.map(a=>{
           const prof=aProfs.some(pr=>a.type.toLowerCase().includes(pr.toLowerCase())||a.name.toLowerCase().includes(pr.toLowerCase()));
           return`<div class="prof-row" style="${isMJ()?'cursor:pointer':''}" onclick="${isMJ()?`mjToggleArmorProf('${esc(a.type)}')`:''}" title="${isMJ()?'Cliquer pour modifier':''}">
             <span class="prof-dot ${prof?'yes':'no'}"></span>
@@ -59,8 +55,8 @@ function tabEquipement(p){
             <span style="font-size:10px;color:var(--text3)">${esc(a.type)}</span>
             ${prof?`<span style="font-size:10px;color:#4caf50">✓</span>`:`<span style="font-size:10px;color:#e53935">✗</span>`}
           </div>`;
-        }).join(''):''}
-      </div>
+        }).join('')}
+      `:''}
     </div>
   </div>`;
 }
