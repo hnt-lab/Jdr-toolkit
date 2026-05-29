@@ -442,7 +442,7 @@ async function saveAll(silent=false){
     }catch(e){console.error('Firestore save error',e);}
   }
   try{localStorage.setItem(getUserSK(),JSON.stringify(state));}catch(e){}
-  if(!silent)showToast('✓ Sauvegardé');
+  // Toast sauvegarde supprimé — le sync dot suffit comme indicateur
 }
 function P(){return state.players[state.activeIdx]||state.players[0];}
 function upd(k,v){P()[k]=v;}
@@ -459,7 +459,7 @@ function combatDrop(e,targetId){e.preventDefault();if(!_combatDragId||_combatDra
 function applyCombatOrder(order){if(!order||!order.length)return;const c=document.getElementById('combatContainer');if(!c)return;const map={};c.querySelectorAll(':scope>[data-csid]').forEach(e=>map[e.dataset.csid]=e);order.forEach(id=>{if(map[id])c.appendChild(map[id]);});}
 function cs(id,html){return`<div class="mj-rules-section" data-csid="${id}" draggable="true" ondragstart="combatDragStart('${id}',this)" ondragend="combatDragEnd(this)" ondragover="combatDragOver(event,this)" ondrop="combatDrop(event,'${id}')">${html}</div>`;}
 let _spellLevelsOpen={};
-let _equipProfOpen={w:true,a:true};
+let _equipProfOpen={all:false};
 
 async function uploadEquipPortrait(input){
   const file=input.files[0];if(!file)return;
