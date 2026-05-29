@@ -115,7 +115,15 @@ function tabCombat(p){
   });
   (p.customCombatFeats||[]).forEach(f=>allCombatFeats.push({...f,className:'Personnalisé'}));
 
+  const _buffBanners=[];
+  const _activeInspi=(p.activeBuffs||[]).find(b=>b.name==='InspirationBardique');
+  if(_activeInspi)_buffBanners.push(`<div style="background:rgba(200,168,75,.1);border:2px solid var(--cp);border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span style="font-size:20px">🎵</span><div style="flex:1"><div style="font-size:13px;font-weight:700;color:var(--cp)">Inspiration bardique — ${_activeInspi.die}</div><div style="font-size:10px;color:var(--text3)">de ${esc(_activeInspi.sourceName||'Le barde')} • Jet d'attaque, compétence ou sauvegarde</div></div><div style="display:flex;gap:6px"><button class="btn bsm bac" onclick="useInspirationBardique('${_activeInspi.die}')">🎲 Utiliser</button><button class="btn bsm" onclick="discardInspirationBardique()" style="color:var(--text3)">✕</button></div></div>`);
+  const _activeBened=(p.activeBuffs||[]).find(b=>b.name==='Benediction');
+  if(_activeBened)_buffBanners.push(`<div style="background:rgba(200,168,75,.08);border:2px solid var(--cp);border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span style="font-size:20px">✨</span><div style="flex:1"><div style="font-size:13px;font-weight:700;color:var(--cp)">Bénédiction — +1d4</div><div style="font-size:10px;color:var(--text3)">de ${esc(_activeBened.sourceName||'Allié')} • Concentration</div></div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn bsm" onclick="rollSupportBuff('Benediction','d4',false)" style="color:var(--cp);border-color:var(--cp)">🎲 Attaque</button><button class="btn bsm" onclick="rollSupportBuff('Benediction','d4',false)" style="color:var(--cp);border-color:var(--cp)">🎲 Save</button><button class="btn bsm" onclick="removeSupportBuff('Benediction')" style="color:var(--text3)">✕ Fin</button></div></div>`);
+  const _activeAssist=(p.activeBuffs||[]).find(b=>b.name==='Assistance');
+  if(_activeAssist)_buffBanners.push(`<div style="background:rgba(76,175,80,.07);border:2px solid rgba(76,175,80,.5);border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span style="font-size:20px">🤝</span><div style="flex:1"><div style="font-size:13px;font-weight:700;color:#4caf50">Assistance — +1d4</div><div style="font-size:10px;color:var(--text3)">de ${esc(_activeAssist.sourceName||'Allié')} • Prochain jet de compétence</div></div><div style="display:flex;gap:6px"><button class="btn bsm bac" onclick="rollSupportBuff('Assistance','d4',true)" style="background:rgba(76,175,80,.15);border-color:#4caf50;color:#4caf50">🎲 Utiliser</button><button class="btn bsm" onclick="removeSupportBuff('Assistance')" style="color:var(--text3)">✕</button></div></div>`);
   return`<div id="combatContainer">
+  ${_buffBanners.join('')}
   ${cs('cs-armes',wsC?.active?`<div class="panel mb10" style="border-color:rgba(76,175,80,.4)"><div class="pt" style="display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span><span style="color:#4caf50">${wsC.beast.icon} ${esc(wsC.beast.name)} — Attaques</span></div><span style="font-size:10px;color:#4caf50;border:1px solid rgba(76,175,80,.4);border-radius:10px;padding:2px 8px">🐺 Forme sauvage</span></div>
       ${wsC.beast.attacks.map(a=>`<div style="background:rgba(76,175,80,.06);border:1px solid rgba(76,175,80,.25);border-radius:6px;padding:10px;margin-bottom:6px">
         <div style="display:flex;justify-content:space-between;align-items:center">
@@ -202,7 +210,7 @@ function tabCombat(p){
               <div style="font-size:13px;font-weight:600;color:var(--cp)">${esc(f.name)}</div>
               <div style="font-size:10px;color:var(--text3)">${esc(f.className)} • ${isPassive?'Passif':f.recovery==='short'?'Repos court':'Repos long'}</div>
             </div>
-            ${!isPassive&&maxCharges>0?`<div style="display:flex;gap:3px;align-items:center;margin-right:8px">${Array.from({length:maxCharges},(_,i)=>`<span class="slot-bubble${i<usedCharges?'':' used'}" onclick="event.stopPropagation();useCombatCharge('${esc(f.name)}',${maxCharges})"></span>`).join('')}</div>`:''}
+            ${!isPassive&&maxCharges>0?`<div class="feat-bubbles" style="display:flex;gap:3px;align-items:center;flex-wrap:wrap;margin-right:8px;max-width:200px">${Array.from({length:maxCharges},(_,i)=>`<span class="slot-bubble${i<usedCharges?'':' used'}" onclick="event.stopPropagation();useCombatCharge('${esc(f.name)}',${maxCharges})"></span>`).join('')}</div>`:''}
             <span style="color:var(--text3);font-size:11px">▾</span>
           </div>
           <div class="feat-body" id="${fid}">
@@ -239,6 +247,15 @@ function tabCombat(p){
         </div>
         ${used?`<button class="btn bsm" style="margin-top:8px" onclick="P().combatCharges=P().combatCharges||{};delete P().combatCharges['SouffleDraconique'];saveAll();render();">↺ Récupérer (Repos court/long)</button>`:''}
       </div>`);})()}
+  ${(()=>{
+    if(p.race!=='Tieffelin')return'';
+    const chaM=mod(p.abilities[5]||10);const spellDC=8+pb(lvl)+chaM;
+    const usedNiv3=(cc||{})['SortsInfernaux_Niv3']===true;
+    const usedNiv5=(cc||{})['SortsInfernaux_Niv5']===true;
+    const niv3=lvl<3?'':'<div style="padding:6px 8px;background:var(--surface2);border-radius:6px;margin-bottom:4px;display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:13px;font-weight:600">🔥 Bénédiction infernale</div><div style="font-size:10px;color:var(--text3)">Niv.2 — 1×/repos long • Réaction : 2d10 feu quand blessé</div></div><div style="display:flex;align-items:center;gap:6px"><span class="slot-bubble'+(usedNiv3?' used':'')+'" style="width:18px;height:18px" onclick="P().combatCharges=P().combatCharges||{};P().combatCharges[\'SortsInfernaux_Niv3\']=!P().combatCharges[\'SortsInfernaux_Niv3\'];saveAll();render()"></span><button class="btn bsm" onclick="rollCustomDmg(\'2d10\',\'Bénédiction infernale\')">🎲</button>'+(usedNiv3?'<button class="btn bsm" onclick="P().combatCharges=P().combatCharges||{};delete P().combatCharges[\'SortsInfernaux_Niv3\'];saveAll();render()">↺</button>':'')+'</div></div>';
+    const niv5=lvl<5?'':'<div style="padding:6px 8px;background:var(--surface2);border-radius:6px;display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:13px;font-weight:600">🌑 Ténèbres</div><div style="font-size:10px;color:var(--text3)">Niv.2 — 1×/repos long • Obscurité magique (rayon 4,5m)</div></div><div style="display:flex;align-items:center;gap:6px"><span class="slot-bubble'+(usedNiv5?' used':'')+'" style="width:18px;height:18px" onclick="P().combatCharges=P().combatCharges||{};P().combatCharges[\'SortsInfernaux_Niv5\']=!P().combatCharges[\'SortsInfernaux_Niv5\'];saveAll();render()"></span>'+(usedNiv5?'<button class="btn bsm" onclick="P().combatCharges=P().combatCharges||{};delete P().combatCharges[\'SortsInfernaux_Niv5\'];saveAll();render()">↺</button>':'')+'</div></div>';
+    return cs('cs-tiefling','<div class="panel mb10"><div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>🔥 Sorts infernaux</div><div style="font-size:11px;color:var(--text3);margin-bottom:8px">DD sorts : <strong style="color:var(--cp)">'+spellDC+'</strong> • Bonus attaque sorts : <strong style="color:var(--cp)">'+fmt(pb(lvl)+chaM)+'</strong> (CHA)</div><div style="padding:6px 8px;background:var(--surface2);border-radius:6px;margin-bottom:4px;display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:13px;font-weight:600">✨ Thaumaturgie</div><div style="font-size:10px;color:var(--text3)">Sort mineur — À volonté</div></div><span style="font-size:16px;color:var(--cp)">∞</span></div>'+niv3+niv5+'</div>');
+  })()}
   ${wsC?.active?cs('cs-ws-info',`<div class="panel mb10" style="border-color:rgba(76,175,80,.3);background:rgba(76,175,80,.04)"><div style="font-size:12px;color:var(--text3);text-align:center;padding:8px">🐺 En forme animale — sorts et capacités de classe indisponibles${druLvl>=18?'<br><span style="color:#4caf50;font-size:11px">Niv. 18 — Sorts de bête : tu peux lancer des sorts ✓</span>':''}</div></div>`):''}
   ${renderOccultiste(p)}
   ${renderMagicien(p)}
@@ -282,11 +299,12 @@ function rollAttack(name,bonus,dmg,slot,dmgBonus=0,rerollLow=false,advantageMode
   if(_isIRLMode()){
     const advNote=advantageMode>0?'<div style="color:#4caf50;font-size:14px;margin-top:4px">🟢 AVANTAGE — 2d20, garde le plus haut</div>':advantageMode<0?'<div style="color:#e53935;font-size:14px;margin-top:4px">🔴 DÉSAVANTAGE — 2d20, garde le plus bas</div>':'';
     const dmgFull=dmg+(dmgBonus?fmt(dmgBonus):'');
+    const luckyNote=_isHalfling(P())?'<div style="margin-top:6px;font-size:12px;color:#8d6e63">🍀 Si résultat = 1, vous pouvez relancer</div>':'';
     showIRLRoll(`<strong style="font-size:20px;color:var(--cp)">⚔ ${name}</strong>
       <div style="margin-top:12px;padding:10px;background:var(--surface2);border-radius:8px">
         <div style="font-size:12px;color:var(--text3);margin-bottom:4px">ATTAQUE</div>
         <div style="font-size:22px">d20 <span style="color:var(--text3)">${fmt(bonus)}</span></div>
-        ${advNote}
+        ${advNote}${luckyNote}
       </div>
       <div style="margin-top:8px;padding:10px;background:var(--surface2);border-radius:8px">
         <div style="font-size:12px;color:var(--text3);margin-bottom:4px">DÉGÂTS SI TOUCHE</div>
@@ -294,39 +312,47 @@ function rollAttack(name,bonus,dmg,slot,dmgBonus=0,rerollLow=false,advantageMode
       </div>`);
     return;
   }
-  let atk,atkAlt=null;
-  if(advantageMode!==0){
-    const r1=Math.ceil(Math.random()*20),r2=Math.ceil(Math.random()*20);
-    atk=advantageMode>0?Math.max(r1,r2):Math.min(r1,r2);
-    atkAlt=advantageMode>0?Math.min(r1,r2):Math.max(r1,r2);
-  }else{atk=Math.ceil(Math.random()*20);}
-  const total=atk+bonus;
-  const isCrit=atk===20;const isFumble=atk===1;
-  const col=isCrit?'#ffd54f':isFumble?'#e53935':'var(--cp)';
-  const advTag=atkAlt!==null?(advantageMode>0?`<span style="font-size:10px;color:#4caf50;margin-left:3px">AVT(${atk},~~${atkAlt}~~)</span>`:`<span style="font-size:10px;color:#e53935;margin-left:3px">DES(~~${atk}~~,${atkAlt})</span>`):'';
-  let dmgHtml='';
-  if(!isFumble){
-    const m=(dmg+'').match(/(\d+)d(\d+)([+-]\d+)?/);
-    if(m){
-      const dq=parseInt(m[1]),ds=parseInt(m[2]),fixedBonus=(m[3]?parseInt(m[3]):0)+(dmgBonus||0);
-      const barbLvl=((P().classes||[]).find(c=>c.name==='Barbare')||{}).level||0;
-      const brutCritExtra=isCrit&&barbLvl>=9&&slot!=='ranged'?(barbLvl>=17?3:barbLvl>=13?2:1):0;
-      const numDice=isCrit?dq*2+brutCritExtra:dq;
-      const rolls=[];for(let i=0;i<numDice;i++){let r=Math.ceil(Math.random()*ds);if(rerollLow&&(r===1||r===2))r=Math.ceil(Math.random()*ds);rolls.push(r);}
-      const totalDmg=rolls.reduce((s,v)=>s+v,0)+fixedBonus;
-      const typeMatch=(dmg+'').match(/\d+d\d+[+-]?\d*\s+(.*)/);
-      const dmgType=typeMatch?typeMatch[1].trim():'';
-      const critNote=isCrit?(brutCritExtra>0?' (critique + '+brutCritExtra+' dé'+(brutCritExtra>1?'s':'')+' brutal)':' (critique — dés doublés)'):'';
-      dmgHtml=`<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.1);font-size:13px">Dégâts : <span style="color:var(--text2)">${rolls.join('+')}${fixedBonus?fmt(fixedBonus):''}</span> = <b style="color:var(--cp);font-size:17px">${totalDmg}</b>${dmgType?` <span style="font-size:11px;color:var(--text3)">${esc(dmgType)}${critNote}</span>`:''}</div>`;
+  let ra,rb=null;
+  if(advantageMode!==0){ra=Math.ceil(Math.random()*20);rb=Math.ceil(Math.random()*20);}
+  else{ra=Math.ceil(Math.random()*20);}
+  function _finishAttack(finalRolls){
+    const fr1=finalRolls[0],fr2=finalRolls.length>1?finalRolls[1]:null;
+    let atk,atkAlt=null;
+    if(fr2!==null){atk=advantageMode>0?Math.max(fr1,fr2):Math.min(fr1,fr2);atkAlt=advantageMode>0?Math.min(fr1,fr2):Math.max(fr1,fr2);}
+    else{atk=fr1;}
+    const total=atk+bonus;
+    const isCrit=atk===20;const isFumble=atk===1;
+    const col=isCrit?'#ffd54f':isFumble?'#e53935':'var(--cp)';
+    const advTag=atkAlt!==null?(advantageMode>0?`<span style="font-size:10px;color:#4caf50;margin-left:3px">AVT(${atk},~~${atkAlt}~~)</span>`:`<span style="font-size:10px;color:#e53935;margin-left:3px">DES(~~${atk}~~,${atkAlt})</span>`):'';
+    let dmgHtml='';
+    if(!isFumble){
+      const m=(dmg+'').match(/(\d+)d(\d+)([+-]\d+)?/);
+      if(m){
+        const dq=parseInt(m[1]),ds=parseInt(m[2]),fixedBonus=(m[3]?parseInt(m[3]):0)+(dmgBonus||0);
+        const _p=P();
+        const barbLvl=((_p.classes||[]).find(c=>c.name==='Barbare')||{}).level||0;
+        const brutCritExtra=isCrit&&barbLvl>=9&&slot!=='ranged'?(barbLvl>=17?3:barbLvl>=13?2:1):0;
+        const demiOrcExtra=isCrit&&_p.race==='Demi-Orc'&&slot!=='ranged'?1:0;
+        const numDice=isCrit?dq*2+brutCritExtra+demiOrcExtra:dq;
+        const rolls=[];for(let i=0;i<numDice;i++){let r=Math.ceil(Math.random()*ds);if(rerollLow&&(r===1||r===2))r=Math.ceil(Math.random()*ds);rolls.push(r);}
+        const totalDmg=rolls.reduce((s,v)=>s+v,0)+fixedBonus;
+        const typeMatch=(dmg+'').match(/\d+d\d+[+-]?\d*\s+(.*)/);
+        const dmgType=typeMatch?typeMatch[1].trim():'';
+        const critNote=isCrit?((brutCritExtra>0||demiOrcExtra>0)?' (critique + '+(brutCritExtra+demiOrcExtra)+' dé'+((brutCritExtra+demiOrcExtra)>1?'s':'')+' supplémentaire)':' (critique — dés doublés)'):'';
+        dmgHtml=`<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.1);font-size:13px">Dégâts : <span style="color:var(--text2)">${rolls.join('+')}${fixedBonus?fmt(fixedBonus):''}</span> = <b style="color:var(--cp);font-size:17px">${totalDmg}</b>${dmgType?` <span style="font-size:11px;color:var(--text3)">${esc(dmgType)}${critNote}</span>`:''}</div>`;
+      }
     }
+    _lastRollResultHtml=`<div>⚔ ${esc(name)} — d20(${atk})${advTag}${fmt(bonus)} = <span style="font-size:20px;color:${col};font-weight:800">${total}</span>${isCrit?' 🎉 CRITIQUE!':isFumble?' 💀 FUMBLE!':''}</div>${dmgHtml}`;
+    const el=document.getElementById('rollResult');
+    if(el){el.style.display='block';el.innerHTML=_lastRollResultHtml;}
+    if(slot==='ranged'){const p=P();const eq=(p.equip||{})[slot];if(eq&&eq.ammoLink){const ai=(p.inventory||[]).findIndex(i=>i.name===eq.ammoLink);if(ai>=0){p.inventory[ai].qty=Math.max(0,p.inventory[ai].qty-1);if(p.inventory[ai].qty===0)showToast('⚠️ Plus de '+eq.ammoLink+' !');saveAll();}}}
+    diceHistory.push({die:'d20',label:name,roll:atk,bonus,result:total});
+    if(diceHistory.length>10)diceHistory.shift();
+    if(diceOpen)renderDicePanel();
   }
-  _lastRollResultHtml=`<div>⚔ ${esc(name)} — d20(${atk})${advTag}${fmt(bonus)} = <span style="font-size:20px;color:${col};font-weight:800">${total}</span>${isCrit?' 🎉 CRITIQUE!':isFumble?' 💀 FUMBLE!':''}</div>${dmgHtml}`;
-  const el=document.getElementById('rollResult');
-  if(el){el.style.display='block';el.innerHTML=_lastRollResultHtml;}
-  if(slot==='ranged'){const p=P();const eq=(p.equip||{})[slot];if(eq&&eq.ammoLink){const ai=(p.inventory||[]).findIndex(i=>i.name===eq.ammoLink);if(ai>=0){p.inventory[ai].qty=Math.max(0,p.inventory[ai].qty-1);if(p.inventory[ai].qty===0)showToast('⚠️ Plus de '+eq.ammoLink+' !');saveAll();}}}
-  diceHistory.push({die:'d20',label:name,roll:atk,bonus,result:total});
-  if(diceHistory.length>10)diceHistory.shift();
-  if(diceOpen)renderDicePanel();
+  const rawRolls=rb!==null?[ra,rb]:[ra];
+  if(_isHalfling(P()))_luckyCheckRolls(rawRolls,0,_finishAttack);
+  else _finishAttack(rawRolls);
 }
 function rollDie(d){const n=parseInt(d.replace('d',''));const r=Math.ceil(Math.random()*n);_lastRollResultHtml=`${d}: <strong>${r}</strong>`;const el=document.getElementById('rollResult');if(el){el.style.display='block';el.innerHTML=_lastRollResultHtml;}}
 function openLinkAmmoModal(){
@@ -349,21 +375,30 @@ function unlinkRangedAmmo(){
 }
 function rollSave(ab,m,advantageMode=0){
   // Épuisement niv.3+ → désavantage (avantage + désavantage = normal per D&D rules)
-  const _p=P();const _exh=_p?((_p.exhaustion)||0):0;
+  const _p=P();const _exh=_p?(_p.exhaustion||0):0;
   if(_exh>=3){if(advantageMode>0)advantageMode=0;else if(advantageMode===0)advantageMode=-1;}
   if(_isIRLMode()){
     const advNote=advantageMode>0?'<div style="color:#4caf50;font-size:14px;margin-top:8px">🟢 AVANTAGE — 2d20, garde le plus haut</div>':advantageMode<0?'<div style="color:#e53935;font-size:14px;margin-top:8px">🔴 DÉSAVANTAGE — 2d20, garde le plus bas</div>':'';
-    showIRLRoll(`<strong style="font-size:20px;color:var(--cp)">Jet de sauvegarde ${ab}</strong><br><span style="font-size:26px">d20 <span style="color:var(--text3)">${fmt(m)}</span></span>${advNote}`);
+    const luckyNote=_isHalfling(_p)?'<div style="margin-top:6px;font-size:12px;color:#8d6e63">🍀 Si résultat = 1, vous pouvez relancer</div>':'';
+    showIRLRoll(`<strong style="font-size:20px;color:var(--cp)">Jet de sauvegarde ${ab}</strong><br><span style="font-size:26px">d20 <span style="color:var(--text3)">${fmt(m)}</span></span>${advNote}${luckyNote}`);
     return;
   }
-  let r,alt=null;
-  if(advantageMode!==0){const r1=Math.ceil(Math.random()*20),r2=Math.ceil(Math.random()*20);r=advantageMode>0?Math.max(r1,r2):Math.min(r1,r2);alt=advantageMode>0?Math.min(r1,r2):Math.max(r1,r2);}
-  else{r=Math.ceil(Math.random()*20);}
-  let total=r+m;
-  const altTag=alt!==null?(advantageMode>0?` <span style="color:#4caf50;font-size:10px">AVT(${r},~~${alt}~~)</span>`:`<span style="color:#e53935;font-size:10px">DES(${r},~~${alt}~~)</span>`):'';
-  let piTag='';
-  if(_p){const _bLvl=((_p.classes||[]).find(c=>c.name==='Barbare')||{}).level||0;if(_bLvl>=18&&ab.includes('FOR')&&total<(_p.abilities[0]||10)){piTag=` <span style="font-size:10px;color:#ff9800">💪 →${_p.abilities[0]} (Puissance indomptable)</span>`;total=_p.abilities[0];}}
-  showToast(`JS ${ab}: d20(${r})${altTag}${fmt(m)} = <strong>${total}</strong>${piTag}${r===20?' 🎉':r===1?' 💀':''}`);
+  let ra,rb=null;
+  if(advantageMode!==0){ra=Math.ceil(Math.random()*20);rb=Math.ceil(Math.random()*20);}
+  else{ra=Math.ceil(Math.random()*20);}
+  function _finishSave(finalRolls){
+    const fr1=finalRolls[0],fr2=finalRolls.length>1?finalRolls[1]:null;
+    let r=fr1,alt=null;
+    if(fr2!==null){r=advantageMode>0?Math.max(fr1,fr2):Math.min(fr1,fr2);alt=advantageMode>0?Math.min(fr1,fr2):Math.max(fr1,fr2);}
+    let total=r+m;
+    const altTag=alt!==null?(advantageMode>0?` <span style="color:#4caf50;font-size:10px">AVT(${r},~~${alt}~~)</span>`:`<span style="color:#e53935;font-size:10px">DES(${r},~~${alt}~~)</span>`):'';
+    let piTag='';
+    if(_p){const _bLvl=((_p.classes||[]).find(c=>c.name==='Barbare')||{}).level||0;if(_bLvl>=18&&ab.includes('FOR')&&total<(_p.abilities[0]||10)){piTag=` <span style="font-size:10px;color:#ff9800">💪 →${_p.abilities[0]} (Puissance indomptable)</span>`;total=_p.abilities[0];}}
+    showToast(`JS ${ab}: d20(${r})${altTag}${fmt(m)} = <strong>${total}</strong>${piTag}${r===20?' 🎉':r===1?' 💀':''}`);
+  }
+  const rawRolls=rb!==null?[ra,rb]:[ra];
+  if(_isHalfling(_p))_luckyCheckRolls(rawRolls,0,_finishSave);
+  else _finishSave(rawRolls);
 }
 
 function rollSpellPlayer(name,dmgStr,saveStat){
@@ -485,7 +520,7 @@ function renderSpellList(p, combatOnly){
               ${d?`<div style="font-size:11px;color:var(--text3)">${esc(school)}${castTime?' • '+esc(castTime):''}${range?' • '+esc(range):''}</div>`:''}
             </div>
             ${damage?`<span style="font-size:11px;color:var(--cp);margin-right:6px">${esc(damage)}</span>`:''}
-            ${combatOnly&&(damage||d&&d.savingThrow)?`<button class="btn bac bsm" style="flex-shrink:0;margin-right:6px" onclick="event.stopPropagation();rollSpellPlayer('${esc(s.name)}','${esc(damage||'')}','${esc(d&&d.savingThrow||'')}')">🎲</button>`:''}
+            ${isPrepared&&!hasMComponent?`<button class="btn bac bsm" style="flex-shrink:0;margin-right:6px" onclick="event.stopPropagation();castSpell('${esc(s.name)}',${lvi})">⚡ Lancer</button>`:''}
             ${!combatOnly&&prepCaster&&lvi>0&&!s.isCircle?`<button class="btn bsm" style="margin-right:6px;${isPrepared?'background:rgba(76,175,80,.15);color:#4caf50;border-color:#4caf50':''}" onclick="event.stopPropagation();togglePrepareSpell('${esc(s.name)}')">${isPrepared?'✓ Prêt':'Préparer'}</button>`:''}
             <span style="color:var(--text3)">▾</span>
           </div>
@@ -508,6 +543,58 @@ function renderSpellList(p, combatOnly){
       }).join(''):''}
     </div>`;
   }).join('');
+}
+
+function useInspirationBardique(die){
+  const dieSize=parseInt(die.replace('d',''));
+  if(_isIRLMode()){
+    openModal(`<div class="pt">🎵 Inspiration bardique — Mode IRL</div>
+      <div style="text-align:center;padding:12px 0">
+        <div style="font-size:30px;margin-bottom:8px">🎵</div>
+        <div style="font-size:14px;color:var(--text2);margin-bottom:4px">Lance ton dé d'inspiration :</div>
+        <div style="font-size:28px;font-weight:700;color:var(--cp);margin-bottom:12px">${die}</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:14px">Entre le résultat — tu l'ajoutes à ton jet.</div>
+        <input class="fi" id="inspIRLInput" type="number" min="1" max="${dieSize}" style="text-align:center;font-size:22px;margin-bottom:14px">
+        <div style="display:flex;gap:8px">
+          <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
+          <button class="btn bac" style="flex:2" onclick="(()=>{const v=parseInt(document.getElementById('inspIRLInput').value)||0;if(v<1)return;discardInspirationBardique();closeModal();showToast('🎵 Inspiration : <strong>+'+v+'</strong> à ajouter à ton jet !',3500);})()">✓ Utiliser</button>
+        </div>
+      </div>`);
+  }else{
+    const roll=Math.ceil(Math.random()*dieSize);
+    discardInspirationBardique();
+    showToast(`🎵 Inspiration bardique : ${die}(${roll}) — ajoute <strong>+${roll}</strong> à ton jet !`,3500);
+  }
+}
+function discardInspirationBardique(){
+  const p=P();
+  p.activeBuffs=(p.activeBuffs||[]).filter(b=>b.name!=='InspirationBardique');
+  saveAll();
+  if(typeof currentUser!=='undefined'&&currentUser&&typeof currentCampaignId!=='undefined'&&currentCampaignId){
+    fbDb.collection('characters').doc(currentUser.uid+'_'+currentCampaignId)
+      .update({'characterData.activeBuffs':p.activeBuffs}).catch(()=>{});
+  }
+  render();
+}
+function rollSupportBuff(buffName,die,consume){
+  const dieSize=parseInt(die.replace('d',''));
+  if(_isIRLMode()){
+    openModal(`<div class="pt">🎲 ${buffName==='Benediction'?'Bénédiction':'Assistance'} — Mode IRL</div><div style="text-align:center;padding:12px 0"><div style="font-size:14px;color:var(--text2);margin-bottom:8px">Lance ton <strong style="color:var(--cp)">${die}</strong> et note le résultat.</div><div style="font-size:28px;font-weight:700;color:var(--cp);margin-bottom:12px">${die}</div><div style="display:flex;gap:8px;justify-content:center"><button class="btn bac" onclick="${consume?`removeSupportBuff('${buffName}');`:''}closeModal()">✓ Noté</button></div></div>`);
+  }else{
+    const roll=Math.ceil(Math.random()*dieSize);
+    if(consume)removeSupportBuff(buffName);
+    showToast(`${buffName==='Benediction'?'✨ Bénédiction':'🤝 Assistance'} : d4 = <strong>+${roll}</strong> à ajouter à ton jet !`,3000);
+  }
+}
+function removeSupportBuff(buffName){
+  const p=P();
+  p.activeBuffs=(p.activeBuffs||[]).filter(b=>b.name!==buffName);
+  saveAll();
+  if(typeof currentUser!=='undefined'&&currentUser&&typeof currentCampaignId!=='undefined'&&currentCampaignId){
+    fbDb.collection('characters').doc(currentUser.uid+'_'+currentCampaignId)
+      .update({'characterData.activeBuffs':p.activeBuffs}).catch(()=>{});
+  }
+  render();
 }
 
 function togglePrepareSpell(name){
