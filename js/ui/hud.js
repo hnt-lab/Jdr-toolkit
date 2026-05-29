@@ -158,10 +158,11 @@ function _showHudDetail(uid){
     <div class="pm-combat-badge ${combatActive?'pm-combat-active':'pm-combat-inactive'}" style="margin-bottom:10px">
       ${combatActive?(isActiveTurn?'⚔ Son tour':'⚔ En combat'):'🏳 Hors combat'}
     </div>
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:${(p.shieldHp||0)>0?'4':'8'}px">
       <div style="flex:1"><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-bottom:3px"><span>PV</span><span style="font-weight:700;color:${down?'#e53935':hpColor}">${dead?'💀':down?'⚠ À terre':hp+'/'+hpMax}</span></div><div style="height:7px;background:var(--surface2);border-radius:4px;overflow:hidden"><div style="height:100%;width:${hpPct}%;background:${hpColor};border-radius:4px"></div></div></div>
       ${p.ac?`<div style="text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 10px;flex-shrink:0"><div style="font-size:8px;color:var(--text3)">CA</div><div style="font-size:16px;font-weight:700">${p.ac}</div></div>`:''}
     </div>
+    ${(p.shieldHp||0)>0?`<div style="margin-bottom:8px;padding:4px 6px;background:rgba(33,150,243,.08);border:1px solid rgba(33,150,243,.25);border-radius:6px"><div style="display:flex;justify-content:space-between;font-size:9px;color:#42a5f5;margin-bottom:2px"><span>🔵 Bouclier magique</span><span style="font-weight:700">${p.shieldHp}/${p.shieldHpMax||p.shieldHp}</span></div><div style="height:4px;background:rgba(33,150,243,.15);border-radius:2px;overflow:hidden"><div style="height:100%;width:${Math.round((p.shieldHp/Math.max(1,p.shieldHpMax||p.shieldHp))*100)}%;background:#1565c0;border-radius:2px"></div></div></div>`:''}
     ${conds.length?`<div style="font-size:11px;color:var(--text2);margin-bottom:8px">${conds.join(' ')}</div>`:''}
     ${chargesHtml?`<div style="margin-bottom:8px">${chargesHtml}</div>`:''}
     ${statsHtml?`<details style="margin-bottom:10px"><summary style="font-size:10px;color:var(--text3);cursor:pointer;list-style:none;display:flex;align-items:center;gap:3px"><span>▶</span> Caractéristiques</summary><div style="display:grid;grid-template-columns:repeat(6,1fr);gap:3px;margin-top:6px">${statsHtml}</div></details>`:''}
