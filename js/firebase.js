@@ -33,19 +33,41 @@ setTimeout(()=>{
   btn.onclick=()=>location.reload();
   el.appendChild(btn);
 },8000);
+const APP_VERSION='0.9.8';
+let _pendingSwUpdate=false;
+function _showUpdateOverlay(){
+  if(document.getElementById('_updateOverlay'))return;
+  const ov=document.createElement('div');
+  ov.id='_updateOverlay';
+  ov.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center';
+  ov.innerHTML=`<div style="background:var(--surface,#1a1400);border:1px solid var(--cp,#c8a84b);border-radius:16px;padding:32px 28px;max-width:340px;width:92%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.6)">
+    <div style="font-size:36px;margin-bottom:12px">✨</div>
+    <div style="font-family:var(--F,'serif');font-size:18px;color:var(--cp,#c8a84b);margin-bottom:8px">Nouvelle mise à jour disponible</div>
+    <div style="font-size:12px;color:var(--text3,#888);margin-bottom:24px">Une nouvelle version de La Boîte à Outils est prête.</div>
+    <div id="_updateBar" style="display:none;height:4px;background:rgba(200,168,75,.2);border-radius:2px;margin-bottom:16px;overflow:hidden"><div id="_updateBarFill" style="height:100%;width:0%;background:var(--cp,#c8a84b);border-radius:2px;transition:width .1s linear"></div></div>
+    <div id="_updateStatus" style="font-size:11px;color:var(--text3,#888);margin-bottom:16px;display:none">Mise à jour en cours...</div>
+    <div id="_updateBtns" style="display:flex;gap:10px">
+      <button onclick="_doUpdate()" style="flex:2;padding:11px;border-radius:8px;border:none;background:var(--cp,#c8a84b);color:#1a1400;font-weight:700;font-size:14px;cursor:pointer;font-family:var(--B,'sans-serif')">✓ Mettre à jour</button>
+      <button onclick="_skipUpdate()" style="flex:1;padding:11px;border-radius:8px;border:1px solid var(--border,#333);background:transparent;color:var(--text2,#aaa);font-size:13px;cursor:pointer">Plus tard</button>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+}
+function _doUpdate(){
+  const bar=document.getElementById('_updateBar'),fill=document.getElementById('_updateBarFill'),btns=document.getElementById('_updateBtns'),status=document.getElementById('_updateStatus');
+  if(bar)bar.style.display='block';if(btns)btns.style.display='none';if(status)status.style.display='block';
+  let pct=0;const iv=setInterval(()=>{pct=Math.min(95,pct+Math.random()*8+2);if(fill)fill.style.width=pct+'%';},120);
+  setTimeout(()=>{clearInterval(iv);if(fill)fill.style.width='100%';setTimeout(()=>location.reload(true),300);},2000);
+}
+function _skipUpdate(){
+  _pendingSwUpdate=true;
+  const ov=document.getElementById('_updateOverlay');if(ov)ov.remove();
+  if(typeof showToast==='function')showToast('💡 Mise à jour disponible dans ton profil.',3000);
+}
 if('serviceWorker' in navigator){
   navigator.serviceWorker.addEventListener('message',e=>{
     if(e.data?.type!=='SW_UPDATED')return;
-    const splash=document.getElementById('splashScreen');
-    const msg=document.getElementById('splashMsg');
-    if(splash){
-      if(msg)msg.textContent='Mise à jour disponible — rechargement automatique...';
-      splash.style.opacity='1';splash.style.display='flex';
-      setTimeout(()=>location.reload(true),2000);
-    } else {
-      if(typeof showToast==='function')showToast('🔄 Mise à jour disponible — rechargement dans 3s...');
-      setTimeout(()=>location.reload(true),3000);
-    }
+    _showUpdateOverlay();
   });
 }
 // Rechargement automatique si l'appli est restée en fond plus de 15 minutes
@@ -270,8 +292,12 @@ function startGroupListener(campaignId){
           if(!change.doc.metadata.hasPendingWrites){
             if(uid!==currentUser?.uid)_checkIncomingBuffs(oldCharData,charData);
             if(uid===currentUser?.uid&&state?.players?.[state.activeIdx]){
-              state.players[state.activeIdx].activeBuffs=charData.activeBuffs||[];
-              if(typeof render==='function')render();
+              const _newB=JSON.stringify(charData.activeBuffs||[]);
+              const _oldB=JSON.stringify(state.players[state.activeIdx].activeBuffs||[]);
+              if(_newB!==_oldB){
+                state.players[state.activeIdx].activeBuffs=charData.activeBuffs||[];
+                if(typeof render==='function')render();
+              }
             }
           }
         }else if(change.type==='removed'){
