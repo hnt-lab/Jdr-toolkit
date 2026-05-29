@@ -72,7 +72,11 @@ function renderClerc(p) {
 
     // ─── VIE ──────────────────────────────────────────────────
     if (dn === 'Domaine de la vie') {
-      dc += _clercPanel('💚 Disciple de la vie','niv.1','',`Sorts de soin de niv.1+ : la cible récupère <strong>2 + niveau du sort</strong> PV supplémentaires.`);
+      dc += `<div style="padding:7px 10px;background:var(--surface2);border-radius:6px;margin-bottom:6px">
+        <div style="font-size:12px;font-weight:600;margin-bottom:4px">💚 Disciple de la vie <span style="font-size:10px;color:var(--text3);margin-left:4px">niv.1</span></div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:6px">Sorts de soin niv.1+ : <strong>+2 + niveau du sort</strong> PV supplémentaires à la cible. Quel niveau venez-vous de lancer ?</div>
+        <div style="display:flex;gap:3px;flex-wrap:wrap">${Array.from({length:9},(_,i)=>{const niv=i+1;const bonus=2+niv;return `<button class="btn bsm" style="min-width:28px" onclick="showToast('💚 Disciple de la vie — Niv.${niv} : +${bonus} PV bonus à la cible',2500)">Niv.${niv}</button>`;}).join('')}</div>
+      </div>`;
       dc += _clercPanel('✝ Préservation de la vie','Conduit divin','',`Action : dépenser 1 conduit — distribuer <strong>${5*clercLvl} PV</strong> entre des créatures à 9m (max ½ PV max chacune). Pas d'effet sur morts-vivants/artificiels.`);
       if (clercLvl>=6)  dc += _clercPanel('🌟 Guérisseur béni','niv.6','',`Quand tu soignes un allié avec un sort de niv.1+, tu récupères toi-même <strong>2 + niveau du sort</strong> PV.`);
       if (clercLvl>=8)  dc += _clercPanel(`⚡ Frappe divine`,'niv.8','',`1×/tour, quand tu touches avec une arme : <strong>+${clercLvl>=14?'2d8':'1d8'} radiants</strong>. <button class="btn bsm" style="font-size:10px;margin-top:4px" onclick="rollCustomDmg('${clercLvl>=14?'2d8':'1d8'}','Frappe divine')">🎲 ${clercLvl>=14?'2d8':'1d8'}</button>`);
