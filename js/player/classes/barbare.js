@@ -51,7 +51,7 @@ function renderBarbare(p) {
   <div style="margin-bottom:10px;padding:8px;background:${rageActive?'rgba(229,57,53,.1)':'var(--surface2)'};border-radius:6px;border:1px solid ${rageActive?'#e53935':'var(--border)'}">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
       <span style="font-size:12px;font-weight:600;color:${rageActive?'#e53935':'var(--text3)'}">${rageActive?'🔥 En rage':'💤 Hors rage'}</span>
-      <button class="btn bsm" style="${rageActive?'color:#e53935;border-color:#e53935;':''}" onclick="toggleRageActive()">${rageActive?'⬛ Sortir de la rage':'🔥 Entrer en rage'}</button>
+      <button class="btn bsm" style="${rageActive?'color:#e53935;border-color:#e53935;':''}" onclick="toggleRageActive()">${rageActive?'⬛ Sortir de la rage':'🔸🔥 Entrer en rage'}</button>
     </div>
     ${rageActive?`<div style="margin-bottom:8px">${isPersistante?`<div style="font-size:11px;color:#ff9800;margin-bottom:4px">♾ Rage persistante — durée illimitée.</div>`:`<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><div style="display:flex;gap:2px">${Array.from({length:10},(_,i)=>`<span style="width:14px;height:14px;border-radius:2px;border:1px solid ${i<rageTurns?'#e53935':'var(--border)'};background:${i<rageTurns?'rgba(229,57,53,.35)':'transparent'};display:inline-block"></span>`).join('')}</div><span style="font-size:11px;color:${rageTurns<=3?'#e53935':'var(--text3)'}">⏱ ${rageTurns}/10 tours</span></div><button class="btn bsm" style="color:#e53935;border-color:#e53935;margin-bottom:4px" onclick="endRageTurn()">⏩ Fin de tour</button>`}</div>`:''}
     <div style="font-size:11px;color:var(--text3);margin-bottom:4px">Résistances actives en rage :</div>
@@ -101,6 +101,14 @@ function renderBarbare(p) {
         <span style="font-size:16px;font-weight:700;color:${isHeavy?'var(--text3)':'var(--cp)'}">${fastSpeed}m${isHeavy?'':' <span style="font-size:10px;color:var(--text3)">+3m</span>'}</span>
       </div>
       <div style="font-size:11px;color:var(--text3)">${isHeavy?'⚠ Armure lourde — +3m inactif.':'Vitesse '+baseSpeed+'m + 3m (sans armure lourde).'}</div>
+    </div>`);
+  }
+
+  // ── Attaque supplémentaire (niv.5+) ──────────────────────
+  if (barbareLvl>=5) {
+    panels.push(`<div style="margin-bottom:10px;padding:8px;background:var(--surface2);border-radius:6px">
+      <div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:2px">⚔ Attaque supplémentaire</div>
+      <div style="font-size:11px;color:var(--text3)">Tu peux attaquer deux fois (au lieu d'une) quand tu prends l'action Attaquer.</div>
     </div>`);
   }
 
