@@ -8,6 +8,8 @@ function showMJScreen(){
   document.getElementById('hubScreen').style.display='none';
   document.getElementById('app').style.display='none';
   document.getElementById('mjScreen').style.display='block';
+  // Fix 23 — Dé flottant visible pour le MJ (panel simplifié)
+  const _dfMJ=document.getElementById('diceFloat');if(_dfMJ)_dfMJ.style.display='flex';
   const el=document.getElementById('mjHdrCamp');
   if(el) el.textContent=(currentTableName?currentTableName+' — ':'')+currentCampaignName;
   _mjTab='joueurs';
