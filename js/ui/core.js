@@ -101,6 +101,22 @@ const _DB_VERSION='srd-v1';
   }
 })();
 
+// ─── CINÉMATIQUE D'ENTRÉE (login réussi → HUD) ───
+function _mjtkEntrance(done){
+  const scene=document.getElementById('authScreen');
+  const panel=document.querySelector('.mjtkBox');
+  if(panel){panel.style.transition='opacity .45s ease, transform .45s ease';panel.style.opacity='0';panel.style.transform=(panel.style.transform||'')+' scale(.9)';}
+  const ov=document.createElement('div');ov.id='mjtkEntrance';
+  const ring=[[0,-150],[130,-75],[130,75],[0,150],[-130,75],[-130,-75]];
+  const glyphs=ring.map(p=>`<svg width="40" height="40" viewBox="0 0 40 40" style="transform:translate(-50%,-50%) translate(${p[0]}px,${p[1]}px)"><circle cx="20" cy="20" r="16" fill="none" stroke="#9ff0e6" stroke-width="1.6"/><polygon points="20,7 31,27 9,27" fill="none" stroke="#cdeef2" stroke-width="1.4"/><circle cx="20" cy="20" r="3" fill="#9ff0e6"/></svg>`).join('');
+  ov.innerHTML=`<div class="mjtkGlyphs">${glyphs}</div><div class="mjtkBurst"></div><div class="mjtkFlash"></div>`;
+  document.body.appendChild(ov);
+  if(scene){scene.style.transition='transform 1.2s cubic-bezier(.55,0,.4,1)';scene.style.transformOrigin='50% 52%';}
+  setTimeout(()=>{if(scene)scene.style.transform='scale(2.6)';},1250);
+  setTimeout(()=>{try{done&&done();}catch(e){}},2350);
+  setTimeout(()=>{if(ov.parentNode)ov.remove();if(scene){scene.style.transform='';scene.style.transition='';scene.style.transformOrigin='';}if(panel){panel.style.opacity='';panel.style.transform='';panel.style.transition='';}},3300);
+}
+
 // ─── AUTH STATE ───
 fbAuth.onAuthStateChanged(async user=>{
   if(user){
@@ -110,8 +126,10 @@ fbAuth.onAuthStateChanged(async user=>{
       currentUserData=doc.exists?doc.data():{displayName:user.displayName||'Utilisateur',role:'Joueur'};
     }catch(e){currentUserData={displayName:user.displayName||'Utilisateur',role:'Joueur'};}
     hideSplash();
-    showHub();
     loadMJCompLib();
+    const _authEl=document.getElementById('authScreen');
+    if(_authEl&&getComputedStyle(_authEl).display!=='none'&&typeof _mjtkEntrance==='function'){_mjtkEntrance(showHub);}
+    else{showHub();}
   }else{
     currentUser=null;currentUserData=null;
     hideSplash();
