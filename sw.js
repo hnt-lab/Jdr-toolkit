@@ -1,9 +1,12 @@
-const CACHE = 'boite-outils-v0.9.10';
+// Version lue depuis la source unique version.js (changer le numéro là-bas seulement)
+importScripts('./version.js');
+const CACHE = 'boite-outils-v' + APP_VERSION;
 
 // Fichiers à mettre en cache dès l'installation
 const PRECACHE = [
   './',
   './index.html',
+  './version.js',
   './css/main.css',
   './css/variables.css',
   './css/base.css',
