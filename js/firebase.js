@@ -33,7 +33,7 @@ setTimeout(()=>{
   btn.onclick=()=>location.reload();
   el.appendChild(btn);
 },8000);
-const APP_VERSION='0.9.8';
+// APP_VERSION vient de version.js (source unique), chargé avant firebase.js dans index.html
 let _pendingSwUpdate=false;
 function _showUpdateOverlay(){
   if(document.getElementById('_updateOverlay'))return;
