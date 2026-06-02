@@ -40,15 +40,19 @@ function _showUpdateOverlay(){
   const ov=document.createElement('div');
   ov.id='_updateOverlay';
   ov.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center';
-  ov.innerHTML=`<div style="background:var(--surface,#1a1400);border:1px solid var(--cp,#c8a84b);border-radius:16px;padding:32px 28px;max-width:340px;width:92%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.6)">
-    <div style="font-size:36px;margin-bottom:12px">✨</div>
-    <div style="font-family:var(--F,'serif');font-size:18px;color:var(--cp,#c8a84b);margin-bottom:8px">Nouvelle mise à jour disponible</div>
-    <div style="font-size:12px;color:var(--text3,#888);margin-bottom:24px">Une nouvelle version de La Boîte à Outils est prête.</div>
-    <div id="_updateBar" style="display:none;height:4px;background:rgba(200,168,75,.2);border-radius:2px;margin-bottom:16px;overflow:hidden"><div id="_updateBarFill" style="height:100%;width:0%;background:var(--cp,#c8a84b);border-radius:2px;transition:width .1s linear"></div></div>
-    <div id="_updateStatus" style="font-size:11px;color:var(--text3,#888);margin-bottom:16px;display:none">Mise à jour en cours...</div>
+  ov.innerHTML=`<div style="position:relative;background:linear-gradient(145deg,#3e3018,#1d1609);border:2px solid #6b5527;border-radius:16px;padding:30px 26px;max-width:340px;width:92%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.6),inset 0 0 30px rgba(0,0,0,.35),0 0 26px rgba(200,168,75,.14)">
+    <span style="position:absolute;left:12px;top:12px;width:8px;height:8px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#d9bd6e,#6b5527)"></span>
+    <span style="position:absolute;right:12px;top:12px;width:8px;height:8px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#d9bd6e,#6b5527)"></span>
+    <span style="position:absolute;left:12px;bottom:12px;width:8px;height:8px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#d9bd6e,#6b5527)"></span>
+    <span style="position:absolute;right:12px;bottom:12px;width:8px;height:8px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#d9bd6e,#6b5527)"></span>
+    <svg viewBox="0 0 100 100" class="mjtkGear big" style="width:52px;height:52px;margin-bottom:10px;filter:drop-shadow(0 0 8px rgba(200,168,75,.55))"><g fill="#c8a84b"><rect x="45" y="3" width="10" height="18" rx="2"/><rect x="45" y="3" width="10" height="18" rx="2" transform="rotate(45 50 50)"/><rect x="45" y="3" width="10" height="18" rx="2" transform="rotate(90 50 50)"/><rect x="45" y="3" width="10" height="18" rx="2" transform="rotate(135 50 50)"/><rect x="45" y="3" width="10" height="18" rx="2" transform="rotate(180 50 50)"/><rect x="45" y="3" width="10" height="18" rx="2" transform="rotate(225 50 50)"/><rect x="45" y="3" width="10" height="18" rx="2" transform="rotate(270 50 50)"/><rect x="45" y="3" width="10" height="18" rx="2" transform="rotate(315 50 50)"/></g><circle cx="50" cy="50" r="33" fill="#b8860b" stroke="#7d641d" stroke-width="2"/><circle cx="50" cy="50" r="20" fill="#16110a"/><circle cx="50" cy="50" r="9" fill="#d9bd6e"/><circle cx="50" cy="50" r="4" fill="#7fd1c4"/></svg>
+    <div style="font-family:var(--F,'serif');font-size:18px;color:#c8a84b;letter-spacing:.08em;margin-bottom:8px;text-shadow:0 0 14px rgba(200,168,75,.4)">Nouvelle mise à jour disponible</div>
+    <div style="font-size:12px;color:#9a8a5a;margin-bottom:22px">L'atelier a affûté ses outils — une nouvelle version est prête.</div>
+    <div id="_updateBar" style="display:none;height:5px;background:rgba(200,168,75,.15);border:1px solid rgba(200,168,75,.3);border-radius:3px;margin-bottom:16px;overflow:hidden"><div id="_updateBarFill" style="height:100%;width:0%;background:linear-gradient(90deg,#c8a84b,#7fd1c4,#d9bd6e);border-radius:3px;transition:width .1s linear"></div></div>
+    <div id="_updateStatus" style="font-size:11px;color:#9a8a5a;margin-bottom:16px;display:none">Rouages en mouvement…</div>
     <div id="_updateBtns" style="display:flex;gap:10px">
-      <button onclick="_doUpdate()" style="flex:2;padding:11px;border-radius:8px;border:none;background:var(--cp,#c8a84b);color:#1a1400;font-weight:700;font-size:14px;cursor:pointer;font-family:var(--B,'sans-serif')">✓ Mettre à jour</button>
-      <button onclick="_skipUpdate()" style="flex:1;padding:11px;border-radius:8px;border:1px solid var(--border,#333);background:transparent;color:var(--text2,#aaa);font-size:13px;cursor:pointer">Plus tard</button>
+      <button onclick="_doUpdate()" style="flex:2;padding:11px;border-radius:8px;border:1px solid #7d641d;background:linear-gradient(#d9bd6e,#c8a84b);color:#1a1400;font-weight:700;font-size:14px;cursor:pointer;font-family:var(--B,'sans-serif')">⚙ Mettre à jour</button>
+      <button onclick="_skipUpdate()" style="flex:1;padding:11px;border-radius:8px;border:1px solid #6b5527;background:transparent;color:#9a8a5a;font-size:13px;cursor:pointer">Plus tard</button>
     </div>
   </div>`;
   document.body.appendChild(ov);
