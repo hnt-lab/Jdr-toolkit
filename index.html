@@ -35,15 +35,24 @@
 .mjtkSteam{position:absolute;border-radius:50%;background:radial-gradient(circle,rgba(222,205,160,.55),transparent 70%);filter:blur(2.5px);pointer-events:none}
 .mjtkNeedle{transform-origin:50px 50px;animation:mjtkNeedle 3.2s ease-in-out infinite}
 @keyframes mjtkLeak{0%{opacity:0;transform:translateY(0) scale(.4)}30%{opacity:.55}100%{opacity:0;transform:translateY(-22px) scale(1.35)}}
-.mjtkScene{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(rgba(8,5,2,.05),rgba(8,5,2,.16)),url('login-box.png') center/cover no-repeat fixed;overflow:hidden}
-@media(max-width:760px){.mjtkScene{background:linear-gradient(rgba(8,5,2,.05),rgba(8,5,2,.2)),url('login-box-portrait.png') center/cover no-repeat fixed}}
+.mjtkScene{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(rgba(8,5,2,.05),rgba(8,5,2,.16)),url('login-box.png') center/cover no-repeat;overflow:hidden}
+@media(max-width:760px){.mjtkScene{background:linear-gradient(rgba(8,5,2,.05),rgba(8,5,2,.2)),url('login-box-portrait.png') center/cover no-repeat}}
 .mjtkBox{position:relative;z-index:3;width:100%;max-width:336px;border-radius:14px;padding:20px 22px 22px;transform:translateY(-12vh);background:rgba(13,9,5,.6);backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);border:2px solid rgba(200,168,75,.5);box-shadow:0 22px 56px rgba(0,0,0,.72),inset 0 0 30px rgba(0,0,0,.4),0 0 28px rgba(200,168,75,.2)}
 @media(max-width:760px){.mjtkBox{max-width:286px;padding:15px 17px 17px;transform:translateY(-4vh)}}
 .mjtkCorner{position:absolute;width:20px;height:20px;border:3px solid #b8860b;border-radius:5px;z-index:5;box-shadow:0 0 5px rgba(200,168,75,.3)}
 .mjtkRivet2{position:absolute;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 35% 32%,#f1dca0,#b8860b 55%,#6b5527);box-shadow:0 1px 2px rgba(0,0,0,.6),inset 0 0 2px rgba(255,255,255,.4);z-index:7}
 .mjtkProp{position:absolute;z-index:1;pointer-events:none;filter:drop-shadow(0 5px 9px rgba(0,0,0,.55))}
 @keyframes mjtkOrbit{0%{top:-34px;left:-34px}25%{top:-34px;left:calc(100% - 34px)}50%{top:calc(100% - 34px);left:calc(100% - 34px)}75%{top:calc(100% - 34px);left:-34px}100%{top:-34px;left:-34px}}
-.mjtkFlare{position:absolute;width:68px;height:68px;border-radius:50%;background:radial-gradient(circle,rgba(180,238,242,.5) 0%,rgba(127,209,196,.3) 36%,rgba(127,209,196,.1) 60%,transparent 78%);filter:blur(8px);animation:mjtkOrbit 40s linear infinite;z-index:8;pointer-events:none}
+.mjtkFlare{position:absolute;width:68px;height:68px;border-radius:50%;background:radial-gradient(circle,rgba(180,238,242,.5) 0%,rgba(127,209,196,.3) 36%,rgba(127,209,196,.1) 60%,transparent 78%);filter:blur(8px);animation:mjtkOrbit 60s linear infinite;z-index:8;pointer-events:none}
+/* Cinématique d'entrée dans l'app */
+#mjtkEntrance{position:fixed;inset:0;z-index:100000;pointer-events:none;overflow:hidden}
+.mjtkGlyphs{position:absolute;inset:0;animation:mjtkGlyphAnim 1.5s ease-in forwards}
+.mjtkGlyphs svg{position:absolute;left:50%;top:50%;filter:drop-shadow(0 0 7px #7fd1c4)}
+@keyframes mjtkGlyphAnim{0%{opacity:0;transform:scale(1.25) rotate(0deg)}16%{opacity:1;transform:scale(1.06) rotate(7deg)}46%{opacity:1;transform:scale(1) rotate(18deg)}80%{opacity:.85;transform:scale(.16) rotate(66deg)}100%{opacity:0;transform:scale(0) rotate(82deg)}}
+.mjtkBurst{position:absolute;left:50%;top:52%;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(255,247,225,.95) 0%,rgba(127,209,196,.8) 30%,rgba(200,168,75,.5) 55%,transparent 75%);opacity:0;animation:mjtkBurst .9s ease-out 1.2s forwards}
+@keyframes mjtkBurst{0%{opacity:0;transform:translate(-50%,-50%) scale(.2)}28%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(3)}}
+.mjtkFlash{position:absolute;inset:0;background:radial-gradient(circle at 50% 52%,#fff 0%,#d8f6f8 40%,#bfe9c9 70%,#9fd4c0 100%);opacity:0;animation:mjtkFlash 1.5s ease-in 1.55s forwards}
+@keyframes mjtkFlash{0%{opacity:0}52%{opacity:1}68%{opacity:1}100%{opacity:0}}
 </style>
 <div id="splashScreen" style="position:fixed;inset:0;z-index:9999;background:radial-gradient(circle at 50% 40%,#241a0c 0%,#120d07 55%,#0a0805 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .5s ease;overflow:hidden">
   <!-- Anneau arcanique tournant (fond) -->
@@ -51,48 +60,26 @@
     <circle cx="100" cy="100" r="92" fill="none" stroke="#c8a84b" stroke-width="1" stroke-dasharray="2 10"/>
     <circle cx="100" cy="100" r="78" fill="none" stroke="#7fd1c4" stroke-width="1" stroke-dasharray="1 16"/>
   </svg>
-  <!-- Mécanisme magitech central -->
-  <div style="position:relative;width:240px;height:184px;animation:mjtkFloat 4s ease-in-out infinite">
-    <!-- Cœur arcanique pulsant (la magie qui anime le mécanisme) -->
-    <div style="position:absolute;left:50%;top:48%;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,rgba(200,168,75,.5) 0%,rgba(127,209,196,.18) 38%,transparent 68%);animation:mjtkPulse 3.5s ease-in-out infinite"></div>
-    <!-- Façade de la boîte à outils + sigle arcanique gravé -->
-    <div style="position:absolute;left:50px;top:24px;width:140px;height:136px;border-radius:14px;background:linear-gradient(145deg,#3e3018,#1d1609);border:2px solid #6b5527;box-shadow:inset 0 2px 18px rgba(0,0,0,.55),inset 0 0 30px rgba(0,0,0,.4),0 0 26px rgba(200,168,75,.16)"></div>
-    <svg viewBox="0 0 100 100" style="position:absolute;left:74px;top:46px;width:92px;height:92px;opacity:.22"><polygon points="50,6 94,80 6,80" fill="none" stroke="#7fd1c4" stroke-width="2"/><circle cx="50" cy="56" r="30" fill="none" stroke="#c8a84b" stroke-width="1.5"/></svg>
-    <span style="position:absolute;left:60px;top:34px;width:7px;height:7px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#d9bd6e,#6b5527)"></span>
-    <span style="position:absolute;right:58px;top:34px;width:7px;height:7px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#d9bd6e,#6b5527)"></span>
-    <span style="position:absolute;left:60px;bottom:34px;width:7px;height:7px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#d9bd6e,#6b5527)"></span>
-    <span style="position:absolute;right:58px;bottom:34px;width:7px;height:7px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#d9bd6e,#6b5527)"></span>
-    <!-- Tuyaux laiton -->
-    <div style="position:absolute;left:14px;top:96px;width:48px;height:10px;border-radius:5px;background:linear-gradient(#d9bd6e,#7d641d);border:1px solid #5a4a22"></div>
-    <div style="position:absolute;right:14px;top:96px;width:48px;height:10px;border-radius:5px;background:linear-gradient(#d9bd6e,#7d641d);border:1px solid #5a4a22"></div>
-    <!-- Cadrans / jauges magitech -->
-    <svg viewBox="0 0 100 100" style="position:absolute;left:0;top:54px;width:46px;height:46px;filter:drop-shadow(0 0 5px rgba(200,168,75,.3))">
-      <circle cx="50" cy="50" r="44" fill="#1d1609" stroke="#b8860b" stroke-width="4"/><circle cx="50" cy="50" r="44" fill="none" stroke="#7fd1c4" stroke-width="1" opacity=".4"/>
-      <g class="mjtkNeedle"><line x1="50" y1="50" x2="50" y2="16" stroke="#d99a5e" stroke-width="4" stroke-linecap="round"/></g><circle cx="50" cy="50" r="5" fill="#d9bd6e"/>
+  <!-- Trois engrenages emboîtés (le « chargement » qui tourne) -->
+  <div style="position:relative;animation:mjtkFloat 5s ease-in-out infinite">
+    <div style="position:absolute;left:50%;top:50%;width:330px;height:330px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,rgba(200,168,75,.16) 0%,rgba(127,209,196,.07) 44%,transparent 70%);pointer-events:none"></div>
+    <svg viewBox="24 18 166 138" style="position:relative;display:block;width:250px;max-width:76vw;height:auto;filter:drop-shadow(0 7px 16px rgba(0,0,0,.5))">
+      <g style="filter:drop-shadow(0 0 7px rgba(200,168,75,.5))">
+        <animateTransform attributeName="transform" type="rotate" from="0 75 70" to="360 75 70" dur="9s" repeatCount="indefinite"/>
+        <g fill="#c8a84b"><rect x="106" y="66.5" width="9" height="7" rx="2" transform="rotate(10 75 70)"/><rect x="106" y="66.5" width="9" height="7" rx="2" transform="rotate(40 75 70)"/><rect x="106" y="66.5" width="9" height="7" rx="2" transform="rotate(70 75 70)"/><rect x="106" y="66.5" width="9" height="7" rx="2" transform="rotate(100 75 70)"/><rect x="106" y="66.5" width="9" height="7" rx="2" transform="rotate(130 75 70)"/><rect x="106" y="66.5" width="9" height="7" rx="2" transform="rotate(160 75 70)"/><rect x="106" y="66.5" width="9" height="7" rx="2" transform="rotate(190 75 70)"/><rect x="106" y="66.5" width="9" height="7" rx="2" transform="rotate(220 75 70)"/><rect x="106" y="66.5" width="9" height="7" rx="2" transform="rotate(250 75 70)"/><rect x="106" y="66.5" width="9" height="7" rx="2" transform="rotate(280 75 70)"/><rect x="106" y="66.5" width="9" height="7" rx="2" transform="rotate(310 75 70)"/><rect x="106" y="66.5" width="9" height="7" rx="2" transform="rotate(340 75 70)"/></g>
+        <circle cx="75" cy="70" r="33" fill="#b8860b" stroke="#7d641d" stroke-width="2"/><circle cx="75" cy="70" r="18" fill="#16110a"/><circle cx="75" cy="70" r="8" fill="#d9bd6e"/><circle cx="75" cy="70" r="4" fill="#7fd1c4"/>
+      </g>
+      <g style="filter:drop-shadow(0 0 6px rgba(184,115,51,.5))">
+        <animateTransform attributeName="transform" type="rotate" from="0 123 110" to="-360 123 110" dur="6.75s" repeatCount="indefinite"/>
+        <g fill="#b87333"><rect x="145" y="106.5" width="9" height="7" rx="2" transform="rotate(0 123 110)"/><rect x="145" y="106.5" width="9" height="7" rx="2" transform="rotate(40 123 110)"/><rect x="145" y="106.5" width="9" height="7" rx="2" transform="rotate(80 123 110)"/><rect x="145" y="106.5" width="9" height="7" rx="2" transform="rotate(120 123 110)"/><rect x="145" y="106.5" width="9" height="7" rx="2" transform="rotate(160 123 110)"/><rect x="145" y="106.5" width="9" height="7" rx="2" transform="rotate(200 123 110)"/><rect x="145" y="106.5" width="9" height="7" rx="2" transform="rotate(240 123 110)"/><rect x="145" y="106.5" width="9" height="7" rx="2" transform="rotate(280 123 110)"/><rect x="145" y="106.5" width="9" height="7" rx="2" transform="rotate(320 123 110)"/></g>
+        <circle cx="123" cy="110" r="24" fill="#9c5a28" stroke="#6e3f1c" stroke-width="2"/><circle cx="123" cy="110" r="13" fill="#16110a"/><circle cx="123" cy="110" r="6" fill="#d99a5e"/>
+      </g>
+      <g style="filter:drop-shadow(0 0 5px rgba(200,168,75,.45))">
+        <animateTransform attributeName="transform" type="rotate" from="0 158 82" to="360 158 82" dur="4.5s" repeatCount="indefinite"/>
+        <g fill="#c8a84b"><rect x="171" y="78.5" width="9" height="7" rx="2" transform="rotate(-10 158 82)"/><rect x="171" y="78.5" width="9" height="7" rx="2" transform="rotate(50 158 82)"/><rect x="171" y="78.5" width="9" height="7" rx="2" transform="rotate(110 158 82)"/><rect x="171" y="78.5" width="9" height="7" rx="2" transform="rotate(170 158 82)"/><rect x="171" y="78.5" width="9" height="7" rx="2" transform="rotate(230 158 82)"/><rect x="171" y="78.5" width="9" height="7" rx="2" transform="rotate(290 158 82)"/></g>
+        <circle cx="158" cy="82" r="15" fill="#b8860b" stroke="#7d641d" stroke-width="2"/><circle cx="158" cy="82" r="8" fill="#16110a"/><circle cx="158" cy="82" r="3.5" fill="#d9bd6e"/>
+      </g>
     </svg>
-    <svg viewBox="0 0 100 100" style="position:absolute;right:0;top:54px;width:46px;height:46px;filter:drop-shadow(0 0 5px rgba(184,115,51,.3))">
-      <circle cx="50" cy="50" r="44" fill="#1d1609" stroke="#9c5a28" stroke-width="4"/>
-      <g class="mjtkNeedle" style="animation-duration:2.6s"><line x1="50" y1="50" x2="50" y2="18" stroke="#c8a84b" stroke-width="4" stroke-linecap="round"/></g><circle cx="50" cy="50" r="5" fill="#d99a5e"/>
-    </svg>
-    <!-- Grand rouage (laiton, cœur arcanique) -->
-    <svg viewBox="0 0 100 100" class="mjtkGear big" style="position:absolute;left:64px;top:38px;width:104px;height:104px;filter:drop-shadow(0 0 9px rgba(200,168,75,.5))">
-      <g fill="#c8a84b"><rect x="45" y="3" width="10" height="18" rx="2"/><rect x="45" y="3" width="10" height="18" rx="2" transform="rotate(45 50 50)"/><rect x="45" y="3" width="10" height="18" rx="2" transform="rotate(90 50 50)"/><rect x="45" y="3" width="10" height="18" rx="2" transform="rotate(135 50 50)"/><rect x="45" y="3" width="10" height="18" rx="2" transform="rotate(180 50 50)"/><rect x="45" y="3" width="10" height="18" rx="2" transform="rotate(225 50 50)"/><rect x="45" y="3" width="10" height="18" rx="2" transform="rotate(270 50 50)"/><rect x="45" y="3" width="10" height="18" rx="2" transform="rotate(315 50 50)"/></g>
-      <circle cx="50" cy="50" r="33" fill="#b8860b" stroke="#7d641d" stroke-width="2"/><circle cx="50" cy="50" r="20" fill="#16110a"/><circle cx="50" cy="50" r="9" fill="#d9bd6e"/><circle cx="50" cy="50" r="4" fill="#7fd1c4"/>
-    </svg>
-    <!-- Petit rouage (cuivre) -->
-    <svg viewBox="0 0 100 100" class="mjtkGear small" style="position:absolute;left:140px;top:104px;width:60px;height:60px;filter:drop-shadow(0 0 7px rgba(184,115,51,.5))">
-      <g fill="#b87333"><rect x="45" y="4" width="10" height="16" rx="2"/><rect x="45" y="4" width="10" height="16" rx="2" transform="rotate(60 50 50)"/><rect x="45" y="4" width="10" height="16" rx="2" transform="rotate(120 50 50)"/><rect x="45" y="4" width="10" height="16" rx="2" transform="rotate(180 50 50)"/><rect x="45" y="4" width="10" height="16" rx="2" transform="rotate(240 50 50)"/><rect x="45" y="4" width="10" height="16" rx="2" transform="rotate(300 50 50)"/></g>
-      <circle cx="50" cy="50" r="32" fill="#9c5a28" stroke="#6e3f1c" stroke-width="2"/><circle cx="50" cy="50" r="18" fill="#16110a"/><circle cx="50" cy="50" r="7" fill="#d99a5e"/>
-    </svg>
-    <!-- Rouage minuscule -->
-    <svg viewBox="0 0 100 100" class="mjtkGear tiny" style="position:absolute;left:46px;top:108px;width:40px;height:40px;filter:drop-shadow(0 0 5px rgba(200,168,75,.4))">
-      <g fill="#c8a84b"><rect x="45" y="6" width="10" height="14" rx="2"/><rect x="45" y="6" width="10" height="14" rx="2" transform="rotate(72 50 50)"/><rect x="45" y="6" width="10" height="14" rx="2" transform="rotate(144 50 50)"/><rect x="45" y="6" width="10" height="14" rx="2" transform="rotate(216 50 50)"/><rect x="45" y="6" width="10" height="14" rx="2" transform="rotate(288 50 50)"/></g>
-      <circle cx="50" cy="50" r="30" fill="#b8860b" stroke="#7d641d" stroke-width="2"/><circle cx="50" cy="50" r="14" fill="#16110a"/>
-    </svg>
-    <!-- Volutes de vapeur -->
-    <span class="mjtkSteam" style="left:30px;top:40px;width:16px;height:16px;animation:mjtkSteam 3.4s ease-in infinite"></span>
-    <span class="mjtkSteam" style="right:30px;top:48px;width:13px;height:13px;animation:mjtkSteam 4.1s ease-in .8s infinite"></span>
-    <span class="mjtkSteam" style="left:120px;top:30px;width:18px;height:18px;animation:mjtkSteam 3.8s ease-in 1.6s infinite"></span>
   </div>
   <div style="font-family:'Cinzel',serif;font-size:24px;color:#c8a84b;letter-spacing:.14em;text-shadow:0 0 18px rgba(200,168,75,.5)">La Boîte à Outils</div>
   <div id="splashMsg" style="font-size:12px;color:#9a8a5a;letter-spacing:.05em">Bienvenue — l'atelier s'éveille…</div>
