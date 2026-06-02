@@ -34,6 +34,9 @@ function renderBarbare(p) {
   const isPersistante = barbareLvl >= 15;
 
   const panels = [];
+  const critDice = barbareLvl>=17?3:barbareLvl>=13?2:1;
+  const implacableUses = cc['RageImplacableUses']||0;
+  const implacableDC = 10 + implacableUses * 5;
 
   // ── Rage : charges + toggle ───────────────────────────────
   const rageBubbles = unlimited
@@ -58,11 +61,7 @@ function renderBarbare(p) {
     <div style="display:flex;gap:4px;flex-wrap:wrap">${baseResTags}${totemOursTags}${berserkerImmuTag}</div>
   </div>`);
 
-  // ── Défense sans armure ───────────────────────────────────
-  panels.push(`<div style="margin-bottom:10px;padding:8px;background:var(--surface2);border-radius:6px">
-    <div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:2px">🛡 Défense sans armure</div>
-    <div style="font-size:11px;color:var(--text3)">Sans armure : CA = 10 + DEX (${dexMod>=0?'+':''}${dexMod}) + CON (${conMod>=0?'+':''}${conMod}) = <strong style="color:var(--cp)">${10+dexMod+conMod}</strong></div>
-  </div>`);
+  // Défense sans armure → Capacités & traits uniquement (Fix 6)
 
   // ── Jets avec avantage (en rage) ─────────────────────────
   if (rageActive) {
@@ -88,68 +87,43 @@ function renderBarbare(p) {
     </div>`);
   }
 
-  // ── Déplacement rapide (niv.5+) ──────────────────────────
-  if (barbareLvl>=5) {
-    const chestName = ((p.equip||{}).chest||{}).name||'';
-    const chestSrd = chestName ? SRD.armors.find(a=>a.name===chestName) : null;
-    const isHeavy = !!(chestSrd && chestSrd.type !== 'Bouclier' && chestSrd.type !== 'Légère' && chestSrd.type !== 'Intermédiaire');
-    const baseSpeed = p.speed||9;
-    const fastSpeed = isHeavy ? baseSpeed : baseSpeed + 3;
-    panels.push(`<div style="margin-bottom:10px;padding:8px;background:var(--surface2);border-radius:6px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
-        <span style="font-size:12px;font-weight:600;color:var(--cp)">💨 Déplacement rapide</span>
-        <span style="font-size:16px;font-weight:700;color:${isHeavy?'var(--text3)':'var(--cp)'}">${fastSpeed}m${isHeavy?'':' <span style="font-size:10px;color:var(--text3)">+3m</span>'}</span>
-      </div>
-      <div style="font-size:11px;color:var(--text3)">${isHeavy?'⚠ Armure lourde — +3m inactif.':'Vitesse '+baseSpeed+'m + 3m (sans armure lourde).'}</div>
-    </div>`);
-  }
+  // Déplacement rapide et Attaque supplémentaire → supprimés du panel (Fix 6)
 
-  // ── Attaque supplémentaire (niv.5+) ──────────────────────
-  if (barbareLvl>=5) {
-    panels.push(`<div style="margin-bottom:10px;padding:8px;background:var(--surface2);border-radius:6px">
-      <div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:2px">⚔ Attaque supplémentaire</div>
-      <div style="font-size:11px;color:var(--text3)">Tu peux attaquer deux fois (au lieu d'une) quand tu prends l'action Attaquer.</div>
-    </div>`);
-  }
-
-  // ── Attaque téméraire (niv.2+) ────────────────────────────
+  // ── Attaque téméraire (niv.2+) — Fix 15 : statut auto ────
   if (barbareLvl>=2) {
     const temActive = cc['Témérité']===true;
     panels.push(`<div style="margin-bottom:10px;padding:8px;background:${temActive?'rgba(255,152,0,.1)':'var(--surface2)'};border-radius:6px;border:1px solid ${temActive?'#ff9800':'var(--border)'}">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
         <span style="font-size:12px;font-weight:600;color:${temActive?'#ff9800':'var(--cp)'}">😤 Attaque téméraire</span>
-        <button class="btn bsm" style="${temActive?'color:#ff9800;border-color:#ff9800':''}" onclick="P().combatCharges=P().combatCharges||{};P().combatCharges['Témérité']=!${temActive};_markUnsaved();render()">${temActive?'✕ Désactiver':'⚔ Activer'}</button>
+        <button class="btn bsm" style="${temActive?'color:#ff9800;border-color:#ff9800':''}" onclick="toggleTémérité()">${temActive?'✕ Désactiver':'⚔ Activer'}</button>
       </div>
       <div style="font-size:11px;color:var(--text3)">${temActive?'✅ Avantage sur tes attaques de mêlée (Force). ❌ Les attaquants ont l\'avantage contre toi jusqu\'à ton prochain tour.':'Avantage sur tes attaques de mêlée (Force) ce tour, au prix de donner l\'avantage aux attaquants jusqu\'à ton prochain tour.'}</div>
     </div>`);
   }
 
-  // ── Épuisement — affiché seulement pour Berserker (Frénésie en cause) ───
-  if (isBerserker && barbareLvl>=3) {
-    const exh = p.exhaustion||0;
-    const exhDesc = ['Aucun épuisement','Désavantage aux jets de caractéristique','Vitesse divisée par 2','Désavantage aux jets d\'attaque et de sauvegarde','PV maximum réduits de moitié','Vitesse réduite à 0','☠ La créature meurt'];
-    panels.push(`<div style="margin-bottom:10px;padding:8px;background:${exh>=3?'rgba(229,57,53,.08)':'var(--surface2)'};border-radius:6px;border:1px solid ${exh>=3?'rgba(229,57,53,.4)':'var(--border)'}">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-        <span style="font-size:12px;font-weight:600;color:${exh>=3?'#e53935':'var(--text2)'}">💀 Épuisement (Frénésie) — ${exh}/6</span>
-        <div style="display:flex;gap:4px">
-          <button class="btn bsm" onclick="P().exhaustion=Math.min(6,(P().exhaustion||0)+1);_markUnsaved();render()">+1</button>
-          <button class="btn bsm" onclick="P().exhaustion=Math.max(0,(P().exhaustion||0)-1);_markUnsaved();render()">-1</button>
-        </div>
-      </div>
-      <div style="display:flex;gap:3px;margin-bottom:6px">${Array.from({length:6},(_,i)=>`<span style="width:18px;height:18px;border-radius:50%;border:2px solid ${i<exh?'#e53935':'var(--border)'};background:${i<exh?'rgba(229,57,53,.35)':'transparent'};display:inline-block"></span>`).join('')}</div>
-      <div style="font-size:11px;color:${exh>=3?'#e53935':'var(--text3)'}">Pallier actuel : ${exhDesc[exh]||''}</div>
-    </div>`);
-  }
-
-  // ── BERSERKER ─────────────────────────────────────────────
+  // ── BERSERKER — Fix 17 : Frénésie & Épuisement fusionnés ─
   if (isBerserker && barbareLvl>=3) {
     const frenActive = cc['FrénésieActive']===true;
-    panels.push(`<div style="margin-bottom:10px;padding:8px;background:${frenActive?'rgba(183,28,28,.1)':'var(--surface2)'};border-radius:6px;border:1px solid ${frenActive?'#b71c1c':'var(--border)'}">
+    const exh = p.exhaustion||0;
+    const exhDesc = ['Aucun épuisement','Désavantage aux jets de compétence','Vitesse divisée par 2','Désavantage aux jets d\'attaque et de sauvegarde','PV maximum réduits de moitié','Vitesse réduite à 0','☠ La créature meurt'];
+    panels.push(`<div style="margin-bottom:10px;padding:8px;background:${frenActive?'rgba(183,28,28,.1)':exh>=3?'rgba(229,57,53,.06)':'var(--surface2)'};border-radius:6px;border:1px solid ${frenActive?'#b71c1c':exh>=3?'rgba(229,57,53,.4)':'var(--border)'}">
+      <div style="font-size:12px;font-weight:700;color:${frenActive?'#b71c1c':'var(--cp)'};margin-bottom:8px">💢 Frénésie & Épuisement</div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-        <span style="font-size:12px;font-weight:600;color:${frenActive?'#b71c1c':'var(--cp)'}">💢 Frénésie</span>
+        <span style="font-size:11px;font-weight:600;color:${frenActive?'#b71c1c':'var(--text2)'}">Frénésie</span>
         <button class="btn bsm" style="${frenActive?'color:#b71c1c;border-color:#b71c1c':''}" onclick="P().combatCharges=P().combatCharges||{};P().combatCharges['FrénésieActive']=!${frenActive};_markUnsaved();render()">${frenActive?'✕ Désactiver':'⚔ Activer pour cette rage'}</button>
       </div>
-      <div style="font-size:11px;color:var(--text3)">${frenActive?'⚔ Attaque bonus (mêlée) à chaque tour de rage. ⚠ +1 épuisement à la fin de la rage.':'Attaque bonus (mêlée) par tour de rage, au coût de 1 niveau d\'épuisement à la fin.'}</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:10px">${frenActive?'⚔ Attaque bonus (mêlée) à chaque tour de rage. ⚠ +1 épuisement à la fin de la rage.':'Attaque bonus (mêlée) par tour de rage, au coût de 1 niveau d\'épuisement à la fin.'}</div>
+      <div style="border-top:1px solid ${exh>=3?'rgba(229,57,53,.25)':'var(--border)'};padding-top:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <span style="font-size:11px;font-weight:600;color:${exh>=3?'#e53935':'var(--text2)'}">💀 Épuisement — ${exh}/6</span>
+          <div style="display:flex;gap:4px">
+            <button class="btn bsm" onclick="changeExhaustion(1)">+1</button>
+            <button class="btn bsm" onclick="changeExhaustion(-1)">-1</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:3px;margin-bottom:6px">${Array.from({length:6},(_,i)=>`<span style="width:18px;height:18px;border-radius:50%;border:2px solid ${i<exh?'#e53935':'var(--border)'};background:${i<exh?'rgba(229,57,53,.35)':'transparent'};display:inline-block"></span>`).join('')}</div>
+        <div style="font-size:11px;color:${exh>=3?'#e53935':'var(--text3)'}">Pallier actuel : ${exhDesc[exh]||''}</div>
+      </div>
     </div>`);
     if (barbareLvl>=10) {
       panels.push(`<div style="margin-bottom:10px;padding:8px;background:var(--surface2);border-radius:6px">
@@ -157,13 +131,17 @@ function renderBarbare(p) {
           <span style="font-size:12px;font-weight:600;color:var(--cp)">😱 Présence intimidante</span>
           <span style="font-size:10px;color:var(--text3)">Action • portée 9m</span>
         </div>
-        <div style="font-size:11px;color:var(--text3)">Cible une créature visible/audible. JS SAG DD <strong style="color:var(--cp)">${8+pb(lvl)+chaMod}</strong> ou Effrayée jusqu'à la fin de ton prochain tour.</div>
+        <button class="btn bsm" style="margin-bottom:6px" onclick="rollSave('JS SAG',${chaMod+pb(lvl)})">🎲 JS SAG DD ${8+pb(lvl)+chaMod} — Effrayée</button>
+        <div style="font-size:11px;color:var(--text3)">Cible une créature visible/audible à 9m. Si elle rate, elle est Effrayée jusqu\'à la fin de ton prochain tour.</div>
       </div>`);
     }
     if (barbareLvl>=14) {
       panels.push(`<div style="margin-bottom:10px;padding:8px;background:var(--surface2);border-radius:6px">
-        <div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:2px">⚡ Représailles</div>
-        <div style="font-size:11px;color:var(--text3)">Réaction : quand tu subis des dégâts d'une attaque de mêlée, tu peux immédiatement faire 1 attaque de mêlée contre l'attaquant.</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+          <span style="font-size:12px;font-weight:600;color:var(--cp)">↪ Représailles</span>
+          <span style="font-size:10px;color:#9c27b0;border:1px solid rgba(156,39,176,.4);border-radius:8px;padding:1px 6px">Réaction</span>
+        </div>
+        <div style="font-size:11px;color:var(--text3)">Quand tu subis des dégâts d\'une attaque de mêlée, tu peux immédiatement faire 1 attaque de mêlée contre l\'attaquant.</div>
       </div>`);
     }
   }
@@ -285,62 +263,27 @@ function renderBarbare(p) {
     </div>`);
   }
 
-  // ── Capacités de haut niveau ──────────────────────────────
-  if (barbareLvl>=9) {
-    const critDice = barbareLvl>=17?3:barbareLvl>=13?2:1;
-    panels.push(`<div style="margin-bottom:10px;padding:8px;background:var(--surface2);border-radius:6px">
-      <div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:2px">💥 Critique brutal</div>
-      <div style="font-size:11px;color:var(--text3)">+${critDice} dé${critDice>1?'s':''} de dégâts supplémentaire${critDice>1?'s':''} en rage sur un coup critique.</div>
-    </div>`);
-  }
+  // ── Instinct sauvage (niv.7+) — Fix 21 : bouton supprimé, avantage auto ─
   if (barbareLvl>=7) {
     panels.push(`<div style="margin-bottom:10px;padding:8px;background:var(--surface2);border-radius:6px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-        <span style="font-size:12px;font-weight:600;color:var(--cp)">🦅 Instinct sauvage</span>
-        <button class="btn bsm" onclick="diceRoll('d20','🦅 Initiative',${dexMod},'initiative')">🎲 Initiative (avantage)</button>
-      </div>
-      <div style="font-size:11px;color:var(--text3)">Avantage sur les jets d'initiative. Si surpris, tu peux entrer en rage au premier tour.</div>
-    </div>`);
-  }
-  if (barbareLvl>=11) {
-    const implacableUses = cc['RageImplacableUses']||0;
-    const implacableDC = 10 + implacableUses * 5;
-    panels.push(`<div style="margin-bottom:10px;padding:8px;background:${rageActive?'rgba(229,57,53,.07)':'var(--surface2)'};border-radius:6px;border:1px solid ${rageActive?'rgba(229,57,53,.3)':'var(--border)'}">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-        <span style="font-size:12px;font-weight:600;color:var(--cp)">💪 Rage implacable</span>
-        <span style="font-size:10px;color:var(--text3)">DD ${implacableDC}${implacableUses>0?' ('+implacableUses+' usage'+(implacableUses>1?'s':'')+')':''}</span>
-      </div>
-      ${rageActive?`<button class="btn bsm" style="color:#e53935;border-color:#e53935;margin-bottom:6px;width:100%" onclick="(()=>{const p=P();if(!p.combatCharges)p.combatCharges={};p.combatCharges['RageImplacableUses']=(p.combatCharges['RageImplacableUses']||0)+1;saveAll();rollSave('JS CON',${conMod});render();})()">🎲 JS CON DD ${implacableDC} (à 0 PV en rage)</button>`:''}
-      <div style="display:flex;gap:6px;align-items:center">
-        <button class="btn bsm" onclick="P().combatCharges=P().combatCharges||{};P().combatCharges['RageImplacableUses']=0;_markUnsaved();render()">↺ Repos (remettre à zéro)</button>
-      </div>
-      <div style="font-size:11px;color:var(--text3);margin-top:4px">À 0 PV en rage : JS CON DD ${implacableDC}. Succès → 1 PV. DD +5 par usage consécutif (remis à 0 au repos).</div>
-    </div>`);
-  }
-  if (barbareLvl>=15) {
-    panels.push(`<div style="margin-bottom:10px;padding:8px;background:var(--surface2);border-radius:6px">
-      <div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:2px">🔥 Rage persistante</div>
-      <div style="font-size:11px;color:var(--text3)">Ta rage ne prend fin que si tu perds connaissance ou si tu choisis de l'arrêter. L'absence d'action hostile ne la stoppe plus.</div>
-    </div>`);
-  }
-  if (barbareLvl>=18) {
-    const forScore = p.abilities[0]||10;
-    panels.push(`<div style="margin-bottom:10px;padding:8px;background:rgba(255,152,0,.07);border-radius:6px;border:1px solid rgba(255,152,0,.3)">
-      <div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:4px">💪 Puissance indomptable <span style="font-size:10px;color:#ff9800">Actif</span></div>
-      <div style="font-size:11px;color:var(--text3);margin-bottom:4px">Si le résultat brut d'un jet de Force est inférieur à ta valeur de Force (${forScore}), la valeur est utilisée à la place. S'applique automatiquement à tous tes jets FOR via le panneau Dés <span style="font-size:12px">💪</span>.</div>
-      <div style="font-size:10px;color:#ff9800">Valeur minimum appliquée : <strong>${forScore}</strong></div>
-    </div>`);
-  }
-  if (barbareLvl>=20) {
-    panels.push(`<div style="margin-bottom:10px;padding:8px;background:rgba(200,168,75,.08);border-radius:6px;border:1px solid rgba(200,168,75,.4)">
-      <div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:2px">👑 Champion primitif</div>
-      <div style="font-size:11px;color:var(--text3)">+4 Force et +4 Constitution (maximum 24 pour chacune). Rages illimitées.</div>
+      <div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:2px">🦅 Instinct sauvage</div>
+      <div style="font-size:11px;color:var(--text3)">Avantage sur les jets d'initiative (2d20, prend le meilleur — appliqué automatiquement). Si surpris, tu peux entrer en rage au premier tour.</div>
     </div>`);
   }
 
-  return cs('cs-barbare', `<div class="panel mb10">
+  // Fix 12 — Passives liées à la rage dans le panel Rage
+  const ragePassives=[];
+  if(barbareLvl>=9)ragePassives.push(`<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-top:1px solid ${rageActive?'rgba(229,57,53,.2)':'var(--border)'}"><span style="font-size:14px">💥</span><div style="flex:1"><div style="font-size:11px;font-weight:600;color:var(--cp)">Critique brutal</div><div style="font-size:10px;color:var(--text3)">+${critDice} dé${critDice>1?'s':''} supplémentaire${critDice>1?'s':''} sur coup critique${rageActive?' (actif en rage)':''}</div></div></div>`);
+  if(barbareLvl>=11)ragePassives.push(`<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-top:1px solid ${rageActive?'rgba(229,57,53,.2)':'var(--border)'}"><span style="font-size:14px">💪</span><div style="flex:1"><div style="font-size:11px;font-weight:600;color:var(--cp)">Rage implacable</div><div style="font-size:10px;color:var(--text3)">Tombe à 0 PV en rage → popup automatique JS CON DD ${implacableDC}${implacableUses>0?' ('+implacableUses+' usage':''}</div></div><button class="btn bsm" onclick="P().combatCharges=P().combatCharges||{};P().combatCharges['RageImplacableUses']=0;_markUnsaved();render()" title="Remettre à 0 au repos">↺</button></div>`);
+  if(barbareLvl>=15)ragePassives.push(`<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-top:1px solid ${rageActive?'rgba(229,57,53,.2)':'var(--border)'}"><span style="font-size:14px">♾</span><div style="font-size:11px;color:var(--cp)">Rage persistante — la rage ne s\'arrête plus si pas d\'action hostile</div></div>`);
+
+  // Fix 13 — Liseré animé quand en rage (ragePulse CSS)
+  const rageAnimStyle = rageActive ? 'animation:ragePulse 2s ease-in-out infinite;' : '';
+
+  return cs('cs-barbare', `<div class="panel mb10" style="${rageAnimStyle}">
     <div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>🔥 Rage — Barbare</div>
     ${panels.join('')}
+    ${ragePassives.length?`<div style="margin-top:4px">${ragePassives.join('')}</div>`:''}
   </div>`);
 }
 
@@ -368,6 +311,8 @@ function toggleRageActive() {
     }
     if (isMagieSauvage) { delete p.combatCharges['SursautResult']; delete p.combatCharges['SursautResult2']; }
     delete p.combatCharges['Témérité'];
+    // Fix 15 — Nettoyer statut Attaque téméraire à la fin de la rage
+    if (p.statuses) p.statuses = p.statuses.filter(s=>s.name!=='Attaque téméraire');
   } else {
     const unlimited = barbareLvl>=20;
     const cur = p.combatCharges['RageCharges']!==undefined ? p.combatCharges['RageCharges'] : rageMax;
@@ -399,6 +344,95 @@ function toggleRageActive() {
     }
   }
   saveAll(); render();
+}
+
+// Fix 15 — Attaque téméraire : statut auto sur p.statuses
+function toggleTémérité() {
+  const p = P();
+  if (!p.combatCharges) p.combatCharges = {};
+  const wasActive = p.combatCharges['Témérité']===true;
+  p.combatCharges['Témérité'] = !wasActive;
+  if (!wasActive) {
+    // Ajout du statut visible
+    if (!p.statuses) p.statuses = [];
+    if (!p.statuses.find(s=>s.name==='Attaque téméraire')) {
+      p.statuses.push({name:'Attaque téméraire',type:'malus',icon:'😤',desc:'Les attaquants ont l\'avantage contre toi jusqu\'au début de ton prochain tour.',rollPenalty:'',tempRage:true});
+    }
+  } else {
+    // Retrait du statut
+    if (p.statuses) p.statuses = p.statuses.filter(s=>s.name!=='Attaque téméraire');
+  }
+  _markUnsaved(); render();
+}
+
+// Fix 17 — Épuisement avec statuts automatiques
+function changeExhaustion(delta) {
+  const p = P();
+  const prev = p.exhaustion||0;
+  const next = Math.max(0, Math.min(6, prev + delta));
+  p.exhaustion = next;
+  // Appliquer les statuts correspondants
+  if (!p.statuses) p.statuses = [];
+  p.statuses = p.statuses.filter(s=>!s.exhaustionTag);
+  if (next>=1) p.statuses.push({name:'Épuisement 1',type:'malus',icon:'😓',desc:'Désavantage aux jets de compétence.',rollPenalty:'carac',exhaustionTag:true});
+  if (next>=2) p.statuses.push({name:'Épuisement 2',type:'malus',icon:'😰',desc:'Vitesse divisée par 2.',rollPenalty:'',exhaustionTag:true});
+  if (next>=3) p.statuses.push({name:'Épuisement 3',type:'malus',icon:'😵',desc:'Désavantage aux jets d\'attaque et de sauvegarde.',rollPenalty:'attaque,save',exhaustionTag:true});
+  if (next>=4) p.statuses.push({name:'Épuisement 4',type:'malus',icon:'🤢',desc:'PV maximum réduits de moitié.',rollPenalty:'',exhaustionTag:true});
+  if (next>=5) p.statuses.push({name:'Épuisement 5',type:'malus',icon:'💀',desc:'Vitesse réduite à 0.',rollPenalty:'',exhaustionTag:true});
+  if (next>=6) p.statuses.push({name:'Épuisement 6',type:'malus',icon:'☠',desc:'La créature meurt.',rollPenalty:'',exhaustionTag:true});
+  _markUnsaved(); render();
+}
+
+// Fix 18 — Rage implacable automatisée (appelée depuis applyHp quand PV → 0 en rage)
+function checkRageImplacable() {
+  const p = P();
+  if (!p.combatCharges) return;
+  const barbareLvl = ((p.classes||[]).find(c=>c.name==='Barbare')||{}).level||0;
+  if (barbareLvl < 11) return;
+  if (p.combatCharges['RageActive'] !== true) return;
+  if (p.hp > 0) return;
+  const uses = p.combatCharges['RageImplacableUses']||0;
+  const dc = 10 + uses * 5;
+  const conMod = Math.floor(((p.abilities||[])[2]||10 - 10)/2);
+  openModal(`<div style="text-align:center;padding:16px 12px">
+    <div style="font-size:36px;margin-bottom:8px">💪</div>
+    <div class="pt" style="margin-bottom:6px">Rage implacable</div>
+    <div style="font-size:14px;color:var(--text2);margin-bottom:6px">Tu tombes à 0 PV en rage !</div>
+    <div style="font-size:13px;font-weight:600;color:var(--cp);margin-bottom:14px">JS CON DD ${dc}${uses>0?' (usage '+uses+')':''}</div>
+    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+      <button class="btn bac" onclick="_implacableRoll(${dc},${conMod})">🎲 Lancer</button>
+      <button class="btn" onclick="_implacableIRL(${dc},${conMod})">✏ IRL</button>
+      <button class="btn" onclick="closeModal()">Ignorer</button>
+    </div>
+  </div>`);
+}
+function _implacableRoll(dc, conMod) {
+  const p = P(); if (!p.combatCharges) p.combatCharges = {};
+  const d20 = Math.ceil(Math.random()*20);
+  const total = d20 + conMod;
+  p.combatCharges['RageImplacableUses'] = (p.combatCharges['RageImplacableUses']||0)+1;
+  if (total >= dc) { p.hp = 1; showToast(`💪 Rage implacable — d20(${d20})+CON = ${total} ≥ DD${dc} ✓ → 1 PV !`,4000); }
+  else { showToast(`💪 Rage implacable — d20(${d20})+CON = ${total} < DD${dc} ✗ — reste à 0 PV.`,4000); }
+  closeModal(); _markUnsaved(); render();
+}
+function _implacableIRL(dc, conMod) {
+  openModal(`<div style="text-align:center;padding:14px 12px">
+    <div class="pt" style="margin-bottom:8px">Rage implacable — Mode IRL</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:12px">Lance 1d20, entre le résultat brut :</div>
+    <input class="fi" id="implacableIRLInput" type="number" min="1" max="20" style="text-align:center;font-size:22px;width:80px;margin-bottom:14px">
+    <div style="display:flex;gap:8px;justify-content:center">
+      <button class="btn" onclick="closeModal()">Annuler</button>
+      <button class="btn bac" onclick="(()=>{const v=parseInt(document.getElementById('implacableIRLInput')?.value)||0;if(v<1||v>20){showToast('❌ Invalide');return;}_implacableRoll2(${dc},${conMod},v);})()">Valider</button>
+    </div>
+  </div>`);
+}
+function _implacableRoll2(dc, conMod, d20) {
+  const p = P(); if (!p.combatCharges) p.combatCharges = {};
+  const total = d20 + conMod;
+  p.combatCharges['RageImplacableUses'] = (p.combatCharges['RageImplacableUses']||0)+1;
+  if (total >= dc) { p.hp = 1; showToast(`💪 Rage implacable — d20(${d20})+CON = ${total} ≥ DD${dc} ✓ → 1 PV !`,4000); }
+  else { showToast(`💪 Rage implacable — d20(${d20})+CON = ${total} < DD${dc} ✗ — reste à 0 PV.`,4000); }
+  closeModal(); _markUnsaved(); render();
 }
 
 function endRageTurn() {
