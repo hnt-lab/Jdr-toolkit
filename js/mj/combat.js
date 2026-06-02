@@ -584,7 +584,9 @@ function mjStartCombat(){
   _mjCombatants.forEach(c=>{c.initiative=Math.ceil(Math.random()*20)+(c.dexMod||0);});
   _mjCombatStarted=true;_mjCurrentTurn=0;_mjRound=1;
   const sorted=[..._mjCombatants].sort((a,b)=>b.initiative-a.initiative);
-  _mjCombatLog.push(`🎲 Initiative lancée — Round 1. Premier : ${esc(sorted[0]?.name||'?')} (${sorted[0]?.initiative||0})`);
+  // Fix 11 — Liste triée des initiatives dans le log
+  const _initList=sorted.map((c,i)=>`${i+1}. ${c.name} : ${c.initiative}`).join(' | ');
+  _mjCombatLog.push(`🎲 Initiative lancée — Round 1.\n📋 Ordre : ${_initList}`);
   _mjSaveCombatState(sorted,0);
   renderMJContent();
 }
