@@ -19,11 +19,51 @@
 <body>
 
 <!-- ÉCRAN DE CHARGEMENT -->
-<div id="splashScreen" style="position:fixed;inset:0;z-index:9999;background:#0d0d0f;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;transition:opacity .5s ease">
-  <div style="font-size:48px;filter:drop-shadow(0 0 20px rgba(200,168,75,.5))">🧰</div>
-  <div style="font-family:'Cinzel',serif;font-size:20px;color:#c8a84b;letter-spacing:.12em">La Boîte à Outils</div>
-  <div id="splashMsg" style="font-size:12px;color:#5a5870;letter-spacing:.04em">Chargement...</div>
-  <span class="auth-spinner" style="width:22px;height:22px;border-width:3px"></span>
+<style>
+@keyframes mjtkSpin{to{transform:rotate(360deg)}}
+@keyframes mjtkSpinRev{to{transform:rotate(-360deg)}}
+@keyframes mjtkBar{0%{left:-45%}100%{left:100%}}
+@keyframes mjtkFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.mjtkGear{transform-origin:50% 50%}
+.mjtkGear.big{animation:mjtkSpin 9s linear infinite}
+.mjtkGear.small{animation:mjtkSpinRev 6s linear infinite}
+</style>
+<div id="splashScreen" style="position:fixed;inset:0;z-index:9999;background:radial-gradient(circle at 50% 38%,#1c1509 0%,#0d0b08 68%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;transition:opacity .5s ease">
+  <!-- Boîte à outils + mécanisme à rouages -->
+  <div style="position:relative;width:166px;height:160px;animation:mjtkFloat 4s ease-in-out infinite">
+    <!-- Plaque de la boîte (façade) -->
+    <div style="position:absolute;inset:8px;border-radius:14px;background:linear-gradient(145deg,#3a2c16,#1d1609);border:2px solid #6b5527;box-shadow:inset 0 2px 18px rgba(0,0,0,.55),inset 0 0 30px rgba(0,0,0,.4),0 0 26px rgba(200,168,75,.16)"></div>
+    <!-- Rivets -->
+    <div style="position:absolute;left:16px;top:16px;width:7px;height:7px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#d9bd6e,#6b5527)"></div>
+    <div style="position:absolute;right:16px;top:16px;width:7px;height:7px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#d9bd6e,#6b5527)"></div>
+    <div style="position:absolute;left:16px;bottom:16px;width:7px;height:7px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#d9bd6e,#6b5527)"></div>
+    <div style="position:absolute;right:16px;bottom:16px;width:7px;height:7px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#d9bd6e,#6b5527)"></div>
+    <!-- Grand rouage (laiton) -->
+    <svg viewBox="0 0 100 100" class="mjtkGear big" style="position:absolute;left:18px;top:22px;width:104px;height:104px;filter:drop-shadow(0 0 9px rgba(200,168,75,.45))">
+      <g fill="#c8a84b">
+        <rect x="45" y="3" width="10" height="18" rx="2"/><rect x="45" y="3" width="10" height="18" rx="2" transform="rotate(45 50 50)"/><rect x="45" y="3" width="10" height="18" rx="2" transform="rotate(90 50 50)"/><rect x="45" y="3" width="10" height="18" rx="2" transform="rotate(135 50 50)"/><rect x="45" y="3" width="10" height="18" rx="2" transform="rotate(180 50 50)"/><rect x="45" y="3" width="10" height="18" rx="2" transform="rotate(225 50 50)"/><rect x="45" y="3" width="10" height="18" rx="2" transform="rotate(270 50 50)"/><rect x="45" y="3" width="10" height="18" rx="2" transform="rotate(315 50 50)"/>
+      </g>
+      <circle cx="50" cy="50" r="33" fill="#b8860b" stroke="#7d641d" stroke-width="2"/>
+      <circle cx="50" cy="50" r="20" fill="#16110a"/>
+      <circle cx="50" cy="50" r="8" fill="#d9bd6e"/>
+    </svg>
+    <!-- Petit rouage (cuivre, contre-sens) -->
+    <svg viewBox="0 0 100 100" class="mjtkGear small" style="position:absolute;left:92px;top:90px;width:62px;height:62px;filter:drop-shadow(0 0 7px rgba(184,115,51,.5))">
+      <g fill="#b87333">
+        <rect x="45" y="4" width="10" height="16" rx="2"/><rect x="45" y="4" width="10" height="16" rx="2" transform="rotate(60 50 50)"/><rect x="45" y="4" width="10" height="16" rx="2" transform="rotate(120 50 50)"/><rect x="45" y="4" width="10" height="16" rx="2" transform="rotate(180 50 50)"/><rect x="45" y="4" width="10" height="16" rx="2" transform="rotate(240 50 50)"/><rect x="45" y="4" width="10" height="16" rx="2" transform="rotate(300 50 50)"/>
+      </g>
+      <circle cx="50" cy="50" r="32" fill="#9c5a28" stroke="#6e3f1c" stroke-width="2"/>
+      <circle cx="50" cy="50" r="18" fill="#16110a"/>
+      <circle cx="50" cy="50" r="7" fill="#d99a5e"/>
+    </svg>
+  </div>
+  <div style="font-family:'Cinzel',serif;font-size:23px;color:#c8a84b;letter-spacing:.14em;text-shadow:0 0 18px rgba(200,168,75,.45)">La Boîte à Outils</div>
+  <div id="splashMsg" style="font-size:12px;color:#9a8a5a;letter-spacing:.05em">Bienvenue — préparation de l'atelier…</div>
+  <!-- Barre de chargement -->
+  <div style="position:relative;width:210px;height:6px;background:rgba(200,168,75,.12);border:1px solid rgba(200,168,75,.3);border-radius:4px;overflow:hidden">
+    <div style="position:absolute;top:0;height:100%;width:45%;border-radius:4px;background:linear-gradient(90deg,transparent,#c8a84b,#d9bd6e,transparent);animation:mjtkBar 1.4s ease-in-out infinite"></div>
+  </div>
+  <span class="auth-spinner" style="display:none"></span>
 </div>
 
 <!-- ÉCRAN DE CONNEXION -->
