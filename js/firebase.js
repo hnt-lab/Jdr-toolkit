@@ -334,7 +334,11 @@ function _showInitiativePopup(){
   const popup=document.getElementById('combatPopup');if(!popup)return;
   document.getElementById('combatPopupIcon').textContent='⚔';
   document.getElementById('combatPopupTitle').textContent='Le combat commence !';
-  document.getElementById('combatPopupSub').innerHTML='<button onclick="_rollMyInitiative();event.stopPropagation()" style="margin-top:10px;padding:12px 28px;background:var(--cp);color:#000;border:none;border-radius:10px;font-size:18px;font-weight:700;cursor:pointer;font-family:var(--F)">🎲 Lancer mon initiative</button>';
+  const _barbLvlInit=((p.classes||[]).find(c=>c.name==='Barbare')||{}).level||0;
+  const _initHasAdv=_barbLvlInit>=7;
+  const _initAdvNote=_initHasAdv?'<div style="font-size:11px;color:#e53935;margin-bottom:6px">🦅 Instinct sauvage — 2d20, prend le meilleur</div>':'';
+  const _initIRLBtn=typeof _isIRLMode==='function'&&_isIRLMode()?`<button onclick="_rollMyInitiativeIRL();event.stopPropagation()" style="margin-top:6px;padding:8px 16px;background:transparent;color:var(--cp);border:2px solid var(--cp);border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--F)">✏ Saisir le résultat IRL</button>`:'';
+  document.getElementById('combatPopupSub').innerHTML=`${_initAdvNote}<button onclick="_rollMyInitiative();event.stopPropagation()" style="margin-top:10px;padding:12px 28px;background:var(--cp);color:#000;border:none;border-radius:10px;font-size:18px;font-weight:700;cursor:pointer;font-family:var(--F)">🎲 Lancer mon initiative</button>${_initIRLBtn?'<br>'+_initIRLBtn:''}`;
   const box=popup.querySelector('.combat-popup-box');
   if(box){box.style.animation='none';void box.offsetHeight;box.style.animation='';}
   popup.className='show';
@@ -355,6 +359,24 @@ async function _rollMyInitiative(){
   const popup=document.getElementById('combatPopup');
   if(popup){clearTimeout(popup._timer);popup._timer=setTimeout(()=>{popup.className='';},3000);}
 }
+async function _rollMyInitiativeIRL(){
+  const p=P();if(!p||!currentUser||!currentCampaignId)return;
+  const dexVal=(p.abilities&&p.abilities[1]!==undefined)?p.abilities[1]:10;
+  const dexMod=Math.floor((dexVal-10)/2);
+  const barbareLvl=((p.classes||[]).find(c=>c.name==='Barbare')||{}).level||0;
+  const hasAdv=barbareLvl>=7;
+  const advTxt=hasAdv?'Lance 2 dés, entre le meilleur résultat :':'Entre le résultat de ton d20 :';
+  openModal(`<div style="text-align:center;padding:14px 12px">
+    <div class="pt" style="margin-bottom:8px">Initiative — Mode IRL</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:12px">${advTxt}${hasAdv?'<br><span style="color:#e53935;font-size:11px">🦅 Instinct sauvage — avantage</span>':''}</div>
+    <input class="fi" id="initIRLInput" type="number" min="1" max="20" style="text-align:center;font-size:22px;width:80px;margin-bottom:14px">
+    <div style="font-size:11px;color:var(--text3);margin-bottom:12px">+${dexMod>=0?'+':''}${dexMod} DEX sera ajouté automatiquement</div>
+    <div style="display:flex;gap:8px;justify-content:center">
+      <button class="btn" onclick="closeModal()">Annuler</button>
+      <button class="btn bac" onclick="(async()=>{const v=parseInt(document.getElementById('initIRLInput')?.value)||0;if(v<1||v>20){showToast('❌ Invalide (1-20)');return;}const tot=v+${dexMod};const sub=document.getElementById('combatPopupSub');if(sub)sub.innerHTML='<div style=\"font-size:52px;font-weight:800;color:var(--cp);\">'+tot+'</div><div style=\"font-size:13px;color:var(--text3);margin-top:4px\">d20('+v+') ${dexMod>=0?'+':''}${dexMod} DEX</div>';closeModal();try{await fbDb.collection('characters').doc(currentUser.uid+'_'+currentCampaignId).update({'characterData.pendingInitiative':tot});}catch(e){}const popup=document.getElementById('combatPopup');if(popup){clearTimeout(popup._timer);popup._timer=setTimeout(()=>{popup.className='';},3000);}})()">Valider</button>
+    </div>
+  </div>`);
+}
 function _updateCombatNotification(combatState){
   const wasActive=!!(_activeCombatState?.active);
   const isNowActive=!!(combatState?.active);
@@ -373,6 +395,10 @@ function _updateCombatNotification(combatState){
       _showCombatPopup('🏆','Combat terminé !','');
     } else if(isMyTurn&&!wasMyTurn){
       _showCombatPopup('⚡',"C'est ton tour !",'Prépare tes actions !',2800);
+      // Fix 14 — Popup "action hostile?" si barbare en rage
+      setTimeout(()=>_checkRageHostilePrompt(),500);
+      // Fix 15 — Nettoyer le statut Attaque téméraire (il expire à la fin du tour précédent)
+      setTimeout(()=>_clearTemérité(),300);
     }
   }
   const banner=document.getElementById('combatTurnBanner');
@@ -400,6 +426,38 @@ async function _undoEndTurn(){
     showToast('↩ Tour annulé.');
   }catch(e){}
 }
+// Fix 14 — Popup "action hostile?" pour le barbare en rage
+function _checkRageHostilePrompt() {
+  const p = P();
+  if (!p) return;
+  const barbareLvl = ((p.classes||[]).find(c=>c.name==='Barbare')||{}).level||0;
+  if (!barbareLvl) return;
+  if (!(p.combatCharges||{})['RageActive']) return;
+  const isPersistante = barbareLvl >= 15;
+  if (isPersistante) return;
+  const round = (_activeCombatState||{}).round||1;
+  if (round <= 1) return;
+  openModal(`<div style="text-align:center;padding:16px 12px">
+    <div style="font-size:36px;margin-bottom:8px">🔥</div>
+    <div class="pt" style="margin-bottom:8px">Tu es en rage !</div>
+    <div style="font-size:14px;color:var(--text2);margin-bottom:14px">As-tu attaqué ou subi des dégâts lors de ton dernier tour ?</div>
+    <div style="display:flex;gap:8px;justify-content:center">
+      <button class="btn bac" style="flex:1" onclick="closeModal()">✅ Oui — Rage continue</button>
+      <button class="btn" style="flex:1;color:#e53935;border-color:#e53935" onclick="closeModal();toggleRageActive();showToast('🔥 Rage terminée — aucune action hostile.')">❌ Non — Fin de rage</button>
+    </div>
+  </div>`);
+}
+
+// Fix 15 — Nettoyer statut Attaque téméraire au début du nouveau tour
+function _clearTemérité() {
+  const p = P();
+  if (!p || !p.statuses) return;
+  if (!p.statuses.find(s=>s.name==='Attaque téméraire')) return;
+  p.statuses = p.statuses.filter(s=>s.name!=='Attaque téméraire');
+  if (p.combatCharges) p.combatCharges['Témérité'] = false;
+  _markUnsaved(); render();
+}
+
 function _togglePartyHud(){
   _groupHudOpen=!_groupHudOpen;
   const panel=document.getElementById('partyHudPanel');
