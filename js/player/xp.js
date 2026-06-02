@@ -595,8 +595,40 @@ let LU={
   asiChoice:null,archetypeChoice:null,styleChoice:null,terrainChoice:null,
   metamagicChoices:[],newSpells:[],
   expertiseChoices:[],secretsChoices:[],mcSkillChoices:[],invocationChoices:[],
+  hpRoll:null,hpConfirmed:false,
 };
-function resetLU(){LU={step:1,steps:[],choice:null,mcTarget:null,asiChoice:null,archetypeChoice:null,styleChoice:null,terrainChoice:null,metamagicChoices:[],newSpells:[],expertiseChoices:[],secretsChoices:[],mcSkillChoices:[],invocationChoices:[],hpRoll:null};_luSpellSearch='';_luSecretsSearch='';}
+function resetLU(){LU={step:1,steps:[],choice:null,mcTarget:null,asiChoice:null,archetypeChoice:null,styleChoice:null,terrainChoice:null,metamagicChoices:[],newSpells:[],expertiseChoices:[],secretsChoices:[],mcSkillChoices:[],invocationChoices:[],hpRoll:null,hpConfirmed:false};_luSpellSearch='';_luSecretsSearch='';}
+
+function _luConfirmHP(roll,avg){
+  const used=roll!==null?roll:avg;
+  openModal(`<div style="text-align:center;padding:16px 12px">
+    <div style="font-size:32px;margin-bottom:8px">${roll!==null?'🎲':'📊'}</div>
+    <div class="pt" style="margin-bottom:8px">Confirmer les PV gagnés</div>
+    <div style="font-size:18px;font-weight:700;color:var(--cp);margin-bottom:8px">${used>0?'+'+used:used} PV${roll!==null?' (dé lancé)':' (moyenne)'}</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:16px">Ce choix est <strong>définitif</strong> — il ne pourra pas être modifié.</div>
+    <div style="display:flex;gap:8px;justify-content:center">
+      <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
+      <button class="btn bac" style="flex:2" onclick="LU.hpRoll=${roll!==null?roll:'null'};LU.hpConfirmed=true;closeModal();renderTab()">✓ Confirmer</button>
+    </div>
+  </div>`);
+}
+function _luRollHP(hdVal,avg){
+  if(typeof _isIRLMode==='function'&&_isIRLMode()){_luIRLHP(hdVal,avg);}
+  else{_luConfirmHP(Math.ceil(Math.random()*hdVal),avg);}
+}
+function _luIRLHP(hdVal,avg){
+  openModal(`<div style="text-align:center;padding:16px 12px">
+    <div style="font-size:32px;margin-bottom:8px">🎲</div>
+    <div class="pt" style="margin-bottom:8px">Lancer le dé de vie — Mode IRL</div>
+    <div style="font-size:28px;font-weight:700;color:var(--cp);margin-bottom:12px">1d${hdVal}</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:12px">Lance ton vrai dé et entre le résultat :</div>
+    <input class="fi" id="luIRLHPInput" type="number" min="1" max="${hdVal}" style="text-align:center;font-size:22px;margin-bottom:14px;width:80px">
+    <div style="display:flex;gap:8px;justify-content:center">
+      <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
+      <button class="btn bac" style="flex:2" onclick="(()=>{const v=parseInt(document.getElementById('luIRLHPInput')?.value)||0;if(v<1||v>${hdVal}){showToast('❌ Valeur invalide (1-${hdVal})');return;}closeModal();_luConfirmHP(v,${avg});})()">Valider</button>
+    </div>
+  </div>`);
+}
 
 function _parseFeatAbilityGrants(tx){
   if(!tx)return[];
@@ -959,15 +991,24 @@ function luFilterFeats(q){
     });
     return withPrereq.map(({f,prereq})=>_featCard(f,prereq)).join('');
   };
+  // Fix 5 — Filtrer les dons à prérequis lanceur pour les non-lanceurs
+  const _isSpellcaster=(p.spells||[]).length>0||(p.classes||[]).some(c=>{const d=SRD.classes.find(cl=>cl.name===c.name);return d&&d.spellcaster;});
+  const _spellFeatKeywords=['lanceur de sorts','emplacement de sort','modifier un sort','point de sorcellerie','incantation'];
+  const _filterSpellFeat=(f)=>{
+    if(_isSpellcaster)return true;
+    const tx=(f.tx||'').toLowerCase()+(f.n||'').toLowerCase();
+    return!_spellFeatKeywords.some(k=>tx.includes(k));
+  };
   if(!q.trim()){
-    const preview=FEATS_DB.slice(0,24);
-    el.innerHTML=_sortAndCard(preview)+`<div style="font-size:11px;color:var(--text3);text-align:center;padding:4px">…et ${FEATS_DB.length-24} autres. Tapez pour filtrer.</div>`;
+    const preview=FEATS_DB.filter(_filterSpellFeat).slice(0,24);
+    const total=FEATS_DB.filter(_filterSpellFeat).length;
+    el.innerHTML=_sortAndCard(preview)+(total>24?`<div style="font-size:11px;color:var(--text3);text-align:center;padding:4px">…et ${total-24} autres. Tapez pour filtrer.</div>`:'');
     return;
   }
   const low=q.toLowerCase();
   const res=[];
   for(let i=0;i<FEATS_DB.length&&res.length<18;i++){
-    if(FEATS_DB[i].n&&FEATS_DB[i].n.toLowerCase().includes(low))res.push(FEATS_DB[i]);
+    if(FEATS_DB[i].n&&FEATS_DB[i].n.toLowerCase().includes(low)&&_filterSpellFeat(FEATS_DB[i]))res.push(FEATS_DB[i]);
   }
   el.innerHTML=res.length?_sortAndCard(res):'<div style="font-size:12px;color:var(--text3);text-align:center;padding:8px">Aucun résultat.</div>';
 }
@@ -1209,12 +1250,18 @@ function luStepRecap(p,newLvl){
         const used=LU.hpRoll!==null?LU.hpRoll:avg;
         const total=Math.max(1,used+conM);
         const rolledTag=LU.hpRoll!==null?`<span style="font-size:9px;color:#4caf50;margin-left:4px">🎲 dé lancé</span>`:`<span style="font-size:9px;color:var(--text3);margin-left:4px">(moyenne)</span>`;
+        if(LU.hpConfirmed){
+          return`<div style="padding:8px 10px;background:rgba(76,175,80,.08);border:1px solid rgba(76,175,80,.4);border-radius:8px">
+            <div style="font-size:12px;color:#4caf50;font-weight:600;margin-bottom:2px">✓ PV confirmés — définitif</div>
+            <div style="font-size:15px;font-weight:700;color:var(--cp)">${used} + CON (${fmt(conM)}) = +${total} PV</div>
+          </div>`;
+        }
         return`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
           <div style="font-size:12px;color:var(--text2)">PV gagnés : <strong style="color:var(--cp)">${used} + CON (${fmt(conM)}) = <span style="font-size:15px">${total}</span></strong>${rolledTag}</div>
         </div>
         <div style="display:flex;gap:6px">
-          <button class="btn bsm${LU.hpRoll===null?' bac':''}" onclick="LU.hpRoll=null;renderTab()" style="flex:1;font-size:11px">${avg} Moyenne</button>
-          <button class="btn bsm${LU.hpRoll!==null?' bac':''}" onclick="LU.hpRoll=Math.ceil(Math.random()*${d.hdVal});renderTab()" style="flex:1;font-size:11px">🎲 Lancer 1${esc('d'+d.hdVal)}${LU.hpRoll!==null?' ('+LU.hpRoll+')':''}</button>
+          <button class="btn bsm" onclick="_luConfirmHP(null,${avg})" style="flex:1;font-size:11px">${avg} Moyenne</button>
+          <button class="btn bsm bac" onclick="_luRollHP(${d.hdVal},${avg})" style="flex:1;font-size:11px">🎲 Lancer 1${esc('d'+d.hdVal)}</button>
         </div>`;
       })()}
     </div>
@@ -1226,6 +1273,110 @@ function luStepRecap(p,newLvl){
     </div>
   </div>`;
 }
+
+// Fix 3 — Mapping capacités d'archétype par classe/archétype/niveau
+const _ARCHETYPE_LEVEL_FEATS={
+  'Barbare':{
+    'Voie du berserker':{
+      6:{name:'Rage aveugle',desc:'En rage, tu es immunisé contre les états Charmé et Effrayé.'},
+      10:{name:'Présence intimidante',desc:'Action : une créature visible à 9m doit réussir un JS de Sagesse (DD = 8+maîtrise+CHA) ou être Effrayée jusqu\'à la fin de ton prochain tour.'},
+      14:{name:'Représailles',desc:'Réaction : quand tu subis des dégâts d\'une attaque de mêlée, tu peux immédiatement effectuer une attaque de mêlée contre l\'attaquant.'},
+    },
+    'Voie du guerrier totem':{
+      6:{name:'Aspect de la bête',desc:'Avantage passif selon ton totem (Ours : force de portage ×2 ; Aigle : vision lointaine ; Loup : traquage furtif).'},
+      10:{name:'Marcheur spirituel',desc:'Tu peux lancer Communion avec la nature sous forme de rituel. Tu communies avec l\'esprit de ton animal totem.'},
+      14:{name:'Lien totémique',desc:'Bénéfice en rage selon ton totem (Ours : ennemis ont désavantage vs alliés ; Aigle : vitesse de vol ; Loup : renverser les cibles).'},
+    },
+    'Voie de la magie sauvage':{
+      6:{name:'Réserve de magie',desc:'Si tu n\'as plus de charges de rage au début de ton tour (en rage), tu en regagnes 1 automatiquement.'},
+      10:{name:'Réaction instable',desc:'Réaction : quand tu subis les effets d\'un sort, tu peux déclencher un Sursaut sauvage.'},
+      14:{name:'Sursaut contrôlé',desc:'Lors d\'un Sursaut sauvage, deux résultats sont tirés. Tu choisis lequel appliquer.'},
+    },
+  },
+  'Guerrier':{
+    'Champion':{
+      7:{name:'Athlète accompli',desc:'Tu maîtrises une compétence. Tu ajoutes la moitié du bonus de maîtrise aux jets de Force, Dextérité et Constitution pour lesquels tu n\'as pas de maîtrise.'},
+      10:{name:'Style de combat supplémentaire',desc:'Tu choisis un deuxième style de combat.'},
+      15:{name:'Critique supérieur',desc:'Tes coups critiques surviennent sur un résultat de 18, 19 ou 20 au lieu de 20.'},
+      18:{name:'Survivant',desc:'Au début de chacun de tes tours, si tu es à la moitié ou moins de tes PV max, tu récupères 5 + modificateur CON PV.'},
+    },
+    'Maître de guerre':{
+      7:{name:'Observation de l\'ennemi',desc:'Tu peux dépenser 1 dé de supériorité pour ajouter son résultat à un jet de Perception, Investigation ou Survie.'},
+      10:{name:'Dés de supériorité améliorés (d10)',desc:'Tes dés de supériorité deviennent des d10.'},
+      15:{name:'Implacable',desc:'Si tu n\'as plus de dés de supériorité quand tu lances l\'initiative, tu en regagnes 1.'},
+      18:{name:'Dés de supériorité maîtrisés (d12)',desc:'Tes dés de supériorité deviennent des d12.'},
+    },
+    'Chevalier occulte':{
+      7:{name:'Magie de guerre',desc:'Quand tu utilises ton action pour lancer un cantrip, tu peux faire une attaque avec une arme comme action bonus.'},
+      10:{name:'Frappe occulte',desc:'Quand tu touches une créature, tu peux dépenser un emplacement de sort pour lui imposer désavantage à son prochain jet de sauvegarde contre tes sorts.'},
+      15:{name:'Charge arcanique',desc:'Tu peux te téléporter jusqu\'à 9m vers un espace inoccupé visible quand tu utilises ta Fougue.'},
+      18:{name:'Magie de guerre améliorée',desc:'Quand tu utilises ton action pour lancer un sort, tu peux faire deux attaques avec une arme comme action bonus.'},
+    },
+  },
+  'Clerc':{
+    'Domaine de la vie':{2:{name:'Maîtrise des armures lourdes — Vie',desc:'Tu acquiers la maîtrise des armures lourdes.'},6:{name:'Guérison bénie',desc:'Quand tu lances un sort de soin sur une autre créature, tu récupères aussi des PV égaux à 2 + le niveau du sort.'},8:{name:'Frappe divine — Rayonnant',desc:'+1d8 dégâts radiants une fois par tour (+2d8 au niv.14).'},17:{name:'Guérison suprême',desc:'Quand tu utilises un sort de soin, tu utilises le maximum du dé plutôt que de le lancer.'}},
+    'Domaine de la lumière':{2:{name:'Flash ardent',desc:'Action bonus : flash aveuglant (JS CON DD sorts ou aveuglé jusqu\'à ta prochaine fin de tour).'},6:{name:'Lumière protectrice',desc:'Réaction : quand une créature à 9m subit des dégâts, lui donner résistance à ce type de dégâts.'},8:{name:'Frappe divine — Feu/Radiant',desc:'+1d8 dégâts de feu ou radiants une fois par tour (+2d8 au niv.14).'},17:{name:'Couronne de lumière',desc:'Action : émets une lumière éclatante 45m. Sorts de feu/rayonnant infligent le maximum de dégâts.'}},
+    'Domaine de la nature':{2:{name:'Maîtrise des armures lourdes — Nature',desc:'Maîtrise des armures lourdes + 1 compétence parmi Dressage, Nature, Survie.'},6:{name:'Arrêter la nature',desc:'Conduit divin : charmer ou effrayer des bêtes et végétaux à 9m.'},8:{name:'Frappe divine — Foudre/Poison',desc:'+1d8 dégâts de foudre ou de poison une fois par tour (+2d8 au niv.14).'},17:{name:'Maître de la nature',desc:'Action : charmer automatiquement bêtes et végétaux qui t\'entendent.'}},
+    'Domaine de la tempête':{2:{name:'Maîtrise des armures lourdes — Tempête',desc:'Maîtrise des armures lourdes.'},6:{name:'Frappe de tonnerre',desc:'Quand tu touches une créature Immense ou plus petite au corps-à-corps, tu peux la repousser de 3m.'},8:{name:'Frappe divine — Tonnerre',desc:'+1d8 dégâts de tonnerre une fois par tour (+2d8 au niv.14).'},17:{name:'Stase éolienne',desc:'Les créatures volantes dans un rayon de 90m ont du mal à se déplacer.'}},
+    'Domaine de la tromperie':{2:{name:'Invocation du double',desc:'Conduit divin : créer un duplicata illusoire de toi-même à 1,5m ou moins.'},6:{name:'Cloak of Shadows',desc:'Conduit divin : tu deviens invisible jusqu\'à la fin de ton prochain tour.'},8:{name:'Frappe divine — Poison',desc:'+1d8 dégâts de poison une fois par tour (+2d8 au niv.14).'},17:{name:'Frappe améliorée',desc:'Quand tu utilises Frappe divine, tu lances 2 fois le dé et prends la meilleure valeur.'}},
+    'Domaine de la guerre':{2:{name:'Maîtrise martiale',desc:'Maîtrise des armes de guerre et armures lourdes. Action bonus : attaque supplémentaire 1×/tour.'},6:{name:'Frappe guidée',desc:'Conduit divin : donner +10 à un jet d\'attaque (avant de voir le résultat).'},8:{name:'Frappe divine — Guerre',desc:'+1d8 (type de l\'arme) une fois par tour (+2d8 au niv.14).'},17:{name:'Avatar de la bataille',desc:'Résistance aux dégâts non-magiques contondants, perforants et tranchants.'}},
+    'Domaine du savoir':{2:{name:'Visions du passé',desc:'Conduit divin : tenir un objet 1 min pour connaître son histoire récente ou visualiser des événements dans un lieu proche.'},6:{name:'Lecture des pensées',desc:'Conduit divin : lire les pensées de créatures à 18m. JS SAG pour résister.'},8:{name:'Frappe puissante',desc:'+2d8 dégâts psychiques une fois par tour.'},17:{name:'Visions du passé améliorées',desc:'Conduit divin étendu à l\'enquête criminelle à longue portée.'}},
+    'Domaine de la forge':{2:{name:'Bénédiction de la forge',desc:'Action : attiser un objet non-magique (armure : +1 CA / arme : +1 attaque et dégâts) jusqu\'au repos long.'},6:{name:'Âme de la forge',desc:'Résistance aux dégâts de feu. +1 CA quand tu portes une armure.'},8:{name:'Frappe divine — Feu (Forge)',desc:'+1d8 dégâts de feu une fois par tour (+2d8 au niv.14).'},17:{name:'Forgé dans le feu',desc:'Immunité aux dégâts de feu. Résistance aux dégâts non-magiques physiques.'}},
+  },
+  'Paladin':{
+    'Serment de dévotion':{7:{name:'Aura de dévotion',desc:'Les créatures alliées à 3m de toi (9m au niv.18) ne peuvent pas être charmées.'},15:{name:'Pureté d\'esprit',desc:'Tu es toujours sous l\'effet de Protection contre le mal et le bien.'},20:{name:'Forme d\'avatar sacré',desc:'Transform. 1 min : aura 9m, régénère 10 PV/tour, résistances : acide, feu, foudre, psychique, tonnerre.'}},
+    'Serment des anciens':{7:{name:'Aura d\'entraves',desc:'Féées, fiélons et morts-vivants à 9m ont désavantage aux jets de sauvegarde.'},15:{name:'Ancienneté protectrice',desc:'Immunité au vieillissement magique. Les créatures immortelles ont désavantage contre toi.'},20:{name:'Seigneur de l\'hiver',desc:'Transform. 1 min : résistance à tous les dégâts non-psychiques, aura 3m qui ralentit les créatures.'}},
+    'Serment de vengeance':{7:{name:'Aura implacable',desc:'Si une créature hostile se déplace vers toi, tu peux utiliser ta réaction pour t\'en approcher.'},15:{name:'Âme vindicative',desc:'Si tu rates un jet de sauvegarde, la source subit 2d8 + CHA dégâts psychiques.'},20:{name:'Avatar de la vengeance',desc:'Transform. 1 min : vitesse +3m, attaque deux fois la même cible qui t\'a attaqué, résistance aux dégâts hors de tes attaquants.'}},
+  },
+  'Rôdeur':{
+    'Chasseur':{3:{name:'Proie du chasseur',desc:'Choisissez : Colosse (arbalète bonus vs Grande créature), Défense contre les multiples (résistance si ≥2 ennemis proches) ou Ennemi de la horde (dégâts supplémentaires).'},7:{name:'Tactiques défensives',desc:'Choisissez : Échapper à la horde (pas d\'attaques d\'opportunité), Protection contre les attaques multiples (½ dégâts si ciblé par 2+) ou Focus sauvage (avantage JS FOR).'},11:{name:'Salve ou Frappe tourbillonnante',desc:'Salve : attaques multiples sur plusieurs cibles à 9m. Frappe tourbillonnante : attaque toutes créatures à 1,5m.'},15:{name:'Défense supérieure',desc:'Résistance dégâts physiques de sorts. Esquive améliorée (½ si raté → 0 si réussi).'}},
+    'Maître des bêtes':{7:{name:'Protecteur exceptionnel',desc:'Le compagnon peut attaquer deux fois. Utilise ton bonus de maîtrise si supérieur.'},11:{name:'Assaut bestial',desc:'Si le compagnon est adjacent à une cible que tu attaques, il peut attaquer comme action bonus.'},15:{name:'Partager des sorts',desc:'Quand tu te lances un sort sur toi-même, ton compagnon animal en bénéficie aussi.'}},
+  },
+  'Moine':{
+    'Voie de la paume':{6:{name:'Bras agile',desc:'À la fin d\'un repos long : soigner 1d6+SAG PV à une créature au toucher (1×/repos long) ou immunité contre une maladie.'},11:{name:'Tranquillité',desc:'Quand tu utilises Pas du vent, tu peux te lancer Sanctuaire.'},17:{name:'Vibrations frappantes',desc:'3 points de ki : 3d10 nécrotiques + Étourdi jusqu\'à réussite JS.'}},
+    "Voie de l'ombre":{6:{name:'Frappe des ombres',desc:'Portée de Pas du vent étendue à 18m. La sortie peut effrayer la cible.'},11:{name:'Manteau des ombres',desc:'Zone sombre — 1 point de ki : invisible jusqu\'à ta prochaine fin de tour.'},17:{name:'Opportuniste des ombres',desc:'Réaction : si une créature à 1,5m est attaquée par un allié, tu peux l\'attaquer.'}},
+    'Voie des quatre éléments':{6:{name:'Discipline élémentaire supplémentaire',desc:'Tu apprends une nouvelle discipline élémentaire.'},11:{name:'Discipline élémentaire avancée',desc:'Tu apprends une discipline élémentaire nécessitant 2 points de ki.'},17:{name:'Discipline élémentaire maîtrisée',desc:'Tu apprends une discipline élémentaire nécessitant 4 points de ki.'}},
+  },
+  'Roublard':{
+    'Voleur':{9:{name:'Emploi rapide',desc:'Utiliser un objet comme action bonus. Gain de la propriété Main légère pour les armes à deux mains.'},13:{name:'Infiltrateur',desc:'Escalade à vitesse normale. Chutes ≤3m sans dégâts. Avantage en Acrobaties pour l\'équilibre.'},17:{name:'Glissement',desc:'Réaction : quand une créature rate son attaque contre toi, tu peux te déplacer de 1,5m.'}},
+    'Assassin':{9:{name:'Imposteur',desc:'Parfaitement reproduire l\'écriture/voix/comportement de quelqu\'un observé 3h+. Avantage Imposture.'},13:{name:'Morte imposteur',desc:'Réaction : passer pour mort jusqu\'à la fin du tour.'},17:{name:'Mort instantanée',desc:'Si tu surprends une créature et ne la tues pas, JS CON ou tombe à 0 PV.'}},
+    'Escroc arcanique':{9:{name:'Voleur de sorts',desc:'Tu peux contresort et te dispell. 1×/repos long : utiliser un sort volé.'},13:{name:'Main versatile',desc:'Tu peux lancer Main de mage à volonté.'},17:{name:'Voleur de sorts amélioré',desc:'Tu peux voler des sorts de niv. 1-4 et les utiliser une fois.'}},
+    'Conspirateur':{9:{name:'Informateur',desc:'Accès aux informations criminelles locales et aux contacts du milieu.'},13:{name:'Protections',desc:'Tu bénéficies d\'un réseau de protections dans toutes les villes.'},17:{name:'Mémoire infaillible',desc:'Avantage aux jets de mémoire concernant personnes, organisations et lieux.'}},
+  },
+  'Barde':{
+    'Collège du savoir':{6:{name:'Secrets magiques supplémentaires',desc:'Tu apprends 2 sorts de n\'importe quelle classe. Ils comptent comme des sorts de Barde.'},14:{name:'Maîtrise inégalée',desc:'Quand tu rates un jet de sauvegarde, tu peux utiliser ton dé d\'inspiration pour augmenter le résultat.'}},
+    'Collège de la vaillance':{6:{name:'Inspiration de combat',desc:'Ton dé d\'inspiration bardique peut être utilisé pour les jets de dégâts et la CA.'},14:{name:'Attaque magique',desc:'Tes sorts de barde ignorent la résistance et l\'immunité aux dégâts.'}},
+  },
+  'Occultiste':{
+    'Fiélon':{6:{name:'Résistance du Fiélon',desc:'Quand tu tues une créature avec un sort, tu gagnes des PV temporaires = modificateur CHA + niveau Occultiste.'},10:{name:'Résistance infernale',desc:'Tu es résistant aux dégâts de feu.'},14:{name:'Feu infernal',desc:'Quand tu touches avec un sort, la cible est aveuglée jusqu\'à la fin de son prochain tour.'}},
+    'Archefée':{6:{name:'Séduction féérique',desc:'Tu peux charmer ou effrayer des créatures à 18m (JS Sagesse) une fois par repos court.'},10:{name:'Revêtement des fées',desc:'Résistance aux dégâts psychiques. Les fées ne peuvent pas te charmer.'},14:{name:'Brume féérique',desc:'Action bonus : lancer Brume à volonté.'}},
+    'Grand Ancien':{6:{name:'Pensée élonguée',desc:'Tu peux communiquer télépatiquement avec toute créature à 9m que tu peux voir.'},10:{name:'Bouclier d\'avatars',desc:'Réaction : quand tu subis des dégâts psychiques, en annuler la moitié.'},14:{name:'Créer un thrall',desc:'Tu peux charmer une créature. Elle te transmet ce qu\'elle perçoit.'}},
+  },
+  'Ensorceleur':{
+    'Lignée draconique':{6:{name:'Ailes draconiques',desc:'Action bonus : déployer tes ailes et obtenir une vitesse de vol égale à ta vitesse actuelle.'},14:{name:'Présence draconique',desc:'Concentration 1 min : aura 18m — peur ou fascination (JS SAG pour résister). Utilise un emplacement de sort.'}},
+    'Magie sauvage':{6:{name:'Chance forcée',desc:'2 points de sorcellerie : retirer le Désavantage à un jet (attaque, sauvegarde ou caractéristique).'},14:{name:'Maîtrise contrôlée du chaos',desc:'Quand tu lances un sort, tu peux dépenser 1 point de sorcellerie pour ajouter ton mod CHA au DD du sort.'}},
+  },
+  'Druide':{
+    'Cercle de la lune':{6:{name:'Frappe primitive',desc:'Tes attaques en forme animale sont considérées comme magiques.'},10:{name:'Forme élémentaire',desc:'2 utilisations de Forme sauvage : transformation en élémentaire CR 5 ou moins.'},14:{name:'Mille formes',desc:'Modification d\'apparence à volonté (action bonus).'}},
+    'Cercle des terres':{6:{name:'Foulée tellurique',desc:'Les terrains difficiles non-magiques ne te coûtent pas de déplacement supplémentaire.'},10:{name:'Protégée de dame Nature',desc:'Immunité aux poisons et maladies. Résistance élémentaire. Insensible au charme/peur féeriques.'},14:{name:'Sanctuaire de dame Nature',desc:'Bêtes et plantes doivent réussir un JS Sagesse pour t\'attaquer.'}},
+  },
+  'Artificier':{
+    'Alchimiste':{9:{name:'Réactif alchimique',desc:'Tu maîtrises les objets alchimiques (acide, feu grégeois, etc.). Crée ces objets 1×/repos long.'},15:{name:'Maître chimiste',desc:'Tu crées des élixirs sans dépenser d\'emplacement de sort 1×/repos long.'}},
+    'Artilleur':{9:{name:'Artillerie explosive',desc:'Ton canon peut exploser dans une zone de 1,5m 1×/repos court.'},15:{name:'Canon arcaniste',desc:'Action bonus : ton canon lance un sort de baguette.'}},
+    'Forgeron de bataille':{9:{name:'Arme animée',desc:'L\'Arme arcanique peut attaquer de manière autonome comme action bonus.'},15:{name:'Améliorations de forge',desc:'+1 à la CA de ton Armure d\'acier.'}},
+    'Maître armurier':{9:{name:'Armure améliorée — Rang 2',desc:'+1 CA ou +1 aux jets d\'attaque/dégâts sur ton armure spéciale.'},15:{name:'Armure parfaite',desc:'Tu peux lancer des sorts depuis ton armure comme action bonus.'}},
+  },
+  'Magicien':{
+    "École d'abjuration":{6:{name:'Protection de l\'abjureur',desc:'PV temporaires = mod INT chaque fois que tu lances un sort d\'abjuration niv.1+.'},10:{name:'Abjuration améliorée',desc:'Réaction : donner l\'avantage aux jets de sauvegarde d\'une créature à 9m.'},14:{name:'Résistance aux sorts',desc:'Résistance aux dégâts de sorts. Avantage aux JS contre les sorts.'}},
+    "École de divination":{6:{name:'Présage expert',desc:'Tu peux utiliser Présage après avoir vu le résultat mais avant de connaître la réussite.'},10:{name:'Troisième œil',desc:'Action bonus 1×/repos : Voir l\'invisible, Lire les pensées ou Vision dans le noir.'},14:{name:'Plus grand présage',desc:'Tu peux utiliser Présage 3 fois entre deux repos longs.'}},
+    "École d'enchantement":{6:{name:'Charme instinctif',desc:'Réaction : dévier une attaque vers une autre créature à portée.'},10:{name:'Présence hypnotique',desc:'Réaction : fasciner les ennemis qui t\'observent, leur faisant rater leur attaque.'},14:{name:'Domination totale',desc:'Quand tu lances Domination de monstre sur une créature déjà charmée par toi, elle a désavantage.'}},
+    "École d'évocation":{6:{name:'Évocation malléable',desc:'Tes sorts d\'évocation ignorent les alliés que tu choisis dans leur zone d\'effet.'},10:{name:'Évocation puissante',desc:'Relancer un nombre de dés de dégâts égal à ton modificateur INT.'},14:{name:'Surcharge de sort',desc:'Lancer un sort d\'évocation niv.1-5 sans dépenser d\'emplacement 1×/repos long.'}},
+    "École d'illusion":{6:{name:'Malléabilité des illusions',desc:'Modifier la nature d\'une illusion de concentration une fois par tour (action bonus).'},10:{name:'Illusion semi-réelle',desc:'L\'illusion peut infliger des dégâts psychiques.'},14:{name:'Maître de l\'illusion',desc:'L\'illusion devient momentanément réelle et peut provoquer des effets physiques.'}},
+    "École d'invocation":{6:{name:'Éviction de sorts',desc:'Dissiper des sorts de convocation d\'alliés sans emplacement.'},10:{name:'Focus de convocation',desc:'Maintenir concentration sur deux sorts de convocation simultanément.'},14:{name:'Convocation robuste',desc:'+2 CA et bonus de maîtrise aux JS des créatures convoquées.'}},
+    "École de nécromancie":{6:{name:'Mortifère',desc:'Quand tu lances un sort de nécromancie niv.1+, tu récupères max(1, mod INT) PV.'},10:{name:'Commandement des morts-vivants',desc:'Les morts-vivants que tu crées ont le maximum de PV.'},14:{name:'Commande suprême',desc:'Tu peux cibler jusqu\'à 3 fois plus de morts-vivants avec tes sorts de contrôle.'}},
+    "École de transmutation":{6:{name:'Pierre de transmutation',desc:'Crée une pierre magique accordant un avantage permanent (nuit, résistance, vitesse, vision dans le noir).'},10:{name:'Façonneur',desc:'Tu peux transformer des matériaux d\'une catégorie à l\'autre.'},14:{name:'Maître transmutateur',desc:'Transformer un matériau précieux. Soigner 10d6 PV à une créature (1×/repos court).'}},
+  },
+};
 
 function applyLevelUp(){
   const p=P();const mc=mainClass(p);
@@ -1280,16 +1431,17 @@ function applyLevelUp(){
       'Sorts du cercle',
       'Sorts du spécialiste',
       'Accès aux emplacements',
-      'Capacité du domaine',
-      'Capacité du serment sacré',
-      'Capacité de la tradition monastique',
-      'Capacité du spécialiste',
       'Infusions',
       '2 rages','3 rages','4 rages','5 rages','6 rages','Rages illimitées',
       'Bonus dégâts rage',
       'Incantation',
+      // Noms génériques d'archétype — remplacés par _resolveArchetypeFeat
+      'Capacité du domaine','Capacité du serment sacré','Capacité de la tradition monastique',
+      'Capacité du spécialiste','Capacité de la voie',"Capacité de l'archétype",
+      "Capacité de l'archétype de rôdeur",
     ];
-    const druideCircle2=mc.name==='Druide'&&p.archetype?p.archetype['Druide']:null;
+    const _curArchetype=(p.archetype||{})[mc.name]||LU.archetypeChoice||null;
+    const druideCircle2=mc.name==='Druide'?_curArchetype:null;
     const newFeats=getLevelFeatures(mc.name,newClassLevel)
       .filter(f=>!EXCLUDED_FEATS.some(ex=>f.name===ex||f.name.startsWith(ex+' (')||f.name.startsWith(ex+' :')))
       .map(f=>{
@@ -1297,6 +1449,13 @@ function applyLevelUp(){
         return resolved?{name:resolved.name,desc:resolved.desc,classe:mc.name}:f;
       });
     newFeats.forEach(f=>{if(!p.features.find(x=>x.name===f.name))p.features.push(f);});
+    // Fix 3 — Résoudre la capacité d'archétype du niveau actuel
+    if(_curArchetype&&typeof _ARCHETYPE_LEVEL_FEATS!=='undefined'){
+      const af=(_ARCHETYPE_LEVEL_FEATS[mc.name]||{})[_curArchetype]?.[newClassLevel];
+      if(af&&!p.features.find(x=>x.name===af.name)){
+        p.features.push({name:af.name,desc:af.desc,classe:mc.name});
+      }
+    }
   }
 
   // ASI ou Don
@@ -1370,6 +1529,27 @@ function applyLevelUp(){
     LU.invocationChoices.forEach(name=>{if(!p.eldritchInvocations.includes(name))p.eldritchInvocations.push(name);});
   }
 
+  // Fix 2 — Champion primitif : appliquer +4 FOR/CON (max 24)
+  if((p.features||[]).some(f=>f.name==='Champion primitif (+4 FOR et CON, max 24)')||
+     (p.features||[]).some(f=>f.name&&f.name.includes('Champion primitif'))){
+    const _cpConBefore=mod(p.abilities[2]);
+    const _cpForBefore=p.abilities[0];
+    p.abilities[0]=Math.min(24,p.abilities[0]+4);
+    p.abilities[2]=Math.min(24,p.abilities[2]+4);
+    const _cpConAfter=mod(p.abilities[2]);
+    if(_cpConAfter>_cpConBefore){
+      const _cpBonus=(_cpConAfter-_cpConBefore)*totalLevel(p);
+      p.hpMax+=_cpBonus;p.hp=Math.min(p.hpMax,p.hp+_cpBonus);
+    }
+  }
+  // Fix 4 — Charges de rage : refill au nouveau max après passage de niveau
+  const _luBarbLvl=((p.classes||[]).find(c=>c.name==='Barbare')||{}).level||0;
+  if(_luBarbLvl>0){
+    const _luRageMax=_luBarbLvl>=20?Infinity:(_luBarbLvl>=17?6:_luBarbLvl>=12?5:_luBarbLvl>=6?4:_luBarbLvl>=3?3:2);
+    if(!p.combatCharges)p.combatCharges={};
+    if(_luBarbLvl>=20){delete p.combatCharges['RageCharges'];}
+    else{p.combatCharges['RageCharges']=_luRageMax;}
+  }
   p.pendingLevelUp=false;
   resetLU();
   saveAll();
