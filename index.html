@@ -35,12 +35,15 @@
 .mjtkSteam{position:absolute;border-radius:50%;background:radial-gradient(circle,rgba(222,205,160,.55),transparent 70%);filter:blur(2.5px);pointer-events:none}
 .mjtkNeedle{transform-origin:50px 50px;animation:mjtkNeedle 3.2s ease-in-out infinite}
 @keyframes mjtkLeak{0%{opacity:0;transform:translateY(0) scale(.4)}30%{opacity:.55}100%{opacity:0;transform:translateY(-22px) scale(1.35)}}
-.mjtkScene{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(rgba(8,5,2,.32),rgba(8,5,2,.5)),url('login-box.png') center/cover no-repeat fixed;overflow:hidden}
-@media(max-width:760px){.mjtkScene{background:linear-gradient(rgba(8,5,2,.32),rgba(8,5,2,.55)),url('login-box-portrait.png') center/cover no-repeat fixed}}
-.mjtkBox{position:relative;z-index:3;width:100%;max-width:380px;border-radius:14px;padding:24px 26px 26px;background:rgba(13,9,5,.64);backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);border:2px solid rgba(200,168,75,.5);box-shadow:0 22px 56px rgba(0,0,0,.72),inset 0 0 30px rgba(0,0,0,.4),0 0 28px rgba(200,168,75,.2)}
+.mjtkScene{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(rgba(8,5,2,.05),rgba(8,5,2,.16)),url('login-box.png') center/cover no-repeat fixed;overflow:hidden}
+@media(max-width:760px){.mjtkScene{background:linear-gradient(rgba(8,5,2,.05),rgba(8,5,2,.2)),url('login-box-portrait.png') center/cover no-repeat fixed}}
+.mjtkBox{position:relative;z-index:3;width:100%;max-width:336px;border-radius:14px;padding:20px 22px 22px;transform:translateY(-12vh);background:rgba(13,9,5,.6);backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);border:2px solid rgba(200,168,75,.5);box-shadow:0 22px 56px rgba(0,0,0,.72),inset 0 0 30px rgba(0,0,0,.4),0 0 28px rgba(200,168,75,.2)}
+@media(max-width:760px){.mjtkBox{max-width:286px;padding:15px 17px 17px;transform:translateY(-4vh)}}
 .mjtkCorner{position:absolute;width:20px;height:20px;border:3px solid #b8860b;border-radius:5px;z-index:5;box-shadow:0 0 5px rgba(200,168,75,.3)}
-.mjtkRivet2{position:absolute;width:8px;height:8px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#e4cd86,#6b5527);z-index:5}
+.mjtkRivet2{position:absolute;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 35% 32%,#f1dca0,#b8860b 55%,#6b5527);box-shadow:0 1px 2px rgba(0,0,0,.6),inset 0 0 2px rgba(255,255,255,.4);z-index:7}
 .mjtkProp{position:absolute;z-index:1;pointer-events:none;filter:drop-shadow(0 5px 9px rgba(0,0,0,.55))}
+@keyframes mjtkOrbit{0%{top:-7px;left:-7px}25%{top:-7px;left:calc(100% - 7px)}50%{top:calc(100% - 7px);left:calc(100% - 7px)}75%{top:calc(100% - 7px);left:-7px}100%{top:-7px;left:-7px}}
+.mjtkFlare{position:absolute;width:14px;height:14px;border-radius:50%;background:#eafcff;box-shadow:0 0 10px 3px #7fd1c4,0 0 20px 8px rgba(127,209,196,.55),0 0 30px 12px rgba(127,209,196,.25);animation:mjtkOrbit 5s linear infinite;z-index:8;pointer-events:none}
 </style>
 <div id="splashScreen" style="position:fixed;inset:0;z-index:9999;background:radial-gradient(circle at 50% 40%,#241a0c 0%,#120d07 55%,#0a0805 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .5s ease;overflow:hidden">
   <!-- Anneau arcanique tournant (fond) -->
@@ -102,6 +105,11 @@
 <!-- ÉCRAN DE CONNEXION -->
 <div id="authScreen" class="mjtkScene" style="display:none">
   <div class="mjtkBox">
+    <span class="mjtkRivet2" style="left:14px;top:14px"></span>
+    <span class="mjtkRivet2" style="right:14px;top:14px"></span>
+    <span class="mjtkRivet2" style="left:14px;bottom:14px"></span>
+    <span class="mjtkRivet2" style="right:14px;bottom:14px"></span>
+    <span class="mjtkFlare"></span>
     <div class="auth-title">La Boîte à Outils</div>
     <div class="auth-sub">Votre compagnon de table pour D&D 5e</div>
     <div class="auth-tab">
