@@ -124,8 +124,7 @@ function tabPerso(p){
           const _spdBorder=_fastMove?'border-color:rgba(229,57,53,.4)':(_exhS>=5?'border-color:#e53935':(_exhS>=2?'border-color:rgba(255,152,0,.4)':''));
           return`<div class="sb" style="${_spdBorder}"><div class="sn">Vitesse (m)</div>
             <div style="font-size:18px;font-weight:700;color:${_fastMove?'#e53935':(_exhS>=5?'#e53935':(_exhS>=2?'#ff9800':'var(--text))'))}">${_spd}</div>
-            ${_fastMove?'<div style="font-size:9px;color:#e53935;margin-top:1px">+3m 💨 Déplacement rapide</div>':''}${_spdExhNote}
-            <input type="number" min="0" max="99" value="${p.speed||9}" oninput="P().speed=parseInt(this.value)||9;saveAll()" style="width:100%;text-align:center;font-size:10px;background:transparent;border:none;border-top:1px solid var(--border);color:var(--text3);outline:none;padding:2px 0;margin-top:2px" title="Vitesse de base">
+            ${_fastMove?'<div style="font-size:9px;color:#e53935;margin-top:1px">+3m 💨 Rapide</div>':''}${_spdExhNote}
           </div>`;
         })()}
       </div>`}
@@ -342,6 +341,8 @@ function applyHp(sign){
       }
       p.hp=_newHp;
       if((p.statuses||[]).some(s=>s.name==='Concentration'))showToast(`⚠️ Concentration — Lance ton JS CON (onglet Sorts) !`,3500);
+      // Fix 18 — Rage implacable automatique
+      if(p.hp<=0&&typeof checkRageImplacable==='function')setTimeout(()=>checkRageImplacable(),200);
     } else {
       const _effMax=(p.exhaustion||0)>=4?Math.floor(p.hpMax/2):p.hpMax;
       p.hp=Math.max(0,Math.min(_effMax+(p.hpTemp||0),p.hp+delta));
