@@ -178,8 +178,19 @@
 <script src="js/mj/regles.js"></script>
 <script>
 if('serviceWorker' in navigator){
+  // B — Quand une nouvelle version du SW prend le contrôle (MAJ détectée), recharge auto
+  //     pour charger le code frais. Le flag évite toute boucle de rechargement.
+  let _swRefreshing=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{
+    if(_swRefreshing)return;
+    _swRefreshing=true;
+    window.location.reload();
+  });
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+    navigator.serviceWorker.register('./sw.js').then(reg=>{
+      reg.update();                                   // cherche une MAJ au démarrage
+      setInterval(()=>reg.update(),60*60*1000);       // puis toutes les heures
+    }).catch(()=>{});
   });
 }
 </script>
