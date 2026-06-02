@@ -185,6 +185,8 @@
 @keyframes tutoGlow{0%,100%{box-shadow:0 0 0 3px rgba(200,168,75,.3),0 0 10px rgba(200,168,75,.1)}50%{box-shadow:0 0 0 7px rgba(200,168,75,.15),0 0 24px rgba(200,168,75,.25)}}
 #_tutoBubble{position:fixed;z-index:9000;max-width:320px;min-width:240px;background:var(--surface);border:1px solid var(--cp);border-radius:14px;padding:16px 18px;box-shadow:0 8px 32px rgba(0,0,0,.5);animation:tutoBubbleFadeIn .2s ease;pointer-events:all}
 @keyframes tutoBubbleFadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+/* ===== RAGE PULSE ANIMATION (Fix 13) ===== */
+@keyframes ragePulse{0%,100%{box-shadow:0 0 0 0 rgba(229,57,53,0),0 2px 8px rgba(0,0,0,.3)}50%{box-shadow:0 0 0 4px rgba(229,57,53,.45),0 2px 12px rgba(229,57,53,.25)}}
 /* ===== BUFF NOTIFICATIONS ===== */
 #_buffNotif{position:fixed;top:72px;left:50%;transform:translateX(-50%);z-index:9998;background:rgba(16,11,7,.95);border:2px solid var(--cp);border-radius:12px;padding:12px 20px;min-width:220px;max-width:300px;text-align:center;box-shadow:0 4px 24px rgba(200,168,75,.3);animation:buffSlideIn .35s cubic-bezier(.34,1.56,.64,1);cursor:pointer}
 @keyframes buffSlideIn{from{opacity:0;transform:translateX(-50%) translateY(-18px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
