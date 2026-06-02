@@ -135,6 +135,7 @@
 </div>
 <div id="modal"></div>
 
+<script src="version.js"></script>
 <script src="js/firebase.js"></script>
 <script src="js/services/auth-service.js"></script>
 <script src="js/services/user-service.js"></script>
@@ -178,16 +179,9 @@
 <script src="js/mj/regles.js"></script>
 <script>
 if('serviceWorker' in navigator){
-  // B — Quand une nouvelle version du SW prend le contrôle (MAJ détectée), recharge auto
-  //     pour charger le code frais. Le flag évite toute boucle de rechargement.
-  let _swRefreshing=false;
-  navigator.serviceWorker.addEventListener('controllerchange',()=>{
-    if(_swRefreshing)return;
-    _swRefreshing=true;
-    window.location.reload();
-  });
+  // Détection proactive de MAJ (l'overlay de mise à jour est géré par firebase.js).
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('./sw.js').then(reg=>{
+    navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(reg=>{
       reg.update();                                   // cherche une MAJ au démarrage
       setInterval(()=>reg.update(),60*60*1000);       // puis toutes les heures
     }).catch(()=>{});
