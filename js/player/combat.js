@@ -137,6 +137,27 @@ function tabCombat(p){
       <div id="rollResult" style="margin-top:8px;padding:8px;background:var(--surface2);border-radius:6px;display:${_lastRollResultHtml?'block':'none'};font-size:14px;font-weight:600;color:var(--cp);text-align:center">${_lastRollResultHtml}</div>
     </div>`:`<div class="panel mb10"><div class="pt" style="display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>Armes équipées</div>${attackCount>1?`<span style="font-size:10px;font-weight:600;color:var(--cp);border:1px solid rgba(200,168,75,.4);border-radius:10px;padding:2px 8px">⚔ ×${attackCount} attaques</span>`:''}</div>
       ${availableStyles.length?`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:11px;color:var(--text3)">🗡 Style :</span><select style="font-size:12px;background:var(--surface3,var(--surface2));border:1px solid var(--border);border-radius:6px;padding:3px 6px;color:var(--text)" onchange="P().combatStyle=this.value;P().ac=_calcArmorCA(P());_markUnsaved();render()"><option value="">— Aucun</option>${availableStyles.map(s=>`<option value="${s}"${combatStyle===s?' selected':''}>${s}</option>`).join('')}</select></div>`:''}
+      ${(()=>{
+        // Fix 7 — Attaque à main nue si aucune arme équipée
+        const hasMainhand=!!(p.equip||{}).mainhand?.name;
+        if(!hasMainhand&&!wsC?.active){
+          const unarmedMod=moineLvl>=1?Math.max(forM,dexM):forM;
+          const unarmedAtk=pb(lvl)+unarmedMod;
+          const unarmedDmg=moineLvl>=1?`1${artsMartiauxDie.replace('d','d')} contondant`:'1 contondant';
+          const unarmedDmgRaw=moineLvl>=1?artsMartiauxDie:'1';
+          return`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:10px;margin-bottom:6px">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="font-size:14px;font-weight:600">Poing</span>
+              <span style="color:var(--cp);font-weight:600">+${unarmedAtk} / ${esc(unarmedDmg)}</span>
+            </div>
+            <div style="font-size:11px;color:var(--text3);margin-top:3px">Main nue — ${moineLvl>=1?'Arts martiaux ('+ABILITIES_SH[forM>=dexM?0:1]+')':'Force'}</div>
+            <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">
+              ${Array.from({length:attackCount},(_,ai)=>`<button class="btn bsm${temActive?' bac':''}" onclick="rollAttack('Poing',${unarmedAtk},'${esc(unarmedDmgRaw)} contondant','mainhand',${rageActive?rageBonus:0},false,${temActive?1:0})">🎲${attackCount>1?' Att.'+(ai+1):'  Attaque'}</button>`).join('')}
+            </div>
+          </div>`;
+        }
+        return'';
+      })()}
       ${weapons.length?weapons.map(w=>{
         const srdW=findSRDWeapon(w.name);
         const props=(srdW?.properties||'').toLowerCase();
@@ -193,9 +214,6 @@ function tabCombat(p){
       }).join(''):`<div style="font-size:12px;color:var(--text3);font-style:italic">Aucune arme équipée.</div>`}
       <div style="margin-top:10px;display:flex;gap:5px;flex-wrap:wrap">${['d4','d6','d8','d10','d12','d20'].map(d=>`<button class="dice-btn" onclick="rollDie('${d}')">🎲 ${d}</button>`).join('')}</div>
       <div id="rollResult" style="margin-top:8px;padding:8px;background:var(--surface2);border-radius:6px;display:${_lastRollResultHtml?'block':'none'};font-size:14px;font-weight:600;color:var(--cp);text-align:center">${_lastRollResultHtml}</div>
-    </div>`)}
-  ${cs('cs-sauvegardes',`<div class="panel"><div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>Sauvegardes</div>
-      ${ABILITIES_SH.map((ab,i)=>{const saves=CLASS_SAVES[mc?mc.name:'']||[];const hasSave=saves.includes(i);const m=mod(p.abilities[i])+(hasSave?pb(lvl):0);const forRageAdv=i===0&&rageActive;return forRageAdv?`<div style="display:flex;align-items:center;gap:3px"><div class="save-btn" style="flex:1" onclick="rollSave('${ab}',${m})"><span class="save-dot${hasSave?' p':''}"></span><span style="flex:1;font-size:13px">${ab}</span><span style="color:var(--cp);font-weight:600">${fmt(m)}</span><span style="font-size:10px;color:var(--text3)">🎲</span></div><button class="btn bsm" style="padding:2px 6px;color:#e53935;border-color:#e53935;font-size:10px;flex-shrink:0" onclick="rollSave('${ab}',${m},1)" title="Avantage (rage)">🔥⚡</button></div>`:`<div class="save-btn" onclick="rollSave('${ab}',${m})"><span class="save-dot${hasSave?' p':''}"></span><span style="flex:1;font-size:13px">${ab}</span><span style="color:var(--cp);font-weight:600">${fmt(m)}</span><span style="font-size:10px;color:var(--text3)">🎲</span></div>`;}).join('')}
     </div>`)}
   ${!wsC?.active&&(allCombatFeats.length||isMJ())?cs('cs-capacites',`<div class="panel mb10"><div class="pt" style="display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span><span>Capacités de combat</span></div>${isMJ()?`<button class="btn bsm" onclick="openFeatSearch()">+ Ajouter</button>`:''}</div>
       ${allCombatFeats.map(f=>{
@@ -272,6 +290,9 @@ function tabCombat(p){
       ${(()=>{const magLvl=((p.classes||[]).find(c=>c.name==='Magicien')||{}).level||0;if(!magLvl)return'';const prepMax=Math.max(1,intM+magLvl);const known=(p.spells||[]).filter(s=>{const sp=findSpellData(s.name);return sp&&sp.level>0;}).length;return`<div style="margin-top:8px;padding:8px;background:var(--surface2);border-radius:6px;font-size:12px;color:var(--text2)">📚 Sorts préparés : <strong style="color:${known>prepMax?'#e53935':'var(--cp)'}">${known}/${prepMax}</strong> (INT ${fmt(intM)} + niv. ${magLvl})</div>`;})()}
       ${renderSpellList(p, true)}
     </div>`):''}
+  ${cs('cs-sauvegardes',`<div class="panel"><div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>Sauvegardes</div>
+      ${ABILITIES_SH.map((ab,i)=>{const saves=CLASS_SAVES[mc?mc.name:'']||[];const hasSave=saves.includes(i);const m=mod(p.abilities[i])+(hasSave?pb(lvl):0);const forRageAdv=i===0&&rageActive;return forRageAdv?`<div style="display:flex;align-items:center;gap:3px"><div class="save-btn" style="flex:1" onclick="rollSave('${ab}',${m})"><span class="save-dot${hasSave?' p':''}"></span><span style="flex:1;font-size:13px">${ab}</span><span style="color:var(--cp);font-weight:600">${fmt(m)}</span><span style="font-size:10px;color:var(--text3)">🎲</span></div><button class="btn bsm" style="padding:2px 6px;color:#e53935;border-color:#e53935;font-size:10px;flex-shrink:0" onclick="rollSave('${ab}',${m},1)" title="Avantage (rage)">🔥⚡</button></div>`:`<div class="save-btn" onclick="rollSave('${ab}',${m})"><span class="save-dot${hasSave?' p':''}"></span><span style="flex:1;font-size:13px">${ab}</span><span style="color:var(--cp);font-weight:600">${fmt(m)}</span><span style="font-size:10px;color:var(--text3)">🎲</span></div>`;}).join('')}
+    </div>`)}
   </div>`;
 }
 
@@ -300,6 +321,11 @@ function rollAttack(name,bonus,dmg,slot,dmgBonus=0,rerollLow=false,advantageMode
     const advNote=advantageMode>0?'<div style="color:#4caf50;font-size:14px;margin-top:4px">🟢 AVANTAGE — 2d20, garde le plus haut</div>':advantageMode<0?'<div style="color:#e53935;font-size:14px;margin-top:4px">🔴 DÉSAVANTAGE — 2d20, garde le plus bas</div>':'';
     const dmgFull=dmg+(dmgBonus?fmt(dmgBonus):'');
     const luckyNote=_isHalfling(P())?'<div style="margin-top:6px;font-size:12px;color:#8d6e63">🍀 Si résultat = 1, vous pouvez relancer</div>':'';
+    // Fix 20 — Rappel Critique brutal en rage (IRL)
+    const _rp=P();const _barbLvlIRL=((_rp.classes||[]).find(c=>c.name==='Barbare')||{}).level||0;
+    const _rageIRL=(_rp.combatCharges||{})['RageActive']===true;
+    const _critDiceIRL=_barbLvlIRL>=17?3:_barbLvlIRL>=13?2:1;
+    const critBrutalNote=_barbLvlIRL>=9&&_rageIRL&&slot!=='ranged'?`<div style="margin-top:6px;padding:6px 8px;background:rgba(255,152,0,.1);border:1px solid rgba(255,152,0,.3);border-radius:6px;font-size:11px;color:#ff9800">💥 Si critique (20) : n'oublie pas +${_critDiceIRL} dé${_critDiceIRL>1?'s':''} de dégâts (Critique brutal niv.${_barbLvlIRL})</div>`:'';
     showIRLRoll(`<strong style="font-size:20px;color:var(--cp)">⚔ ${name}</strong>
       <div style="margin-top:12px;padding:10px;background:var(--surface2);border-radius:8px">
         <div style="font-size:12px;color:var(--text3);margin-bottom:4px">ATTAQUE</div>
@@ -309,7 +335,7 @@ function rollAttack(name,bonus,dmg,slot,dmgBonus=0,rerollLow=false,advantageMode
       <div style="margin-top:8px;padding:10px;background:var(--surface2);border-radius:8px">
         <div style="font-size:12px;color:var(--text3);margin-bottom:4px">DÉGÂTS SI TOUCHE</div>
         <div style="font-size:22px;color:var(--cp)">${esc(dmgFull)}</div>
-      </div>`);
+      </div>${critBrutalNote}`);
     return;
   }
   let ra,rb=null;
