@@ -42,8 +42,8 @@
 .mjtkCorner{position:absolute;width:20px;height:20px;border:3px solid #b8860b;border-radius:5px;z-index:5;box-shadow:0 0 5px rgba(200,168,75,.3)}
 .mjtkRivet2{position:absolute;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 35% 32%,#f1dca0,#b8860b 55%,#6b5527);box-shadow:0 1px 2px rgba(0,0,0,.6),inset 0 0 2px rgba(255,255,255,.4);z-index:7}
 .mjtkProp{position:absolute;z-index:1;pointer-events:none;filter:drop-shadow(0 5px 9px rgba(0,0,0,.55))}
-@keyframes mjtkOrbit{0%{top:-7px;left:-7px}25%{top:-7px;left:calc(100% - 7px)}50%{top:calc(100% - 7px);left:calc(100% - 7px)}75%{top:calc(100% - 7px);left:-7px}100%{top:-7px;left:-7px}}
-.mjtkFlare{position:absolute;width:14px;height:14px;border-radius:50%;background:#eafcff;box-shadow:0 0 10px 3px #7fd1c4,0 0 20px 8px rgba(127,209,196,.55),0 0 30px 12px rgba(127,209,196,.25);animation:mjtkOrbit 5s linear infinite;z-index:8;pointer-events:none}
+@keyframes mjtkOrbit{0%{top:-34px;left:-34px}25%{top:-34px;left:calc(100% - 34px)}50%{top:calc(100% - 34px);left:calc(100% - 34px)}75%{top:calc(100% - 34px);left:-34px}100%{top:-34px;left:-34px}}
+.mjtkFlare{position:absolute;width:68px;height:68px;border-radius:50%;background:radial-gradient(circle,rgba(180,238,242,.5) 0%,rgba(127,209,196,.3) 36%,rgba(127,209,196,.1) 60%,transparent 78%);filter:blur(8px);animation:mjtkOrbit 40s linear infinite;z-index:8;pointer-events:none}
 </style>
 <div id="splashScreen" style="position:fixed;inset:0;z-index:9999;background:radial-gradient(circle at 50% 40%,#241a0c 0%,#120d07 55%,#0a0805 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .5s ease;overflow:hidden">
   <!-- Anneau arcanique tournant (fond) -->
@@ -105,10 +105,6 @@
 <!-- ÉCRAN DE CONNEXION -->
 <div id="authScreen" class="mjtkScene" style="display:none">
   <div class="mjtkBox">
-    <span class="mjtkRivet2" style="left:14px;top:14px"></span>
-    <span class="mjtkRivet2" style="right:14px;top:14px"></span>
-    <span class="mjtkRivet2" style="left:14px;bottom:14px"></span>
-    <span class="mjtkRivet2" style="right:14px;bottom:14px"></span>
     <span class="mjtkFlare"></span>
     <div class="auth-title">La Boîte à Outils</div>
     <div class="auth-sub">Votre compagnon de table pour D&D 5e</div>
