@@ -56,18 +56,48 @@ function tabCompetences(p){
         const fsVolNage=druLvl>=8?'Vol ✓ / Nage ✓':druLvl>=4?'Nage ✓ / Vol ✗':'Nage ✗ / Vol ✗';
         const fsUsed=(p.combatCharges||{})['Forme sauvage']!==undefined?p.combatCharges['Forme sauvage']:2;
 
-        return displayFeats.map((f,idx)=>{
+        // Fix 19 — Puissance indomptable dans Capacités & traits (enrichie)
+        const barbareLvlCT=((p.classes||[]).find(c=>c.name==='Barbare')||{}).level||0;
+        const showPuissIndom=barbareLvlCT>=18;
+        const forScore=showPuissIndom?(p.abilities[0]||10):0;
+
+        // Fix 9 — icônes et couleurs contextuelles
+        const _featIcon=(f)=>{
+          if(f.icon)return f.icon;
+          const nm=(f.name||'').toLowerCase();
+          if(nm.includes('réaction')||nm.includes('représailles'))return'↪';
+          if(nm.includes('action bonus')||nm.includes('frénésie')||nm.includes('attaque'))return'🔸';
+          if(nm.includes('passive')||nm.includes('sens du')||nm.includes('instinct'))return'⬤';
+          return'⚡';
+        };
+        const _featColor=(f)=>{
+          const nm=(f.name||'').toLowerCase();
+          if(nm.includes('réaction')||nm.includes('représailles'))return'#9c27b0';
+          if(nm.includes('action bonus')||nm.includes('frénésie'))return'#ff9800';
+          return'var(--cp)';
+        };
+        const _featBadge=(f)=>{
+          const nm=(f.name||'').toLowerCase();
+          if(nm.includes('réaction')||nm.includes('représailles'))return`<span style="font-size:9px;color:#9c27b0;border:1px solid rgba(156,39,176,.4);border-radius:8px;padding:1px 5px">↪ Réaction</span>`;
+          if(nm.includes('action bonus'))return`<span style="font-size:9px;color:#ff9800;border:1px solid rgba(255,152,0,.4);border-radius:8px;padding:1px 5px">🔸 Bonus</span>`;
+          return'';
+        };
+
+        const featItems=displayFeats.map((f,idx)=>{
           const realIdx=(p.features||[]).indexOf(f);
           const fid='feat_'+f.name.replace(/[^a-zA-Z0-9]/g,'_')+'_'+realIdx;
           const classLvl=f.classe?((p.classes||[]).find(c=>c.name===f.classe)||{}).level||0:totalLevel(p);
           const desc=filterDescByLevel(f.desc||getFeatDesc(f.name),classLvl);
           const isFormeSauvage=f.name.startsWith('Forme sauvage')||f.name.startsWith('Archidruide');
+          const fColor=_featColor(f);const fIcon=_featIcon(f);const fBadge=_featBadge(f);
           return`<div class="sort-row">
             <div class="sort-head" onclick="document.getElementById('${fid}').classList.toggle('open')">
+              <span style="font-size:15px;margin-right:6px;color:${fColor}">${fIcon}</span>
               <div style="flex:1">
-                <div style="font-size:13px;font-weight:600;color:var(--cp)">${f.icon?f.icon+' ':''}${esc(f.name)}</div>
+                <div style="font-size:13px;font-weight:600;color:${fColor}">${esc(f.name)}</div>
                 ${f.classe?`<div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:1px">${esc(f.classe)}</div>`:''}
               </div>
+              ${fBadge?`<span style="margin-right:6px">${fBadge}</span>`:''}
               ${isFormeSauvage&&druLvl>=2?druLvl>=20?`<span style="font-size:11px;color:var(--cp);margin-right:8px">∞</span>`:`<div style="display:flex;gap:3px;align-items:center;margin-right:8px">
                 ${Array.from({length:2},(_,fs)=>`<span class="slot-bubble${fs<fsUsed?'':' used'}" onclick="event.stopPropagation();useCombatCharge('Forme sauvage',2)"></span>`).join('')}
               </div>`:''}
@@ -87,7 +117,29 @@ function tabCompetences(p){
               </div>`:''}
             </div>
           </div>`;
-        }).join('');
+        });
+
+        // Fix 19 — Puissance indomptable enrichie
+        const puissIndomHtml=showPuissIndom?`<div class="sort-row">
+          <div class="sort-head" onclick="this.nextElementSibling.classList.toggle('open')">
+            <span style="font-size:15px;margin-right:6px;color:#ff9800">💪</span>
+            <div style="flex:1">
+              <div style="font-size:13px;font-weight:600;color:#ff9800">Puissance indomptable</div>
+              <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:1px">Barbare</div>
+            </div>
+            <span style="font-size:10px;color:#ff9800;border:1px solid rgba(255,152,0,.4);border-radius:8px;padding:1px 6px;margin-right:6px">Actif — min ${forScore}</span>
+            <span style="color:var(--text3);font-size:11px;margin-right:8px">▾</span>
+          </div>
+          <div class="sort-body">
+            <p>Si ton résultat brut d'un jet de Force est inférieur à ta valeur de Force (${forScore}), la valeur est utilisée à la place.</p>
+            <div style="margin-top:6px;padding:6px 8px;background:rgba(255,152,0,.08);border-radius:6px;border:1px solid rgba(255,152,0,.3)">
+              <div style="font-size:10px;color:#ff9800;font-weight:600">Valeur minimum appliquée : ${forScore}</div>
+              <div style="font-size:10px;color:var(--text3)">Appliqué automatiquement dans tous tes jets FOR via le lanceur de dés.</div>
+            </div>
+          </div>
+        </div>`:'';
+
+        return featItems.join('')+puissIndomHtml;
       })()}
     </div>
     ${rd?`<div class="panel"><div class="pt">Traits raciaux</div><div style="font-size:13px;color:var(--text2);line-height:1.6">${esc(rd.traits)}</div>${_isHalfling(p)?`<div style="margin-top:8px;padding:6px 10px;background:rgba(141,110,99,.12);border-radius:6px;display:flex;align-items:center;gap:8px"><span style="font-size:22px;color:#8d6e63;font-weight:700">∞</span><div><div style="font-size:12px;font-weight:600;color:#8d6e63">Chanceux — Relances illimitées</div><div style="font-size:11px;color:var(--text3)">Chaque dé qui affiche 1 (attaque, JS, carac.) déclenche un popup de relance. Fonctionne même avec avantage.</div></div></div>`:''}${p.race==='Demi-Orc'?`<div style="margin-top:8px;padding:6px 10px;background:rgba(97,97,97,.1);border-radius:6px;font-size:11px;color:var(--text2)">🧟 <strong>Endurance implacable</strong> — 1×/repos long : tomber à 1 PV au lieu de 0 (popup automatique).<br>⚔ <strong>Attaques sauvages</strong> — +1 dé de dégâts aux critiques au corps-à-corps (calculé automatiquement).</div>`:''}${p.race==='Tieffelin'?`<div style="margin-top:8px;padding:6px 10px;background:rgba(183,28,28,.08);border-radius:6px;font-size:11px;color:var(--text2)">🔥 <strong>Sorts infernaux</strong> — Thaumaturgie ∞ · Bénédiction infernale 1×/repos long (niv.3+) · Ténèbres 1×/repos long (niv.5+). Panneau dans l\'onglet Combat.</div>`:''}${p.race==='Halfelin pied-léger'||p.race==='Halfelin robuste'?`<div style="margin-top:6px;font-size:11px;color:var(--text3);padding:4px 6px;background:var(--surface2);border-radius:4px">🛡️ <strong>Brave</strong> — avantage aux JS contre la peur. Utilisez le bouton avantage manuellement lors de ces jets.</div>`:''}
