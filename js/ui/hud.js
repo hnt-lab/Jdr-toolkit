@@ -78,8 +78,9 @@ function _updatePartyHUD(){
       const dead=down&&(p.deathSaves?.fail>=3);
       const dimmed=combatActive&&!isActiveTurn&&!isOwn;
       const isSelected=_currentHudDetailUid===pp.uid;
-      return`<div class="party-member" data-uid="${pp.uid}" style="${dimmed?'opacity:.4;':''}cursor:pointer;${isSelected?'background:rgba(200,168,75,.07);border-radius:6px;':''}">
-        <div class="pm-portrait${isOwn?' self':''}${isActiveTurn?' active-turn-portrait':''}" style="width:34px;height:34px;align-self:flex-start;margin-top:2px;flex-shrink:0">
+      const isRaging=(p.combatCharges||{})['RageActive']===true;
+      return`<div class="party-member" data-uid="${pp.uid}" style="${dimmed?'opacity:.4;':''}cursor:${isOwn?'default':'pointer'};${isSelected?'background:rgba(200,168,75,.07);border-radius:6px;':''}">
+        <div class="pm-portrait${isOwn?' self':''}${isActiveTurn?' active-turn-portrait':''}" style="width:34px;height:34px;align-self:flex-start;margin-top:2px;flex-shrink:0;${isRaging?'animation:ragePulse 2s ease-in-out infinite;border-radius:50%;border:2px solid #e53935;':''}">
           ${portrait?`<img src="${portrait}" style="width:100%;height:100%;object-fit:cover">`:`<span style="font-size:16px">${pp.avatar||'⚔'}</span>`}
         </div>
         <div style="flex:1;min-width:0">
@@ -107,6 +108,8 @@ function _updatePartyHUD(){
     const card=e.target.closest('.party-member');
     if(card&&card.dataset.uid){
       const uid=card.dataset.uid;
+      // Fix 24 — Son propre personnage n'est pas cliquable (raccourci fiche déjà dans shortcuts)
+      if(uid===currentUser?.uid)return;
       if(_currentHudDetailUid===uid){_hideHudDetail();_updatePartyHUD();}
       else{_showHudDetail(uid);_updatePartyHUD();}
     }
