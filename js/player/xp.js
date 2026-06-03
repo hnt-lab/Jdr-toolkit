@@ -593,11 +593,11 @@ const CLASS_LEVEL_DATA={
 let LU={
   step:1,steps:[],choice:null,mcTarget:null,
   asiChoice:null,archetypeChoice:null,styleChoice:null,terrainChoice:null,
-  metamagicChoices:[],newSpells:[],
+  metamagicChoices:[],newSpells:[],swapOut:null,
   expertiseChoices:[],secretsChoices:[],mcSkillChoices:[],invocationChoices:[],
   hpRoll:null,hpConfirmed:false,
 };
-function resetLU(){LU={step:1,steps:[],choice:null,mcTarget:null,asiChoice:null,archetypeChoice:null,styleChoice:null,terrainChoice:null,metamagicChoices:[],newSpells:[],expertiseChoices:[],secretsChoices:[],mcSkillChoices:[],invocationChoices:[],hpRoll:null,hpConfirmed:false};_luSpellSearch='';_luSecretsSearch='';}
+function resetLU(){LU={step:1,steps:[],choice:null,mcTarget:null,asiChoice:null,archetypeChoice:null,styleChoice:null,terrainChoice:null,metamagicChoices:[],newSpells:[],swapOut:null,expertiseChoices:[],secretsChoices:[],mcSkillChoices:[],invocationChoices:[],hpRoll:null,hpConfirmed:false};_luSpellSearch='';_luSecretsSearch='';}
 
 function _luConfirmHP(roll,avg){
   const used=roll!==null?roll:avg;
@@ -757,7 +757,7 @@ function calcLUSteps(p,className,newClassLevel){
     const isASI=cd.asiLevels&&cd.asiLevels.includes(newClassLevel);
     const isArchetype=cd.archetypeLevel===newClassLevel;
     const isStyle=cd.styleLevel===newClassLevel;
-    const _PREPARED=['Clerc','Druide','Paladin'];
+    const _PREPARED=['Clerc','Druide','Paladin','Artificier'];
     const needSpells=!_PREPARED.includes(className)&&cd.spellsPerLevel&&cd.spellsPerLevel[newClassLevel];
     const isMetamagic=className==='Ensorceleur'&&[3,10,17].includes(newClassLevel);
     const isOrigin=className==='Ensorceleur'&&newClassLevel===1;
@@ -1061,21 +1061,60 @@ function luStepSpells(p){
   const l1=classSpells.filter(s=>s.level===1);
   const l2plus=classSpells.filter(s=>s.level>=2&&s.level<=maxLvl);
   const sel=LU.newSpells;
-  const spellRow=(s)=>{const isSel=sel.includes(s.name);const dis=!isSel&&sel.length>=count;return`<div class="sk-choice${isSel?' selected':dis?' disabled':''}" onclick="${dis?'':'luToggleSpell(\''+esc(s.name)+'\')'}"><span class="sk-dot${isSel?' p':''}"></span><span style="flex:1;font-size:13px">${esc(s.name)}${s.level>1?` <span style="font-size:10px;color:var(--text3)">niv.${s.level}</span>`:''}</span><span style="font-size:11px;color:var(--text3)">${esc(s.school||'')}</span>${isSel?`<span style="color:var(--cp)">✓</span>`:''}</div>`;};
+  // Cantrip(s) comptés SÉPARÉMENT des sorts à niveau ; +1 sort si on remplace un sort connu (swap RAW).
+  const isGrimoire=PREP_CASTERS.includes(className);     // Magicien → grimoire (sorts non préparés)
+  const canSwap=!isGrimoire;                             // swap réservé aux lanceurs "connus" (pas le Magicien)
+  const needCantrip=isCantripLevel?1:0;
+  const leveledCount=Math.max(0,count-needCantrip)+(LU.swapOut?1:0);
+  const selCantrips=sel.filter(n=>{const s=_spDb.find(x=>x.name===n);return s&&s.level===0;});
+  const selLeveled=sel.filter(n=>{const s=_spDb.find(x=>x.name===n);return !s||s.level>=1;});
+  const cantripFull=selCantrips.length>=needCantrip;
+  const leveledFull=selLeveled.length>=leveledCount;
+  const ready=cantripFull&&leveledFull;
+  const spellRow=(s)=>{const isSel=sel.includes(s.name);const isC=s.level===0;const dis=!isSel&&(isC?cantripFull:leveledFull);return`<div class="sk-choice${isSel?' selected':dis?' disabled':''}" onclick="${dis?'':'luToggleSpell(\''+esc(s.name)+'\')'}"><span class="sk-dot${isSel?' p':''}"></span><span style="flex:1;font-size:13px">${esc(s.name)}${s.level>1?` <span style="font-size:10px;color:var(--text3)">niv.${s.level}</span>`:''}</span><span style="font-size:11px;color:var(--text3)">${esc(s.school||'')}</span>${isSel?`<span style="color:var(--cp)">✓</span>`:''}</div>`;};
+  // Section "remplacer un sort connu" (lanceurs connus uniquement)
+  const ownLeveled=(p.spells||[]).filter(s=>{const d=_spDb.find(x=>x.name===s.name);return d?d.level>=1:false;});
+  const swapHtml=(canSwap&&ownLeveled.length)?`<details style="margin-top:14px;border-top:1px solid var(--border);padding-top:10px">
+    <summary style="cursor:pointer;font-size:12px;color:var(--text2);list-style:none">🔄 Remplacer un sort connu <span style="color:var(--text3)">(optionnel — 1 par niveau)</span>${LU.swapOut?` <span style="color:var(--cp)">: ${esc(LU.swapOut)}</span>`:''}</summary>
+    <div style="margin-top:8px">
+      <p style="font-size:11px;color:var(--text3);margin-bottom:6px">Oublie un sort connu : tu pourras choisir 1 sort de plus ci-dessus en remplacement.</p>
+      ${ownLeveled.map(s=>{const on=LU.swapOut===s.name;return`<div class="sk-choice${on?' selected':''}" onclick="luToggleSwap('${esc(s.name)}')"><span class="sk-dot${on?' p':''}"></span><span style="flex:1;font-size:13px">${esc(s.name)}</span>${on?`<span style="color:var(--cp)">↺</span>`:''}</div>`;}).join('')}
+    </div>
+  </details>`:'';
+  const needLabel=[needCantrip?`${needCantrip} sort mineur`:'',leveledCount?`${leveledCount} sort${leveledCount>1?'s':''}`:''].filter(Boolean).join(' + ')||'aucun sort';
   return`<div>
-    <p style="font-size:13px;color:var(--text2);margin-bottom:8px">Choisis <strong style="color:var(--cp)">${count}</strong> nouveau${count>1?'x':''} sort${count>1?'s':''}${isCantripLevel?' (dont 1 sort mineur)':''}. (${sel.length}/${count} sélectionné${sel.length>1?'s':''})</p>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:8px">Choisis <strong style="color:var(--cp)">${needLabel}</strong>.${isGrimoire?' <span style="font-size:11px;color:var(--text3)">(ajoutés à ton grimoire — à préparer ensuite)</span>':''} <span style="font-size:11px;color:var(--text3)">(${needCantrip?selCantrips.length+'/'+needCantrip+' mineur · ':''}${selLeveled.length}/${leveledCount} sort${leveledCount>1?'s':''})</span></p>
     <input type="text" placeholder="🔍 Rechercher..." value="${esc(_luSpellSearch)}" oninput="_luSpellSearch=this.value;renderTab()" style="width:100%;box-sizing:border-box;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;margin-bottom:8px">
     ${isCantripLevel?`<div style="font-size:12px;font-weight:600;color:var(--cp);margin:8px 0 4px">Sorts mineurs</div>${cantrips.length?cantrips.map(spellRow).join(''):'<div style="font-size:12px;color:var(--text3);padding:4px 0">Aucun résultat.</div>'}`:``}
     <div style="font-size:12px;font-weight:600;color:var(--cp);margin:8px 0 4px">Sorts niveau 1</div>
     ${l1.length?l1.map(spellRow).join(''):'<div style="font-size:12px;color:var(--text3);padding:4px 0">Aucun résultat.</div>'}
     ${maxLvl>=2?`<div style="font-size:12px;font-weight:600;color:var(--cp);margin:8px 0 4px">Sorts niveau 2–${maxLvl}</div>${l2plus.length?l2plus.map(spellRow).join(''):'<div style="font-size:12px;color:var(--text3);padding:4px 0">Aucun sort disponible à ce niveau.</div>'}`:``}
+    ${swapHtml}
     <div style="display:flex;gap:8px;margin-top:12px">
       <button class="btn" style="flex:1" onclick="LU.step--;_luSpellSearch='';renderTab()">← Retour</button>
-      <button class="btn bac" style="flex:2" onclick="LU.step++;_luSpellSearch='';renderTab()" ${sel.length>=count?'':'disabled'}>Continuer →</button>
+      <button class="btn bac" style="flex:2" onclick="LU.step++;_luSpellSearch='';renderTab()" ${ready?'':'disabled'}>Continuer →</button>
     </div>
   </div>`;
 }
 function luToggleSpell(name){const idx=LU.newSpells.indexOf(name);if(idx>=0)LU.newSpells.splice(idx,1);else LU.newSpells.push(name);renderTab();}
+function luToggleSwap(name){
+  if(LU.swapOut===name){
+    LU.swapOut=null;
+    // On a perdu le sort de remplacement autorisé → retirer un sort à niveau en trop si besoin.
+    const p=P();const mc=mainClass(p);const cd=mc?CLASS_LEVEL_DATA[mc.name]:null;
+    const entry=p.classes.find(c=>c.name===(mc?mc.name:''));
+    const newCLvl=(entry?entry.level:1)+1;
+    const count=cd&&cd.spellsPerLevel?cd.spellsPerLevel[newCLvl]||0:0;
+    const isCantripLevel=!!(cd&&cd.cantripAtLevels&&cd.cantripAtLevels.includes(newCLvl));
+    const leveledMax=Math.max(0,count-(isCantripLevel?1:0));
+    const _db=getSpellsDB();
+    const leveledSel=LU.newSpells.filter(n=>{const s=_db.find(x=>x.name===n);return !s||s.level>=1;});
+    while(leveledSel.length>leveledMax){const rm=leveledSel.pop();const i=LU.newSpells.indexOf(rm);if(i>=0)LU.newSpells.splice(i,1);}
+  }else{
+    LU.swapOut=name;
+  }
+  renderTab();
+}
 
 // ── Expertise ──
 function luStepExpertise(p){
@@ -1205,7 +1244,7 @@ function luStepRecap(p,newLvl){
   const newCLvl=entry?(entry.level+1):1;
   const cd=mc?CLASS_LEVEL_DATA[mc.name]:null;
   const druideCircle=mc&&mc.name==='Druide'&&p.archetype?p.archetype['Druide']:null;
-  const _PREPARED_RECAP=['Clerc','Druide','Paladin'];
+  const _PREPARED_RECAP=['Clerc','Druide','Paladin','Artificier'];
   const isPrepared=mc&&_PREPARED_RECAP.includes(mc.name);
   const feats=(cd?((cd.levelFeatures||{})[newCLvl]||[]):[]).filter(f=>f&&!f.includes('Amélioration de caractéristiques')&&!f.startsWith('Sorts du cercle')&&!f.includes('(choix)')).map(f=>{
     const resolved=_resolveDruidCircleFeat(f,druideCircle,newCLvl);
@@ -1234,6 +1273,7 @@ function luStepRecap(p,newLvl){
       ${LU.asiChoice&&LU.asiChoice.type!=='feat'&&LU.asiChoice.stats.length?`<div style="padding:6px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:600;color:#4caf50">📈 Amélioration : +${LU.asiChoice.val} à ${LU.asiChoice.stats.map(j=>ABILITIES[j]).join(' et ')}</div></div>`:''}
       ${LU.expertiseChoices.length?`<div style="padding:6px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:600;color:#4caf50">🎯 Expertise : ${LU.expertiseChoices.join(', ')}</div></div>`:''}
       ${LU.newSpells.length?`<div style="padding:6px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:600;color:var(--cp)">✨ Nouveaux sorts : ${LU.newSpells.join(', ')}</div></div>`:''}
+      ${LU.swapOut?`<div style="padding:6px 0;border-bottom:1px solid var(--border)"><div style="font-size:12px;color:var(--text3)">🔄 Sort remplacé : <span style="color:#e57373">${esc(LU.swapOut)}</span></div></div>`:''}
       ${LU.secretsChoices.length?`<div style="padding:6px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:600;color:#9c27b0">🎭 Secrets Magiques : ${LU.secretsChoices.join(', ')}</div></div>`:''}
       ${LU.metamagicChoices.length?`<div style="padding:6px 0"><div style="font-size:13px;font-weight:600;color:var(--cp)">🔮 Métamagie : ${LU.metamagicChoices.join(', ')}</div></div>`:''}
       ${(!explainFeats.length&&!LU.archetypeChoice&&!LU.styleChoice&&!(LU.asiChoice&&(LU.asiChoice.featName||(LU.asiChoice.stats&&LU.asiChoice.stats.length)))&&!LU.expertiseChoices.length&&!LU.newSpells.length&&!LU.secretsChoices.length&&!LU.metamagicChoices.length)?`<div style="font-size:12px;color:var(--text3);font-style:italic;padding:6px 0">Aucune nouvelle capacité de classe à ce niveau — tes points de vie augmentent.</div>`:''}
@@ -1510,9 +1550,20 @@ function applyLevelUp(){
     LU.expertiseChoices.forEach(sk=>{p.skillProf[sk]=2;});
   }
 
-  // Nouveaux sorts (classe) + Secrets Magiques (Barde, any class)
+  // Nouveaux sorts (classe) + Secrets Magiques (Barde) — avec niveau + flag "préparé" correct
   if(!p.spells)p.spells=[];
-  [...LU.newSpells,...LU.secretsChoices].forEach(name=>{if(!p.spells.find(s=>s.name===name))p.spells.push({name});});
+  // Remplacement d'un sort connu (swap RAW, 1/niveau pour les lanceurs "connus")
+  if(LU.swapOut){p.spells=p.spells.filter(s=>s.name!==LU.swapOut);}
+  const _luCls=(isMulti&&LU.mcTarget)?LU.mcTarget:(mc?mc.name:'');
+  const _luGrimoire=PREP_CASTERS.includes(_luCls); // Magicien → grimoire (non préparé) ; connus → préparés
+  const _luDb=(typeof getSpellsDB==='function')?getSpellsDB():(SPELLS_DB||[]);
+  [...LU.newSpells,...LU.secretsChoices].forEach(name=>{
+    if(p.spells.find(s=>s.name===name))return;
+    const sd=_luDb.find(x=>x.name===name);
+    const lvl=sd?sd.level:0;
+    const prepared=(lvl===0)?true:!_luGrimoire; // cantrips toujours dispo ; sorts connus auto-préparés ; grimoire non préparé
+    p.spells.push({name,level:lvl,prepared});
+  });
 
   // Métamagie → ajouter comme capacités
   if(LU.metamagicChoices.length){

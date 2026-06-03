@@ -147,6 +147,10 @@ function createDiceButton(){
   panel.id='dicePanel';
   panel.style.cssText=`position:fixed;bottom:86px;right:24px;z-index:887;width:300px;background:var(--surface);border:1px solid var(--cp);border-radius:12px;padding:14px;box-shadow:0 8px 32px rgba(0,0,0,.6);display:none;max-height:80vh;overflow-y:auto;`;
   document.body.appendChild(panel);
+  // Les clics À L'INTÉRIEUR du panel ne doivent pas remonter jusqu'au listener "clic
+  // en dehors" : lancer un dé / toggler le mode reconstruit innerHTML → la cible cliquée
+  // est détachée du DOM → !panel.contains(target) devenait vrai → le panel se fermait.
+  panel.addEventListener('click',e=>e.stopPropagation());
 }
 function _openDiceShortcuts(){
   const sp=document.getElementById('diceShortcuts');if(!sp)return;

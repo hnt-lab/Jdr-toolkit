@@ -581,6 +581,8 @@ function doLongRest(){
   delete p.combatCharges['ChantReposantResult'];
   delete p.combatCharges['SortsInfernaux_Niv3'];delete p.combatCharges['SortsInfernaux_Niv5'];
   render();saveAll();showToast('🌙 Repos long — PV, sorts, charges et conditions récupérés !');
+  // Principe 18 — prompt de (re)préparation des sorts pour les préparateurs
+  if(typeof isPrepCaster==='function'&&isPrepCaster(p)&&typeof _openLongRestPrep==='function')_openLongRestPrep(p);
 }
 
 // ═══════════════════════════════════════

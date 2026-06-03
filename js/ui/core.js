@@ -136,3 +136,63 @@ fbAuth.onAuthStateChanged(async user=>{
     showAuthScreen();
   }
 });
+
+// ─── SWIPE ENTRE ONGLETS (tactile / mobile) ───
+// Glisser horizontalement dans le corps d'un menu à onglets passe à l'onglet voisin.
+// Marche pour la fiche joueur (#tabContent / setTab) ET l'écran MJ (#mjTabContent / setMJTab).
+(function(){
+  let x0=null,y0=null,t0=0,ctx=null,skip=false;
+  // Ne pas voler le geste si on glisse dans un élément qui scrolle horizontalement (tableau large, etc.)
+  function _hScrollable(node,stop){
+    while(node&&node!==stop&&node!==document.body){
+      if(node.scrollWidth-node.clientWidth>8){
+        const ox=getComputedStyle(node).overflowX;
+        if(ox==='auto'||ox==='scroll')return true;
+      }
+      node=node.parentElement;
+    }
+    return false;
+  }
+  // Lit l'ordre RÉEL des onglets depuis la barre (respecte l'ordre perso + onglets conditionnels)
+  function _tabIds(barId){
+    const bar=document.getElementById(barId);if(!bar)return[];
+    return [...bar.querySelectorAll('button')].map(b=>{
+      const m=(b.getAttribute('onclick')||'').match(/set(?:MJ)?Tab\('([^']+)'\)/);
+      return m?m[1]:null;
+    }).filter(Boolean);
+  }
+  function _go(dir){
+    if(ctx==='player'){
+      const ids=_tabIds('tabBar');const i=ids.indexOf(state.activeTab);
+      const j=i+dir;if(i<0||j<0||j>=ids.length)return;
+      if(typeof setTab==='function')setTab(ids[j]);
+    }else if(ctx==='mj'){
+      const ids=_tabIds('mjTabBar');const i=ids.indexOf(_mjTab);
+      const j=i+dir;if(i<0||j<0||j>=ids.length)return;
+      if(typeof setMJTab==='function')setMJTab(ids[j]);
+    }
+  }
+  document.addEventListener('touchstart',e=>{
+    ctx=null;skip=false;x0=null;
+    if(e.touches.length!==1)return;
+    const t=e.touches[0],tgt=t.target;
+    const pc=document.getElementById('tabContent');
+    const mc=document.getElementById('mjTabContent');
+    let container=null;
+    if(pc&&pc.contains(tgt)&&document.getElementById('app')?.style.display!=='none'){ctx='player';container=pc;}
+    else if(mc&&mc.contains(tgt)&&document.getElementById('mjScreen')?.style.display!=='none'){ctx='mj';container=mc;}
+    else return;
+    if(_hScrollable(tgt,container)){skip=true;return;}
+    x0=t.clientX;y0=t.clientY;t0=Date.now();
+  },{passive:true});
+  document.addEventListener('touchend',e=>{
+    if(x0===null||skip||!ctx)return;
+    const t=e.changedTouches[0];
+    const dx=t.clientX-x0,dy=t.clientY-y0,dt=Date.now()-t0;
+    x0=null;
+    if(dt>700)return;                        // trop lent = pas un swipe
+    if(Math.abs(dx)<60)return;               // trop court
+    if(Math.abs(dx)<Math.abs(dy)*1.6)return; // trop vertical (= scroll)
+    _go(dx<0?1:-1);                          // gauche → onglet suivant, droite → précédent
+  },{passive:true});
+})();

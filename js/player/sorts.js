@@ -136,6 +136,97 @@ function tabSorts(p){
   </div>`;
 }
 
+// ═══════════════════════════════════════════════════════════
+//  PRÉPARATION DES SORTS AU REPOS LONG (principe 18 / mécanisme C)
+//  Préparateurs liste complète : Clerc, Druide, Paladin, Artificier, Magicien.
+// ═══════════════════════════════════════════════════════════
+let _lrPrep=null;
+function _prepMaxForClass(p,className){
+  const ab=p.abilities||[10,10,10,10,10,10];
+  const intM=mod(ab[3]),sagM=mod(ab[4]),chaM=mod(ab[5]);
+  const c=(p.classes||[]).find(x=>x.name===className);if(!c)return 1;
+  const lvl=c.level;
+  if(className==='Magicien')return Math.max(1,intM+lvl);
+  if(className==='Clerc'||className==='Druide')return Math.max(1,sagM+lvl);
+  if(className==='Paladin')return Math.max(1,chaM+Math.ceil(lvl/2));
+  if(className==='Artificier')return Math.max(1,intM+Math.ceil(lvl/2));
+  return 1;
+}
+function _prepMaxSpellLevel(p){
+  const slots=calcSpellSlots(p)||[];let m=0;slots.forEach((n,i)=>{if(n>0)m=i+1;});return Math.max(1,m);
+}
+function _lrPrepClassList(p,className){
+  const db=getSpellsDB()||[];const en=(typeof _CLASS_NAME_EN!=='undefined'?_CLASS_NAME_EN[className]:'')||className;const maxLvl=_prepMaxSpellLevel(p);
+  return db.filter(s=>s.level>=1&&s.level<=maxLvl&&(!s.classes||!s.classes.length||s.classes.includes(className)||s.classes.includes(en)));
+}
+function _lrAlwaysPrepared(p,className){
+  // Sorts TOUJOURS préparés modélisés (Cercle des terres). Domaine/Serment → à brancher avec ces classes (@OPTION_B).
+  if(className==='Druide'&&typeof getDruidCircleSpells==='function')return getDruidCircleSpells(p).filter(s=>s.level>0).map(s=>s.name);
+  return [];
+}
+function _openLongRestPrep(p){
+  p=p||P();
+  const prepClasses=(p.classes||[]).filter(c=>typeof PREP_CASTERS!=='undefined'&&PREP_CASTERS.includes(c.name));
+  if(!prepClasses.length)return false;
+  if(!SPELLS_DB){loadSpellsDB(()=>_openLongRestPrep(p));return true;}
+  const cls=prepClasses.slice().sort((a,b)=>(b.level||0)-(a.level||0))[0];
+  const sel=new Set((p.spells||[]).filter(s=>{const d=findSpellData(s.name);return s.prepared&&d&&d.level>0;}).map(s=>s.name));
+  _lrPrep={cls:cls.name,sel,search:'',multi:prepClasses.length>1};
+  _renderLongRestPrepModal(p);
+  return true;
+}
+function _lrPrepToggle(name){
+  if(!_lrPrep)return;
+  const p=P();const N=_prepMaxForClass(p,_lrPrep.cls);
+  if(_lrPrep.sel.has(name))_lrPrep.sel.delete(name);
+  else{if(_lrPrep.sel.size>=N)return;_lrPrep.sel.add(name);}
+  _renderLongRestPrepModal(p);
+}
+function _lrPrepSearch(v){if(_lrPrep){_lrPrep.search=v;_renderLongRestPrepModal(P());}}
+function _renderLongRestPrepModal(p){
+  if(!_lrPrep)return;
+  const className=_lrPrep.cls;
+  const N=_prepMaxForClass(p,className);
+  const always=new Set(_lrAlwaysPrepared(p,className));
+  const list=_lrPrepClassList(p,className).filter(s=>!always.has(s.name));
+  const q=(_lrPrep.search||'').toLowerCase().trim();
+  const shown=q?list.filter(s=>s.name.toLowerCase().includes(q)||(s.nameEN||'').toLowerCase().includes(q)):list;
+  const byLvl={};shown.forEach(s=>{(byLvl[s.level]=byLvl[s.level]||[]).push(s);});
+  const full=_lrPrep.sel.size>=N;
+  const row=s=>{const on=_lrPrep.sel.has(s.name);const dis=!on&&full;return`<div class="sk-choice${on?' selected':dis?' disabled':''}" onclick="${dis?'':`_lrPrepToggle('${esc(s.name)}')`}"><span class="sk-dot${on?' p':''}"></span><span style="flex:1;font-size:13px">${esc(s.name)}</span><span style="font-size:11px;color:var(--text3)">${esc(s.school||'')}</span>${on?'<span style="color:var(--cp)">✓</span>':''}</div>`;};
+  let body='';
+  Object.keys(byLvl).map(Number).sort((a,b)=>a-b).forEach(l=>{body+=`<div style="font-size:12px;font-weight:600;color:var(--cp);margin:8px 0 4px">Niveau ${l}</div>${byLvl[l].map(row).join('')}`;});
+  if(!shown.length)body=`<div style="font-size:12px;color:var(--text3);padding:8px 0">Aucun sort.</div>`;
+  const alwaysHtml=always.size?`<div style="font-size:11px;color:var(--text3);margin-bottom:8px">⭐ Toujours préparés (hors quota) : ${[...always].map(esc).join(', ')}</div>`:'';
+  openModal(`<div class="pt">🌙 Préparation des sorts — ${esc(className)}</div>
+    ${_lrPrep.multi?`<div style="font-size:11px;color:#ff9800;margin-bottom:8px">Multiclasse : préparation de la classe principale (${esc(className)}). Les autres classes se préparent depuis l'onglet Sorts.</div>`:''}
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:12px"><span style="color:var(--text2)">Sorts préparés :</span><strong style="color:${_lrPrep.sel.size>N?'#e53935':'#4caf50'};font-size:15px">${_lrPrep.sel.size}/${N}</strong></div>
+    ${alwaysHtml}
+    <input type="text" placeholder="🔍 Rechercher..." value="${esc(_lrPrep.search||'')}" oninput="_lrPrepSearch(this.value)" style="width:100%;box-sizing:border-box;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;margin-bottom:8px">
+    <div style="max-height:46vh;overflow-y:auto">${body}</div>
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button class="btn" style="flex:1" onclick="_lrPrep=null;closeModal()">Garder l'actuel</button>
+      <button class="btn bac" style="flex:2" onclick="_applyLongRestPrep()">✓ Valider</button>
+    </div>`);
+  // Rendre la recherche utilisable malgré la reconstruction de la modale (re-focus + curseur en fin)
+  setTimeout(()=>{const i=document.querySelector('#modal input');if(i&&_lrPrep&&_lrPrep.search){i.focus();try{i.setSelectionRange(i.value.length,i.value.length);}catch(e){}}},0);
+}
+function _applyLongRestPrep(){
+  const p=P();if(!_lrPrep){closeModal();return;}
+  const className=_lrPrep.cls;
+  const list=_lrPrepClassList(p,className);
+  const always=new Set(_lrAlwaysPrepared(p,className));
+  if(!p.spells)p.spells=[];
+  list.forEach(s=>{
+    if(always.has(s.name))return;
+    const checked=_lrPrep.sel.has(s.name);
+    const ex=p.spells.find(x=>x.name===s.name);
+    if(checked){if(ex){ex.prepared=true;if(ex.level==null)ex.level=s.level;}else p.spells.push({name:s.name,level:s.level,prepared:true});}
+    else if(ex){ex.prepared=false;}
+  });
+  _lrPrep=null;closeModal();render();saveAll();showToast('✨ Sorts préparés mis à jour.');
+}
+
 function renderLearnSpell(p, magLvl){
   const cur = p.currency||{po:0};
   const knownNames = (p.spells||[]).map(s=>s.name);
