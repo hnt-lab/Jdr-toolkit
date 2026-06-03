@@ -106,6 +106,7 @@ function tabPerso(p){
       ${(p.shieldHp||0)>0?`<div style="margin-top:4px;padding:5px 8px;background:rgba(33,150,243,.08);border:1px solid rgba(33,150,243,.3);border-radius:6px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px"><span style="font-size:10px;font-weight:600;color:#42a5f5">🔵 Bouclier magique</span><span style="font-size:10px;color:#42a5f5;font-weight:700">${p.shieldHp} / ${p.shieldHpMax||p.shieldHp} PV</span></div><div style="height:5px;background:rgba(33,150,243,.15);border-radius:3px;overflow:hidden"><div style="height:100%;width:${Math.round((p.shieldHp/Math.max(1,p.shieldHpMax||p.shieldHp))*100)}%;background:#1565c0;border-radius:3px"></div></div></div>`:''}
       <div class="hp-ctrl">
         <input class="fi" id="hpDelta" type="number" placeholder="montant" style="width:70px">
+        ${(()=>{const er=getEffectiveResistances(p),ei=getEffectiveImmunities(p);if(!er.length&&!ei.length)return'';return`<select id="hpDmgType" class="fi" style="width:auto;padding:6px 8px" title="Type de dégâts (résistances / immunités)"><option value="">Type…</option>${er.map(t=>`<option value="${esc(t)}">🛡 ${esc(t)}</option>`).join('')}${ei.filter(t=>!er.includes(t)).map(t=>`<option value="${esc(t)}">✦ ${esc(t)}</option>`).join('')}</select>`;})()}
         <button class="btn bsm" style="background:#b71c1c;color:#fff;border-color:#b71c1c" onclick="applyHp(-1)">Dégâts</button>
         <button class="btn bsm" style="background:#2e7d32;color:#fff;border-color:#2e7d32" onclick="applyHp(1)">Soins</button>
       </div>
@@ -162,12 +163,15 @@ function tabPerso(p){
       </div>
       ${window._riOpen?(()=>{
         const res=p.dmgResistances||[];const imm=p.dmgImmunities||[];const ci=p.condImmunities||[];
+        const passRes=getPassiveResistances(p);const passImm=getPassiveImmunities(p);
         const tag=(cat,val,i)=>`<span class="status-badge bonus" style="cursor:pointer" title="Retirer" onclick="removeResist('${cat}',${i})">🛡 ${esc(val)} ✕</span>`;
         const tagImm=(cat,val,i)=>`<span class="status-badge malus" style="background:#2e1b00;border-color:#ff9800;color:#ff9800;cursor:pointer" title="Retirer" onclick="removeResist('${cat}',${i})">✦ ${esc(val)} ✕</span>`;
         const tagCond=(cat,val,i)=>`<span class="status-badge malus" style="cursor:pointer" title="Retirer" onclick="removeResist('${cat}',${i})">🚫 ${esc(val)} ✕</span>`;
         const empty='<span style="font-size:11px;color:var(--text3);font-style:italic">Aucune</span>';
-        return`<div style="margin-bottom:8px"><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Résistances dégâts</div><div style="display:flex;flex-wrap:wrap;gap:4px">${res.length?res.map((v,i)=>tag('dmgResistances',v,i)).join(''):empty}</div></div>
-        <div style="margin-bottom:8px"><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Immunités dégâts</div><div style="display:flex;flex-wrap:wrap;gap:4px">${imm.length?imm.map((v,i)=>tagImm('dmgImmunities',v,i)).join(''):empty}</div></div>
+        const lockR=v=>`<span class="status-badge bonus" style="opacity:.85" title="Résistance passive (automatique)">🛡 ${esc(v)} 🔒</span>`;
+        const lockI=v=>`<span class="status-badge malus" style="background:#2e1b00;border-color:#ff9800;color:#ff9800;opacity:.85" title="Immunité passive (automatique)">✦ ${esc(v)} 🔒</span>`;
+        return`<div style="margin-bottom:8px"><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Résistances dégâts</div><div style="display:flex;flex-wrap:wrap;gap:4px">${(res.length||passRes.length)?res.map((v,i)=>tag('dmgResistances',v,i)).join('')+passRes.map(lockR).join(''):empty}</div></div>
+        <div style="margin-bottom:8px"><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Immunités dégâts</div><div style="display:flex;flex-wrap:wrap;gap:4px">${(imm.length||passImm.length)?imm.map((v,i)=>tagImm('dmgImmunities',v,i)).join('')+passImm.map(lockI).join(''):empty}</div></div>
         <div><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Immunités conditions</div><div style="display:flex;flex-wrap:wrap;gap:4px">${ci.length?ci.map((v,i)=>tagCond('condImmunities',v,i)).join(''):empty}</div></div>`;
       })():''}
     </div>
@@ -304,6 +308,21 @@ function openPrivacySettings(){
 }
 
 // ── PV & HP ──
+// ── Résistances / immunités effectives (manuelles + passives) — Fondation 4 ──
+// Le code de classe/archétype peut alimenter p.autoResist / p.autoImmun (tableaux) au fil du BLOC 3.
+function getPassiveResistances(p){
+  const r=[];
+  if(p.race==='Tieffelin')r.push('Feu');
+  if(Array.isArray(p.autoResist))r.push(...p.autoResist);
+  return [...new Set(r)];
+}
+function getPassiveImmunities(p){
+  const r=[];
+  if(Array.isArray(p.autoImmun))r.push(...p.autoImmun);
+  return [...new Set(r)];
+}
+function getEffectiveResistances(p){return [...new Set([...(p.dmgResistances||[]),...getPassiveResistances(p)])];}
+function getEffectiveImmunities(p){return [...new Set([...(p.dmgImmunities||[]),...getPassiveImmunities(p)])];}
 function applyHp(sign){
   const p=P();const delta=parseInt(document.getElementById('hpDelta')?.value)||0;if(delta<=0)return;
   const ws=p.wildshape;
@@ -323,8 +342,15 @@ function applyHp(sign){
     }
   } else {
     if(sign<0){
-      // 1. Bouclier magique absorbe en premier
       let dmg=delta;
+      // Fondation 4 — résistance (÷2) / immunité (0) selon le type de dégâts sélectionné
+      const _dt=document.getElementById('hpDmgType')?.value||'';
+      if(_dt){
+        if(getEffectiveImmunities(p).includes(_dt)){showBanner('✦','Immunité',`${_dt} : ${dmg} dégâts annulés`,{variant:'info'});dmg=0;}
+        else if(getEffectiveResistances(p).includes(_dt)){const _h=Math.floor(dmg/2);showBanner('🛡','Résistance',`${_dt} : ${dmg} → ${_h}`,{variant:'info'});dmg=_h;}
+        if(dmg<=0){_markUnsaved();render();return;}
+      }
+      // 1. Bouclier magique absorbe en premier
       if((p.shieldHp||0)>0){
         const absorbed=Math.min(p.shieldHp,dmg);
         p.shieldHp-=absorbed;dmg-=absorbed;
@@ -486,7 +512,7 @@ function rollConcSave(dmg){
     delete p.concentrationSpell;
     if(_endSpell&&typeof _clearGroupConcentrationBuff==='function')_clearGroupConcentrationBuff(_endSpell,_endName);
   }
-  showToast(`🎯 JS Concentration — d20(${d20})${modStr}${hasCON?' (maîtrise)':''} = <strong>${total}</strong> vs DD ${dd} — ${success?'<span style="color:#4caf50">✓ Réussi ! Concentration maintenue.</span>':'<span style="color:#e53935">✗ Raté ! Concentration brisée.</span>'}`,5000);
+  showBanner(success?'🎯':'💥',success?'Concentration maintenue':'Concentration brisée',`JS CON : d20(${d20})${modStr}${hasCON?' (maîtrise)':''} = ${total} vs DD ${dd}`,{variant:success?'success':'danger'});
   render();
 }
 
@@ -580,7 +606,7 @@ function doLongRest(){
   delete p.relentlessEnduranceUsed;
   delete p.combatCharges['ChantReposantResult'];
   delete p.combatCharges['SortsInfernaux_Niv3'];delete p.combatCharges['SortsInfernaux_Niv5'];
-  render();saveAll();showToast('🌙 Repos long — PV, sorts, charges et conditions récupérés !');
+  render();saveAll();showBanner('🌙','Repos long','PV, sorts, charges et conditions récupérés',{variant:'info'});
   // Principe 18 — prompt de (re)préparation des sorts pour les préparateurs
   if(typeof isPrepCaster==='function'&&isPrepCaster(p)&&typeof _openLongRestPrep==='function')_openLongRestPrep(p);
 }

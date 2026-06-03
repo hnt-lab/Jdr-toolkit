@@ -177,6 +177,8 @@ function startMJPlayersListener(campaignId){
           _mjPlayersData=_mjPlayersData.filter(p=>p.docId!==change.doc.id);changed=true;
         }
       }
+      // Fondation 5 — auto-sync des familiers (apparition/retrait, y compris invocation mid-combat)
+      if(typeof _mjSyncFamiliars==='function'&&_mjSyncFamiliars())changed=true;
       if(changed)_debouncedMJRender();
     },err=>console.warn('MJ sync error:',err));
   _unsubscribes.push(unsub);
@@ -232,14 +234,30 @@ function startPlayerListener(campaignId){
 let _groupData=[];
 let _groupHudOpen=false;
 let _seenGroupBuffs=new Set();
-function _showBuffNotification(icon,title,detail,sourceName){
+// ─── BANNIÈRE SLIDE RÉUTILISABLE (principe 20 — événements importants > toasts discrets) ───
+// Règle : bannière = événement de jeu important (dégâts/soins notables, repos, montée de niveau,
+//   charge épuisée, statut gagné/perdu, concentration brisée, jets de mort…).
+//   showToast = confirmations mineures sans impact (Sauvegardé, Copié, Récupéré, Ajouté).
+const BANNER_VARIANTS={
+  gold:{c:'var(--cp)',g:'rgba(200,168,75,.3)'},
+  success:{c:'#4caf50',g:'rgba(76,175,80,.32)'},
+  danger:{c:'#e53935',g:'rgba(229,57,53,.32)'},
+  info:{c:'#7fd1c4',g:'rgba(127,209,196,.32)'},
+  warn:{c:'#ff9800',g:'rgba(255,152,0,.32)'},
+};
+function showBanner(icon,title,detail,opts){
+  opts=opts||{};
+  const v=BANNER_VARIANTS[opts.variant||'gold']||BANNER_VARIANTS.gold;
   const ex=document.getElementById('_buffNotif');if(ex)ex.remove();
   const d=document.createElement('div');d.id='_buffNotif';
-  d.innerHTML=`<div style="font-size:26px;margin-bottom:4px">${icon}</div><div style="font-size:13px;font-weight:700;color:var(--cp);margin-bottom:2px">${esc(title)}</div><div style="font-size:11px;color:var(--text2);margin-bottom:4px">${esc(detail)}</div>${sourceName?`<div style="font-size:10px;color:var(--text3)">par ${esc(sourceName)}</div>`:''}`;
+  d.style.borderColor=v.c;d.style.boxShadow=`0 4px 24px ${v.g}`;
+  d.innerHTML=`<div style="font-size:26px;margin-bottom:4px">${icon}</div><div style="font-size:13px;font-weight:700;color:${v.c};margin-bottom:2px">${esc(title)}</div>${detail?`<div style="font-size:11px;color:var(--text2);margin-bottom:4px">${esc(detail)}</div>`:''}${opts.source?`<div style="font-size:10px;color:var(--text3)">par ${esc(opts.source)}</div>`:''}`;
   document.body.appendChild(d);
   const hide=()=>{d.style.transition='opacity .4s';d.style.opacity='0';setTimeout(()=>{if(d.parentNode)d.remove();},400);};
-  setTimeout(hide,4500);d.addEventListener('click',hide);
+  setTimeout(hide,opts.duration||4500);d.addEventListener('click',hide);
 }
+// Compat : ancienne signature des notifications de buff
+function _showBuffNotification(icon,title,detail,sourceName){showBanner(icon,title,detail,{source:sourceName});}
 function _checkIncomingBuffs(oldCD,newCD){
   const oldChant=oldCD?.combatCharges?.ChantReposantResult;
   const newChant=newCD?.combatCharges?.ChantReposantResult;

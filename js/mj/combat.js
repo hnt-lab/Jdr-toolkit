@@ -118,6 +118,42 @@ function mjAddFamiliarToCombat(playerIdx){
   _mjCombatLog.push(`🦉 ${esc(fam.name)} (familier) ajouté au combat.`);
   renderMJContent();showToast(`🦉 ${fam.name} ajouté au combat !`);
 }
+// ─── AUTO-SYNC DES FAMILIERS AU TRACKER (Fondation 5 — principes 21/28) ───
+// « Familier » = terme générique (tout être vivant contrôlé). Un familier ACTIF apparaît
+// tout seul dans le combat (y compris invoqué en plein combat) ; renvoyé/mort côté joueur
+// → retiré ; le MJ peut le retirer ("kick") → il ne réapparaît pas tant qu'il reste actif.
+let _mjKickedFamiliars=new Set();
+function _mjSyncFamiliars(){
+  if(!_mjCombatStarted)return false;
+  let changed=false;
+  (_mjPlayersData||[]).forEach(pp=>{
+    const cd=pp.charData||{};const fam=cd.familiar;const famId='familiar_'+pp.uid;
+    const present=_mjCombatants.findIndex(c=>c.id===famId);
+    if(fam&&fam.active){
+      if(_mjKickedFamiliars.has(famId))return;
+      if(present<0){
+        const mods=(fam.ab||[]).map(v=>Math.floor((v-10)/2));
+        _mjCombatants.push({
+          id:famId,name:fam.name+' (familier de '+(cd.charName||pp.playerName||'joueur')+')',
+          hp:fam.hpCur,hpMax:fam.hpMax,ac:fam.ac,speed:fam.speed||'?',
+          initiative:Math.ceil(Math.random()*20)+(mods[1]||0),
+          dexMod:mods[1]||0,conditions:[],isPlayer:false,isFamiliar:true,ownerUid:pp.uid,
+          avatar:fam.icon||'🦉',abilities:fam.ab||[10,10,10,10,10,10],attacks:fam.attacks||[],spells:[],
+          traits:(fam.traits||[]).map(t=>({name:'Trait',desc:t,uses:0,dice:''})),
+        });
+        _mjCombatLog.push(`🦉 ${esc(fam.name)} (familier) rejoint le combat.`);
+        changed=true;
+      }else{
+        const c=_mjCombatants[present];
+        if(c.hp!==fam.hpCur||c.hpMax!==fam.hpMax){c.hp=fam.hpCur;c.hpMax=fam.hpMax;changed=true;}
+      }
+    }else if(present>=0){
+      _mjCombatants.splice(present,1);_mjKickedFamiliars.delete(famId);changed=true;
+    }
+  });
+  if(changed&&typeof _mjPersistCombat==='function')_mjPersistCombat();
+  return changed;
+}
 function mjAddAllToCombat(){
   _mjPlayersData.forEach((_,i)=>mjAddPlayerToCombat(i));
 }
@@ -581,8 +617,10 @@ function _mjPersistCombat(){
 }
 
 function mjStartCombat(){
-  _mjCombatants.forEach(c=>{c.initiative=Math.ceil(Math.random()*20)+(c.dexMod||0);});
   _mjCombatStarted=true;_mjCurrentTurn=0;_mjRound=1;
+  if(typeof _mjKickedFamiliars!=='undefined')_mjKickedFamiliars.clear();
+  if(typeof _mjSyncFamiliars==='function')_mjSyncFamiliars(); // intègre les familiers déjà actifs
+  _mjCombatants.forEach(c=>{c.initiative=Math.ceil(Math.random()*20)+(c.dexMod||0);});
   const sorted=[..._mjCombatants].sort((a,b)=>b.initiative-a.initiative);
   // Fix 11 — Liste triée des initiatives dans le log
   const _initList=sorted.map((c,i)=>`${i+1}. ${c.name} : ${c.initiative}`).join(' | ');
@@ -924,6 +962,8 @@ function mjCombatRollFree(idx,d){
 function mjRemoveCombatant(idx){
   const name=_mjCombatants[idx]?.name||'?';
   if(!confirm(`Retirer "${name}" du combat ?`))return;
+  const _rid=_mjCombatants[idx]?.id;
+  if(_rid&&_rid.indexOf('familiar_')===0&&typeof _mjKickedFamiliars!=='undefined')_mjKickedFamiliars.add(_rid);
   _mjCombatants.splice(idx,1);
   _mjCombatLog.push(`✕ ${esc(name)} retiré du combat.`);
   if(_mjCurrentTurn>=_mjCombatants.length&&_mjCurrentTurn>0)_mjCurrentTurn--;
