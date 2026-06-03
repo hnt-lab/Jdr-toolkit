@@ -22,11 +22,15 @@ function renderClerc(p) {
   if (clercLvl >= 2) {
     const cdMax = clercLvl>=18?3:clercLvl>=6?2:1;
     const cdUsed = cc['ConduitDivin']!==undefined ? cc['ConduitDivin'] : cdMax;
+    const _ddRenvoi=8+pb(totalLevel(p))+mod(p.abilities[4]);
+    const _crDestroy=clercLvl>=17?'4':clercLvl>=14?'3':clercLvl>=11?'2':clercLvl>=8?'1':clercLvl>=5?'1/2':null;
+    const _renvoiMsg='JS SAG DD '+_ddRenvoi+' ou fuite 1 min'+(_crDestroy?' · détruits si FP ≤ '+_crDestroy:'');
     panels.push(`<div style="margin-bottom:10px;padding:8px;background:var(--surface2);border-radius:6px">
       <div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:6px">✝ Conduit divin</div>
       <div style="font-size:11px;color:var(--text3);margin-bottom:6px">Renvoi des morts-vivants (action) + capacité de domaine. Récup. repos court.</div>
       <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px">${Array.from({length:cdMax},(_,i)=>`<span class="slot-bubble${i<cdUsed?'':' used'}" onclick="useCombatCharge('ConduitDivin',${cdMax})"></span>`).join('')}</div>
-      <div style="display:flex;gap:6px;align-items:center">
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <button class="btn bsm bac" onclick="(()=>{const p=P();const cur=(p.combatCharges||{})['ConduitDivin'];const c=cur!==undefined?cur:${cdMax};if(c<=0){showBanner('❌','Conduit divin épuisé','Repos court requis',{variant:'danger'});return;}useCombatCharge('ConduitDivin',${cdMax});showBanner('☀','Renvoi des morts-vivants','${_renvoiMsg}',{variant:'gold'});})()">☀ Renvoyer</button>
         <button class="btn bsm" onclick="recoverCombatCharge('ConduitDivin',${cdMax})">↺ Repos court</button>
         <span style="font-size:10px;color:var(--text3)">${cdUsed}/${cdMax}</span>
       </div>

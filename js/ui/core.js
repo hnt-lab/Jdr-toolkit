@@ -48,6 +48,8 @@ async function joinGroupOnly(tableId,campaignId){
   stopAllListeners();
   _groupData=[];_activeCombatState=null;_combatListenerInitialized=false;_prevCombatTurnUid=null;
   _groupHudOpen=true;
+  // Le bouton dé flottant apparaît aussi (il donne le raccourci vers sa propre fiche)
+  const _df=document.getElementById('diceFloat');if(_df)_df.style.display='flex';
   const hud=document.getElementById('partyHud');
   const panel=document.getElementById('partyHudPanel');
   if(hud&&panel){

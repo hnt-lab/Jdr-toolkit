@@ -258,33 +258,39 @@ function showBanner(icon,title,detail,opts){
 }
 // Compat : ancienne signature des notifications de buff
 function _showBuffNotification(icon,title,detail,sourceName){showBanner(icon,title,detail,{source:sourceName});}
-function _checkIncomingBuffs(oldCD,newCD){
-  const oldChant=oldCD?.combatCharges?.ChantReposantResult;
-  const newChant=newCD?.combatCharges?.ChantReposantResult;
-  if(newChant!==undefined&&newChant!==oldChant){
-    const src=newCD.charName||'Le barde';
-    const key=`ChantReposant:${src}:${newChant}`;
-    if(!_seenGroupBuffs.has(key)){_seenGroupBuffs.add(key);_showBuffNotification('🎶','Chant reposant',`+${newChant} PV au prochain repos court`,src);}
-  }
-  const _buffDefs=[
-    {name:'InspirationBardique',icon:'🎵',title:'Inspiration bardique',detail:b=>`+1${b.die} sur ton prochain jet`},
-    {name:'Benediction',icon:'✨',title:'Bénédiction',detail:()=>'+1d4 aux jets d\'attaque et sauvegardes (concentration)'},
-    {name:'Assistance',icon:'🤝',title:'Assistance',detail:()=>'+1d4 à ton prochain jet de compétence'},
-  ];
-  _buffDefs.forEach(def=>{
-    const oldB=(oldCD?.activeBuffs||[]).find(b=>b.name===def.name);
-    const newB=(newCD?.activeBuffs||[]).find(b=>b.name===def.name);
-    if(newB&&!oldB){
-      const src=newB.sourceName||'Un allié';
-      const key=`${def.name}:${src}:${Date.now()}`;
-      if(!_seenGroupBuffs.has(key)){_seenGroupBuffs.add(key);_showBuffNotification(def.icon,def.title,def.detail(newB),src);}
+function _checkIncomingBuffs(oldCD,newCD,isSelf){
+  // Chant reposant : écrit sur le doc du BARDE → notifie les AUTRES alliés (pas le barde)
+  if(!isSelf){
+    const oldChant=oldCD?.combatCharges?.ChantReposantResult;
+    const newChant=newCD?.combatCharges?.ChantReposantResult;
+    if(newChant!==undefined&&newChant!==oldChant){
+      const src=newCD.charName||'Le barde';
+      const key=`ChantReposant:${src}:${newChant}`;
+      if(!_seenGroupBuffs.has(key)){_seenGroupBuffs.add(key);_showBuffNotification('🎶','Chant reposant',`+${newChant} PV au prochain repos court`,src);}
     }
-  });
-  // Soins directs — détection d'une hausse de HP (Mot de guérison, Soin)
-  const oldHp=oldCD?.hp,newHp=newCD?.hp;
-  if(newHp!==undefined&&oldHp!==undefined&&newHp>oldHp){
-    const gain=newHp-oldHp;
-    _showBuffNotification('💚','Soins reçus',`+${gain} PV`,null);
+  }
+  // Buffs CIBLÉS (Inspiration/Bénédiction/Assistance) + soins : écrits sur le doc de la CIBLE → notifient la cible (soi)
+  if(isSelf){
+    const _buffDefs=[
+      {name:'InspirationBardique',icon:'🎵',title:'Inspiration bardique',detail:b=>`+1${b.die} sur ton prochain jet`},
+      {name:'Benediction',icon:'✨',title:'Bénédiction',detail:()=>'+1d4 aux jets d\'attaque et sauvegardes (concentration)'},
+      {name:'Assistance',icon:'🤝',title:'Assistance',detail:()=>'+1d4 à ton prochain jet de compétence'},
+      {name:'AuraProtection',icon:'🛡',title:'Aura de protection',detail:b=>'+'+(b.value||0)+' à tous tes jets de sauvegarde (tant que tu es à portée)'},
+    ];
+    _buffDefs.forEach(def=>{
+      const oldB=(oldCD?.activeBuffs||[]).find(b=>b.name===def.name);
+      const newB=(newCD?.activeBuffs||[]).find(b=>b.name===def.name);
+      if(newB&&!oldB){
+        const src=newB.sourceName||'Un allié';
+        const key=`${def.name}:${src}:${Date.now()}`;
+        if(!_seenGroupBuffs.has(key)){_seenGroupBuffs.add(key);_showBuffNotification(def.icon,def.title,def.detail(newB),src);}
+      }
+    });
+    // Soins directs reçus (Mot de guérison, Soin) — hausse de HP via une écriture distante (pas un soin manuel local)
+    const oldHp=oldCD?.hp,newHp=newCD?.hp;
+    if(newHp!==undefined&&oldHp!==undefined&&newHp>oldHp){
+      _showBuffNotification('💚','Soins reçus',`+${newHp-oldHp} PV`,null);
+    }
   }
 }
 let _groupOnlyMode=false;
@@ -316,7 +322,7 @@ function startGroupListener(campaignId){
           if(idx>=0){_groupData[idx].charData=charData;changed=true;}
           else{_groupData.push({uid,docId:change.doc.id,playerName:info.playerName,avatar:info.avatar,charData});changed=true;}
           if(!change.doc.metadata.hasPendingWrites){
-            if(uid!==currentUser?.uid)_checkIncomingBuffs(oldCharData,charData);
+            _checkIncomingBuffs(oldCharData,charData,uid===currentUser?.uid);
             if(uid===currentUser?.uid&&state?.players?.[state.activeIdx]){
               const _newB=JSON.stringify(charData.activeBuffs||[]);
               const _oldB=JSON.stringify(state.players[state.activeIdx].activeBuffs||[]);

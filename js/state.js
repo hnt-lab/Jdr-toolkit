@@ -375,6 +375,12 @@ function calcSpellSlots(p){
     else if(d.spellWeight===1)e+=c.level;
     else if(d.spellWeight===0.5)e+=Math.ceil(c.level/2);
   });
+  // Tiers-lanceurs (archétypes Escroc arcanique / Chevalier occulte) : 1/3 du niveau de classe
+  const _feats=p.features||[];
+  const _roub=(p.classes||[]).find(c=>c.name==='Roublard');
+  if(_roub&&_roub.level>=3&&_feats.some(f=>f.name==='Escroc arcanique'))e+=Math.floor(_roub.level/3);
+  const _guer=(p.classes||[]).find(c=>c.name==='Guerrier');
+  if(_guer&&_guer.level>=3&&_feats.some(f=>f.name==='Chevalier occulte'))e+=Math.floor(_guer.level/3);
   if(e<1)return null;
   return MC_SLOT_TABLE[Math.min(e-1,19)]||null;
 }

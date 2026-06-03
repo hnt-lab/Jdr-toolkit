@@ -393,7 +393,7 @@ function checkRageImplacable() {
   if (p.hp > 0) return;
   const uses = p.combatCharges['RageImplacableUses']||0;
   const dc = 10 + uses * 5;
-  const conMod = Math.floor(((p.abilities||[])[2]||10 - 10)/2);
+  const conMod = mod((p.abilities||[])[2]||10);
   openModal(`<div style="text-align:center;padding:16px 12px">
     <div style="font-size:36px;margin-bottom:8px">💪</div>
     <div class="pt" style="margin-bottom:6px">Rage implacable</div>

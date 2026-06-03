@@ -87,6 +87,7 @@ function renderBarde(p) {
     let savoirContent = `<div style="padding:7px 10px;background:var(--surface2);border-radius:6px;margin-bottom:6px">
       <div style="font-size:12px;font-weight:600;margin-bottom:2px">🗡 Mots cinglants <span style="font-size:10px;color:var(--cp);margin-left:4px">Réaction • 1 inspiration</span></div>
       <div style="font-size:11px;color:var(--text3)">Quand une créature visible fait un jet d'attaque, compétence ou dégâts : dépense 1 inspiration, la cible soustrait le résultat du dé. Décider après le jet, avant l'annonce du MJ. Immunisé si la cible est insensible aux charmes.</div>
+      <button class="btn bsm bac" style="margin-top:6px" onclick="_bardeUseInspi('cinglants')">🗡 Mots cinglants (−1 inspi)</button>
     </div>`;
     if (bardeLvl>=6) {
       savoirContent += `<div style="padding:7px 10px;background:var(--surface2);border-radius:6px;margin-bottom:6px">
@@ -98,6 +99,7 @@ function renderBarde(p) {
       savoirContent += `<div style="padding:7px 10px;background:var(--surface2);border-radius:6px">
         <div style="font-size:12px;font-weight:600;margin-bottom:2px">🎯 Compétence hors-pair <span style="font-size:10px;color:var(--text3)">niv.14</span></div>
         <div style="font-size:11px;color:var(--text3)">Quand tu rates un jet de caractéristique, dépense 1 inspiration bardique et ajoute le résultat du dé. Peut transformer un échec en réussite.</div>
+        <button class="btn bsm bac" style="margin-top:6px" onclick="_bardeUseInspi('horspair')">🎯 Compétence hors-pair (−1 inspi)</button>
       </div>`;
     }
     panels.push(`<div style="margin-bottom:10px;padding:10px;background:rgba(156,39,176,.07);border:1px solid rgba(156,39,176,.2);border-radius:8px">
@@ -136,6 +138,19 @@ function renderBarde(p) {
   </div>`);
 }
 
+function _bardeUseInspi(kind){
+  const p=P();if(!p.combatCharges)p.combatCharges={};
+  const bl=((p.classes||[]).find(c=>c.name==='Barde')||{}).level||0;
+  const die=bl>=15?'d12':bl>=10?'d10':bl>=5?'d8':'d6';
+  const mx=Math.max(1,mod((p.abilities||[])[5]||10));
+  const cur=p.combatCharges['InspBardique']!==undefined?p.combatCharges['InspBardique']:mx;
+  if(cur<1){showBanner('❌','Plus d inspiration','Repos '+(bl>=5?'court':'long')+' requis',{variant:'danger'});return;}
+  p.combatCharges['InspBardique']=cur-1;
+  const r=Math.ceil(Math.random()*parseInt(die.slice(1)));
+  _markUnsaved();render();
+  if(kind==='cinglants')showBanner('🗡','Mots cinglants',die+'('+r+') — la cible SOUSTRAIT '+r+' de son jet',{variant:'info'});
+  else showBanner('🎯','Compétence hors-pair',die+'('+r+') — AJOUTE +'+r+' à ton jet raté',{variant:'success'});
+}
 function openGiveInspirationModal(die, maxCharges) {
   const p = P();
   const allies = (typeof _groupData!=='undefined' ? _groupData : [])

@@ -369,7 +369,7 @@ function openCharOrCreate(tableId,campId){
   openModal(`<div class="pt">+ Rejoindre la campagne</div>
     ${existingSection}
     <div style="display:flex;flex-direction:column;gap:8px">
-      <button class="btn bac" style="width:100%" onclick="closeModal();enterCampaign('${tableId}','${campId}')">✨ Créer un nouveau personnage</button>
+      <button class="btn bac" style="width:100%" onclick="closeModal();enterCampaign('${tableId}','${campId}',null,null,null,true)">✨ Créer un nouveau personnage</button>
       <button class="btn" style="width:100%" onclick="importCharForCampaign('${tableId}','${campId}')">📥 Importer depuis un fichier JSON</button>
     </div>`);
 }

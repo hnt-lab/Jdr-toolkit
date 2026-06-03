@@ -184,7 +184,7 @@ function _diceNav(tab){
     setTab(tab);
   }else if(P()){
     showApp();setTimeout(()=>setTab(tab),0);
-  }else if(currentTableId&&currentCampaignId&&!isMJ()&&!_groupOnlyMode){
+  }else if(currentTableId&&currentCampaignId&&!isMJ()){
     enterCampaign(currentTableId,currentCampaignId).then(()=>{if(tab!=='perso')setTab(tab);}).catch(()=>{});
   }else{
     showToast('Ouvrez votre fiche depuis le Hub pour utiliser ce raccourci.');

@@ -58,14 +58,16 @@ function renderCompagnonAnimal(p) {
 function openBeastCompanionModal() {
   const rodeurLvl = ((P().classes||[]).find(c=>c.name==='Rôdeur')||{}).level||1;
   const hpMax = 4*rodeurLvl;
+  const _crVal=s=>{s=(s||'').toString().trim();if(s.includes('/')){const a=s.split('/');return parseFloat(a[0])/parseFloat(a[1]);}return parseFloat(s)||0;};
+  const _beasts=BEAST_FORMS.map((b,i)=>({b,i})).filter(x=>_crVal(x.b.crD)<=0.25);
   openWideModal(`<div class="pt">🐾 Choisir un compagnon animal</div>
-    <div style="font-size:12px;color:var(--text3);margin-bottom:12px">PV du compagnon = 4 × niveau Rôdeur (${hpMax} PV). Choisissez la forme de base :</div>
-    <div class="crd-grid">${BEAST_FORMS.map((b,i)=>`<div class="crd" onclick="bcShowDetail(${i},${hpMax})" style="text-align:center">
+    <div style="font-size:12px;color:var(--text3);margin-bottom:12px">Compagnon du rôdeur : bête de <strong>FP ≤ 1/4</strong>, taille M max, PV = 4 × niveau (${hpMax} PV). Choisis la forme :</div>
+    <div class="crd-grid">${_beasts.map(({b,i})=>`<div class="crd" onclick="bcShowDetail(${i},${hpMax})" style="text-align:center">
       <div style="font-size:30px">${b.icon}</div>
       <h3>${b.name}</h3>
       <span class="tag">CA ${b.ac}</span>
-      <span class="tag">CR ${b.crD}</span>
-    </div>`).join('')}</div>`);
+      <span class="tag">FP ${b.crD}</span>
+    </div>`).join('')}${_beasts.length?'':'<div style="font-size:12px;color:var(--text3);padding:8px">Aucune bête FP ≤ 1/4 dans le compendium.</div>'}</div>`);
 }
 
 function bcShowDetail(idx, hpMax) {
@@ -101,7 +103,7 @@ function removeBeastCompanion() {
 function applyBeastCompanionHp(sign) {
   const p = P(); const bc = p.beastCompanion; if (!bc?.active) return;
   const delta = parseInt(document.getElementById('bcHpDelta')?.value)||0; if (delta<=0) return;
-  if (sign<0) { bc.hpCur=Math.max(0,bc.hpCur-delta); if (bc.hpCur<=0) { bc.active=false; showToast('💀 Le compagnon tombe à 0 PV !'); } }
+  if (sign<0) { bc.hpCur=Math.max(0,bc.hpCur-delta); if (bc.hpCur<=0) { bc.active=false; showBanner('💀','Compagnon à terre',(bc.name||'Le compagnon')+' tombe à 0 PV',{variant:'danger'}); } }
   else { bc.hpCur=Math.min(bc.hpMax,bc.hpCur+delta); }
   saveAll(); render();
 }

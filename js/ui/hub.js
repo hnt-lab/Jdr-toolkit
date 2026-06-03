@@ -563,7 +563,7 @@ function copyInviteLink(code){
 }
 
 // ─── ENTRER DANS UNE CAMPAGNE ───
-async function enterCampaign(tableId,campaignId,tName,cName,preloadedCharData){
+async function enterCampaign(tableId,campaignId,tName,cName,preloadedCharData,forceNew){
   currentTableId=tableId;
   currentCampaignId=campaignId;
   if(!tName&&_hubCache){const t=_hubCache.find(t=>t.id===tableId);if(t){tName=t.name;const c=t.campaigns.find(c=>c.id===campaignId);if(c)cName=c.name;}}
@@ -612,7 +612,7 @@ async function enterCampaign(tableId,campaignId,tName,cName,preloadedCharData){
       // Joueur : charge ou crée le personnage (lecture initiale one-shot)
       const charRef=fbDb.collection('characters').doc(currentUser.uid+'_'+campaignId);
       const charDoc=await charRef.get();
-      if(charDoc.exists){
+      if(charDoc.exists&&!forceNew){
         const d=charDoc.data();
         state.players=[migratePlayer(d.characterData)];
       }else{

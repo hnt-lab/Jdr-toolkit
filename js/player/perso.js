@@ -313,12 +313,53 @@ function openPrivacySettings(){
 function getPassiveResistances(p){
   const r=[];
   if(p.race==='Tieffelin')r.push('Feu');
+  // Dragonide — résistance au type de dégâts de son ascendance draconique
+  if(p.race==='Dragonide'&&p.draconicAncestry&&typeof SRD!=='undefined'&&SRD.draconicAncestries){const anc=SRD.draconicAncestries.find(a=>a.name===p.draconicAncestry);if(anc&&anc.damage)r.push(anc.damage);}
   if(Array.isArray(p.autoResist))r.push(...p.autoResist);
+  r.push(..._classPassiveResist(p));
   return [...new Set(r)];
+}
+// Résistances passives calculées depuis l'état de classe (étendu classe par classe au BLOC 3)
+function _classPassiveResist(p){
+  const r=[];const feats=p.features||[];const cc=p.combatCharges||{};
+  const occLvl=((p.classes||[]).find(c=>c.name==='Occultiste')||{}).level||0;
+  // Occultiste — Le Fiélon : Résistance fiélonne (niv.10, type choisi au repos court)
+  if(occLvl>=10&&feats.some(f=>f.name==='Le Fiélon')&&cc['FielonResistance'])r.push(cc['FielonResistance']);
+  // Occultiste — Le Grand Ancien : Bouclier mental (niv.10) → résistance psychique
+  if(occLvl>=10&&feats.some(f=>f.name==='Le Grand Ancien'))r.push('Psychique');
+  // Occultiste — Le Génie : Présent élémentaire (niv.6) → résistance de l'élément du génie
+  if(occLvl>=6&&feats.some(f=>f.name==='Le Génie')){const m={Dao:'Contondant',Djinn:'Tonnerre',Efreet:'Feu',Marid:'Froid'}[cc['GenieKind']];if(m)r.push(m);}
+  // Clerc — résistances de domaine (le joueur choisit le type au moment des dégâts, donc "non magique" jugé par lui)
+  const clercLvl=((p.classes||[]).find(c=>c.name==='Clerc')||{}).level||0;
+  if(feats.some(f=>f.name==='Domaine de la forge')){if(clercLvl>=6)r.push('Feu');if(clercLvl>=17)r.push('Contondant','Perforant','Tranchant');}
+  if(clercLvl>=17&&feats.some(f=>f.name==='Domaine de la guerre'))r.push('Contondant','Perforant','Tranchant');
+  // Barbare — Rage : résistance contondant/perforant/tranchant (totem de l'Ours = tout sauf psychique)
+  const barbLvl=((p.classes||[]).find(c=>c.name==='Barbare')||{}).level||0;
+  if(barbLvl>0&&cc['RageActive']===true){
+    if(feats.some(f=>f.name==='Voie du guerrier totem')&&barbLvl>=3&&cc['TotemSpirit']==='Ours')['Acide','Feu','Froid','Foudre','Nécrotique','Poison','Radiant','Tonnerre','Contondant','Perforant','Tranchant'].forEach(t=>r.push(t));
+    else r.push('Contondant','Perforant','Tranchant');
+  }
+  // Magicien — Insensibilité à la non-vie (École de nécromancie niv.10) : résistance nécrotique
+  if((((p.classes||[]).find(c=>c.name==='Magicien')||{}).level||0)>=10&&feats.some(f=>f.name==='École de nécromancie'))r.push('Nécrotique');
+  return r;
+}
+// Immunités passives calculées (miroir de _classPassiveResist) — étendu classe par classe
+function _classPassiveImmun(p){
+  const r=[];const feats=p.features||[];
+  const clercLvl=((p.classes||[]).find(c=>c.name==='Clerc')||{}).level||0;
+  // Clerc — Saint de la forge et du feu (niv.17) : immunité au feu
+  if(clercLvl>=17&&feats.some(f=>f.name==='Domaine de la forge'))r.push('Feu');
+  // Druide — Protégée de dame Nature (Cercle des terres niv.10) : immunité poison
+  const druLvl=((p.classes||[]).find(c=>c.name==='Druide')||{}).level||0;
+  if(druLvl>=10&&((p.archetype||{})['Druide']||'').toLowerCase().includes('terres'))r.push('Poison');
+  // Moine — Pureté du corps (niv.10) : immunité poison
+  if((((p.classes||[]).find(c=>c.name==='Moine')||{}).level||0)>=10)r.push('Poison');
+  return r;
 }
 function getPassiveImmunities(p){
   const r=[];
   if(Array.isArray(p.autoImmun))r.push(...p.autoImmun);
+  r.push(..._classPassiveImmun(p));
   return [...new Set(r)];
 }
 function getEffectiveResistances(p){return [...new Set([...(p.dmgResistances||[]),...getPassiveResistances(p)])];}
@@ -334,7 +375,7 @@ function applyHp(sign){
       if(ws.beast.hpCur<=0){
         p.hp=Math.max(0,ws.savedHp-overflow);
         delete p.wildshape;
-        showToast(`💥 La bête tombe à 0 PV ! Retour à la forme de druide${overflow>0?' (-'+overflow+' PV débordants)':''}.`);
+        showBanner('💥','Forme sauvage terminée',`La bête tombe à 0 PV — retour en forme de druide${overflow>0?' (−'+overflow+' PV)':''}`,{variant:'danger'});
       }
     } else {
       // Soins : vers les PV de la bête (cap au max)

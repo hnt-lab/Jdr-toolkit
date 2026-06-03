@@ -18,7 +18,8 @@ function tabCombat(p){
     'Rôdeur':['Archerie','Défense','Duel','Combat à deux armes'],
     'Artificier':['Défense','Archerie'],
   };
-  const availableStyles=[...new Set((p.classes||[]).flatMap(c=>COMBAT_STYLES_BY_CLASS[c.name]||[]))];
+  // Le style de combat n'apparaît qu'à partir du niveau d'obtention de la classe (Guerrier 1, Paladin/Rôdeur 2)
+  const availableStyles=[...new Set((p.classes||[]).flatMap(c=>{const _sl=((typeof CLASS_LEVEL_DATA!=='undefined'&&CLASS_LEVEL_DATA[c.name])||{}).styleLevel||1;return c.level>=_sl?(COMBAT_STYLES_BY_CLASS[c.name]||[]):[];}))];
   const combatStyle=availableStyles.includes(p.combatStyle)?p.combatStyle:'';
 
   // Bonus de rage Barbare selon niveau
@@ -122,6 +123,8 @@ function tabCombat(p){
   if(_activeBened)_buffBanners.push(`<div style="background:rgba(200,168,75,.08);border:2px solid var(--cp);border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span style="font-size:20px">✨</span><div style="flex:1"><div style="font-size:13px;font-weight:700;color:var(--cp)">Bénédiction — +1d4</div><div style="font-size:10px;color:var(--text3)">de ${esc(_activeBened.sourceName||'Allié')} • Concentration</div></div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn bsm" onclick="rollSupportBuff('Benediction','d4',false)" style="color:var(--cp);border-color:var(--cp)">🎲 Attaque</button><button class="btn bsm" onclick="rollSupportBuff('Benediction','d4',false)" style="color:var(--cp);border-color:var(--cp)">🎲 Save</button><button class="btn bsm" onclick="removeSupportBuff('Benediction')" style="color:var(--text3)">✕ Fin</button></div></div>`);
   const _activeAssist=(p.activeBuffs||[]).find(b=>b.name==='Assistance');
   if(_activeAssist)_buffBanners.push(`<div style="background:rgba(76,175,80,.07);border:2px solid rgba(76,175,80,.5);border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span style="font-size:20px">🤝</span><div style="flex:1"><div style="font-size:13px;font-weight:700;color:#4caf50">Assistance — +1d4</div><div style="font-size:10px;color:var(--text3)">de ${esc(_activeAssist.sourceName||'Allié')} • Prochain jet de compétence</div></div><div style="display:flex;gap:6px"><button class="btn bsm bac" onclick="rollSupportBuff('Assistance','d4',true)" style="background:rgba(76,175,80,.15);border-color:#4caf50;color:#4caf50">🎲 Utiliser</button><button class="btn bsm" onclick="removeSupportBuff('Assistance')" style="color:var(--text3)">✕</button></div></div>`);
+  const _activeAura=(p.activeBuffs||[]).find(b=>b.name==='AuraProtection');
+  if(_activeAura)_buffBanners.push(`<div style="background:rgba(255,213,79,.08);border:2px solid #ffd54f;border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span style="font-size:20px">🛡</span><div style="flex:1"><div style="font-size:13px;font-weight:700;color:#ffd54f">Aura de protection — +${_activeAura.value||0} à TOUS tes JS</div><div style="font-size:10px;color:var(--text3)">de ${esc(_activeAura.sourceName||'Paladin')} • appliqué automatiquement (tant que tu es dans l'aura)</div></div><button class="btn bsm" onclick="removeSupportBuff('AuraProtection')" style="color:var(--text3)">✕ Quitter</button></div>`);
   return`<div id="combatContainer">
   ${_buffBanners.join('')}
   ${cs('cs-armes',wsC?.active?`<div class="panel mb10" style="border-color:rgba(76,175,80,.4)"><div class="pt" style="display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span><span style="color:#4caf50">${wsC.beast.icon} ${esc(wsC.beast.name)} — Attaques</span></div><span style="font-size:10px;color:#4caf50;border:1px solid rgba(76,175,80,.4);border-radius:10px;padding:2px 8px">🐺 Forme sauvage</span></div>
@@ -347,7 +350,9 @@ function rollAttack(name,bonus,dmg,slot,dmgBonus=0,rerollLow=false,advantageMode
     if(fr2!==null){atk=advantageMode>0?Math.max(fr1,fr2):Math.min(fr1,fr2);atkAlt=advantageMode>0?Math.min(fr1,fr2):Math.max(fr1,fr2);}
     else{atk=fr1;}
     const total=atk+bonus;
-    const isCrit=atk===20;const isFumble=atk===1;
+    // Guerrier Champion : Critique amélioré (19-20 niv.3) / supérieur (18-20 niv.15)
+    const _pa=P();const _gLvlC=(((_pa.classes||[]).find(c=>c.name==='Guerrier')||{}).level)||0;const critMin=((_pa.features||[]).some(f=>f.name==='Champion'))?(_gLvlC>=15?18:19):20;
+    const isCrit=atk>=critMin;const isFumble=atk===1;
     const col=isCrit?'#ffd54f':isFumble?'#e53935':'var(--cp)';
     const advTag=atkAlt!==null?(advantageMode>0?`<span style="font-size:10px;color:#4caf50;margin-left:3px">AVT(${atk},~~${atkAlt}~~)</span>`:`<span style="font-size:10px;color:#e53935;margin-left:3px">DES(~~${atk}~~,${atkAlt})</span>`):'';
     let dmgHtml='';
@@ -417,10 +422,13 @@ function rollSave(ab,m,advantageMode=0){
     let r=fr1,alt=null;
     if(fr2!==null){r=advantageMode>0?Math.max(fr1,fr2):Math.min(fr1,fr2);alt=advantageMode>0?Math.min(fr1,fr2):Math.max(fr1,fr2);}
     let total=r+m;
+    let auraTag='';
+    const _aura=((_p&&_p.activeBuffs)||[]).find(b=>b.name==='AuraProtection');
+    if(_aura&&_aura.value){total+=_aura.value;auraTag=` <span style="font-size:10px;color:#ffd54f">🛡 +${_aura.value} (aura)</span>`;}
     const altTag=alt!==null?(advantageMode>0?` <span style="color:#4caf50;font-size:10px">AVT(${r},~~${alt}~~)</span>`:`<span style="color:#e53935;font-size:10px">DES(${r},~~${alt}~~)</span>`):'';
     let piTag='';
     if(_p){const _bLvl=((_p.classes||[]).find(c=>c.name==='Barbare')||{}).level||0;if(_bLvl>=18&&ab.includes('FOR')&&total<(_p.abilities[0]||10)){piTag=` <span style="font-size:10px;color:#ff9800">💪 →${_p.abilities[0]} (Puissance indomptable)</span>`;total=_p.abilities[0];}}
-    showToast(`JS ${ab}: d20(${r})${altTag}${fmt(m)} = <strong>${total}</strong>${piTag}${r===20?' 🎉':r===1?' 💀':''}`);
+    showToast(`JS ${ab}: d20(${r})${altTag}${fmt(m)}${auraTag} = <strong>${total}</strong>${piTag}${r===20?' 🎉':r===1?' 💀':''}`);
   }
   const rawRolls=rb!==null?[ra,rb]:[ra];
   if(_isHalfling(_p))_luckyCheckRolls(rawRolls,0,_finishSave);

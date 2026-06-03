@@ -96,7 +96,7 @@ function mjAddPlayerToCombat(idx){
   if(_mjCombatants.find(c=>c.uid===pp.uid)){showToast('Déjà dans le combat.');return;}
   const mods=(p.abilities||[0,0,0,0,0,0]).map(v=>Math.floor((v-10)/2));
   const {attacks,spells,traits}=_extractPlayerCombatData(p);
-  _mjCombatants.push({id:'player_'+pp.uid,name:p.charName||pp.playerName||'Joueur',hp:p.hp||p.hpMax||1,hpMax:p.hpMax||1,ac:p.ac||10,speed:(p.speed!=null?p.speed:9)+'m',initiative:0,dexMod:mods[1]||0,conditions:[],deathSaves:p.deathSaves||{success:0,fail:0},surprised:false,isPlayer:true,avatar:pp.avatar||'⚔',uid:pp.uid,abilities:p.abilities||[10,10,10,10,10,10],attacks,spells,traits});
+  _mjCombatants.push({id:'player_'+pp.uid,name:p.charName||pp.playerName||'Joueur',hp:p.hp||p.hpMax||1,hpMax:p.hpMax||1,ac:p.ac||10,speed:(p.speed!=null?p.speed:9)+'m',initiative:0,dexMod:mods[1]||0,conditions:[],deathSaves:p.deathSaves||{success:0,fail:0},surprised:false,isPlayer:true,reflexesVoleur:(p.features||[]).some(f=>f.name==='Réflexes de voleur'),avatar:pp.avatar||'⚔',uid:pp.uid,abilities:p.abilities||[10,10,10,10,10,10],attacks,spells,traits});
   _mjCombatLog.push(`⚔ ${esc(p.charName||pp.playerName)} ajouté au combat.`);
   renderMJContent();
 }
@@ -126,31 +126,44 @@ let _mjKickedFamiliars=new Set();
 function _mjSyncFamiliars(){
   if(!_mjCombatStarted)return false;
   let changed=false;
+  const activeIds=new Set();
+  // Sources de "familiers" (terme générique) — extensible au fil du BLOC 3 (défenseur, canon, mort-vivant…)
+  const _petsOf=pp=>{
+    const cd=pp.charData||{};const owner=cd.charName||pp.playerName||'joueur';const out=[];
+    if(cd.familiar)out.push({fam:cd.familiar,id:'familiar_'+pp.uid,kind:'familier',uid:pp.uid,owner});
+    if(cd.beastCompanion)out.push({fam:cd.beastCompanion,id:'companion_'+pp.uid,kind:'compagnon',uid:pp.uid,owner});
+    return out;
+  };
   (_mjPlayersData||[]).forEach(pp=>{
-    const cd=pp.charData||{};const fam=cd.familiar;const famId='familiar_'+pp.uid;
-    const present=_mjCombatants.findIndex(c=>c.id===famId);
-    if(fam&&fam.active){
-      if(_mjKickedFamiliars.has(famId))return;
+    _petsOf(pp).forEach(({fam,id,kind,uid,owner})=>{
+      if(!fam||!fam.active)return;
+      activeIds.add(id);
+      if(_mjKickedFamiliars.has(id))return;
+      const present=_mjCombatants.findIndex(c=>c.id===id);
       if(present<0){
         const mods=(fam.ab||[]).map(v=>Math.floor((v-10)/2));
         _mjCombatants.push({
-          id:famId,name:fam.name+' (familier de '+(cd.charName||pp.playerName||'joueur')+')',
+          id,name:fam.name+' ('+kind+' de '+owner+')',
           hp:fam.hpCur,hpMax:fam.hpMax,ac:fam.ac,speed:fam.speed||'?',
           initiative:Math.ceil(Math.random()*20)+(mods[1]||0),
-          dexMod:mods[1]||0,conditions:[],isPlayer:false,isFamiliar:true,ownerUid:pp.uid,
+          dexMod:mods[1]||0,conditions:[],isPlayer:false,isFamiliar:true,ownerUid:uid,
           avatar:fam.icon||'🦉',abilities:fam.ab||[10,10,10,10,10,10],attacks:fam.attacks||[],spells:[],
-          traits:(fam.traits||[]).map(t=>({name:'Trait',desc:t,uses:0,dice:''})),
+          traits:(fam.traits||[]).map(t=>typeof t==='string'?{name:'Trait',desc:t,uses:0,dice:''}:t),
         });
-        _mjCombatLog.push(`🦉 ${esc(fam.name)} (familier) rejoint le combat.`);
+        _mjCombatLog.push(`🦉 ${esc(fam.name)} (${kind}) rejoint le combat.`);
         changed=true;
       }else{
         const c=_mjCombatants[present];
         if(c.hp!==fam.hpCur||c.hpMax!==fam.hpMax){c.hp=fam.hpCur;c.hpMax=fam.hpMax;changed=true;}
       }
-    }else if(present>=0){
-      _mjCombatants.splice(present,1);_mjKickedFamiliars.delete(famId);changed=true;
-    }
+    });
   });
+  // Retire les pets dont la source n'est plus active + nettoie la garde "kick"
+  for(let i=_mjCombatants.length-1;i>=0;i--){
+    const c=_mjCombatants[i];
+    if(c.isFamiliar&&!activeIds.has(c.id)){_mjCombatants.splice(i,1);changed=true;}
+  }
+  _mjKickedFamiliars.forEach(id=>{if(!activeIds.has(id))_mjKickedFamiliars.delete(id);});
   if(changed&&typeof _mjPersistCombat==='function')_mjPersistCombat();
   return changed;
 }
@@ -621,6 +634,10 @@ function mjStartCombat(){
   if(typeof _mjKickedFamiliars!=='undefined')_mjKickedFamiliars.clear();
   if(typeof _mjSyncFamiliars==='function')_mjSyncFamiliars(); // intègre les familiers déjà actifs
   _mjCombatants.forEach(c=>{c.initiative=Math.ceil(Math.random()*20)+(c.dexMod||0);});
+  // Réflexes de voleur (Roublard niv.17) : un 2e tour au round 1, à l'initiative −10 (retiré au round 2)
+  _mjCombatants.filter(c=>c.reflexesVoleur&&!c._reflexClone).forEach(c=>{
+    _mjCombatants.push({...c,id:c.id+'_reflex',name:c.name+' (Réflexes — 2e tour)',initiative:Math.max(0,(c.initiative||0)-10),_reflexClone:true,reflexesVoleur:false,uid:null});
+  });
   const sorted=[..._mjCombatants].sort((a,b)=>b.initiative-a.initiative);
   // Fix 11 — Liste triée des initiatives dans le log
   const _initList=sorted.map((c,i)=>`${i+1}. ${c.name} : ${c.initiative}`).join(' | ');
@@ -645,6 +662,8 @@ function mjNextTurn(){
     if(_mjRound===2){
       _mjCombatants.forEach(c=>{c.surprised=false;});
       _mjCombatLog.push(`👁 Surprise levée — tous les combattants agissent normalement.`);
+      // Réflexes de voleur : le 2e tour n'existe qu'au round 1 → retirer le clone
+      if(_mjCombatants.some(c=>c._reflexClone)){_mjCombatants=_mjCombatants.filter(c=>!c._reflexClone);_mjCombatLog.push('🗡 Réflexes de voleur — fin du 2e tour (round 2).');}
     }
   }
   const cur=sorted[_mjCurrentTurn];

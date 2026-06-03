@@ -6,7 +6,7 @@ let _learnSpellSearch = {q:'',school:''};
 function tabSorts(p){
   const hasCaster = (p.classes||[{name:p.classe,level:p.niveau||1}]).some(c=>{
     const d=SRD.classes.find(x=>x.name===c.name); return d&&d.spellcaster;
-  });
+  }) || (p.features||[]).some(f=>f.name==='Escroc arcanique'||f.name==='Chevalier occulte'); // tiers-lanceurs
   if(!hasCaster) return`<div class="panel"><p style="color:var(--text3);font-size:13px">Cette classe n'est pas une classe de sorts.</p></div>`;
 
   const userIsMJ = isMJ(); // via mjMode — sera connecté aux rôles Firebase
