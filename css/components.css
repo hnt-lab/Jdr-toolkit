@@ -62,8 +62,9 @@
 .modal-box{background:var(--surface);border:1px solid var(--cp);border-radius:12px;padding:18px;max-width:520px;width:92%;max-height:85vh;overflow-y:auto}
 .dice-btn{padding:5px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;cursor:pointer;background:var(--surface2);color:var(--text2);transition:all .15s}
 .dice-btn:hover{border-color:var(--cp);color:var(--cp)}
-.slot-bubble{width:20px;height:20px;border-radius:50%;border:2px solid var(--border);cursor:pointer;display:inline-block;margin:2px;transition:all .15s}
-.slot-bubble.used{background:var(--cp);border-color:var(--cp)}
+/* Compteurs : PLEIN = ressource disponible · creux (.used) = dépensé (sensation "full → se vide") */
+.slot-bubble{width:20px;height:20px;border-radius:50%;border:2px solid var(--cp);background:var(--cp);cursor:pointer;display:inline-block;margin:2px;transition:all .15s}
+.slot-bubble.used{background:transparent;border-color:var(--border)}
 .ai-panel{background:var(--surface2);border:1px solid var(--cp);border-radius:8px;padding:12px;margin-top:10px}
 .ai-output{font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap;max-height:320px;overflow-y:auto}
 .hp-ctrl{display:flex;gap:6px;align-items:center;margin-top:6px}

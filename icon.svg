@@ -1,16 +1,23 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="80" fill="#0d0d0f"/>
-  <rect x="6" y="6" width="500" height="500" rx="74" fill="none" stroke="#c8a84b" stroke-width="10"/>
-  <!-- Coffre/boîte -->
-  <rect x="96" y="220" width="320" height="200" rx="18" fill="#1e2128" stroke="#c8a84b" stroke-width="12"/>
+  <!-- Fond + cadre laiton -->
+  <rect width="512" height="512" rx="96" fill="#16110a"/>
+  <rect x="8" y="8" width="496" height="496" rx="88" fill="none" stroke="#c8a84b" stroke-width="10"/>
+  <!-- Halo arcanique (la magie) -->
+  <circle cx="256" cy="312" r="162" fill="#7fd1c4" opacity="0.12"/>
   <!-- Couvercle -->
-  <rect x="96" y="156" width="320" height="80" rx="18" fill="#16181d" stroke="#c8a84b" stroke-width="12"/>
-  <!-- Charnière centrale -->
-  <rect x="210" y="232" width="92" height="44" rx="8" fill="none" stroke="#c8a84b" stroke-width="10"/>
-  <circle cx="256" cy="254" r="10" fill="#c8a84b"/>
+  <rect x="104" y="182" width="304" height="80" rx="20" fill="#9c5a28" stroke="#7d641d" stroke-width="10"/>
   <!-- Poignée -->
-  <path d="M180 156 L180 120 Q256 88 332 120 L332 156" fill="none" stroke="#c8a84b" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
-  <!-- Décorations coins -->
-  <rect x="96" y="220" width="36" height="200" rx="4" fill="rgba(200,168,75,0.08)"/>
-  <rect x="380" y="220" width="36" height="200" rx="4" fill="rgba(200,168,75,0.08)"/>
+  <path d="M198 182 L198 148 Q256 114 314 148 L314 182" fill="none" stroke="#d9bd6e" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Corps de la boîte (laiton + bois) -->
+  <rect x="104" y="250" width="304" height="176" rx="22" fill="#b8860b" stroke="#7d641d" stroke-width="10"/>
+  <rect x="126" y="272" width="260" height="132" rx="12" fill="#3e3018"/>
+  <!-- Cœur arcanique pulsant (gravé) -->
+  <circle cx="256" cy="338" r="46" fill="#16110a" stroke="#c8a84b" stroke-width="8"/>
+  <circle cx="256" cy="338" r="24" fill="#7fd1c4"/>
+  <circle cx="256" cy="338" r="11" fill="#e7fcf7"/>
+  <!-- Rivets aux coins -->
+  <circle cx="132" cy="278" r="9" fill="#d9bd6e"/>
+  <circle cx="380" cy="278" r="9" fill="#d9bd6e"/>
+  <circle cx="132" cy="398" r="9" fill="#d9bd6e"/>
+  <circle cx="380" cy="398" r="9" fill="#d9bd6e"/>
 </svg>

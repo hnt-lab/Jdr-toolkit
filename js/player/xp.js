@@ -969,6 +969,8 @@ function luToggleASI(i){
   else if((LU.asiChoice.type==='double'&&LU.asiChoice.stats.length<2)||(LU.asiChoice.type==='asi'&&LU.asiChoice.stats.length<1))LU.asiChoice.stats.push(i);
   renderTab();
 }
+let _luFeatPage=0;
+function _luFeatPageGo(d){_luFeatPage=(_luFeatPage||0)+d;if(_luFeatPage<0)_luFeatPage=0;luFilterFeats('');}
 function luFilterFeats(q){
   const el=document.getElementById('featResults');if(!el||!FEATS_DB)return;
   const p=P();
@@ -1000,9 +1002,18 @@ function luFilterFeats(q){
     return!_spellFeatKeywords.some(k=>tx.includes(k));
   };
   if(!q.trim()){
-    const preview=FEATS_DB.filter(_filterSpellFeat).slice(0,24);
-    const total=FEATS_DB.filter(_filterSpellFeat).length;
-    el.innerHTML=_sortAndCard(preview)+(total>24?`<div style="font-size:11px;color:var(--text3);text-align:center;padding:4px">…et ${total-24} autres. Tapez pour filtrer.</div>`:'');
+    const all=FEATS_DB.filter(_filterSpellFeat);
+    const pageSize=24;
+    const totalPages=Math.max(1,Math.ceil(all.length/pageSize));
+    if(_luFeatPage>=totalPages)_luFeatPage=totalPages-1;
+    if(_luFeatPage<0)_luFeatPage=0;
+    const pageItems=all.slice(_luFeatPage*pageSize,_luFeatPage*pageSize+pageSize);
+    const nav=`<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 0">
+      <button class="btn bsm" ${_luFeatPage<=0?'disabled':''} onclick="_luFeatPageGo(-1)">← Précédents</button>
+      <span style="font-size:11px;color:var(--text3);text-align:center">Page ${_luFeatPage+1}/${totalPages} · ${all.length} dons</span>
+      <button class="btn bsm" ${_luFeatPage>=totalPages-1?'disabled':''} onclick="_luFeatPageGo(1)">Suivants →</button>
+    </div>`;
+    el.innerHTML=nav+_sortAndCard(pageItems)+nav;
     return;
   }
   const low=q.toLowerCase();
@@ -1071,7 +1082,7 @@ function luStepSpells(p){
   const cantripFull=selCantrips.length>=needCantrip;
   const leveledFull=selLeveled.length>=leveledCount;
   const ready=cantripFull&&leveledFull;
-  const spellRow=(s)=>{const isSel=sel.includes(s.name);const isC=s.level===0;const dis=!isSel&&(isC?cantripFull:leveledFull);return`<div class="sk-choice${isSel?' selected':dis?' disabled':''}" onclick="${dis?'':'luToggleSpell(\''+esc(s.name)+'\')'}"><span class="sk-dot${isSel?' p':''}"></span><span style="flex:1;font-size:13px">${esc(s.name)}${s.level>1?` <span style="font-size:10px;color:var(--text3)">niv.${s.level}</span>`:''}</span><span style="font-size:11px;color:var(--text3)">${esc(s.school||'')}</span>${isSel?`<span style="color:var(--cp)">✓</span>`:''}</div>`;};
+  const spellRow=(s)=>{const isSel=sel.includes(s.name);const isC=s.level===0;const dis=!isSel&&(isC?cantripFull:leveledFull);const sid='luspd_'+(s.name||'').replace(/[^a-zA-Z0-9]/g,'_');const meta=[s.level===0?'Sort mineur':'Niv. '+s.level,s.school,s.castTime,s.range].filter(Boolean).join(' · ');return`<div style="margin-bottom:3px"><div class="sk-choice${isSel?' selected':dis?' disabled':''}" onclick="${dis?'':'luToggleSpell(\''+esc(s.name)+'\')'}"><span class="sk-dot${isSel?' p':''}"></span><span style="flex:1;font-size:13px">${esc(s.name)}${s.level>1?` <span style="font-size:10px;color:var(--text3)">niv.${s.level}</span>`:''}</span><span style="font-size:11px;color:var(--text3)">${esc(s.school||'')}</span><span onclick="event.stopPropagation();var d=document.getElementById('${sid}');if(d)d.style.display=d.style.display==='none'?'block':'none'" style="cursor:pointer;color:var(--cp);font-size:14px;padding:0 5px" title="Voir la description">ⓘ</span>${isSel?`<span style="color:var(--cp)">✓</span>`:''}</div><div id="${sid}" style="display:none;white-space:pre-wrap;font-size:11px;color:var(--text2);line-height:1.5;padding:6px 10px;background:var(--surface2);border-radius:0 0 6px 6px">${meta?`<div style="color:var(--text3);margin-bottom:4px">${esc(meta)}</div>`:''}${esc(s.desc||'Pas de description disponible.')}</div></div>`;};
   // Section "remplacer un sort connu" (lanceurs connus uniquement)
   const ownLeveled=(p.spells||[]).filter(s=>{const d=_spDb.find(x=>x.name===s.name);return d?d.level>=1:false;});
   const swapHtml=(canSwap&&ownLeveled.length)?`<details style="margin-top:14px;border-top:1px solid var(--border);padding-top:10px">

@@ -100,7 +100,8 @@ function showIRLRoll(html){
     ov=document.createElement('div');
     ov.id='irlRollOverlay';
     ov.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;z-index:9990;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;';
-    ov.addEventListener('click',e=>{if(e.target===ov)ov.style.display='none';});
+    // stopPropagation : sinon le clic "J'ai lancé !" remonte au listener "clic dehors" et ferme le panel de dé.
+    ov.addEventListener('click',e=>{e.stopPropagation();if(e.target===ov)ov.style.display='none';});
     document.body.appendChild(ov);
   }
   ov.innerHTML=`<div style="background:var(--surface);border:2px solid var(--cp);border-radius:16px;padding:28px 24px;max-width:420px;width:100%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.8)">

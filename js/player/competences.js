@@ -68,6 +68,25 @@ function tabCompetences(p){
           if(nm.includes('réaction')||nm.includes('représailles'))return'↪';
           if(nm.includes('action bonus')||nm.includes('frénésie')||nm.includes('attaque'))return'🔸';
           if(nm.includes('passive')||nm.includes('sens du')||nm.includes('instinct'))return'⬤';
+          // Icône thématique par mot-clé (au lieu du ⚡ générique) — couvre Barde & co.
+          const _imap=[
+            ['inspiration bardique','🎵'],['inspiration martiale','🎺'],['chant','🎶'],['mots cinglants','🗯'],
+            ['secrets magiques','🎭'],['magie de combat','🎼'],['expertise','🎓'],['touche-à-tout','🎲'],['touche à tout','🎲'],
+            ['hors-pair','✴'],['hors pair','✴'],['polyvalence','✴'],['collège','📜'],
+            ['soin','💚'],['guéri','💚'],['vie','💚'],
+            ['rage','🔥'],['flamme','🔥'],['feu','🔥'],['ardent','🔥'],
+            ['ki','☯'],['arts martiaux','👊'],['poing','👊'],['coups','👊'],['quatre élément','🌪'],
+            ['aura','🌟'],['bénédiction','🌟'],['conduit','🔆'],['divin','✨'],['sacré','✨'],['serment','⚜'],
+            ['familier','🐾'],['compagnon','🐾'],['bête','🐾'],['invoc','🌀'],['pacte','🌀'],
+            ['bouclier','🛡'],['protection','🛡'],['défense','🛡'],['armure','🛡'],
+            ['furtiv','👁'],['discrétion','👁'],['embuscade','👁'],['assassin','🗡'],['sournoise','🗡'],['roublard','🗡'],
+            ['vitesse','💨'],['déplacement','💨'],['esquive','💨'],['rusée','💨'],
+            ['métamagie','🔮'],['sorcellerie','🔮'],['arcan','🔮'],['sort','✨'],['incantation','✨'],
+            ['ténèbres','🌑'],['lumière','🔆'],['vision','👁'],
+            ['résistance','🪨'],['endurance','🪨'],['robuste','🪨'],['indomptable','🪨'],
+            ['ennemi juré','🎯'],['explorateur','🧭'],['traqueur','🎯'],['chasseur','🏹'],['tir','🏹'],
+          ];
+          for(let i=0;i<_imap.length;i++){if(nm.includes(_imap[i][0]))return _imap[i][1];}
           return'⚡';
         };
         const _featColor=(f)=>{
