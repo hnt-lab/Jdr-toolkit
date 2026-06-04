@@ -208,14 +208,33 @@ const COMP = (() => {
   // Paquets requis par une table que l'utilisateur ne POSSÈDE pas (pour l'icône d'erreur, étape D).
   function missingPacks(req){ return Object.keys(req||{}).filter(pid => !packs[pid]); }
 
-  // Liste pour la biblio (profil) + sélecteur table : builtin + importés, avec comptes et types fournis.
+  // Pont : transforme les compendiums perso de l'ancien système (_mjCompLib, Firestore) en paquets « perso ».
+  // Stockage inchangé (reste dans Firestore via _mjCompLib) ; ici on ne fait que les exposer comme paquets.
+  function syncPersoPacks(lib){
+    Object.keys(packs).forEach(id => { if(packs[id].perso) delete packs[id]; }); // retire les anciens perso
+    Object.keys(lib || {}).forEach(id => {
+      const c = lib[id]; if(!c) return;
+      const inline = {};
+      const feats  = (c.feats  || []).map(f => ({ n:f.name||f.n||'?', tx:(f.category?'('+f.category+') ':'')+(f.description||f.desc||f.tx||'') }));
+      const spells = (c.spells || []).slice();
+      const items  = (c.items  || []).map(it => it && it.n ? it : ({ n:(it&&it.name)||'?', tx:(it&&(it.desc||it.tx))||'', t:(it&&it.t)||'G' }));
+      if(feats.length)  inline.feats  = feats;
+      if(spells.length) inline.spells = spells;
+      if(items.length)  inline.items  = items;
+      const counts = {}; Object.keys(inline).forEach(t => counts[t] = inline[t].length);
+      packs[id] = { id, name:c.name||'Compendium perso', perso:true, builtin:false, imported:false, sourceCat:'perso', lang:'', types:Object.keys(inline), counts, inline, _data:{} };
+    });
+    TYPES.forEach(t => { if(activePacksFor(t).some(pid => packs[pid] && packs[pid].perso)) _rebuild(t); });
+  }
+
+  // Liste pour la biblio (profil) + sélecteur table : builtin + perso + importés, avec comptes et types fournis.
   function library(){
-    return Object.values(packs).map(p => ({ id:p.id, name:p.name, builtin:!!p.builtin, imported:!!p.imported, lang:p.lang||'', sourceCat:p.sourceCat||'', counts:p.counts||{}, types:(p.types||Object.keys(p.counts||{})) }));
+    return Object.values(packs).map(p => ({ id:p.id, name:p.name, builtin:!!p.builtin, imported:!!p.imported, perso:!!p.perso, lang:p.lang||'', sourceCat:p.sourceCat||'', counts:p.counts||{}, types:(p.types||Object.keys(p.counts||{})) }));
   }
 
   _loadLibrary();
 
   return { TYPES, ensureType, setActive, setActiveAll, isActive, registerImported,
            addImportedPack, removeImportedPack, getPackBundle, applyTableSelection, missingPacks,
-           library, list, clearCache, _packs:packs, _active:()=>active };
+           syncPersoPacks, library, list, clearCache, _packs:packs, _active:()=>active };
 })();

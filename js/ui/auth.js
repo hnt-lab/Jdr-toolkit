@@ -114,17 +114,7 @@ function openUserSettings(){
       </div>
     </details>
     <details class="acc">
-      <summary>🧰 Mes compendiums</summary>
-      <div class="acc-body">
-        <div style="display:flex;gap:6px;margin-bottom:10px">
-          <button class="btn bsm bprimary" onclick="closeModal();mjCreateNewComp()">+ Nouveau</button>
-          <button class="btn bsm" onclick="closeModal();importMJCompendium()">📥 Importer</button>
-        </div>
-        <div>${compHtml}</div>
-      </div>
-    </details>
-    <details class="acc">
-      <summary>🧩 Ma bibliothèque de paquets</summary>
+      <summary>🧩 Ma bibliothèque de compendiums</summary>
       <div class="acc-body">${typeof compLibSectionHtml==='function'?compLibSectionHtml():''}</div>
     </details>
     <details class="acc">

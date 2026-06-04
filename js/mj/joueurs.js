@@ -318,6 +318,7 @@ async function loadMJCompLib(){
     }
   }catch(e){_mjCompLib={};}
   _refreshMjPool();
+  if(typeof COMP!=='undefined')COMP.syncPersoPacks(_mjCompLib); // expose les perso comme paquets dans la biblio unifiée
 }
 
 function _refreshMjPool(){
@@ -337,6 +338,7 @@ function _ensureActiveComp(){
 }
 
 async function saveMJCompLib(){
+  if(typeof COMP!=='undefined')COMP.syncPersoPacks(_mjCompLib); // garde la biblio unifiée à jour après édition
   if(!currentUser)return;
   try{await fbDb.collection('users').doc(currentUser.uid).update({compendiumLib:_mjCompLib});}
   catch(e){showToast('❌ Erreur sauvegarde compendiums.');}
