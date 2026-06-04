@@ -124,6 +124,10 @@ function openUserSettings(){
       </div>
     </details>
     <details class="acc">
+      <summary>🧩 Ma bibliothèque de paquets</summary>
+      <div class="acc-body">${typeof compLibSectionHtml==='function'?compLibSectionHtml():''}</div>
+    </details>
+    <details class="acc">
       <summary>🔄 Mise à jour</summary>
       <div class="acc-body">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">

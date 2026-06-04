@@ -216,33 +216,17 @@ function renderHubHTML(tables){
 
 // ─── CRÉER UNE TABLE (MJ) ───
 function openCreateTable(){
-  const STD_COMP=[
-    {id:'spells',label:'📖 Sorts SRD'},
-    {id:'items',label:'⚔️ Objets SRD'},
-    {id:'monsters',label:'👾 Monstres SRD'},
-    {id:'feats',label:'🌟 Dons SRD'},
-    {id:'races',label:'🧝 Races SRD'},
-    {id:'backgrounds',label:'📜 Historiques SRD'},
-    {id:'classes',label:'🛡 Classes SRD'},
-  ];
-  const compIds=Object.keys(_mjCompLib);
-  const stdHtml=STD_COMP.map(s=>`<label style="display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer;font-size:13px">
-    <input type="checkbox" id="std_${s.id}" checked style="accent-color:var(--cp)"> ${s.label}
-  </label>`).join('');
-  const custHtml=compIds.length?compIds.map(id=>`<label style="display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer;font-size:13px">
-    <input type="checkbox" id="cust_${id}" checked style="accent-color:var(--cp)"> 🧰 ${esc(_mjCompLib[id].name)}
-  </label>`).join('')
-    :`<div style="font-size:12px;color:var(--text3);font-style:italic">Aucun compendium perso — créez-en un dans votre profil.</div>`;
+  // Sélection par défaut : le contenu actuel (paquet « legacy ») sur toutes les catégories — non régressif.
+  const defaultSel = typeof compTableRequiredPacks==='function' ? compTableRequiredPacks(null) : {};
+  const selectorHtml = typeof compTableSelectorHtml==='function' ? compTableSelectorHtml(defaultSel) : '';
   openModal(`<div class="pt">🎲 Nouvelle table</div>
     <div class="fl mb6">Nom de la table</div>
     <input class="fi" id="newTableName" placeholder="Ex: Table du vendredi" style="margin-bottom:14px">
     <details class="acc" style="margin-bottom:12px">
-      <summary>🧰 Compendiums disponibles</summary>
+      <summary>🧩 Compendiums de la table</summary>
       <div class="acc-body">
-        <div style="font-size:11px;color:var(--text3);margin-bottom:8px">Choisissez les compendiums actifs pour cette table.</div>
-        <div style="font-size:10px;color:var(--cp);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">Standard (SRD)</div>
-        ${stdHtml}
-        ${compIds.length?`<div style="font-size:10px;color:var(--cp);text-transform:uppercase;letter-spacing:.07em;margin:10px 0 4px">Personnalisés</div>${custHtml}`:''}
+        <div style="font-size:11px;color:var(--text3);margin-bottom:8px">Choisis les paquets (et catégories) que cette table utilise. Tes joueurs devront posséder ces paquets.</div>
+        <div id="tbl_pack_selector">${selectorHtml}</div>
       </div>
     </details>
     <div style="display:flex;gap:8px">
@@ -254,9 +238,7 @@ function openCreateTable(){
 async function confirmCreateTable(){
   const name=document.getElementById('newTableName').value.trim();
   if(!name){showToast('❌ Donnez un nom à la table.');return;}
-  const STD_IDS=['spells','items','monsters','feats','races','backgrounds','classes'];
-  const activeStd=STD_IDS.filter(id=>document.getElementById('std_'+id)?.checked!==false);
-  const activeCustom=Object.keys(_mjCompLib).filter(id=>document.getElementById('cust_'+id)?.checked!==false);
+  const requiredPacks = typeof compReadTableSelection==='function' ? compReadTableSelection() : {};
   const inviteCode=genCode();
   try{
     await fbDb.collection('tables').add({
@@ -264,8 +246,7 @@ async function confirmCreateTable(){
       inviteCode,memberIds:[currentUser.uid],
       memberNames:{[currentUser.uid]:currentUserData.displayName},
       memberAvatars:{[currentUser.uid]:currentUserData.avatar||'🎲'},
-      activeStdCompendiums:activeStd,
-      activeCustomCompendiums:activeCustom,
+      requiredPacks,
       createdAt:firebase.firestore.FieldValue.serverTimestamp()
     });
     closeModal();showToast('✅ Table "'+name+'" créée !');renderHub();
@@ -300,13 +281,34 @@ async function confirmCreateCampaign(tableId){
 
 // ─── PARAMÈTRES TABLE (MJ) ───
 function openTableSettings(tableId,tableName,inviteCode){
+  const tableData=(typeof _hubCache!=='undefined'&&_hubCache)?_hubCache.find(t=>t.id===tableId):null;
+  const sel=typeof compTableRequiredPacks==='function'?compTableRequiredPacks(tableData):{};
+  const selectorHtml=typeof compTableSelectorHtml==='function'?compTableSelectorHtml(sel):'';
   openModal(`<div class="pt">⚙ Table : ${esc(tableName)}</div>
     <div class="fl mb6" style="margin-top:0">Lien d'invitation</div>
     <div class="invite-box" style="margin-bottom:16px">Code : <span class="invite-code">${inviteCode}</span><button class="btn bsm" onclick="copyInviteLink('${inviteCode}')" style="margin-left:4px">Copier lien</button></div>
+    <details class="acc" style="margin-bottom:16px" open>
+      <summary>🧩 Compendiums de la table</summary>
+      <div class="acc-body">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:8px">Paquets (et catégories) utilisés par cette table. Tes joueurs doivent les posséder.</div>
+        <div id="tbl_pack_selector">${selectorHtml}</div>
+        <button class="btn bsm bprimary" style="width:100%;margin-top:8px" onclick="saveTableCompendiums('${tableId}')">💾 Enregistrer les compendiums</button>
+      </div>
+    </details>
     <div style="display:flex;gap:8px">
       <button class="btn bdanger" style="flex:1" onclick="confirmDeleteTable('${tableId}')">🗑 Supprimer la table</button>
       <button class="btn bac" style="flex:2" onclick="closeModal()">Fermer</button>
     </div>`);
+}
+async function saveTableCompendiums(tableId){
+  const requiredPacks=typeof compReadTableSelection==='function'?compReadTableSelection():{};
+  try{
+    await campaignService.updateTable(tableId,{requiredPacks});
+    if(typeof _hubCache!=='undefined'&&_hubCache){const t=_hubCache.find(x=>x.id===tableId);if(t)t.requiredPacks=requiredPacks;}
+    // si on est actuellement dans cette table, ré-applique tout de suite
+    if(typeof currentTableId!=='undefined'&&currentTableId===tableId&&typeof COMP!=='undefined')COMP.applyTableSelection(requiredPacks);
+    showToast('✅ Compendiums de la table enregistrés.');
+  }catch(e){showToast('❌ Erreur : '+e.message);}
 }
 async function confirmDeleteTable(tableId){
   if(!confirm('Supprimer cette table et toutes ses campagnes ? Cette action est irréversible.'))return;
@@ -571,6 +573,8 @@ async function enterCampaign(tableId,campaignId,tName,cName,preloadedCharData,fo
   currentCampaignName=cName||'';
   const tableData=_hubCache&&_hubCache.find(t=>t.id===tableId);
   const asMJ=!!(tableData&&tableData.mjId===currentUser.uid);
+  // Active les paquets de la table (rechargement paresseux ensuite via loadXDB) — migration douce de l'ancien modèle.
+  if(typeof COMP!=='undefined'){ try{ COMP.applyTableSelection(typeof compTableRequiredPacks==='function'?compTableRequiredPacks(tableData):null); }catch(e){} }
   try{
     if(asMJ){
       // MJ : pas de personnage jouable, on charge le journal + données MJ

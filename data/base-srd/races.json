@@ -1,0 +1,65 @@
+[
+  {
+    "spd": "30 ft.",
+    "sz": "**_Size._** Dragonborn are taller and heavier than humans, standing well over 6 feet tall and averaging almost 250 pounds. Your size is Medium.",
+    "tx": "Dragonborn Traits\nYour draconic heritage manifests in a variety of traits you share with other dragonborn.",
+    "ab": "**_Ability Score Increase._** Your Strength score increases by 2, and your Charisma score increases by 1.",
+    "n": "Dragonborn"
+  },
+  {
+    "spd": "25 ft.",
+    "sz": "**_Size._** Dwarves stand between 4 and 5 feet tall and average about 150 pounds. Your size is Medium.",
+    "tx": "Dwarf Traits\nYour dwarf character has an assortment of inborn abilities, part and parcel of dwarven nature.",
+    "ab": "**_Ability Score Increase._** Your Constitution score increases by 2.",
+    "n": "Dwarf"
+  },
+  {
+    "spd": "30 ft.",
+    "sz": "**_Size._** Elves range from under 5 to over 6 feet tall and have slender builds. Your size is Medium.",
+    "tx": "Elf Traits\nYour elf character has a variety of natural abilities, the result of thousands of years of elven refinement.",
+    "ab": "**_Ability Score Increase._** Your Dexterity score increases by 2.",
+    "n": "Elf"
+  },
+  {
+    "spd": "25 ft.",
+    "sz": "**_Size._** Gnomes are between 3 and 4 feet tall and average about 40 pounds. Your size is Small.",
+    "tx": "Gnome Traits\nYour gnome character has certain characteristics in common with all other gnomes.",
+    "ab": "**_Ability Score Increase._** Your Intelligence score increases by 2.",
+    "n": "Gnome"
+  },
+  {
+    "spd": "30 ft.",
+    "sz": "**_Size._** Half-elves are about the same size as humans, ranging from 5 to 6 feet tall. Your size is Medium.",
+    "tx": "Half-Elf Traits\nYour half-elf character has some qualities in common with elves and some that are unique to half-elves.",
+    "ab": "**_Ability Score Increase._** Your Charisma score increases by 2, and two other ability scores of your choice increase by 1.",
+    "n": "Half-Elf"
+  },
+  {
+    "spd": "30 ft.",
+    "sz": "**_Size._** Half-orcs are somewhat larger and bulkier than humans, and they range from 5 to well over 6 feet tall. Your size is Medium.",
+    "tx": "Half-Orc Traits\nYour half-orc character has certain traits deriving from your orc ancestry.",
+    "ab": "**_Ability Score Increase._** Your Strength score increases by 2, and your Constitution score increases by 1.",
+    "n": "Half-Orc"
+  },
+  {
+    "spd": "25 ft.",
+    "sz": "**_Size._** Halflings average about 3 feet tall and weigh about 40 pounds. Your size is Small.",
+    "tx": "Halfling Traits\nYour halfling character has a number of traits in common with all other halflings.",
+    "ab": "**_Ability Score Increase._** Your Dexterity score increases by 2.",
+    "n": "Halfling"
+  },
+  {
+    "spd": "30 ft.",
+    "sz": "**_Size._** Humans vary widely in height and build, from barely 5 feet to well over 6 feet tall. Regardless of your position in that range, your size is Medium.",
+    "tx": "Human Traits\nIt's hard to make generalizations about humans, but your human character has these traits.",
+    "ab": "**_Ability Score Increase._** Your ability scores each increase by 1.",
+    "n": "Human"
+  },
+  {
+    "spd": "30 ft.",
+    "sz": "**_Size._** Tieflings are about the same size and build as humans. Your size is Medium.",
+    "tx": "Tiefling Traits\nTieflings share certain racial traits as a result of their infernal descent.",
+    "ab": "**_Ability Score Increase._** Your Intelligence score increases by 1, and your Charisma score increases by 2.",
+    "n": "Tiefling"
+  }
+]

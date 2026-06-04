@@ -182,49 +182,37 @@ function getSpellsDB(){
   return SRD.spells;
 }
 
-async function loadSpellsDB(onDone){
-  // Essayer localStorage d'abord
-  try {
-    const cached = localStorage.getItem('dnd5e_spells_db');
-    if(cached){
-      const arr = JSON.parse(cached);
-      SPELLS_DB = parseSpellsDB(arr);
-      showToast('📚 Compendium chargé depuis le cache ('+SPELLS_DB.length+' sorts)');
-      if(onDone) onDone();
-      return;
-    }
-  } catch(e){}
-  
-  // Charger depuis data/spells_db.json
-  showToast('⏳ Chargement du compendium...');
-  try {
-    const resp = await fetch('data/spells_db.json');
-    if(!resp.ok) throw new Error('Fichier introuvable');
-    const arr = await resp.json();
-    // Mettre en cache
-    try { localStorage.setItem('dnd5e_spells_db', JSON.stringify(arr)); } catch(e){}
-    SPELLS_DB = parseSpellsDB(arr);
-    showToast('✅ Compendium chargé ! '+SPELLS_DB.length+' sorts disponibles.');
-    if(onDone) onDone();
-  } catch(e){
-    showToast('❌ Impossible de charger data/spells_db.json. Placez le fichier dans le même dossier que la fiche.');
-  }
-}
+// Délègue au registre de paquets (COMP) : fusionne les sources actives → SPELLS_DB.
+async function loadSpellsDB(onDone){ return COMP.ensureType('spells', onDone); }
 
 function parseSpellsDB(arr){
-  // Convertit le format compact [nameFR, nameEN, level, school, castTime, range, components, duration, classes[], desc, ritual, rolls[]]
-  return arr.map(r => ({
-    name: r[0], nameEN: r[1], level: r[2], school: r[3],
-    castTime: r[4], range: r[5], components: r[6], duration: r[7],
-    classes: r[8], desc: r[9], ritual: !!r[10], rolls: r[11]||[],
-    damage: (r[11]&&r[11][0]) ? r[11][0][0] : ''
-  }));
+  // DUAL-FORMAT : accepte l'ancien tableau positionnel ET le nouvel objet à clés (base-srd).
+  // [nameFR, nameEN, level, school, castTime, range, components, duration, classes[], desc, ritual, rolls[]]
+  return arr.map(r => {
+    if(Array.isArray(r)){
+      return {
+        name: r[0], nameEN: r[1], level: r[2], school: r[3],
+        castTime: r[4], range: r[5], components: r[6], duration: r[7],
+        classes: r[8], desc: r[9], ritual: !!r[10], rolls: r[11]||[],
+        damage: (r[11]&&r[11][0]) ? r[11][0][0] : ''
+      };
+    }
+    // Objet base-srd : on dérive les champs legacy (`damage` chaîne, `rolls`) depuis `dmg` structuré.
+    const o = Object.assign({}, r);
+    if(o.classes == null) o.classes = [];
+    if(o.rolls == null) o.rolls = [];
+    if(o.dmg && o.dmg.length){
+      if(o.damage == null) o.damage = o.dmg[0].dice;
+      if(!o.rolls.length) o.rolls = o.dmg.map(d => [d.dice, o.level, d.type]);
+    } else if(o.damage == null){ o.damage = ''; }
+    return o;
+  });
 }
 
 function clearSpellsCache(){
-  localStorage.removeItem('dnd5e_spells_db');
-  SPELLS_DB = null;
-  showToast('🗑️ Cache du compendium effacé.');
+  COMP.clearCache();
+  SPELLS_DB = ITEMS_DB = MONSTERS_DB = FEATS_DB = RACES_DB = BACKGROUNDS_DB = CLASSES_DB = null;
+  showToast('🗑️ Cache des compendiums effacé.');
 }
 
 // ═══════════════════════════════════════
@@ -232,16 +220,7 @@ function clearSpellsCache(){
 // ═══════════════════════════════════════
 async function loadItemsDB(onDone){
   if(ITEMS_DB){if(onDone)onDone();return;}
-  try{const c=localStorage.getItem('dnd5e_items_db');if(c){ITEMS_DB=JSON.parse(c);showToast('📦 Objets chargés depuis le cache ('+ITEMS_DB.length+')');if(onDone)onDone();return;}}catch(e){}
-  showToast('⏳ Chargement du compendium d\'objets...');
-  try{
-    const resp=await fetch('data/items_db.json');
-    if(!resp.ok)throw new Error();
-    ITEMS_DB=await resp.json();
-    try{localStorage.setItem('dnd5e_items_db',JSON.stringify(ITEMS_DB));}catch(e){}
-    showToast('✅ '+ITEMS_DB.length+' objets chargés !');
-    if(onDone)onDone();
-  }catch(e){showToast('❌ Impossible de charger data/items_db.json — placez le fichier avec index.html');}
+  return COMP.ensureType('items', onDone);
 }
 
 // ═══════════════════════════════════════
@@ -249,38 +228,13 @@ async function loadItemsDB(onDone){
 // ═══════════════════════════════════════
 async function loadMonstersDB(onDone){
   if(MONSTERS_DB){if(onDone)onDone();return;}
-  try{const c=localStorage.getItem('dnd5e_monsters_db');if(c){MONSTERS_DB=JSON.parse(c);showToast('👾 Monstres chargés depuis le cache ('+MONSTERS_DB.length+')');if(onDone)onDone();return;}}catch(e){}
-  showToast('⏳ Chargement du compendium de monstres...');
-  try{
-    const resp=await fetch('data/monsters_db.json');
-    if(!resp.ok)throw new Error();
-    MONSTERS_DB=await resp.json();
-    try{localStorage.setItem('dnd5e_monsters_db',JSON.stringify(MONSTERS_DB));}catch(e){}
-    showToast('✅ '+MONSTERS_DB.length+' monstres chargés !');
-    if(onDone)onDone();
-  }catch(e){showToast('❌ Impossible de charger data/monsters_db.json — placez le fichier avec index.html');}
+  return COMP.ensureType('monsters', onDone);
 }
 
-async function loadFeatsDB(){
-  if(FEATS_DB)return;
-  try{const c=localStorage.getItem('dnd5e_feats_db');if(c){FEATS_DB=JSON.parse(c);return;}}catch(e){}
-  try{const r=await fetch('data/feats_db.json');if(r.ok){FEATS_DB=await r.json();try{localStorage.setItem('dnd5e_feats_db',JSON.stringify(FEATS_DB));}catch(e){}}}catch(e){}
-}
-async function loadRacesDB(){
-  if(RACES_DB)return;
-  try{const c=localStorage.getItem('dnd5e_races_db');if(c){RACES_DB=JSON.parse(c);return;}}catch(e){}
-  try{const r=await fetch('data/races_db.json');if(r.ok){RACES_DB=await r.json();try{localStorage.setItem('dnd5e_races_db',JSON.stringify(RACES_DB));}catch(e){}}}catch(e){}
-}
-async function loadBackgroundsDB(){
-  if(BACKGROUNDS_DB)return;
-  try{const c=localStorage.getItem('dnd5e_backgrounds_db');if(c){BACKGROUNDS_DB=JSON.parse(c);return;}}catch(e){}
-  try{const r=await fetch('data/backgrounds_db.json');if(r.ok){BACKGROUNDS_DB=await r.json();try{localStorage.setItem('dnd5e_backgrounds_db',JSON.stringify(BACKGROUNDS_DB));}catch(e){}}}catch(e){}
-}
-async function loadClassesDB(){
-  if(CLASSES_DB)return;
-  try{const c=localStorage.getItem('dnd5e_classes_db');if(c){CLASSES_DB=JSON.parse(c);return;}}catch(e){}
-  try{const r=await fetch('data/classes_db.json');if(r.ok){CLASSES_DB=await r.json();try{localStorage.setItem('dnd5e_classes_db',JSON.stringify(CLASSES_DB));}catch(e){}}}catch(e){}
-}
+async function loadFeatsDB(onDone){       if(FEATS_DB){if(onDone)onDone();return;}       return COMP.ensureType('feats', onDone); }
+async function loadRacesDB(onDone){        if(RACES_DB){if(onDone)onDone();return;}        return COMP.ensureType('races', onDone); }
+async function loadBackgroundsDB(onDone){  if(BACKGROUNDS_DB){if(onDone)onDone();return;}  return COMP.ensureType('backgrounds', onDone); }
+async function loadClassesDB(onDone){      if(CLASSES_DB){if(onDone)onDone();return;}      return COMP.ensureType('classes', onDone); }
 
 function searchSpellsDB(query, filterClass, filterLevel, filterSchool){
   const db = getSpellsDB();

@@ -95,10 +95,13 @@ function showApp(){
 }
 
 // ─── CACHE INVALIDATION ───
-const _DB_VERSION='srd-v1';
+const _DB_VERSION='comp-v1'; // bump → purge l'ancien cache (passage au système de paquets COMP)
 (function(){
   if(localStorage.getItem('_db_version')!==_DB_VERSION){
+    // anciennes clés de cache mono-fichier (remplacées par comp_<packId>_<type>)
     ['dnd5e_spells_db','dnd5e_items_db','dnd5e_monsters_db','dnd5e_feats_db','dnd5e_races_db','dnd5e_backgrounds_db','dnd5e_classes_db'].forEach(k=>localStorage.removeItem(k));
+    // purge aussi tout cache de paquets éventuel d'une version précédente
+    try{ Object.keys(localStorage).filter(k=>k.indexOf('comp_')===0&&k!=='comp_active').forEach(k=>localStorage.removeItem(k)); }catch(e){}
     localStorage.setItem('_db_version',_DB_VERSION);
   }
 })();

@@ -1,0 +1,28 @@
+{
+  "id": "base-srd",
+  "name": "Base officielle (SRD 5.1)",
+  "version": "1.0",
+  "schema": 1,
+  "sourceCat": "base-srd",
+  "builtin": true,
+  "lang": "en",
+  "license": "CC BY 4.0 (SRD 5.1)",
+  "files": {
+    "spells": "spells.json",
+    "items": "items.json",
+    "monsters": "monsters.json",
+    "feats": "feats.json",
+    "races": "races.json",
+    "backgrounds": "backgrounds.json",
+    "classes": "classes.json"
+  },
+  "counts": {
+    "spells": 319,
+    "items": 292,
+    "monsters": 322,
+    "feats": 60,
+    "races": 9,
+    "backgrounds": 17,
+    "classes": 12
+  }
+}
