@@ -489,6 +489,10 @@ function render(){
   const mjBtn=document.getElementById('mjBtn');
   if(mjBtn){mjBtn.textContent=mjMode?'🎲 MJ ✓':'🎲 MJ';mjBtn.style.background=mjMode?'var(--cp)':'transparent';mjBtn.style.color=mjMode?'#1a1400':'var(--cp)';}
   renderPlayerBar();renderTabBar();renderTab();
+  const _cr=document.getElementById('charRail');
+  if(_cr)_cr.innerHTML=(typeof renderCharRail==='function'?renderCharRail(p):'');
+  const _f2=document.querySelector('.fiche-2col');
+  if(_f2)_f2.classList.toggle('no-rail',!p.created); // pas de rail pendant la création
 }
 
 function renderPlayerBar(){

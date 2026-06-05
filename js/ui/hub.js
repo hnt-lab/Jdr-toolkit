@@ -203,10 +203,6 @@ function _hubTableDetailHTML(t){
   const memberBadges=players.map(uid=>`<span class="member-badge">${memberAvatars[uid]||'⚔'} ${esc(memberNames[uid]||'Joueur')}</span>`).join('');
   const campList=(t.campaigns||[]).length?t.campaigns.map(c=>_hubCampCardHTML(t,c,isMJ)).join(''):`<div style="font-size:12px;color:var(--text3);font-style:italic;padding:6px 0">Aucune campagne pour l'instant.</div>`;
   const art=(t.campaigns||[]).map(c=>c.imageUrl).find(Boolean);
-  let chips='';
-  if(isMJ&&typeof compTableRequiredPacks==='function'&&typeof COMP!=='undefined'){
-    try{const req=compTableRequiredPacks(t)||{};const lib=COMP.library();chips=Object.keys(req).map(pid=>{const p=lib.find(x=>x.id===pid);return p?`<span class="comp-chip">${esc(p.name)} ✓</span>`:'';}).join('');}catch(e){}
-  }
   return`
     <div class="hub-detail-hdr">
       ${art?`<img class="hub-detail-art" src="${esc(art)}" onerror="this.style.display='none'">`:`<div class="hub-detail-ic">${isMJ?'👑':'⚔'}</div>`}
@@ -215,20 +211,12 @@ function _hubTableDetailHTML(t){
         <div class="hub-detail-sub">MJ : ${t.mjAvatar||'🎲'} ${esc(t.mjName||'MJ')}${players.length?` · ${players.length} joueur${players.length>1?'s':''}`:''}</div>
         ${memberBadges?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:8px"><span style="font-size:10px;color:var(--text3);align-self:center">Joueurs :</span>${memberBadges}</div>`:''}
       </div>
+      ${isMJ?`<button class="btn bsm hub-gear" title="Réglages de la table" onclick="openTableSettings('${t.id}','${esc(t.name)}','${t.inviteCode}')">⚙</button>`:''}
     </div>
     <div class="hub-detail-sec">
       <div class="hub-sec-title"><span>📜 Campagnes</span>${isMJ?`<button class="btn bsm bprimary" onclick="openCreateCampaign('${t.id}')">+ Nouvelle campagne</button>`:''}</div>
       ${campList}
-    </div>
-    ${isMJ?`<div class="hub-detail-sec">
-      <div class="hub-sec-title"><span>⚙ Réglages de la table</span></div>
-      <div class="invite-box" style="margin-bottom:10px">🔗 Code : <span class="invite-code">${t.inviteCode}</span> <button class="btn bsm" style="margin-left:4px" onclick="copyInviteLink('${t.inviteCode}')">Copier le lien</button></div>
-      ${chips?`<div style="font-size:11px;color:var(--text3);margin-bottom:6px">Compendiums de la table</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">${chips}</div>`:''}
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn bsm" onclick="openTableSettings('${t.id}','${esc(t.name)}','${t.inviteCode}')">🧩 Gérer les compendiums</button>
-        <button class="btn bsm bdanger" onclick="confirmDeleteTable('${t.id}')">🗑 Supprimer la table</button>
-      </div>
-    </div>`:''}`;
+    </div>`;
 }
 
 function renderHubHTML(tables){

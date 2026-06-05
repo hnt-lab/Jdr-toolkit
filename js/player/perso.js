@@ -1,5 +1,49 @@
 
 // ═══════════════════════════════════════
+// RAIL PERSO (résumé persistant — lecture seule ; l'édition reste dans l'onglet Perso)
+// ═══════════════════════════════════════
+function renderCharRail(p){
+  if(!p||!p.created) return '';
+  const cls=(p.classes||[]).map(c=>`${c.name} ${c.level}`).join(' / ')||'';
+  const _exh=p.exhaustion||0;
+  const effHpMax=_exh>=4?Math.floor(p.hpMax/2):p.hpMax;
+  const caBonus=(p.statuses||[]).filter(s=>s.stat==='ca').reduce((a,s)=>a+(parseInt(s.value)||0),0);
+  const ca=p.ac+caBonus;
+  const dexM=mod(p.abilities[1]);
+  const pct=Math.max(0,Math.min(100,Math.round((p.hp/Math.max(1,effHpMax))*100)));
+  const hpColor=p.hp<=0?'#e53935':pct>50?'#4caf50':pct>25?'#ff9800':'#e53935';
+  const resist=(typeof getEffectiveResistances==='function')?getEffectiveResistances(p):[];
+  const statuses=(p.statuses||[]);
+  const align=p.alignment||p.align||'';
+  const statusChips=statuses.length?statuses.slice(0,8).map(s=>`<span class="rail-chip">${esc(s.icon||'•')} ${esc(s.name||s.stat||'')}</span>`).join(''):'';
+  const resistChips=resist.length?resist.map(t=>`<span class="rail-chip rail-resist">🛡 ${esc(t)}</span>`).join(''):'';
+  const chips=statusChips+resistChips;
+  return `
+    <div class="rail-id">
+      ${p.portrait?`<img class="rail-portrait" src="${p.portrait}">`:`<div class="rail-portrait rail-portrait-ph">🧑</div>`}
+      <div class="rail-id-txt" style="min-width:0">
+        <div class="rail-name">${esc(p.charName||'Personnage')}</div>
+        <div class="rail-sub">${esc(p.race||'')}${cls?' · '+esc(cls):''}</div>
+        ${align?`<div class="rail-sub2">${esc(align)}</div>`:''}
+      </div>
+    </div>
+    <div class="rail-vitals">
+      <div class="rail-hp">
+        <div class="rail-hp-top"><span>❤ PV</span><span>${p.hp}/${effHpMax}${(p.hpTemp||0)>0?` <span style="color:#4caf50">+${p.hpTemp}</span>`:''}</span></div>
+        <div class="hp-bar"><div class="hp-fill" style="width:${pct}%;background:${hpColor}"></div></div>
+      </div>
+      <div class="rail-statline">
+        <div class="rail-stat"><div class="rail-stat-l">🛡 CA</div><div class="rail-stat-v">${ca}</div></div>
+        <div class="rail-stat"><div class="rail-stat-l">⚡ Init</div><div class="rail-stat-v">${fmt(dexM)}</div></div>
+      </div>
+    </div>
+    <div class="rail-caracs">
+      ${ABILITIES_SH.map((ab,i)=>`<div class="rail-carac"><div class="rail-carac-n">${ab}</div><div class="rail-carac-v">${p.abilities[i]}</div><div class="rail-carac-m">${fmt(mod(p.abilities[i]))}</div></div>`).join('')}
+    </div>
+    ${chips?`<div class="rail-sec"><div class="rail-sec-t">États & résistances</div><div class="rail-chips">${chips}</div></div>`:''}`;
+}
+
+// ═══════════════════════════════════════
 // TAB: PERSONNAGE
 // ═══════════════════════════════════════
 function tabPerso(p){

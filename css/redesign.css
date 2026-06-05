@@ -52,8 +52,50 @@
 .camp-thumb-ph{display:flex;align-items:center;justify-content:center;font-size:26px;color:var(--cp);background:linear-gradient(135deg,rgba(200,168,75,.16),rgba(200,168,75,.04))}
 @media(max-width:859px){ .hub-detail-art{width:56px;height:56px} .camp-thumb{width:50px;height:50px} }
 
+/* --- Engrenage réglages (en-tête détail, haut-droite) --- */
+.hub-gear{flex-shrink:0;align-self:flex-start}
+
 /* --- Chips compendiums --- */
 .comp-chip{font-size:12px;padding:3px 10px;border-radius:11px;background:rgba(200,168,75,.12);border:1px solid rgba(200,168,75,.35);color:var(--cp);white-space:nowrap}
+
+/* ═══════════ FICHE — rail perso persistant (résumé) ═══════════ */
+.fiche-2col{display:block}
+@media(min-width:900px){
+  .fiche-2col{display:grid;grid-template-columns:300px minmax(0,1fr);gap:18px;align-items:start}
+  .fiche-2col.no-rail{display:block}
+  .char-rail{position:sticky;top:8px;max-height:calc(100vh - 16px);overflow-y:auto}
+}
+.char-rail{border:1px solid var(--border);border-radius:14px;background:var(--surface2);padding:14px;margin-bottom:14px}
+.char-rail:empty{display:none}
+@media(min-width:900px){ .char-rail{margin-bottom:0} }
+.rail-id{display:flex;gap:12px;align-items:center;margin-bottom:13px}
+.rail-portrait{width:62px;height:62px;border-radius:12px;object-fit:cover;flex-shrink:0;border:1px solid rgba(200,168,75,.3)}
+.rail-portrait-ph{display:flex;align-items:center;justify-content:center;font-size:28px;background:linear-gradient(135deg,rgba(200,168,75,.16),rgba(200,168,75,.04))}
+.rail-name{font-family:var(--F,'Cinzel',serif);font-size:18px;font-weight:700;color:var(--text);line-height:1.15;overflow:hidden;text-overflow:ellipsis}
+.rail-sub{font-size:13px;color:var(--text2)}
+.rail-sub2{font-size:12px;color:var(--text3)}
+.rail-vitals{margin-bottom:13px}
+.rail-hp{margin-bottom:8px}
+.rail-hp-top{display:flex;justify-content:space-between;font-size:13.5px;font-weight:600;margin-bottom:5px}
+.rail-statline{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rail-stat{display:flex;justify-content:space-between;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 11px}
+.rail-stat-l{font-size:13px;color:var(--text2)}
+.rail-stat-v{font-size:18px;font-weight:700;color:var(--text)}
+.rail-caracs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:13px}
+.rail-carac{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 2px;text-align:center}
+.rail-carac-n{font-size:10px;color:var(--text3);letter-spacing:.05em}
+.rail-carac-v{font-size:18px;font-weight:700;color:var(--text);line-height:1.1}
+.rail-carac-m{font-size:12px;color:var(--cp)}
+.rail-sec-t{font-family:var(--F,'Cinzel',serif);font-size:12px;color:var(--cp);letter-spacing:.05em;margin-bottom:7px}
+.rail-chips{display:flex;flex-wrap:wrap;gap:5px}
+.rail-chip{font-size:11.5px;padding:2px 8px;border-radius:9px;background:var(--surface);border:1px solid var(--border);color:var(--text2)}
+.rail-resist{border-color:rgba(200,168,75,.35);color:var(--cp)}
+/* Mobile : le rail reste en haut, compact (id + vitaux + caracs) */
+@media(max-width:899px){
+  .char-rail{padding:12px}
+  .rail-portrait{width:52px;height:52px}
+  .rail-name{font-size:16px}
+}
 
 /* --- Bouton retour (mobile uniquement) --- */
 .hub-back{display:none}
