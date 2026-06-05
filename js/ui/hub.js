@@ -168,7 +168,8 @@ function _hubCampCardHTML(t,c,isMJ){
       }
       return`<div>
         <div class="camp-card" onclick="toggleCampExpand('${t.id}','${c.id}')">
-          <div><div class="camp-card-name">${esc(c.name)}</div>
+          ${c.imageUrl?`<img class="camp-thumb" src="${esc(c.imageUrl)}" onerror="this.style.display='none'">`:`<div class="camp-thumb camp-thumb-ph">⚔</div>`}
+          <div style="flex:1;min-width:0"><div class="camp-card-name">${esc(c.name)}</div>
             ${c.description?`<div style="font-size:13px;color:var(--text3);margin-top:2px">${esc(c.description)}</div>`:''}
           </div>
           <div style="display:flex;align-items:center;gap:8px">
@@ -182,8 +183,9 @@ function _hubCampCardHTML(t,c,isMJ){
 function _hubTableRailItemHTML(t,selected){
   const isMJ=t.mjId===currentUser.uid;
   const n=(t.campaigns||[]).length;
+  const thumb=(t.campaigns||[]).map(c=>c.imageUrl).find(Boolean);
   return`<div class="hub-table-item${selected?' sel':''}" onclick="hubSelectTable('${t.id}')">
-    <div class="hub-table-item-ic">${isMJ?'👑':'⚔'}</div>
+    ${thumb?`<img class="hub-table-thumb" src="${esc(thumb)}" onerror="this.style.display='none'">`:`<div class="hub-table-item-ic">${isMJ?'👑':'⚔'}</div>`}
     <div style="flex:1;min-width:0">
       <div class="hub-table-item-name">${esc(t.name)}</div>
       <div class="hub-table-item-sub">${isMJ?'Maître de Jeu':'Joueur'} · ${n} campagne${n>1?'s':''}</div>
@@ -200,13 +202,14 @@ function _hubTableDetailHTML(t){
   const players=(t.memberIds||[]).filter(uid=>uid!==t.mjId);
   const memberBadges=players.map(uid=>`<span class="member-badge">${memberAvatars[uid]||'⚔'} ${esc(memberNames[uid]||'Joueur')}</span>`).join('');
   const campList=(t.campaigns||[]).length?t.campaigns.map(c=>_hubCampCardHTML(t,c,isMJ)).join(''):`<div style="font-size:12px;color:var(--text3);font-style:italic;padding:6px 0">Aucune campagne pour l'instant.</div>`;
+  const art=(t.campaigns||[]).map(c=>c.imageUrl).find(Boolean);
   let chips='';
   if(isMJ&&typeof compTableRequiredPacks==='function'&&typeof COMP!=='undefined'){
     try{const req=compTableRequiredPacks(t)||{};const lib=COMP.library();chips=Object.keys(req).map(pid=>{const p=lib.find(x=>x.id===pid);return p?`<span class="comp-chip">${esc(p.name)} ✓</span>`:'';}).join('');}catch(e){}
   }
   return`
     <div class="hub-detail-hdr">
-      <div class="hub-detail-ic">${isMJ?'👑':'⚔'}</div>
+      ${art?`<img class="hub-detail-art" src="${esc(art)}" onerror="this.style.display='none'">`:`<div class="hub-detail-ic">${isMJ?'👑':'⚔'}</div>`}
       <div style="flex:1;min-width:0">
         <div class="hub-detail-name">${esc(t.name)} ${isMJ?'<span class="hub-role mj">🎲 MJ</span>':'<span class="hub-role pl">⚔ Joueur</span>'}</div>
         <div class="hub-detail-sub">MJ : ${t.mjAvatar||'🎲'} ${esc(t.mjName||'MJ')}${players.length?` · ${players.length} joueur${players.length>1?'s':''}`:''}</div>

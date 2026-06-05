@@ -4,9 +4,11 @@
    Mobile-first (empilé) → 2 colonnes en desktop.
    ═══════════════════════════════════════════════════════════════════ */
 
-/* --- Pleine largeur (le master-détail profite de tout l'écran) --- */
-.hub-body{max-width:none}
+/* --- Largeur : large mais pas pleine page (lisibilité) --- */
+.hub-body{max-width:1400px}
 @media(min-width:860px){ .hub-body{padding-left:28px;padding-right:28px} }
+/* Le texte de lecture (descriptions) garde une mesure confortable (~66-70 car./ligne, cf. Baymard/UXPin) */
+.hub-detail .camp-expanded p{max-width:70ch}
 
 /* --- Conteneur 2 panneaux --- */
 .hub-2col{display:block}
@@ -41,6 +43,14 @@
 /* Lisibilité : noms de campagnes + descriptions un peu plus grands */
 .camp-card-name{font-size:15.5px}
 .hub-detail .camp-card{padding:13px 14px}
+
+/* --- Miniatures (images) --- */
+.hub-table-thumb{width:44px;height:44px;border-radius:10px;object-fit:cover;flex-shrink:0;border:1px solid rgba(200,168,75,.28)}
+.hub-detail-art{width:72px;height:72px;border-radius:14px;object-fit:cover;flex-shrink:0;border:1px solid rgba(200,168,75,.32);box-shadow:0 2px 12px rgba(0,0,0,.35)}
+.hub-detail .camp-card{display:flex;align-items:center;gap:13px}
+.camp-thumb{width:62px;height:62px;border-radius:9px;object-fit:cover;flex-shrink:0;border:1px solid var(--border)}
+.camp-thumb-ph{display:flex;align-items:center;justify-content:center;font-size:26px;color:var(--cp);background:linear-gradient(135deg,rgba(200,168,75,.16),rgba(200,168,75,.04))}
+@media(max-width:859px){ .hub-detail-art{width:56px;height:56px} .camp-thumb{width:50px;height:50px} }
 
 /* --- Chips compendiums --- */
 .comp-chip{font-size:12px;padding:3px 10px;border-radius:11px;background:rgba(200,168,75,.12);border:1px solid rgba(200,168,75,.35);color:var(--cp);white-space:nowrap}
