@@ -218,9 +218,11 @@ const COMP = (() => {
       const feats  = (c.feats  || []).map(f => ({ n:f.name||f.n||'?', tx:(f.category?'('+f.category+') ':'')+(f.description||f.desc||f.tx||'') }));
       const spells = (c.spells || []).slice();
       const items  = (c.items  || []).map(it => it && it.n ? it : ({ n:(it&&it.name)||'?', tx:(it&&(it.desc||it.tx))||'', t:(it&&it.t)||'G' }));
-      if(feats.length)  inline.feats  = feats;
-      if(spells.length) inline.spells = spells;
-      if(items.length)  inline.items  = items;
+      const monsters = (c.monsters || []).slice();
+      if(feats.length)    inline.feats    = feats;
+      if(spells.length)   inline.spells   = spells;
+      if(items.length)    inline.items    = items;
+      if(monsters.length) inline.monsters = monsters;
       const counts = {}; Object.keys(inline).forEach(t => counts[t] = inline[t].length);
       packs[id] = { id, name:c.name||'Compendium perso', perso:true, builtin:false, imported:false, sourceCat:'perso', lang:'', types:Object.keys(inline), counts, inline, _data:{} };
     });

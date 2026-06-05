@@ -13,6 +13,7 @@ function mjTabObjets(){
     </div>
     <div style="display:flex;gap:4px;align-items:center">
       <button class="btn bsm bprimary" onclick="mjOpenGiveItem(${i})">🎁 Donner</button>
+      <button class="btn bsm" title="Enregistrer dans un compendium" onclick="mjItemToPack(${i})">📚</button>
       <button class="btn bsm" style="color:#e53935;border-color:#e53935" onclick="mjDeleteItem(${i})">✕</button>
     </div>
   </div>`;}).join(''):`<div style="color:var(--text3);font-size:12px;font-style:italic;text-align:center;padding:16px">Aucun objet dans votre liste. Créez-en un ou cherchez dans le compendium.</div>`;

@@ -398,6 +398,8 @@ function mjOpenCompendiumEditor(id){
   _mjActiveCompId=id;
   const c=_mjCompLib[id];
   _mjCustomFeats=c.feats||[];
+  // Éditeur complet (sorts/objets/monstres/capacités) si dispo ; sinon ancien éditeur de capacités.
+  if(typeof openPackEditor==='function'){ openPackEditor(id); return; }
   const hasLib=Object.keys(_mjCompLib).length>1;
   openWideModal(`<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
     ${hasLib?`<button class="btn bsm" onclick="mjOpenCompendium()" style="flex-shrink:0">← Retour</button>`:''}

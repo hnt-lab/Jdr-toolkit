@@ -96,13 +96,11 @@ function campImgOnLoad(img){
     img.style.cssText='width:100%;max-height:200px;border-radius:8px;object-fit:cover;margin-bottom:10px;display:block';
   }
 }
-function renderHubHTML(tables){
-  const tableCards=tables.length?tables.map(t=>{
-    const isMJ=t.mjId===currentUser.uid;
-    const memberNames=t.memberNames||{};
-    const memberAvatars=t.memberAvatars||{};
-    const memberBadges=(t.memberIds||[]).filter(uid=>uid!==t.mjId).map(uid=>`<span class="member-badge">${memberAvatars[uid]||'⚔'} ${esc(memberNames[uid]||'Joueur')}</span>`).join('');
-    const campCards=t.campaigns.length?t.campaigns.map(c=>{
+let _hubSelectedTableId=null;
+function hubSelectTable(id){ _hubSelectedTableId=id; const el=document.getElementById('hubContent'); if(el&&_hubCache) el.innerHTML=renderHubHTML(_hubCache); }
+
+// Carte de campagne (logique d'origine réutilisée telle quelle)
+function _hubCampCardHTML(t,c,isMJ){
       const key=t.id+'_'+c.id;
       const expanded=_expandedCamp===key;
       let expandedHtml='';
@@ -176,46 +174,89 @@ function renderHubHTML(tables){
             <span style="color:var(--cp);transition:transform .2s;${expanded?'transform:rotate(90deg)':''}"">›</span>
           </div>
         </div>${expandedHtml}</div>`;
-    }).join(''):`<div style="font-size:12px;color:var(--text3);font-style:italic;padding:6px 0">Aucune campagne pour l'instant.</div>`;
-    return`<div class="table-card">
-      <div class="table-card-hdr">
-        <div>
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-            <div class="table-card-name" style="margin:0">${esc(t.name)}</div>
-            ${isMJ
-              ?`<span style="font-size:10px;font-family:var(--F);letter-spacing:.07em;color:var(--cp);background:rgba(200,168,75,.12);border:1px solid rgba(200,168,75,.35);border-radius:10px;padding:2px 8px;flex-shrink:0">🎲 Maître de Jeu</span>`
-              :`<span style="font-size:10px;font-family:var(--F);letter-spacing:.07em;color:#7eb8f7;background:rgba(126,184,247,.1);border:1px solid rgba(126,184,247,.3);border-radius:10px;padding:2px 8px;flex-shrink:0">⚔ Joueur</span>`}
-          </div>
-          <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap">
-            <span style="font-size:11px;color:var(--text3)">MJ :</span>
-            <span class="member-badge" style="border-color:rgba(200,168,75,.3);color:var(--cp)">${t.mjAvatar||'🎲'} ${esc(t.mjName||'MJ')}</span>
-          </div>
-          ${memberBadges?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px"><span style="font-size:10px;color:var(--text3);align-self:center">Joueurs :</span>${memberBadges}</div>`:''}
-        </div>
-        <div style="display:flex;gap:6px;align-items:flex-start">
-          ${isMJ?`<button class="btn bsm" onclick="openCreateCampaign('${t.id}')">+ Campagne</button><button class="btn bsm" onclick="openTableSettings('${t.id}','${esc(t.name)}','${t.inviteCode}')">⚙</button>`:''}
-        </div>
-      </div>
-      ${campCards}
-      ${isMJ?`<div class="invite-box" style="margin-top:10px">🔗 Invitation : <button class="btn bsm" onclick="copyInviteLink('${t.inviteCode}')" style="margin-left:4px">Copier le lien</button></div>`:''}
-    </div>`;
-  }).join(''):
-    `<div class="hub-empty">Aucune table. Créez une table ou rejoignez-en une !</div>`;
+}
+
+// Élément du rail gauche (une table)
+function _hubTableRailItemHTML(t,selected){
+  const isMJ=t.mjId===currentUser.uid;
+  const n=(t.campaigns||[]).length;
+  return`<div class="hub-table-item${selected?' sel':''}" onclick="hubSelectTable('${t.id}')">
+    <div class="hub-table-item-ic">${isMJ?'👑':'⚔'}</div>
+    <div style="flex:1;min-width:0">
+      <div class="hub-table-item-name">${esc(t.name)}</div>
+      <div class="hub-table-item-sub">${isMJ?'Maître de Jeu':'Joueur'} · ${n} campagne${n>1?'s':''}</div>
+    </div>
+    ${isMJ?`<button class="btn bsm" title="Réglages de la table" onclick="event.stopPropagation();openTableSettings('${t.id}','${esc(t.name)}','${t.inviteCode}')">⚙</button>`:''}
+  </div>`;
+}
+
+// Panneau de détail (table sélectionnée) — réutilise _hubCampCardHTML
+function _hubTableDetailHTML(t){
+  if(!t) return`<div class="hub-empty">Sélectionne une table, ou crées-en une.</div>`;
+  const isMJ=t.mjId===currentUser.uid;
+  const memberAvatars=t.memberAvatars||{},memberNames=t.memberNames||{};
+  const players=(t.memberIds||[]).filter(uid=>uid!==t.mjId);
+  const memberBadges=players.map(uid=>`<span class="member-badge">${memberAvatars[uid]||'⚔'} ${esc(memberNames[uid]||'Joueur')}</span>`).join('');
+  const campList=(t.campaigns||[]).length?t.campaigns.map(c=>_hubCampCardHTML(t,c,isMJ)).join(''):`<div style="font-size:12px;color:var(--text3);font-style:italic;padding:6px 0">Aucune campagne pour l'instant.</div>`;
+  let chips='';
+  if(isMJ&&typeof compTableRequiredPacks==='function'&&typeof COMP!=='undefined'){
+    try{const req=compTableRequiredPacks(t)||{};const lib=COMP.library();chips=Object.keys(req).map(pid=>{const p=lib.find(x=>x.id===pid);return p?`<span class="comp-chip">${esc(p.name)} ✓</span>`:'';}).join('');}catch(e){}
+  }
   return`
-    <div class="hub-section">
-      <div class="hub-section-title">
-        <span>⚔ Mes Tables</span>
-        <div style="display:flex;gap:6px">
-          <button class="btn bsm bprimary" onclick="openCreateTable()">+ Nouvelle table</button>
-          <button class="btn bsm" onclick="openJoinTable()">+ Rejoindre</button>
-        </div>
+    <div class="hub-detail-hdr">
+      <div class="hub-detail-ic">${isMJ?'👑':'⚔'}</div>
+      <div style="flex:1;min-width:0">
+        <div class="hub-detail-name">${esc(t.name)} ${isMJ?'<span class="hub-role mj">🎲 MJ</span>':'<span class="hub-role pl">⚔ Joueur</span>'}</div>
+        <div class="hub-detail-sub">MJ : ${t.mjAvatar||'🎲'} ${esc(t.mjName||'MJ')}${players.length?` · ${players.length} joueur${players.length>1?'s':''}`:''}</div>
+        ${memberBadges?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:8px"><span style="font-size:10px;color:var(--text3);align-self:center">Joueurs :</span>${memberBadges}</div>`:''}
       </div>
-      ${tableCards}
-    </div>`;
+    </div>
+    <div class="hub-detail-sec">
+      <div class="hub-sec-title"><span>📜 Campagnes</span>${isMJ?`<button class="btn bsm bprimary" onclick="openCreateCampaign('${t.id}')">+ Nouvelle campagne</button>`:''}</div>
+      ${campList}
+    </div>
+    ${isMJ?`<div class="hub-detail-sec">
+      <div class="hub-sec-title"><span>⚙ Réglages de la table</span></div>
+      <div class="invite-box" style="margin-bottom:10px">🔗 Code : <span class="invite-code">${t.inviteCode}</span> <button class="btn bsm" style="margin-left:4px" onclick="copyInviteLink('${t.inviteCode}')">Copier le lien</button></div>
+      ${chips?`<div style="font-size:11px;color:var(--text3);margin-bottom:6px">Compendiums de la table</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">${chips}</div>`:''}
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn bsm" onclick="openTableSettings('${t.id}','${esc(t.name)}','${t.inviteCode}')">🧩 Gérer les compendiums</button>
+        <button class="btn bsm bdanger" onclick="confirmDeleteTable('${t.id}')">🗑 Supprimer la table</button>
+      </div>
+    </div>`:''}`;
+}
+
+function renderHubHTML(tables){
+  if(!tables||!tables.length) return`<div class="hub-2col">
+    <div class="hub-rail">
+      <div class="hub-rail-hdr"><span>⚔ Mes Tables</span></div>
+      <div class="hub-empty" style="margin-bottom:10px">Aucune table.</div>
+      <div class="hub-rail-actions">
+        <button class="btn bsm bprimary" onclick="openCreateTable()">+ Créer une table</button>
+        <button class="btn bsm" onclick="openJoinTable()">👥 Rejoindre une table</button>
+      </div>
+    </div>
+    <div class="hub-detail"><div class="hub-empty">Crée une table ou rejoins-en une pour commencer !</div></div>
+  </div>`;
+  if(!_hubSelectedTableId||!tables.find(t=>t.id===_hubSelectedTableId)) _hubSelectedTableId=tables[0].id;
+  const sel=tables.find(t=>t.id===_hubSelectedTableId);
+  const rail=tables.map(t=>_hubTableRailItemHTML(t,t.id===_hubSelectedTableId)).join('');
+  return`<div class="hub-2col">
+    <div class="hub-rail">
+      <div class="hub-rail-hdr"><span>⚔ Mes Tables</span><span style="font-size:11px;color:var(--text3)">${tables.length}</span></div>
+      ${rail}
+      <div class="hub-rail-actions">
+        <button class="btn bsm bprimary" onclick="openCreateTable()">+ Créer une table</button>
+        <button class="btn bsm" onclick="openJoinTable()">👥 Rejoindre une table</button>
+      </div>
+    </div>
+    <div class="hub-detail">${_hubTableDetailHTML(sel)}</div>
+  </div>`;
 }
 
 // ─── CRÉER UNE TABLE (MJ) ───
 function openCreateTable(){
+  if(typeof compSetTableEditContext==='function')compSetTableEditContext(null); // mode création : pas d'auto-save
   // Sélection par défaut : le contenu actuel (paquet « legacy ») sur toutes les catégories — non régressif.
   const defaultSel = typeof compTableRequiredPacks==='function' ? compTableRequiredPacks(null) : {};
   const selectorHtml = typeof compTableSelectorHtml==='function' ? compTableSelectorHtml(defaultSel) : '';
@@ -284,15 +325,15 @@ function openTableSettings(tableId,tableName,inviteCode){
   const tableData=(typeof _hubCache!=='undefined'&&_hubCache)?_hubCache.find(t=>t.id===tableId):null;
   const sel=typeof compTableRequiredPacks==='function'?compTableRequiredPacks(tableData):{};
   const selectorHtml=typeof compTableSelectorHtml==='function'?compTableSelectorHtml(sel):'';
+  if(typeof compSetTableEditContext==='function')compSetTableEditContext(tableId); // mode édition : auto-save à chaque changement
   openModal(`<div class="pt">⚙ Table : ${esc(tableName)}</div>
     <div class="fl mb6" style="margin-top:0">Lien d'invitation</div>
     <div class="invite-box" style="margin-bottom:16px">Code : <span class="invite-code">${inviteCode}</span><button class="btn bsm" onclick="copyInviteLink('${inviteCode}')" style="margin-left:4px">Copier lien</button></div>
     <details class="acc" style="margin-bottom:16px" open>
       <summary>🧩 Compendiums de la table</summary>
       <div class="acc-body">
-        <div style="font-size:11px;color:var(--text3);margin-bottom:8px">Paquets (et catégories) utilisés par cette table. Tes joueurs doivent les posséder.</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:8px">Paquets (et catégories) utilisés par cette table. Tes joueurs doivent les posséder. <em>Enregistrement automatique.</em></div>
         <div id="tbl_pack_selector">${selectorHtml}</div>
-        <button class="btn bsm bprimary" style="width:100%;margin-top:8px" onclick="saveTableCompendiums('${tableId}')">💾 Enregistrer les compendiums</button>
       </div>
     </details>
     <div style="display:flex;gap:8px">
@@ -300,14 +341,14 @@ function openTableSettings(tableId,tableName,inviteCode){
       <button class="btn bac" style="flex:2" onclick="closeModal()">Fermer</button>
     </div>`);
 }
-async function saveTableCompendiums(tableId){
+async function saveTableCompendiums(tableId, auto){
   const requiredPacks=typeof compReadTableSelection==='function'?compReadTableSelection():{};
   try{
     await campaignService.updateTable(tableId,{requiredPacks});
     if(typeof _hubCache!=='undefined'&&_hubCache){const t=_hubCache.find(x=>x.id===tableId);if(t)t.requiredPacks=requiredPacks;}
     // si on est actuellement dans cette table, ré-applique tout de suite
     if(typeof currentTableId!=='undefined'&&currentTableId===tableId&&typeof COMP!=='undefined')COMP.applyTableSelection(requiredPacks);
-    showToast('✅ Compendiums de la table enregistrés.');
+    showToast(auto?'💾 Enregistré':'✅ Compendiums de la table enregistrés.');
   }catch(e){showToast('❌ Erreur : '+e.message);}
 }
 async function confirmDeleteTable(tableId){

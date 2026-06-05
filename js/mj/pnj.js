@@ -59,6 +59,7 @@ function mjNPCDetail(n,i){
       <button class="btn bsm bprimary" onclick="mjAddNPCToCombat(${i})">⚡ Ajouter au combat</button>
       <button class="btn bsm" onclick="mjEditNPC(${i})">✏ Modifier</button>
       <button class="btn bsm" onclick="mjDuplicateNPC(${i})">📋 Dupliquer</button>
+      <button class="btn bsm" title="Enregistrer dans un compendium" onclick="mjNpcToPack(${i})">📚 Compendium</button>
       <button class="btn bsm" style="color:#e53935;border-color:#e53935" onclick="mjDeleteNPC(${i})">🗑 Supprimer</button>
     </div>
   </div>`;

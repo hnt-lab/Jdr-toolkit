@@ -6,6 +6,16 @@
 // ═══════════════════════════════════════════════════════════════════
 
 const _COMP_TYPE_SHORT = { spells:'sorts', items:'objets', monsters:'monstres', feats:'dons', races:'races', backgrounds:'historiques', classes:'classes' };
+
+// Contexte d'édition du sélecteur de table : si défini → auto-enregistrement (réglages d'une table existante).
+// null → mode création (l'enregistrement se fait au clic « Créer »).
+let _compEditingTableId = null, _compSaveTimer = null;
+function compSetTableEditContext(tableId){ _compEditingTableId = tableId || null; }
+function _compTableSelChanged(){
+  if(!_compEditingTableId) return;
+  clearTimeout(_compSaveTimer);
+  _compSaveTimer = setTimeout(() => { if(typeof saveTableCompendiums==='function') saveTableCompendiums(_compEditingTableId, true); }, 500);
+}
 function _compCountsLabel(counts){
   const parts = Object.entries(counts||{}).filter(([,n])=>n).map(([t,n])=>n+' '+(_COMP_TYPE_SHORT[t]||t));
   return parts.length ? parts.join(' · ') : '—';
@@ -15,14 +25,15 @@ function _compCountsLabel(counts){
 function compLibSectionHtml(){
   return `<div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">
       <button class="btn bsm bprimary" onclick="importCompPack()">📥 Importer un paquet</button>
-      ${typeof mjCreateNewComp==='function'?`<button class="btn bsm" onclick="closeModal();mjCreateNewComp()">+ Nouveau (perso)</button>`:''}
+      ${typeof compCreateNewPack==='function'?`<button class="btn bsm" onclick="compCreateNewPack()">+ Nouveau (perso)</button>`:''}
     </div>
     <div style="font-size:11px;color:var(--text3);margin-bottom:8px">Les paquets contiennent sorts, objets, monstres… Tu choisis lesquels utiliser <strong>par table</strong> (roue crantée de la table).</div>
     <div id="comp_lib_list">${compRenderLibList()}</div>`;
 }
 function editPersoPack(id){
-  if(typeof mjOpenCompendiumEditor==='function'){ closeModal(); mjOpenCompendiumEditor(id); }
-  else showToast('✏️ L\'édition complète arrive avec l\'éditeur.');
+  if(typeof openPackEditor==='function'){ closeModal(); openPackEditor(id); }
+  else if(typeof mjOpenCompendiumEditor==='function'){ closeModal(); mjOpenCompendiumEditor(id); }
+  else showToast('✏️ Éditeur indisponible.');
 }
 
 function compRenderLibList(){
@@ -109,11 +120,11 @@ function compTableSelectorHtml(selected){
       const on  = sel ? sel.includes(t) : false;
       const cnt = (p.counts && p.counts[t]) ? ' ('+p.counts[t]+')' : '';
       return `<label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;color:var(--text2)">
-        <input type="checkbox" class="tblcat" data-pack="${p.id}" data-type="${t}" ${on?'checked':''} style="accent-color:var(--cp)"> ${_COMP_TYPE_SHORT[t]||t}${cnt}</label>`;
+        <input type="checkbox" class="tblcat" data-pack="${p.id}" data-type="${t}" ${on?'checked':''} onchange="_compTableSelChanged()" style="accent-color:var(--cp)"> ${_COMP_TYPE_SHORT[t]||t}${cnt}</label>`;
     }).join('');
     return `<div style="border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:6px">
       <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;cursor:pointer">
-        <input type="checkbox" class="tblmaster" data-pack="${p.id}" ${masterOn?'checked':''} onchange="_compToggleMaster('${p.id}',this.checked)" style="accent-color:var(--cp)">
+        <input type="checkbox" class="tblmaster" data-pack="${p.id}" ${masterOn?'checked':''} onchange="_compToggleMaster('${p.id}',this.checked);_compTableSelChanged()" style="accent-color:var(--cp)">
         ${esc(p.name)} <span style="font-size:9px;color:var(--text3);font-weight:400">${p.builtin?'Intégré':'Importé'}</span>
       </label>
       <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:7px;padding-left:24px">${cats}</div>
