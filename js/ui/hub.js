@@ -96,8 +96,10 @@ function campImgOnLoad(img){
     img.style.cssText='width:100%;max-height:200px;border-radius:8px;object-fit:cover;margin-bottom:10px;display:block';
   }
 }
-let _hubSelectedTableId=null;
-function hubSelectTable(id){ _hubSelectedTableId=id; const el=document.getElementById('hubContent'); if(el&&_hubCache) el.innerHTML=renderHubHTML(_hubCache); }
+let _hubSelectedTableId=null, _hubMobileDetail=false;
+function _hubRerender(){ const el=document.getElementById('hubContent'); if(el&&_hubCache) el.innerHTML=renderHubHTML(_hubCache); }
+function hubSelectTable(id){ _hubSelectedTableId=id; _hubMobileDetail=true; _hubRerender(); } // mobile : bascule sur le détail
+function hubBackToTables(){ _hubMobileDetail=false; _hubRerender(); } // mobile : revient à la liste
 
 // Carte de campagne (logique d'origine réutilisée telle quelle)
 function _hubCampCardHTML(t,c,isMJ){
@@ -159,7 +161,7 @@ function _hubCampCardHTML(t,c,isMJ){
           </div>`:'';
         const chronicleBtn=!isMJ?`<button class="btn bsm" style="width:100%;margin-top:6px" onclick="openCampChronicle('${t.id}','${c.id}')">📜 Voir les Chroniques</button>`:'';
         expandedHtml=`<div class="camp-expanded">${imgHtml}
-          ${c.detailedDesc?`<p style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:8px">${esc(c.detailedDesc)}</p>`:''}
+          ${c.detailedDesc?`<p style="font-size:14px;color:var(--text2);line-height:1.65;margin-bottom:8px">${esc(c.detailedDesc)}</p>`:''}
           <div style="clear:both"></div>
           ${charBlock}${chronicleBtn}${participantHtml}${mjEditHtml}
         </div>`;
@@ -167,7 +169,7 @@ function _hubCampCardHTML(t,c,isMJ){
       return`<div>
         <div class="camp-card" onclick="toggleCampExpand('${t.id}','${c.id}')">
           <div><div class="camp-card-name">${esc(c.name)}</div>
-            ${c.description?`<div style="font-size:11px;color:var(--text3);margin-top:2px">${esc(c.description)}</div>`:''}
+            ${c.description?`<div style="font-size:13px;color:var(--text3);margin-top:2px">${esc(c.description)}</div>`:''}
           </div>
           <div style="display:flex;align-items:center;gap:8px">
             <span class="camp-card-status ${c.status==='finished'?'camp-status-finished':'camp-status-active'}">${c.status==='finished'?'Terminée':'Active'}</span>
@@ -241,16 +243,19 @@ function renderHubHTML(tables){
   if(!_hubSelectedTableId||!tables.find(t=>t.id===_hubSelectedTableId)) _hubSelectedTableId=tables[0].id;
   const sel=tables.find(t=>t.id===_hubSelectedTableId);
   const rail=tables.map(t=>_hubTableRailItemHTML(t,t.id===_hubSelectedTableId)).join('');
-  return`<div class="hub-2col">
+  return`<div class="hub-2col${_hubMobileDetail?' show-detail':''}">
     <div class="hub-rail">
-      <div class="hub-rail-hdr"><span>⚔ Mes Tables</span><span style="font-size:11px;color:var(--text3)">${tables.length}</span></div>
+      <div class="hub-rail-hdr"><span>⚔ Mes Tables</span><span style="font-size:12px;color:var(--text3)">${tables.length}</span></div>
       ${rail}
       <div class="hub-rail-actions">
         <button class="btn bsm bprimary" onclick="openCreateTable()">+ Créer une table</button>
         <button class="btn bsm" onclick="openJoinTable()">👥 Rejoindre une table</button>
       </div>
     </div>
-    <div class="hub-detail">${_hubTableDetailHTML(sel)}</div>
+    <div class="hub-detail">
+      <button class="btn bsm hub-back" onclick="hubBackToTables()">← Mes tables</button>
+      ${_hubTableDetailHTML(sel)}
+    </div>
   </div>`;
 }
 
