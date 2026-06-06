@@ -47,15 +47,14 @@ async function joinGroupOnly(tableId,campaignId){
   _groupOnlyMode=true;
   stopAllListeners();
   _groupData=[];_activeCombatState=null;_combatListenerInitialized=false;_prevCombatTurnUid=null;
-  _groupHudOpen=true;
+  _groupHudOpen=false; // ne PAS ouvrir le panneau : juste afficher le bouton 👥 (l'utilisateur l'ouvre quand il veut)
   // Le bouton dé flottant apparaît aussi (il donne le raccourci vers sa propre fiche)
   const _df=document.getElementById('diceFloat');if(_df)_df.style.display='flex';
   const hud=document.getElementById('partyHud');
   const panel=document.getElementById('partyHudPanel');
   if(hud&&panel){
     hud.style.display='block';
-    panel.style.display='block';
-    panel.innerHTML='<div style="padding:12px;text-align:center;color:var(--text3);font-size:12px">Connexion au groupe...</div>';
+    panel.style.display='none';
   }
   startGroupListener(campaignId);
   if(currentTableMjId)startCombatListener(campaignId,currentTableMjId);

@@ -118,14 +118,15 @@ function tabPerso(p){
 
     <!-- Résistances & Immunités (rétractable) -->
     <div class="panel">
-      <div class="pt" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="window._riOpen=!window._riOpen;render()">
+      <div class="pt" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
         <span>🎯 Statuts & Résistances</span>
-        <div style="display:flex;gap:6px;align-items:center">
-          <span style="color:var(--text3);font-size:12px">${window._riOpen?'▴':'▾'}</span>
-          <button class="btn bsm" onclick="event.stopPropagation();openResistModal()">+ Ajouter</button>
+        <div style="display:flex;gap:6px">
+          <button class="btn bsm" onclick="openAddStatus()">+ Statut</button>
+          <button class="btn bsm" onclick="openResistModal()">+ Résist./Immu</button>
         </div>
       </div>
-      ${window._riOpen?(()=>{
+      ${(()=>{
+        const sts=p.statuses||[];
         const res=p.dmgResistances||[];const imm=p.dmgImmunities||[];const ci=p.condImmunities||[];
         const passRes=getPassiveResistances(p);const passImm=getPassiveImmunities(p);
         const tag=(cat,val,i)=>`<span class="status-badge bonus" style="cursor:pointer" title="Retirer" onclick="removeResist('${cat}',${i})">🛡 ${esc(val)} ✕</span>`;
@@ -134,12 +135,13 @@ function tabPerso(p){
         const empty='<span style="font-size:11px;color:var(--text3);font-style:italic">Aucune</span>';
         const lockR=v=>`<span class="status-badge bonus" style="opacity:.85" title="Résistance passive (automatique)">🛡 ${esc(v)} 🔒</span>`;
         const lockI=v=>`<span class="status-badge malus" style="background:#2e1b00;border-color:#ff9800;color:#ff9800;opacity:.85" title="Immunité passive (automatique)">✦ ${esc(v)} 🔒</span>`;
-        const sts=p.statuses||[];
-        return`<div style="margin-bottom:10px"><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Statuts actifs</div><div style="display:flex;flex-wrap:wrap;gap:4px">${sts.length?sts.map(s=>`<span class="status-badge ${s.type||'neutral'}">${s.icon||'◆'} ${esc(s.name||'')}</span>`).join(''):empty}</div></div>
-        <div style="margin-bottom:8px"><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Résistances dégâts</div><div style="display:flex;flex-wrap:wrap;gap:4px">${(res.length||passRes.length)?res.map((v,i)=>tag('dmgResistances',v,i)).join('')+passRes.map(lockR).join(''):empty}</div></div>
-        <div style="margin-bottom:8px"><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Immunités dégâts</div><div style="display:flex;flex-wrap:wrap;gap:4px">${(imm.length||passImm.length)?imm.map((v,i)=>tagImm('dmgImmunities',v,i)).join('')+passImm.map(lockI).join(''):empty}</div></div>
-        <div><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Immunités conditions</div><div style="display:flex;flex-wrap:wrap;gap:4px">${ci.length?ci.map((v,i)=>tagCond('condImmunities',v,i)).join(''):empty}</div></div>`;
-      })():''}
+        const stRow=(s,i)=>`<span class="status-badge ${s.type||'neutral'}" title="${esc(s.desc||'')}">${s.icon||'◆'} ${esc(s.name||'')}${(s.value&&s.stat)?` ${s.value>0?'+':''}${s.value} ${esc(s.stat.toUpperCase())}`:''} <span onclick="event.stopPropagation();removeStatus(${i})" style="cursor:pointer;font-weight:700;opacity:.7">×</span></span>`;
+        const lbl=t=>`<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">${t}</div>`;
+        return`<div style="margin-bottom:10px">${lbl('Statuts actifs')}<div style="display:flex;flex-wrap:wrap;gap:4px">${sts.length?sts.map(stRow).join(''):empty}</div></div>
+        <div style="margin-bottom:8px">${lbl('Résistances dégâts')}<div style="display:flex;flex-wrap:wrap;gap:4px">${(res.length||passRes.length)?res.map((v,i)=>tag('dmgResistances',v,i)).join('')+passRes.map(lockR).join(''):empty}</div></div>
+        <div style="margin-bottom:8px">${lbl('Immunités dégâts')}<div style="display:flex;flex-wrap:wrap;gap:4px">${(imm.length||passImm.length)?imm.map((v,i)=>tagImm('dmgImmunities',v,i)).join('')+passImm.map(lockI).join(''):empty}</div></div>
+        <div>${lbl('Immunités conditions')}<div style="display:flex;flex-wrap:wrap;gap:4px">${ci.length?ci.map((v,i)=>tagCond('condImmunities',v,i)).join(''):empty}</div></div>`;
+      })()}
     </div>
   </div>
 
@@ -209,29 +211,7 @@ function tabPerso(p){
       </div>`;
     })()}
 
-    <!-- Statuts -->
-    <div class="panel mt10">
-      <div class="pt" style="display:flex;align-items:center;justify-content:space-between"><span>Statuts</span><button class="btn bsm" onclick="openAddStatus()">+ Ajouter</button></div>
-      ${(p.statuses||[]).length?`<div>${(p.statuses||[]).map((s,i)=>{
-        const sid='st_'+i;
-        const rollInfo=s.rollPenalty?` ⚠ ${s.rollPenalty.split(',').join(', ')}`:(s.rollBonus?` +🎲 ${s.rollBonus}`:'');
-        const valInfo=s.value&&s.stat?` ${s.value>0?'+':''}${s.value} ${s.stat.toUpperCase()}`:'';
-        return`<div class="sort-row">
-          <div class="sort-head" onclick="document.getElementById('${sid}').classList.toggle('open')" style="padding:6px 10px">
-            <span style="font-size:15px;margin-right:8px">${s.icon||'◆'}</span>
-            <div style="flex:1">
-              <span class="status-badge ${s.type}" style="cursor:default;margin:0">${esc(s.name)}${valInfo}</span>
-            </div>
-            <span style="font-size:10px;color:var(--text3);margin-right:8px">▾</span>
-            <span onclick="event.stopPropagation();removeStatus(${i})" style="cursor:pointer;color:var(--text3);font-size:15px">×</span>
-          </div>
-          <div class="sort-body" id="${sid}">
-            <p>${esc(s.desc||'Aucune description.')}</p>
-            ${rollInfo?`<p style="margin-top:4px;color:${s.type==='bonus'?'#4caf50':'#e53935'};font-size:12px">${rollInfo}</p>`:''}
-          </div>
-        </div>`;}).join('')}</div>`
-        :`<div style="font-size:12px;color:var(--text3);font-style:italic">Aucun statut actif.</div>`}
-    </div>
+    <!-- (panneau Statuts fusionné dans « 🎯 Statuts & Résistances » ci-dessus) -->
 
   </div>
   </div>`;

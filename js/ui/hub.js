@@ -674,7 +674,7 @@ async function enterCampaign(tableId,campaignId,tName,cName,preloadedCharData,fo
       currentTableMjId=tableData?.mjId||null;
       stopAllListeners();
       _groupData=[];
-      _groupHudOpen=true;
+      _groupHudOpen=false; // panneau groupe fermé à l'entrée — seul le bouton 👥 apparaît
       // Pré-charger le compendium de sorts en arrière-plan
       if(!SPELLS_DB)loadSpellsDB();
       startPlayerListener(campaignId);
