@@ -5,41 +5,78 @@
 function renderCharRail(p){
   if(!p||!p.created) return '';
   const cls=(p.classes||[]).map(c=>`${c.name} ${c.level}`).join(' / ')||'';
-  const _exh=p.exhaustion||0;
-  const effHpMax=_exh>=4?Math.floor(p.hpMax/2):p.hpMax;
-  const caBonus=(p.statuses||[]).filter(s=>s.stat==='ca').reduce((a,s)=>a+(parseInt(s.value)||0),0);
-  const ca=p.ac+caBonus;
-  const dexM=mod(p.abilities[1]);
-  const pct=Math.max(0,Math.min(100,Math.round((p.hp/Math.max(1,effHpMax))*100)));
-  const hpColor=p.hp<=0?'#e53935':pct>50?'#4caf50':pct>25?'#ff9800':'#e53935';
-  const resist=(typeof getEffectiveResistances==='function')?getEffectiveResistances(p):[];
-  const statuses=(p.statuses||[]);
   const align=p.alignment||p.align||'';
-  const statusChips=statuses.length?statuses.slice(0,8).map(s=>`<span class="rail-chip">${esc(s.icon||'•')} ${esc(s.name||s.stat||'')}</span>`).join(''):'';
-  const resistChips=resist.length?resist.map(t=>`<span class="rail-chip rail-resist">🛡 ${esc(t)}</span>`).join(''):'';
-  const chips=statusChips+resistChips;
+  const ws=p.wildshape;
+  const mj=isMJ();
+  const _exhLvl=p.exhaustion||0;
+  const effectiveHpMax=_exhLvl>=4?Math.floor(p.hpMax/2):p.hpMax;
+  const pct=Math.max(0,Math.min(100,Math.round((ws?.active?ws.beast.hpCur/Math.max(1,ws.beast.hpMax):p.hp/Math.max(1,effectiveHpMax))*100)));
+  const hpColor=ws?.active?'#4caf50':pct>50?'#4caf50':pct>25?'#ff9800':'#e53935';
+  const caBonus=(p.statuses||[]).filter(s=>s.stat==='ca').reduce((a,s)=>a+(parseInt(s.value)||0),0);
+  const hpBonus=(p.statuses||[]).filter(s=>s.stat==='hp').reduce((a,s)=>a+(parseInt(s.value)||0),0);
+  const caDisplay=p.ac+caBonus;
+  const dexM=mod(p.abilities[1]);
+  // Caracs (lecture seule joueur / éditables MJ / forme sauvage)
+  const caracs=ABILITIES_SH.map((ab,i)=>{
+    const totalBonus=(p.statuses||[]).filter(s=>s.stat===ab.toLowerCase()).reduce((a,s)=>a+(parseInt(s.value)||0),0);
+    const finalVal=p.abilities[i]+totalBonus;
+    if(ws?.active) return `<div class="rail-carac" style="border-color:#4caf50"><div class="rail-carac-n">${ab}</div><div class="rail-carac-v" style="color:#4caf50">${ws.beast.ab[i]}</div><div class="rail-carac-m" style="color:#4caf50">${fmt(Math.floor((ws.beast.ab[i]-10)/2))}</div></div>`;
+    if(mj) return `<div class="rail-carac"><div class="rail-carac-n">${ab}</div><input type="number" min="1" max="30" value="${p.abilities[i]}" oninput="P().abilities[${i}]=Math.min(30,Math.max(1,parseInt(this.value)||10));render()" class="rail-carac-input"><div class="rail-carac-m">${fmt(mod(finalVal))}</div></div>`;
+    return `<div class="rail-carac"><div class="rail-carac-n">${ab}</div><div class="rail-carac-v"${totalBonus?' style="color:#4caf50"':''}>${finalVal}</div><div class="rail-carac-m">${fmt(mod(finalVal))}</div></div>`;
+  }).join('');
+  // Bloc PV (normal ou forme sauvage)
+  let hpBlock;
+  if(ws?.active){
+    hpBlock=`<div class="rail-hp-top"><span style="color:#4caf50">🐺 PV bête</span><span>${ws.beast.hpCur}/${ws.beast.hpMax}</span></div>
+      <div class="hp-bar"><div class="hp-fill" style="width:${pct}%;background:#4caf50"></div></div>
+      <div class="hp-ctrl"><input class="fi" id="hpDelta" type="number" placeholder="±" style="width:58px"><button class="btn bsm" style="background:#b71c1c;color:#fff;border-color:#b71c1c" onclick="applyHp(-1)">Dégâts</button><button class="btn bsm" style="background:#2e7d32;color:#fff;border-color:#2e7d32" onclick="applyHp(1)">Soins</button></div>
+      <button class="btn bsm" style="width:100%;margin-top:6px;border-color:rgba(76,175,80,.5);color:#4caf50" onclick="revertWildshape()">↩ Reprendre forme</button>`;
+  } else {
+    const dmgSel=(()=>{const er=getEffectiveResistances(p),ei=getEffectiveImmunities(p);if(!er.length&&!ei.length)return'';return `<select id="hpDmgType" class="fi" style="width:auto;padding:5px 6px;font-size:12px" title="Type de dégâts"><option value="">Type…</option>${er.map(t=>`<option value="${esc(t)}">🛡 ${esc(t)}</option>`).join('')}${ei.filter(t=>!er.includes(t)).map(t=>`<option value="${esc(t)}">✦ ${esc(t)}</option>`).join('')}</select>`;})();
+    hpBlock=`${p.hp<=0?`<div class="rail-down">💀 À TERRE — 0 PV${p.deathSaves?.fail>=3?' ☠':''}</div>`:''}
+      <div class="rail-hp-top"><span>❤ PV</span><span>${p.hp}${hpBonus?`<span style="color:#4caf50"> +${hpBonus}</span>`:''}/${effectiveHpMax}${_exhLvl>=4?' ½':''}${(p.hpTemp||0)>0?`<span style="color:#4caf50"> (+${p.hpTemp})</span>`:''}</span></div>
+      <div class="hp-bar"><div class="hp-fill" style="width:${pct}%;background:${hpColor}"></div></div>
+      ${(p.shieldHp||0)>0?`<div class="rail-shield">🔵 Bouclier ${p.shieldHp}/${p.shieldHpMax||p.shieldHp}</div>`:''}
+      <div class="hp-ctrl">
+        <input class="fi" id="hpDelta" type="number" placeholder="±" style="width:58px">
+        ${dmgSel}
+        <button class="btn bsm" style="background:#b71c1c;color:#fff;border-color:#b71c1c" onclick="applyHp(-1)">Dégâts</button>
+        <button class="btn bsm" style="background:#2e7d32;color:#fff;border-color:#2e7d32" onclick="applyHp(1)">Soins</button>
+      </div>
+      ${mj?`<div class="rail-mjhp"><label>PV max <input type="number" min="1" value="${p.hpMax}" oninput="P().hpMax=Math.max(1,parseInt(this.value)||1);render()"></label><label>Temp <input type="number" min="0" value="${p.hpTemp||0}" oninput="P().hpTemp=Math.max(0,parseInt(this.value)||0)"></label></div>`:''}
+      ${p.hp<=0?`<div class="rail-ds"><span style="color:#4caf50">✓</span>${[0,1,2].map(i=>`<span class="ds-circle${i<(p.deathSaves?.success||0)?' s':''}" onclick="cycleDS('success',${i})"></span>`).join('')}<span style="color:#e53935;margin-left:10px">✗</span>${[0,1,2].map(i=>`<span class="ds-circle${i<(p.deathSaves?.fail||0)?' f':''}" onclick="cycleDS('fail',${i})"></span>`).join('')}</div>`:''}`;
+  }
+  // Vitesse (forme sauvage / barbare rapide / épuisement)
+  const _barbLvl=((p.classes||[]).find(c=>c.name==='Barbare')||{}).level||0;
+  const _chestSrd=((p.equip||{}).chest?.name)?SRD.armors.find(a=>a.name===((p.equip||{}).chest?.name)):null;
+  const _isHeavy=!!(_chestSrd&&_chestSrd.type!=='Bouclier'&&_chestSrd.type!=='Légère'&&_chestSrd.type!=='Intermédiaire');
+  const _fastMove=_barbLvl>=5&&!_isHeavy;
+  const _spdBase=(p.speed||9)+(_fastMove?3:0);
+  const _spd=_exhLvl>=5?0:(_exhLvl>=2?Math.floor(_spdBase/2):_spdBase);
+  const spdVal=ws?.active?ws.beast.speed:(_spd+' m');
+  const caVal=ws?.active?ws.beast.ac:caDisplay;
+  const initVal=ws?.active?fmt(Math.floor((ws.beast.ab[1]-10)/2)):fmt(dexM);
+  const resist=(typeof getEffectiveResistances==='function')?getEffectiveResistances(p):[];
+  const chips=(p.statuses||[]).slice(0,8).map(s=>`<span class="rail-chip">${esc(s.icon||'•')} ${esc(s.name||s.stat||'')}</span>`).join('')+resist.map(t=>`<span class="rail-chip rail-resist">🛡 ${esc(t)}</span>`).join('');
   return `
     <div class="rail-id">
-      ${p.portrait?`<img class="rail-portrait" src="${p.portrait}">`:`<div class="rail-portrait rail-portrait-ph">🧑</div>`}
+      ${p.portrait?`<img class="rail-portrait" src="${p.portrait}" onclick="document.getElementById('portInput')?.click()">`:`<div class="rail-portrait rail-portrait-ph" onclick="document.getElementById('portInput')?.click()">🧑</div>`}
+      <input type="file" id="portInput" accept="image/jpeg,image/png" style="display:none" onchange="uploadPortrait(this)">
       <div class="rail-id-txt" style="min-width:0">
-        <div class="rail-name">${esc(p.charName||'Personnage')}</div>
+        <div class="rail-name">${esc(p.charName||'Personnage')}${ws?.active?' 🐺':''}</div>
         <div class="rail-sub">${esc(p.race||'')}${cls?' · '+esc(cls):''}</div>
         ${align?`<div class="rail-sub2">${esc(align)}</div>`:''}
       </div>
     </div>
     <div class="rail-vitals">
-      <div class="rail-hp">
-        <div class="rail-hp-top"><span>❤ PV</span><span>${p.hp}/${effHpMax}${(p.hpTemp||0)>0?` <span style="color:#4caf50">+${p.hpTemp}</span>`:''}</span></div>
-        <div class="hp-bar"><div class="hp-fill" style="width:${pct}%;background:${hpColor}"></div></div>
-      </div>
-      <div class="rail-statline">
-        <div class="rail-stat"><div class="rail-stat-l">🛡 CA</div><div class="rail-stat-v">${ca}</div></div>
-        <div class="rail-stat"><div class="rail-stat-l">⚡ Init</div><div class="rail-stat-v">${fmt(dexM)}</div></div>
+      ${hpBlock}
+      <div class="rail-statline rail-statline-3" style="margin-top:8px">
+        <div class="rail-stat"><div class="rail-stat-l">🛡 CA</div><div class="rail-stat-v">${caVal}</div></div>
+        <div class="rail-stat"><div class="rail-stat-l">⚡ Init</div><div class="rail-stat-v">${initVal}</div></div>
+        <div class="rail-stat"><div class="rail-stat-l">👣</div><div class="rail-stat-v" style="font-size:14px">${spdVal}</div></div>
       </div>
     </div>
-    <div class="rail-caracs">
-      ${ABILITIES_SH.map((ab,i)=>`<div class="rail-carac"><div class="rail-carac-n">${ab}</div><div class="rail-carac-v">${p.abilities[i]}</div><div class="rail-carac-m">${fmt(mod(p.abilities[i]))}</div></div>`).join('')}
-    </div>
+    <div class="rail-caracs">${caracs}</div>
     ${chips?`<div class="rail-sec"><div class="rail-sec-t">États & résistances</div><div class="rail-chips">${chips}</div></div>`:''}`;
 }
 
@@ -64,124 +101,7 @@ function tabPerso(p){
   return`<div class="g2">
   <!-- COLONNE GAUCHE -->
   <div>
-    <!-- Portrait -->
-    <div class="panel mb10" style="text-align:center">
-      <div class="pt">Portrait</div>
-      <div class="eq-portrait" style="height:170px;margin:0 auto;max-width:130px" onclick="document.getElementById('portInput').click()">
-        ${p.portrait?`<img src="${p.portrait}">`:`<div class="eq-portrait-hint">📷<br>Cliquer</div>`}
-      </div>
-      <input type="file" id="portInput" accept="image/jpeg,image/png" style="display:none" onchange="uploadPortrait(this)">
-      ${p.portrait?`<button class="btn bsm bdanger" style="margin-top:6px" onclick="upd('portrait',null);render()">Supprimer</button>`:''}
-    </div>
-
-    <!-- Statistiques (lecture seule joueur / éditables MJ) -->
-    <div class="panel mb10">
-      <div class="pt" style="display:flex;align-items:center;justify-content:space-between"><span>Statistiques</span>${ws?.active?`<span style="font-size:10px;color:#4caf50;border:1px solid #4caf50;border-radius:10px;padding:2px 8px">🐺 Forme sauvage</span>`:isMJ()?`<span style="font-size:10px;color:var(--cp);border:1px solid var(--cp);border-radius:10px;padding:2px 8px">🎲 MJ</span>`:''}</div>
-      ${ws?.active?`<div style="background:rgba(76,175,80,.08);border:1px solid rgba(76,175,80,.35);border-radius:8px;padding:10px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:8px">
-        <div style="display:flex;align-items:center;gap:8px"><span style="font-size:24px">${ws.beast.icon}</span><div><div style="font-size:13px;font-weight:700;color:#4caf50">🐺 ${esc(ws.beast.name)}</div><div style="font-size:10px;color:var(--text3)">CA ${ws.beast.ac} • ${ws.beast.speed}</div></div></div>
-        <button class="btn bsm" style="border-color:rgba(76,175,80,.5);color:#4caf50;white-space:nowrap" onclick="revertWildshape()">↩ Reprendre forme</button>
-      </div>`:''}
-      <div class="g6 mb10">
-        ${ABILITIES.map((ab,i)=>{
-          const statKey=ABILITIES_SH[i].toLowerCase();
-          const statBonuses=(p.statuses||[]).filter(s=>s.stat===statKey);
-          const totalBonus=statBonuses.reduce((a,s)=>a+(parseInt(s.value)||0),0);
-          const finalVal=p.abilities[i]+totalBonus;
-          const hasBonus=totalBonus>0;const hasMalus=totalBonus<0;
-          if(ws?.active){
-            return`<div class="sb hi" style="border-color:#4caf50;box-shadow:0 0 8px rgba(76,175,80,.2)">
-              <div class="sn" style="color:var(--text3)">${ABILITIES_SH[i]}</div>
-              <div style="font-size:20px;font-weight:700;color:#4caf50">${ws.beast.ab[i]}</div>
-              <div class="sm" style="color:#4caf50">${fmt(Math.floor((ws.beast.ab[i]-10)/2))}</div>
-              <div style="font-size:9px;color:var(--text3);margin-top:1px">🧝 ${p.abilities[i]}</div>
-            </div>`;
-          }
-          if(isMJ()){
-            return`<div class="sb hi" style="${hasBonus?'border-color:#4caf50':hasMalus?'border-color:#e53935':''}">
-              <div class="sn">${ABILITIES_SH[i]}</div>
-              <input type="number" min="1" max="30" value="${p.abilities[i]}" oninput="P().abilities[${i}]=Math.min(30,Math.max(1,parseInt(this.value)||10));render()" style="width:100%;text-align:center;font-size:20px;font-weight:600;background:transparent;border:none;color:${hasBonus?'#4caf50':hasMalus?'#e53935':'var(--text)'};outline:none;padding:0">
-              <div class="sm" style="color:${hasBonus?'#4caf50':hasMalus?'#e53935':'var(--cp)'}">${fmt(mod(finalVal))}</div>
-              ${totalBonus?`<div style="font-size:9px;color:${hasBonus?'#4caf50':'#e53935'};margin-top:1px">${totalBonus>0?'+':''}${totalBonus}</div>`:''}
-            </div>`;
-          }
-          return`<div class="sb hi" style="${hasBonus?'border-color:#4caf50;box-shadow:0 0 8px rgba(76,175,80,.3)':hasMalus?'border-color:#e53935;box-shadow:0 0 8px rgba(229,57,53,.3)':''}">
-            <div class="sn">${ABILITIES_SH[i]}</div>
-            <div style="font-size:22px;font-weight:600;color:${hasBonus?'#4caf50':hasMalus?'#e53935':'var(--text)'}">${finalVal}</div>
-            <div class="sm" style="color:${hasBonus?'#4caf50':hasMalus?'#e53935':'var(--cp)'}">${fmt(mod(finalVal))}</div>
-            ${totalBonus?`<div style="font-size:9px;color:${hasBonus?'#4caf50':'#e53935'};margin-top:1px">${totalBonus>0?'+':''}${totalBonus} statut</div>`:''}
-          </div>`;
-        }).join('')}
-      </div>
-      <!-- PV -->
-      ${ws?.active?`
-      <div class="g2 mb6">
-        <div class="sb hi" style="border-color:#4caf50;box-shadow:0 0 8px rgba(76,175,80,.2)">
-          <div class="sn" style="color:#4caf50">🐺 PV bête</div>
-          <div style="font-size:22px;font-weight:700;color:#4caf50">${ws.beast.hpCur}</div>
-          <div class="sm" style="color:#4caf50">${ws.beast.hpCur} / ${ws.beast.hpMax}</div>
-        </div>
-        <div class="sb" style="opacity:.65">
-          <div class="sn">🔒 PV druide</div>
-          <div style="font-size:20px;font-weight:700;color:var(--text3)">${ws.savedHp}</div>
-          <div class="sm" style="color:var(--text3)">${ws.savedHp}/${p.hpMax} (gelés)</div>
-        </div>
-      </div>
-      <div class="hp-bar"><div class="hp-fill" style="width:${pct}%;background:#4caf50"></div></div>
-      <div class="hp-ctrl">
-        <input class="fi" id="hpDelta" type="number" placeholder="montant" style="width:70px">
-        <button class="btn bsm" style="background:#b71c1c;color:#fff;border-color:#b71c1c" onclick="applyHp(-1)">Dégâts bête</button>
-        <button class="btn bsm" style="background:#2e7d32;color:#fff;border-color:#2e7d32" onclick="applyHp(1)">Soins bête</button>
-      </div>
-      <div class="g3 mt8">
-        <div class="sb" style="border-color:#4caf50"><div class="sn" style="color:#4caf50">CA bête</div><div style="font-size:20px;font-weight:700;color:#4caf50">${ws.beast.ac}</div></div>
-        <div class="sb"><div class="sn">Initiative</div><div class="sm" style="font-size:20px;font-weight:600">${fmt(Math.floor((ws.beast.ab[1]-10)/2))}</div></div>
-        <div class="sb" style="border-color:#4caf50"><div class="sn" style="color:#4caf50">Vitesse</div><div style="font-size:14px;font-weight:600;color:#4caf50">${ws.beast.speed}</div></div>
-      </div>`:`
-      ${p.hp<=0&&!ws?.active?`<div style="background:rgba(229,57,53,.15);border:1px solid #e53935;border-radius:8px;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;animation:combatPulse 2s ease-in-out infinite">
-        <span style="font-size:14px;font-weight:700;color:#e53935">💀 À TERRE — 0 PV</span>
-        <span style="font-size:11px;color:var(--text3)">${p.deathSaves?.fail>=3?'☠ Mort':'Lancez vos jets de mort'}</span>
-      </div>`:''}
-      <div class="g3 mb6">
-        <div class="sb hi" style="${p.hp<=0&&!ws?.active?'border-color:#e53935;box-shadow:0 0 8px rgba(229,57,53,.3)':''}"><div class="sn">PV actuels</div><div style="font-size:20px;font-weight:700;color:${p.hp<=0?'#e53935':hpBonus?'var(--cp)':'var(--text)'}">${p.hp}${hpBonus?`<span style="font-size:12px;color:#4caf50"> +${hpBonus}</span>`:''}</div><div class="sm">${p.hp}/${effectiveHpMax}${_exhLvl>=4?`<span style="color:#e53935"> ½</span>`:''}</div></div>
-        <div class="sb" style="${_exhLvl>=4?'border-color:rgba(229,57,53,.4)':''}"><div class="sn">PV max</div>${isMJ()?`<input type="number" min="1" max="999" value="${p.hpMax}" oninput="P().hpMax=Math.max(1,parseInt(this.value)||1);render()" style="width:100%;text-align:center;font-size:18px;font-weight:700;background:transparent;border:none;color:var(--cp);outline:none;padding:2px 0">`:` <div style="font-size:20px;font-weight:700;color:${_exhLvl>=4?'#e53935':'var(--text)'}">${effectiveHpMax}${_exhLvl>=4?`<div style="font-size:9px;color:#e53935;margin-top:1px">÷2 😵 Épuisement</div>`:''}</div>`}</div>
-        <div class="sb"><div class="sn">PV temp.</div>${isMJ()?`<input type="number" min="0" max="999" value="${p.hpTemp||0}" oninput="P().hpTemp=Math.max(0,parseInt(this.value)||0)" style="width:100%;text-align:center;font-size:18px;font-weight:700;background:transparent;border:none;color:var(--text);outline:none;padding:2px 0">`:` <div style="font-size:20px;font-weight:700">${p.hpTemp||0}</div>`}</div>
-      </div>
-      <div class="hp-bar"><div class="hp-fill" style="width:${pct}%;background:${hpColor}"></div></div>
-      ${(p.shieldHp||0)>0?`<div style="margin-top:4px;padding:5px 8px;background:rgba(33,150,243,.08);border:1px solid rgba(33,150,243,.3);border-radius:6px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px"><span style="font-size:10px;font-weight:600;color:#42a5f5">🔵 Bouclier magique</span><span style="font-size:10px;color:#42a5f5;font-weight:700">${p.shieldHp} / ${p.shieldHpMax||p.shieldHp} PV</span></div><div style="height:5px;background:rgba(33,150,243,.15);border-radius:3px;overflow:hidden"><div style="height:100%;width:${Math.round((p.shieldHp/Math.max(1,p.shieldHpMax||p.shieldHp))*100)}%;background:#1565c0;border-radius:3px"></div></div></div>`:''}
-      <div class="hp-ctrl">
-        <input class="fi" id="hpDelta" type="number" placeholder="montant" style="width:70px">
-        ${(()=>{const er=getEffectiveResistances(p),ei=getEffectiveImmunities(p);if(!er.length&&!ei.length)return'';return`<select id="hpDmgType" class="fi" style="width:auto;padding:6px 8px" title="Type de dégâts (résistances / immunités)"><option value="">Type…</option>${er.map(t=>`<option value="${esc(t)}">🛡 ${esc(t)}</option>`).join('')}${ei.filter(t=>!er.includes(t)).map(t=>`<option value="${esc(t)}">✦ ${esc(t)}</option>`).join('')}</select>`;})()}
-        <button class="btn bsm" style="background:#b71c1c;color:#fff;border-color:#b71c1c" onclick="applyHp(-1)">Dégâts</button>
-        <button class="btn bsm" style="background:#2e7d32;color:#fff;border-color:#2e7d32" onclick="applyHp(1)">Soins</button>
-      </div>
-      <div class="g3 mt8">
-        <div class="sb"><div class="sn">CA</div><div style="font-size:20px;font-weight:700;color:${caBonus?'var(--cp)':'var(--text)'}">${caDisplay}</div></div>
-        <div class="sb"><div class="sn">Initiative</div><div class="sm" style="font-size:20px;font-weight:600">${fmt(dexM)}</div></div>
-        ${(()=>{
-          const _barbLvl=((p.classes||[]).find(c=>c.name==='Barbare')||{}).level||0;
-          const _chestSrd=((p.equip||{}).chest?.name)?SRD.armors.find(a=>a.name===((p.equip||{}).chest?.name)):null;
-          const _isHeavy=!!(_chestSrd&&_chestSrd.type!=='Bouclier'&&_chestSrd.type!=='Légère'&&_chestSrd.type!=='Intermédiaire');
-          const _fastMove=_barbLvl>=5&&!_isHeavy;
-          const _spdBase=(p.speed||9)+(_fastMove?3:0);
-          const _exhS=p.exhaustion||0;
-          const _spd=_exhS>=5?0:(_exhS>=2?Math.floor(_spdBase/2):_spdBase);
-          const _spdExhNote=_exhS>=5?'<div style="font-size:9px;color:#e53935;margin-top:1px">😵 Vitesse 0</div>':(_exhS>=2?'<div style="font-size:9px;color:#ff9800;margin-top:1px">÷2 😰 Épuisement</div>':'');
-          const _spdBorder=_fastMove?'border-color:rgba(229,57,53,.4)':(_exhS>=5?'border-color:#e53935':(_exhS>=2?'border-color:rgba(255,152,0,.4)':''));
-          return`<div class="sb" style="${_spdBorder}"><div class="sn">Vitesse (m)</div>
-            <div style="font-size:18px;font-weight:700;color:${_fastMove?'#e53935':(_exhS>=5?'#e53935':(_exhS>=2?'#ff9800':'var(--text))'))}">${_spd}</div>
-            ${_fastMove?'<div style="font-size:9px;color:#e53935;margin-top:1px">+3m 💨 Rapide</div>':''}${_spdExhNote}
-          </div>`;
-        })()}
-      </div>`}
-      <!-- Jets de mort -->
-      ${ws?.active?'':`<div style="margin-top:10px"><div class="fl mb6">Jets de mort</div>
-        <div style="display:flex;gap:16px;align-items:center">
-          <div style="display:flex;align-items:center;gap:4px"><span style="font-size:11px;color:#4caf50">✓</span>${[0,1,2].map(i=>`<span class="ds-circle${i<p.deathSaves.success?' s':''}" onclick="cycleDS('success',${i})"></span>`).join('')}</div>
-          <div style="display:flex;align-items:center;gap:4px"><span style="font-size:11px;color:#e53935">✗</span>${[0,1,2].map(i=>`<span class="ds-circle${i<p.deathSaves.fail?' f':''}" onclick="cycleDS('fail',${i})"></span>`).join('')}</div>
-          <button class="btn bsm" onclick="upd('deathSaves',{success:0,fail:0});render()">Reset</button>
-        </div>
-      </div>`}
-    </div>
+    <!-- (Portrait + Statistiques déplacés dans le rail perso — renderCharRail) -->
 
     ${ws?.active?`<div class="panel mb10" style="border-color:rgba(76,175,80,.4);background:rgba(76,175,80,.04)">
       <div class="pt" style="color:#4caf50;display:flex;align-items:center;gap:6px">${ws.beast.icon} ${esc(ws.beast.name)} — Attaques & Traits</div>

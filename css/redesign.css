@@ -90,6 +90,18 @@
 .rail-chips{display:flex;flex-wrap:wrap;gap:5px}
 .rail-chip{font-size:11.5px;padding:2px 8px;border-radius:9px;background:var(--surface);border:1px solid var(--border);color:var(--text2)}
 .rail-resist{border-color:rgba(200,168,75,.35);color:var(--cp)}
+/* Rail interactif : PV/caracs éditables, jets de mort, vitesse */
+.rail-statline-3{grid-template-columns:1fr 1fr 1fr !important}
+.rail-carac-input{width:100%;text-align:center;font-size:17px;font-weight:700;background:transparent;border:none;color:var(--text);outline:none;padding:0}
+.char-rail .hp-ctrl{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.char-rail .hp-ctrl .btn{flex:1 1 auto;min-width:62px}
+.char-rail .hp-ctrl .fi{flex:0 0 auto}
+.rail-mjhp{display:flex;gap:6px;margin-top:6px}
+.rail-mjhp label{flex:1;font-size:10px;color:var(--text3);display:flex;flex-direction:column;gap:2px}
+.rail-mjhp input{width:100%;text-align:center;font-size:14px;font-weight:700;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--cp);padding:3px}
+.rail-shield{margin-top:5px;font-size:11px;color:#42a5f5;background:rgba(33,150,243,.08);border:1px solid rgba(33,150,243,.3);border-radius:6px;padding:3px 8px}
+.rail-ds{display:flex;align-items:center;gap:4px;margin-top:8px;font-size:12px}
+.rail-down{background:rgba(229,57,53,.15);border:1px solid #e53935;border-radius:8px;padding:5px 10px;margin-bottom:6px;font-size:12px;font-weight:700;color:#e53935;text-align:center;animation:combatPulse 2s ease-in-out infinite}
 /* Mobile : le rail reste en haut, compact (id + vitaux + caracs) */
 @media(max-width:899px){
   .char-rail{padding:12px}
