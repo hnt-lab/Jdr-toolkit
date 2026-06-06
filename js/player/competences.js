@@ -215,7 +215,7 @@ const FEATS_SRD=[
   {name:"Conduit divin",classe:"Clerc/Paladin",desc:"Effets cumulables, pas les utilisations."},
   {name:"Métamagie",classe:"Ensorceleur",desc:"Dépense des points de sorcellerie pour modifier tes sorts."},
 ];
-function renderFeatList(q){return FEATS_SRD.filter(f=>!q||f.name.toLowerCase().includes(q.toLowerCase())).map(f=>`<div class="aci" onclick="addFeat('${esc(f.name)}','${esc(f.desc)}','${esc(f.classe)}')"><div class="ain">${esc(f.name)}</div><div class="ais">${esc(f.desc.slice(0,80))}…</div></div>`).join('')||'<div style="color:var(--text3);font-size:12px;padding:8px">Aucun résultat.</div>';}
+function renderFeatList(q){return FEATS_SRD.filter(f=>!q||f.name.toLowerCase().includes(q.toLowerCase())).map(f=>`<div class="aci" onclick="addFeat('${jsq(f.name)}','${jsq(f.desc)}','${jsq(f.classe)}')"><div class="ain">${esc(f.name)}</div><div class="ais">${esc(f.desc.slice(0,80))}…</div></div>`).join('')||'<div style="color:var(--text3);font-size:12px;padding:8px">Aucun résultat.</div>';}
 function filterFeats(q){const el=document.getElementById('featList');if(el)el.innerHTML=renderFeatList(q);}
 function addFeat(name,desc,classe){P().features.push({name,desc,classe});closeModal();render();}
 function addCustomFeat(){const n=document.getElementById('featCustomName')?.value;const d=document.getElementById('featCustomDesc')?.value;if(!n)return;P().features.push({name:n,desc:d||'',classe:''});closeModal();render();}

@@ -211,8 +211,8 @@ function tabCombat(p){
             ${w.ammoLink?`<button class="btn bsm" style="font-size:10px" onclick="unlinkRangedAmmo()">↩ Délier ${esc(w.ammoLink)}</button>`:
             `<button class="btn bsm" style="font-size:10px" onclick="openLinkAmmoModal()">🏹 Lier des munitions</button>`}
           </div>`:''}
-          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">${isOffhand?`<button class="btn bsm${temActive?' bac':''}" onclick="rollAttack('${esc(w.name)}',${atkBonus},'${esc(dmgStr)}','${w.slot}',${dmgBonus},false,${temActive&&!isRanged?1:0})">🎲${temActive?' ⚡':''} Att. bonus</button>`:Array.from({length:attackCount},(_,ai)=>`<button class="btn bsm${temActive&&!isRanged?' bac':''}" onclick="rollAttack('${esc(w.name)}',${atkBonus},'${esc(dmgStr)}','${w.slot}',${dmgBonus},${isTwoHandedStyle},${temActive&&!isRanged?1:0})">🎲${temActive&&!isRanged?' ⚡':''}${attackCount>1?' Att.'+(ai+1):'  Attaque'}</button>`).join('')}</div>
-          ${frenActive&&!isRanged&&!isOffhand?`<div style="margin-top:4px"><button class="btn bsm" style="border-color:#b71c1c;color:#b71c1c;background:rgba(183,28,28,.12)" onclick="rollAttack('${esc(w.name)}',${atkBonus},'${esc(dmgStr)}','${w.slot}',${dmgBonus},false,${temActive?1:0})">💢 Frénésie (bonus)</button></div>`:''}
+          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">${isOffhand?`<button class="btn bsm${temActive?' bac':''}" onclick="rollAttack('${jsq(w.name)}',${atkBonus},'${esc(dmgStr)}','${w.slot}',${dmgBonus},false,${temActive&&!isRanged?1:0})">🎲${temActive?' ⚡':''} Att. bonus</button>`:Array.from({length:attackCount},(_,ai)=>`<button class="btn bsm${temActive&&!isRanged?' bac':''}" onclick="rollAttack('${jsq(w.name)}',${atkBonus},'${esc(dmgStr)}','${w.slot}',${dmgBonus},${isTwoHandedStyle},${temActive&&!isRanged?1:0})">🎲${temActive&&!isRanged?' ⚡':''}${attackCount>1?' Att.'+(ai+1):'  Attaque'}</button>`).join('')}</div>
+          ${frenActive&&!isRanged&&!isOffhand?`<div style="margin-top:4px"><button class="btn bsm" style="border-color:#b71c1c;color:#b71c1c;background:rgba(183,28,28,.12)" onclick="rollAttack('${jsq(w.name)}',${atkBonus},'${esc(dmgStr)}','${w.slot}',${dmgBonus},false,${temActive?1:0})">💢 Frénésie (bonus)</button></div>`:''}
         </div>`;
       }).join(''):`<div style="font-size:12px;color:var(--text3);font-style:italic">Aucune arme équipée.</div>`}
       <div style="margin-top:10px;display:flex;gap:5px;flex-wrap:wrap">${['d4','d6','d8','d10','d12','d20'].map(d=>`<button class="dice-btn" onclick="rollDie('${d}')">🎲 ${d}</button>`).join('')}</div>
@@ -231,13 +231,13 @@ function tabCombat(p){
               <div style="font-size:13px;font-weight:600;color:var(--cp)">${esc(f.name)}</div>
               <div style="font-size:10px;color:var(--text3)">${esc(f.className)} • ${isPassive?'Passif':f.recovery==='short'?'Repos court':'Repos long'}</div>
             </div>
-            ${!isPassive&&maxCharges>0?`<div class="feat-bubbles" style="display:flex;gap:3px;align-items:center;flex-wrap:wrap;margin-right:8px;max-width:200px">${Array.from({length:maxCharges},(_,i)=>`<span class="slot-bubble${i<usedCharges?'':' used'}" onclick="event.stopPropagation();useCombatCharge('${esc(f.name)}',${maxCharges})"></span>`).join('')}</div>`:''}
+            ${!isPassive&&maxCharges>0?`<div class="feat-bubbles" style="display:flex;gap:3px;align-items:center;flex-wrap:wrap;margin-right:8px;max-width:200px">${Array.from({length:maxCharges},(_,i)=>`<span class="slot-bubble${i<usedCharges?'':' used'}" onclick="event.stopPropagation();useCombatCharge('${jsq(f.name)}',${maxCharges})"></span>`).join('')}</div>`:''}
             <span style="color:var(--text3);font-size:11px">▾</span>
           </div>
           <div class="feat-body" id="${fid}">
             <p>${esc(f.desc)}</p>
-            ${f.dice?`<button class="btn bsm" style="margin-top:6px" onclick="rollCustomDmg('${esc(f.dice)}','${esc(f.name)}')">🎲 ${esc(f.dice)}</button>`:''}
-            ${!isPassive&&maxCharges>0?`<button class="btn bsm" style="margin-top:6px" onclick="recoverCombatCharge('${esc(f.name)}',${maxCharges})">↺ Récupérer</button>`:''}
+            ${f.dice?`<button class="btn bsm" style="margin-top:6px" onclick="rollCustomDmg('${esc(f.dice)}','${jsq(f.name)}')">🎲 ${esc(f.dice)}</button>`:''}
+            ${!isPassive&&maxCharges>0?`<button class="btn bsm" style="margin-top:6px" onclick="recoverCombatCharge('${jsq(f.name)}',${maxCharges})">↺ Récupérer</button>`:''}
           </div>
         </div>`;
       }).join('')}
@@ -390,7 +390,7 @@ function openLinkAmmoModal(){
   const p=P();const inv=(p.inventory||[]).filter(i=>i.name&&i.qty>0);
   openModal(`<div class="pt">🏹 Lier des munitions à l'arme à distance</div>
     <div style="font-size:12px;color:var(--text3);margin-bottom:10px">Sélectionnez l'objet de munitions dans votre sac :</div>
-    ${inv.length?inv.map(item=>`<div class="aci" onclick="linkRangedAmmo('${esc(item.name)}')">
+    ${inv.length?inv.map(item=>`<div class="aci" onclick="linkRangedAmmo('${jsq(item.name)}')">
       <div class="ain">${esc(item.name)}</div>
       <div class="ais">Quantité : ${item.qty}</div>
     </div>`).join(''):`<div style="font-size:12px;color:var(--text3);padding:8px">Sac vide.</div>`}
@@ -569,7 +569,7 @@ function renderSpellList(p, combatOnly){
               ${rolls.length>1?`<div style="margin-top:6px;font-size:11px;color:var(--text3)">Progression: ${rolls.filter(r=>r[1]).map(r=>`Niv.${r[1]}: ${r[0]}`).join(' → ')}</div>`:''}
               ${damage||d&&d.savingThrow?`<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px">
                 ${d&&d.savingThrow?`<span style="font-size:11px;padding:2px 8px;background:rgba(200,168,75,.12);border-radius:8px;color:var(--cp)">JS ${esc(d.savingThrow)} DD ${spellDC}</span>`:''}
-                ${damage?`<button class="btn bsm" onclick="rollSpellPlayer('${esc(s.name)}','${esc(damage)}','${esc(d&&d.savingThrow||'')}')">🎲 Lancer ${esc(damage)}</button>`:''}
+                ${damage?`<button class="btn bsm" onclick="rollSpellPlayer('${jsq(s.name)}','${esc(damage)}','${esc(d&&d.savingThrow||'')}')">🎲 Lancer ${esc(damage)}</button>`:''}
               </div>`:''}
             `:`<p style="font-size:12px;color:var(--text3);display:flex;align-items:center;gap:8px">Données non disponibles. <button class="btn bsm" style="font-size:10px;padding:2px 8px" onclick="loadSpellsDB(()=>render())">Charger le compendium</button></p>`}
           </div>

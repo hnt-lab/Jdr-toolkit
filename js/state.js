@@ -364,6 +364,8 @@ function pb(lvl){return Math.ceil(lvl/4)+1;}
 function mod(s){return Math.floor((s-10)/2);}
 function fmt(n){return n>=0?'+'+n:''+n;}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+// Échappement pour insérer une valeur dans une chaîne JS à l'intérieur d'un onclick="..." (apostrophes FR : « Nuée d'insectes »).
+function jsq(s){return String(s==null?'':s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;').replace(/[\r\n]/g,' ');}
 function mainClass(p){if(!p.classes||!p.classes.length)return null;return p.classes.reduce((a,b)=>a.level>=b.level?a:b);}
 function calcSpellSlots(p){
   // L'Occultiste utilise sa propre table (gérée séparément dans l'UI)
@@ -611,7 +613,7 @@ function deletePlayer(){
     <input class="fi" id="deleteConfirmInput" placeholder="${esc(nom)}" style="margin-bottom:12px">
     <div style="display:flex;gap:8px">
       <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
-      <button class="btn bdanger" style="flex:2" onclick="confirmDeletePlayer('${esc(nom)}')">🗑 Supprimer</button>
+      <button class="btn bdanger" style="flex:2" onclick="confirmDeletePlayer('${jsq(nom)}')">🗑 Supprimer</button>
     </div>`);
   setTimeout(()=>{document.getElementById('deleteConfirmInput')?.focus();},50);
 }
@@ -770,9 +772,9 @@ function creStep6Sorts(){
       <div style="flex:1;padding:8px;background:var(--surface2);border-radius:8px;text-align:center"><div style="font-size:11px;color:var(--text3)">Sorts niv.1</div><div style="font-size:20px;font-weight:700;color:var(--cp)">${selL1.length}/${l1Max}</div></div>
     </div>
     <div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:6px">Sorts mineurs</div>
-    ${(SPELLS_DB||SRD.spells).filter(s=>s.level===0&&(!SPELLS_DB||(s.classes||[]).includes(CS.classe||''))).map(s=>{const isSel=sel.includes(s.name);const dis=!isSel&&selC.length>=cantripCount;return`<div class="sk-choice${isSel?' selected':dis?' disabled':''}" onclick="${dis?'':'creToggleSpell(\''+esc(s.name)+'\')'}"><span class="sk-dot${isSel?' p':''}"></span><span style="flex:1;font-size:13px">${esc(s.name)}</span><span style="font-size:11px;color:var(--text3)">${esc(s.school)} • ${esc(s.castTime)}</span>${isSel?`<span style="color:var(--cp)">✓</span>`:''}</div>`;}).join('')}
+    ${(SPELLS_DB||SRD.spells).filter(s=>s.level===0&&(!SPELLS_DB||(s.classes||[]).includes(CS.classe||''))).map(s=>{const isSel=sel.includes(s.name);const dis=!isSel&&selC.length>=cantripCount;return`<div class="sk-choice${isSel?' selected':dis?' disabled':''}" onclick="${dis?'':'creToggleSpell(\''+jsq(s.name)+'\')'}"><span class="sk-dot${isSel?' p':''}"></span><span style="flex:1;font-size:13px">${esc(s.name)}</span><span style="font-size:11px;color:var(--text3)">${esc(s.school)} • ${esc(s.castTime)}</span>${isSel?`<span style="color:var(--cp)">✓</span>`:''}</div>`;}).join('')}
     <div style="font-size:12px;font-weight:600;color:var(--cp);margin:10px 0 6px">Sorts de niveau 1</div>
-    ${getSpellsDB().filter(s=>s.level===1&&(!SPELLS_DB||(s.classes||[]).includes(CS.classe||''))).map(s=>{const isSel=sel.includes(s.name);const dis=!isSel&&selL1.length>=l1Max;return`<div class="sk-choice${isSel?' selected':dis?' disabled':''}" onclick="${dis?'':'creToggleSpell(\''+esc(s.name)+'\')'}"><span class="sk-dot${isSel?' p':''}"></span><span style="flex:1;font-size:13px">${esc(s.name)}</span><span style="font-size:11px;color:var(--text3)">${esc(s.school)}${s.damage?' • '+esc(s.damage):''}</span>${isSel?`<span style="color:var(--cp)">✓</span>`:''}</div>`;}).join('')}
+    ${getSpellsDB().filter(s=>s.level===1&&(!SPELLS_DB||(s.classes||[]).includes(CS.classe||''))).map(s=>{const isSel=sel.includes(s.name);const dis=!isSel&&selL1.length>=l1Max;return`<div class="sk-choice${isSel?' selected':dis?' disabled':''}" onclick="${dis?'':'creToggleSpell(\''+jsq(s.name)+'\')'}"><span class="sk-dot${isSel?' p':''}"></span><span style="flex:1;font-size:13px">${esc(s.name)}</span><span style="font-size:11px;color:var(--text3)">${esc(s.school)}${s.damage?' • '+esc(s.damage):''}</span>${isSel?`<span style="color:var(--cp)">✓</span>`:''}</div>`;}).join('')}
     <div style="display:flex;gap:8px;margin-top:12px"><button class="btn" style="flex:1" onclick="CS.step=5;renderTab()">← Retour</button><button class="btn bac" style="flex:2" onclick="CS.step=7;renderTab()" ${selC.length>=cantripCount&&selL1.length>=l1Max?'':'disabled'}>Continuer → Équipement</button></div>
   </div>`;
 }

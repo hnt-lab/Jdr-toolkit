@@ -1089,7 +1089,7 @@ function luStepSpells(p){
     <summary style="cursor:pointer;font-size:12px;color:var(--text2);list-style:none">🔄 Remplacer un sort connu <span style="color:var(--text3)">(optionnel — 1 par niveau)</span>${LU.swapOut?` <span style="color:var(--cp)">: ${esc(LU.swapOut)}</span>`:''}</summary>
     <div style="margin-top:8px">
       <p style="font-size:11px;color:var(--text3);margin-bottom:6px">Oublie un sort connu : tu pourras choisir 1 sort de plus ci-dessus en remplacement.</p>
-      ${ownLeveled.map(s=>{const on=LU.swapOut===s.name;return`<div class="sk-choice${on?' selected':''}" onclick="luToggleSwap('${esc(s.name)}')"><span class="sk-dot${on?' p':''}"></span><span style="flex:1;font-size:13px">${esc(s.name)}</span>${on?`<span style="color:var(--cp)">↺</span>`:''}</div>`;}).join('')}
+      ${ownLeveled.map(s=>{const on=LU.swapOut===s.name;return`<div class="sk-choice${on?' selected':''}" onclick="luToggleSwap('${jsq(s.name)}')"><span class="sk-dot${on?' p':''}"></span><span style="flex:1;font-size:13px">${esc(s.name)}</span>${on?`<span style="color:var(--cp)">↺</span>`:''}</div>`;}).join('')}
     </div>
   </details>`:'';
   const needLabel=[needCantrip?`${needCantrip} sort mineur`:'',leveledCount?`${leveledCount} sort${leveledCount>1?'s':''}`:''].filter(Boolean).join(' + ')||'aucun sort';

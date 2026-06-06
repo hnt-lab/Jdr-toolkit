@@ -193,7 +193,7 @@ function _renderLongRestPrepModal(p){
   const shown=q?list.filter(s=>s.name.toLowerCase().includes(q)||(s.nameEN||'').toLowerCase().includes(q)):list;
   const byLvl={};shown.forEach(s=>{(byLvl[s.level]=byLvl[s.level]||[]).push(s);});
   const full=_lrPrep.sel.size>=N;
-  const row=s=>{const on=_lrPrep.sel.has(s.name);const dis=!on&&full;return`<div class="sk-choice${on?' selected':dis?' disabled':''}" onclick="${dis?'':`_lrPrepToggle('${esc(s.name)}')`}"><span class="sk-dot${on?' p':''}"></span><span style="flex:1;font-size:13px">${esc(s.name)}</span><span style="font-size:11px;color:var(--text3)">${esc(s.school||'')}</span>${on?'<span style="color:var(--cp)">✓</span>':''}</div>`;};
+  const row=s=>{const on=_lrPrep.sel.has(s.name);const dis=!on&&full;return`<div class="sk-choice${on?' selected':dis?' disabled':''}" onclick="${dis?'':`_lrPrepToggle('${jsq(s.name)}')`}"><span class="sk-dot${on?' p':''}"></span><span style="flex:1;font-size:13px">${esc(s.name)}</span><span style="font-size:11px;color:var(--text3)">${esc(s.school||'')}</span>${on?'<span style="color:var(--cp)">✓</span>':''}</div>`;};
   let body='';
   Object.keys(byLvl).map(Number).sort((a,b)=>a-b).forEach(l=>{body+=`<div style="font-size:12px;font-weight:600;color:var(--cp);margin:8px 0 4px">Niveau ${l}</div>${byLvl[l].map(row).join('')}`;});
   if(!shown.length)body=`<div style="font-size:12px;color:var(--text3);padding:8px 0">Aucun sort.</div>`;
@@ -267,7 +267,7 @@ function renderLearnSpell(p, magLvl){
               <div style="font-size:11px;color:var(--text3)">Niv.${s.level} • ${esc(s.school)} • ${esc(s.castTime)}</div>
               <div style="font-size:11px;color:${canAfford?'#4caf50':'#e53935'};margin-top:2px">${cost} po — ${canAfford?'✓ Fonds suffisants':'✗ Fonds insuffisants'}</div>
             </div>
-            <button class="btn bsm${canAfford?' bprimary':''}" onclick="learnSpell('${esc(s.name)}',${s.level},${cost})" ${canAfford?'':'disabled'}>Copier</button>
+            <button class="btn bsm${canAfford?' bprimary':''}" onclick="learnSpell('${jsq(s.name)}',${s.level},${cost})" ${canAfford?'':'disabled'}>Copier</button>
           </div>`;
         }).join('')}
       </div>
@@ -344,8 +344,8 @@ function renderCompendiumSearch(p){
               <div style="font-size:11px;color:var(--text3);margin-top:2px">${s.classes.join(', ')}</div>
             </div>
             ${already
-              ? `<button class="btn bsm bdanger" onclick="removeSpellFromChar('${esc(s.name)}')">Retirer</button>`
-              : `<button class="btn bsm bprimary" onclick="addSpellToChar('${esc(s.name)}')">+ Ajouter</button>`
+              ? `<button class="btn bsm bdanger" onclick="removeSpellFromChar('${jsq(s.name)}')">Retirer</button>`
+              : `<button class="btn bsm bprimary" onclick="addSpellToChar('${jsq(s.name)}')">+ Ajouter</button>`
             }
           </div>`;
         }).join('')}
