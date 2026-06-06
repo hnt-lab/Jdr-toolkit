@@ -510,7 +510,7 @@ function renderTabBar(){
     {id:'perso',label:'🧑 Perso'},
     {id:'competences',label:'🎯 Compétences'},
     {id:'combat',label:'⚔️ Combat'},
-    {id:'sorts',label:'✨ Sorts'},
+    {id:'sorts',label:'✨ Sorts',cls:((p.concentrationSpell||(p.statuses||[]).some(s=>s.name==='Concentration'))?'conc-pulse':'')},
     {id:'equipement',label:'🛡️ Équip.'},
     {id:'sac',label:'🎒 Sac'},
     {id:'historique',label:'📖 Historique'},
@@ -671,7 +671,7 @@ function creStep2(){
     <div class="crd-grid">${SRD.classes.map(c=>`<div class="crd${CS.classe===c.name?' selected':''}" onclick="CS.classe='${esc(c.name)}';CS.archetype=null;CS.combatStyle=null;renderTab()"><h3>${esc(c.name)}</h3><p>${c.hd}${c.spellcaster?' • ✦ sorts':''}</p><span class="tag">JS: ${c.saves.join(', ')}</span><span class="tag" style="color:var(--cp)">${c.skillCount} comp.</span><span class="tag" style="color:#ffd54f">★ ${(c.primaryStats||[]).join(', ')}</span></div>`).join('')}</div>
     ${CS.classe?`<div style="margin-top:12px;padding:10px;background:var(--surface2);border-radius:8px">${(()=>{const c=SRD.classes.find(cl=>cl.name===CS.classe);return c?`<div style="font-size:13px;font-weight:600;color:var(--cp)">${esc(c.name)}</div><div style="font-size:12px;color:var(--text2);margin-top:4px">Armures: ${esc(c.armor)} • Armes: ${esc(c.weapons)}</div>`:''})()}</div>
     ${hasArchetype?`<div style="margin-top:12px"><div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:8px">${CS.classe==='Ensorceleur'?'🔮 Choisis ton Origine draconique':'🌑 Choisis ton Mécène d\'Outremonde'} <span style="color:#e53935">*</span></div>
-      <div class="crd-grid">${archetypes.map(a=>`<div class="crd${CS.archetype===a.name?' selected':''}" onclick="CS.archetype='${esc(a.name)}';renderTab()"><h3>${a.icon||''} ${esc(a.name)}</h3><p>${esc(a.desc.slice(0,80))}…</p></div>`).join('')}</div>
+      <div class="crd-grid">${archetypes.map(a=>`<div class="crd${CS.archetype===a.name?' selected':''}" onclick="CS.archetype='${a.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}';renderTab()"><h3>${a.icon||''} ${esc(a.name)}</h3><p>${esc(a.desc.slice(0,80))}…</p></div>`).join('')}</div>
       ${CS.archetype?`<div style="margin-top:8px;padding:8px;background:var(--surface2);border-radius:6px;font-size:12px;color:#4caf50">✓ ${esc(CS.archetype)} sélectionné</div>`:''}</div>`:''}
     ${hasStyle?`<div style="margin-top:12px"><div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:8px">⚔ Choisis ton style de combat <span style="color:#e53935">*</span></div>
       <div class="crd-grid">${styles.map(s=>`<div class="crd${CS.combatStyle===s.name?' selected':''}" onclick="CS.combatStyle='${esc(s.name)}';renderTab()"><h3>${esc(s.name)}</h3><p>${esc(s.desc)}</p></div>`).join('')}</div>

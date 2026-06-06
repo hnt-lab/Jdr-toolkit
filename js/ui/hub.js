@@ -324,7 +324,7 @@ function openTableSettings(tableId,tableName,inviteCode){
   if(typeof compSetTableEditContext==='function')compSetTableEditContext(tableId); // mode édition : auto-save à chaque changement
   openModal(`<div class="pt">⚙ Table : ${esc(tableName)}</div>
     <div class="fl mb6" style="margin-top:0">Lien d'invitation</div>
-    <div class="invite-box" style="margin-bottom:16px">Code : <span class="invite-code">${inviteCode}</span><button class="btn bsm" onclick="copyInviteLink('${inviteCode}')" style="margin-left:4px">Copier lien</button></div>
+    <div class="invite-box" style="margin-bottom:16px">Code : <span class="invite-code">${inviteCode}</span><button class="btn bsm" onclick="copyCode('${inviteCode}')" style="margin-left:4px">📋 Copier le code</button><button class="btn bsm" onclick="copyInviteLink('${inviteCode}')" style="margin-left:4px">🔗 Lien</button></div>
     <details class="acc" style="margin-bottom:16px" open>
       <summary>🧩 Compendiums de la table</summary>
       <div class="acc-body">
@@ -596,6 +596,9 @@ function viewCharSheet(uid,campId){
     </div>`);
 }
 
+function copyCode(code){
+  navigator.clipboard.writeText(code).then(()=>showToast('📋 Code copié : '+code));
+}
 function copyInviteLink(code){
   const url=`${window.location.origin}${window.location.pathname}?join=${code}`;
   navigator.clipboard.writeText(url).then(()=>showToast('🔗 Lien copié dans le presse-papiers !'));

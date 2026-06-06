@@ -119,7 +119,7 @@ function tabPerso(p){
     <!-- Résistances & Immunités (rétractable) -->
     <div class="panel">
       <div class="pt" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="window._riOpen=!window._riOpen;render()">
-        <span>Résistances & Immunités</span>
+        <span>🎯 Statuts & Résistances</span>
         <div style="display:flex;gap:6px;align-items:center">
           <span style="color:var(--text3);font-size:12px">${window._riOpen?'▴':'▾'}</span>
           <button class="btn bsm" onclick="event.stopPropagation();openResistModal()">+ Ajouter</button>
@@ -134,7 +134,9 @@ function tabPerso(p){
         const empty='<span style="font-size:11px;color:var(--text3);font-style:italic">Aucune</span>';
         const lockR=v=>`<span class="status-badge bonus" style="opacity:.85" title="Résistance passive (automatique)">🛡 ${esc(v)} 🔒</span>`;
         const lockI=v=>`<span class="status-badge malus" style="background:#2e1b00;border-color:#ff9800;color:#ff9800;opacity:.85" title="Immunité passive (automatique)">✦ ${esc(v)} 🔒</span>`;
-        return`<div style="margin-bottom:8px"><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Résistances dégâts</div><div style="display:flex;flex-wrap:wrap;gap:4px">${(res.length||passRes.length)?res.map((v,i)=>tag('dmgResistances',v,i)).join('')+passRes.map(lockR).join(''):empty}</div></div>
+        const sts=p.statuses||[];
+        return`<div style="margin-bottom:10px"><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Statuts actifs</div><div style="display:flex;flex-wrap:wrap;gap:4px">${sts.length?sts.map(s=>`<span class="status-badge ${s.type||'neutral'}">${s.icon||'◆'} ${esc(s.name||'')}</span>`).join(''):empty}</div></div>
+        <div style="margin-bottom:8px"><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Résistances dégâts</div><div style="display:flex;flex-wrap:wrap;gap:4px">${(res.length||passRes.length)?res.map((v,i)=>tag('dmgResistances',v,i)).join('')+passRes.map(lockR).join(''):empty}</div></div>
         <div style="margin-bottom:8px"><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Immunités dégâts</div><div style="display:flex;flex-wrap:wrap;gap:4px">${(imm.length||passImm.length)?imm.map((v,i)=>tagImm('dmgImmunities',v,i)).join('')+passImm.map(lockI).join(''):empty}</div></div>
         <div><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Immunités conditions</div><div style="display:flex;flex-wrap:wrap;gap:4px">${ci.length?ci.map((v,i)=>tagCond('condImmunities',v,i)).join(''):empty}</div></div>`;
       })():''}
@@ -171,7 +173,7 @@ function tabPerso(p){
         <div><div class="fl mb6">Bonus maîtrise</div><input class="fi" value="+${pb(lvl)}" readonly style="color:var(--cp);font-weight:600"></div>
       </div>
       <div class="fl mb6">Alignement</div>
-      <select class="fi mb6" onchange="upd('alignment',this.value)">${['',... ALIGNMENTS].map(a=>`<option ${p.alignment===a?'selected':''}>${a}</option>`).join('')}</select>
+      ${(()=>{if(isMJ())return '<select class="fi mb6" onchange="upd(\'alignment\',this.value)">'+['',...ALIGNMENTS].map(a=>'<option'+(p.alignment===a?' selected':'')+'>'+a+'</option>').join('')+'</select>';return '<div class="fi mb6" style="opacity:.85;min-height:38px;display:flex;align-items:center">'+esc(p.alignment||'Non défini')+'</div>';})()}
 
 
 
@@ -328,6 +330,19 @@ function getPassiveImmunities(p){
 }
 function getEffectiveResistances(p){return [...new Set([...(p.dmgResistances||[]),...getPassiveResistances(p)])];}
 function getEffectiveImmunities(p){return [...new Set([...(p.dmgImmunities||[]),...getPassiveImmunities(p)])];}
+// Veille concentration : pop-up de jet de sauvegarde quand on subit des dégâts en concentrant.
+function promptConcSave(dmg){
+  const p=P(); if(!p||!(p.statuses||[]).some(s=>s.name==='Concentration'))return;
+  const dc=Math.max(10,Math.floor((parseInt(dmg)||0)/2));
+  openModal(`<div style="text-align:center;padding:6px 4px">
+    <div style="font-size:32px;margin-bottom:4px">🎯</div>
+    <div class="pt" style="margin-bottom:6px">Concentration menacée</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:16px">Tu as subi <strong style="color:#e53935">${dmg}</strong> dégâts en te concentrant${p.concentrationSpell?` sur <strong style="color:var(--cp)">${esc(p.concentrationSpell)}</strong>`:''}.<br>Jet de sauvegarde : <strong>CON DD ${dc}</strong>.<br><span style="font-size:11px;color:var(--text3)">Échec = concentration brisée.</span></div>
+    <div style="display:flex;gap:8px;justify-content:center">
+      <button class="btn bac" onclick="closeModal();${typeof rollConcSave==='function'?`rollConcSave(${dmg})`:''}">🎲 Lancer le JS CON</button>
+      <button class="btn" onclick="closeModal()">Plus tard</button>
+    </div></div>`);
+}
 function applyHp(sign){
   const p=P();const delta=parseInt(document.getElementById('hpDelta')?.value)||0;if(delta<=0)return;
   const ws=p.wildshape;
@@ -371,7 +386,7 @@ function applyHp(sign){
         return;
       }
       p.hp=_newHp;
-      if((p.statuses||[]).some(s=>s.name==='Concentration'))showToast(`⚠️ Concentration — Lance ton JS CON (onglet Sorts) !`,3500);
+      if((p.statuses||[]).some(s=>s.name==='Concentration')&&dmg>0)setTimeout(()=>promptConcSave(dmg),300); // veille : pop-up JS CON
       // Fix 18 — Rage implacable automatique
       if(p.hp<=0&&typeof checkRageImplacable==='function')setTimeout(()=>checkRageImplacable(),200);
     } else {
