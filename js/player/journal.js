@@ -15,10 +15,10 @@ function _journalEntryForm(idPrefix,btnFn){
       <div><div class="fl mb6">Date</div><input class="fi" id="${idPrefix}Date" type="date" value="${today}"></div>
       <div><div class="fl mb6">Titre de session</div><input class="fi" id="${idPrefix}Title" placeholder="Ex: Session 3 — La mine" value="${esc(_journalDraft.title||'')}" oninput="_journalDraft.title=this.value"></div>
     </div>
-    <div class="fl mb6">Notes${_journalDraft.content?'<span style="font-size:10px;color:var(--cp);margin-left:8px">● brouillon</span>':''}</div>
+    <div class="fl mb6">Notes${_journalDraft.content?'<span style="font-size:11px;color:var(--cp);margin-left:8px">● brouillon</span>':''}</div>
     <textarea class="fi mb6" id="${idPrefix}Content" rows="5" placeholder="Ce qui s'est passé ce soir..." style="resize:vertical" oninput="_journalDraft.content=this.value">${esc(_journalDraft.content||'')}</textarea>
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-      <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);cursor:pointer">
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2);cursor:pointer">
         <input type="checkbox" id="${idPrefix}Public" style="accent-color:var(--cp)">
         <span>Visible dans la Chronique</span>
       </label>
@@ -39,7 +39,7 @@ function _journalEntriesList(entries, deleteFn){
             <span class="journal-date" style="margin-left:8px">${esc(e.date||'')}</span>
           </div>
           <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:10px;color:${e.isPublic?'#4caf50':'var(--text3)'}">${e.isPublic?'✓ Chronique':'🔒 Privé'}</span>
+            <span style="font-size:11px;color:${e.isPublic?'#4caf50':'var(--text3)'}">${e.isPublic?'✓ Chronique':'🔒 Privé'}</span>
             <button class="btn bsm" style="color:#e53935;border-color:#e53935;padding:1px 6px" onclick="${deleteFn}(${realIdx})">✕</button>
           </div>
         </div>
@@ -160,7 +160,7 @@ function renderPlayersJournalView(){
 
   if(!selPlayer) return selectorHtml+`<div style="color:var(--text3);font-style:italic">Sélectionnez un joueur.</div>`;
   const entries=selPlayer.journal||[];
-  return selectorHtml+`<div style="font-size:12px;color:var(--text3);margin-bottom:10px">${esc(selPlayer.charName||'?')} — ${entries.length} entrée(s)</div>`
+  return selectorHtml+`<div style="font-size:13px;color:var(--text3);margin-bottom:10px">${esc(selPlayer.charName||'?')} — ${entries.length} entrée(s)</div>`
     +_journalEntriesList(entries,'()=>{}');
 }
 
@@ -201,7 +201,7 @@ function renderChronicleView(){
       ${bySession[sess].map(v=>`<div class="chronicle-voice">
         <div class="chronicle-avatar">${v.avatar||'⚔'}</div>
         <div style="flex:1;min-width:0">
-          <div style="font-size:11px;color:var(--cp);font-weight:600;margin-bottom:4px">${esc(v.playerName)} <span style="color:var(--text3);font-weight:400">— ${esc(v.charName)}</span> <span style="color:var(--text3);font-size:10px">${v.date||''}</span></div>
+          <div style="font-size:12px;color:var(--cp);font-weight:600;margin-bottom:4px">${esc(v.playerName)} <span style="color:var(--text3);font-weight:400">— ${esc(v.charName)}</span> <span style="color:var(--text3);font-size:11px">${v.date||''}</span></div>
           <div class="journal-content">${esc(v.content)}</div>
         </div>
       </div>`).join('')}
@@ -241,7 +241,7 @@ function tabHistorique(p){
         <div class="fl mb6">Défauts</div><textarea class="fi" rows="2" oninput="upd('flaws',this.value);autoGrow(this)" style="resize:vertical">${esc(p.flaws)}</textarea>
       </div>
       <div class="panel" style="border-color:rgba(200,168,75,.3);background:rgba(200,168,75,.04)">
-        <div class="pt" style="color:var(--cp)">🔐 Secrets <span style="font-size:10px;color:var(--text3);font-weight:400;margin-left:6px">Visible uniquement par toi et le MJ</span></div>
+        <div class="pt" style="color:var(--cp)">🔐 Secrets <span style="font-size:11px;color:var(--text3);font-weight:400;margin-left:6px">Visible uniquement par toi et le MJ</span></div>
         <textarea class="fi" rows="2" oninput="upd('secrets',this.value);autoGrow(this)" placeholder="Informations secrètes sur ton personnage, objectifs cachés, traumatismes, liens secrets avec des PNJ..." style="resize:vertical">${esc(p.secrets||'')}</textarea>
       </div>
     </div>
@@ -292,17 +292,17 @@ function encRefresh(){
 }
 function encResultHTML(sz,lv){
   const res=encCalc(sz,lv,_encMonsters);
-  if(!_encMonsters.length)return'<div style="font-size:11px;color:var(--text3);text-align:center;padding:6px">Ajoutez des monstres pour voir la difficulté.</div>';
+  if(!_encMonsters.length)return'<div style="font-size:12px;color:var(--text3);text-align:center;padding:6px">Ajoutez des monstres pour voir la difficulté.</div>';
   const names=['Facile','Moyenne','Difficile','Mortelle'];
-  const bars=res.th.map((v,i)=>`<div style="font-size:10px;color:var(--text3)">${names[i]}<br><strong style="color:var(--text2)">${v.toLocaleString()}</strong></div>`).join('');
+  const bars=res.th.map((v,i)=>`<div style="font-size:11px;color:var(--text3)">${names[i]}<br><strong style="color:var(--text2)">${v.toLocaleString()}</strong></div>`).join('');
   return`<div style="background:var(--surface2);border-radius:8px;padding:10px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
       <div>
-        <div style="font-size:11px;color:var(--text3)">XP brut — ×${res.mult} → XP ajusté</div>
+        <div style="font-size:12px;color:var(--text3)">XP brut — ×${res.mult} → XP ajusté</div>
         <div style="font-size:16px;font-weight:700;color:var(--text)">${res.rawXP.toLocaleString()} → <span style="color:var(--cp)">${res.adjXP.toLocaleString()} XP</span></div>
       </div>
       <div style="text-align:right">
-        <div style="font-size:10px;color:var(--text3)">Difficulté</div>
+        <div style="font-size:11px;color:var(--text3)">Difficulté</div>
         <div style="font-size:18px;font-weight:700;color:${res.diffColor}">${res.diff}</div>
       </div>
     </div>
@@ -312,9 +312,9 @@ function encResultHTML(sz,lv){
 function encRenderMonsters(){
   const el=document.getElementById('enc_monsterList');if(!el)return;
   el.innerHTML=_encMonsters.length?_encMonsters.map((m,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 8px;background:var(--surface2);border-radius:6px;margin-bottom:4px">
-    <span style="font-size:12px"><strong>${esc(m.name)}</strong> <span style="color:var(--text3)">CR ${m.cr}</span> — <span style="color:var(--cp)">${m.xp.toLocaleString()} XP</span></span>
+    <span style="font-size:13px"><strong>${esc(m.name)}</strong> <span style="color:var(--text3)">CR ${m.cr}</span> — <span style="color:var(--cp)">${m.xp.toLocaleString()} XP</span></span>
     <button class="btn bsm" style="color:#e53935;border-color:rgba(229,57,53,.4);padding:0 6px" onclick="encRemoveMonster(${i})">✕</button>
-  </div>`).join(''):'<div style="font-size:11px;color:var(--text3);font-style:italic;text-align:center;padding:8px">Aucun monstre — ajoutez-en ci-dessus.</div>';
+  </div>`).join(''):'<div style="font-size:12px;color:var(--text3);font-style:italic;text-align:center;padding:8px">Aucun monstre — ajoutez-en ci-dessus.</div>';
   encRefresh();
 }
 function encAddMonster(){
@@ -330,7 +330,7 @@ function encAddMonster(){
     </div>
     <div style="text-align:center;font-size:13px;color:var(--text3);margin-bottom:14px">XP : <strong id="enc_mxp" style="color:var(--cp)">200 XP</strong></div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:14px">
-      ${[1,2,3,4,5,6].map(n=>`<button class="btn bsm" onclick="for(let i=0;i<${n}-1;i++)encConfirmAddMonster(false);encConfirmAddMonster(true);" style="font-size:11px">×${n}</button>`).join('')}
+      ${[1,2,3,4,5,6].map(n=>`<button class="btn bsm" onclick="for(let i=0;i<${n}-1;i++)encConfirmAddMonster(false);encConfirmAddMonster(true);" style="font-size:12px">×${n}</button>`).join('')}
     </div>
     <div style="display:flex;gap:8px">
       <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>

@@ -63,6 +63,8 @@
 .comp-chip{font-size:12px;padding:3px 10px;border-radius:11px;background:rgba(200,168,75,.12);border:1px solid rgba(200,168,75,.35);color:var(--cp);white-space:nowrap}
 
 /* ═══════════ FICHE — rail perso persistant (résumé) ═══════════ */
+/* La fiche profite de la largeur (était bridée à 920px) */
+#app{max-width:1400px}
 .fiche-2col{display:block}
 @media(min-width:900px){
   .fiche-2col{display:grid;grid-template-columns:300px minmax(0,1fr);gap:18px;align-items:start}

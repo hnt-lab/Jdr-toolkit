@@ -29,20 +29,14 @@ function renderCharRail(p){
   if(ws?.active){
     hpBlock=`<div class="rail-hp-top"><span style="color:#4caf50">🐺 PV bête</span><span>${ws.beast.hpCur}/${ws.beast.hpMax}</span></div>
       <div class="hp-bar"><div class="hp-fill" style="width:${pct}%;background:#4caf50"></div></div>
-      <div class="hp-ctrl"><input class="fi" id="hpDelta" type="number" placeholder="±" style="width:58px"><button class="btn bsm" style="background:#b71c1c;color:#fff;border-color:#b71c1c" onclick="applyHp(-1)">Dégâts</button><button class="btn bsm" style="background:#2e7d32;color:#fff;border-color:#2e7d32" onclick="applyHp(1)">Soins</button></div>
+      <button class="btn bsm" style="width:100%;margin-top:6px;background:#b71c1c;color:#fff;border-color:#b71c1c" onclick="openHpModal()">💥 Dégâts / 💚 Soins</button>
       <button class="btn bsm" style="width:100%;margin-top:6px;border-color:rgba(76,175,80,.5);color:#4caf50" onclick="revertWildshape()">↩ Reprendre forme</button>`;
   } else {
-    const dmgSel=(()=>{const er=getEffectiveResistances(p),ei=getEffectiveImmunities(p);const list=(typeof _DMG_TYPES!=='undefined'?_DMG_TYPES:[]);return `<select id="hpDmgType" class="fi" style="width:auto;padding:5px 6px;font-size:12px" title="Type de dégâts (🛡 résistance / ✦ immunité)"><option value="">Type…</option>${list.map(t=>`<option value="${esc(t)}">${ei.includes(t)?'✦ ':er.includes(t)?'🛡 ':''}${esc(t)}</option>`).join('')}</select>`;})();
     hpBlock=`${p.hp<=0?`<div class="rail-down">💀 À TERRE — 0 PV${p.deathSaves?.fail>=3?' ☠':''}</div>`:''}
       <div class="rail-hp-top"><span>❤ PV</span><span>${p.hp}${hpBonus?`<span style="color:#4caf50"> +${hpBonus}</span>`:''}/${effectiveHpMax}${_exhLvl>=4?' ½':''}${(p.hpTemp||0)>0?`<span style="color:#4caf50"> (+${p.hpTemp})</span>`:''}</span></div>
       <div class="hp-bar"><div class="hp-fill" style="width:${pct}%;background:${hpColor}"></div></div>
       ${(p.shieldHp||0)>0?`<div class="rail-shield">🔵 Bouclier ${p.shieldHp}/${p.shieldHpMax||p.shieldHp}</div>`:''}
-      <div class="hp-ctrl">
-        <input class="fi" id="hpDelta" type="number" placeholder="±" style="width:58px">
-        ${dmgSel}
-        <button class="btn bsm" style="background:#b71c1c;color:#fff;border-color:#b71c1c" onclick="applyHp(-1)">Dégâts</button>
-        <button class="btn bsm" style="background:#2e7d32;color:#fff;border-color:#2e7d32" onclick="applyHp(1)">Soins</button>
-      </div>
+      <button class="btn bsm" style="width:100%;margin-top:6px;background:#b71c1c;color:#fff;border-color:#b71c1c" onclick="openHpModal()">💥 Dégâts / 💚 Soins</button>
       ${mj?`<div class="rail-mjhp"><label>PV max <input type="number" min="1" value="${p.hpMax}" oninput="P().hpMax=Math.max(1,parseInt(this.value)||1);render()"></label><label>Temp <input type="number" min="0" value="${p.hpTemp||0}" oninput="P().hpTemp=Math.max(0,parseInt(this.value)||0)"></label></div>`:''}
       ${p.hp<=0?`<div class="rail-ds"><span style="color:#4caf50">✓</span>${[0,1,2].map(i=>`<span class="ds-circle${i<(p.deathSaves?.success||0)?' s':''}" onclick="cycleDS('success',${i})"></span>`).join('')}<span style="color:#e53935;margin-left:10px">✗</span>${[0,1,2].map(i=>`<span class="ds-circle${i<(p.deathSaves?.fail||0)?' f':''}" onclick="cycleDS('fail',${i})"></span>`).join('')}</div>`:''}`;
   }
@@ -108,12 +102,12 @@ function tabPerso(p){
       ${ws.beast.attacks.map(a=>`<div style="background:rgba(76,175,80,.08);border:1px solid rgba(76,175,80,.2);border-radius:6px;padding:8px 10px;margin-bottom:6px">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <strong style="color:#4caf50;font-size:13px">${esc(a.name)}</strong>
-          <span style="color:var(--text2);font-size:12px">+${a.bonus} / <strong>${esc(a.dmg)}</strong> ${esc(a.type||'')}</span>
+          <span style="color:var(--text2);font-size:13px">+${a.bonus} / <strong>${esc(a.dmg)}</strong> ${esc(a.type||'')}</span>
         </div>
-        ${a.special?`<div style="font-size:11px;color:var(--text3);margin-top:3px">${esc(a.special)}</div>`:''}
+        ${a.special?`<div style="font-size:12px;color:var(--text3);margin-top:3px">${esc(a.special)}</div>`:''}
         <button class="btn bsm" style="margin-top:6px;border-color:rgba(76,175,80,.4);color:#4caf50" onclick="rollCustomDmg('${esc(a.dmg)}','${esc(a.name)}')">🎲 ${esc(a.dmg)}</button>
       </div>`).join('')}
-      ${ws.beast.traits.map(t=>`<div style="font-size:11px;color:var(--text2);padding:5px 0;border-bottom:1px solid rgba(76,175,80,.15)">🐾 ${esc(t)}</div>`).join('')}
+      ${ws.beast.traits.map(t=>`<div style="font-size:12px;color:var(--text2);padding:5px 0;border-bottom:1px solid rgba(76,175,80,.15)">🐾 ${esc(t)}</div>`).join('')}
     </div>`:''}
 
     <!-- Résistances & Immunités (rétractable) -->
@@ -132,11 +126,11 @@ function tabPerso(p){
         const tag=(cat,val,i)=>`<span class="status-badge bonus" style="cursor:pointer" title="Retirer" onclick="removeResist('${cat}',${i})">🛡 ${esc(val)} ✕</span>`;
         const tagImm=(cat,val,i)=>`<span class="status-badge malus" style="background:#2e1b00;border-color:#ff9800;color:#ff9800;cursor:pointer" title="Retirer" onclick="removeResist('${cat}',${i})">✦ ${esc(val)} ✕</span>`;
         const tagCond=(cat,val,i)=>`<span class="status-badge malus" style="cursor:pointer" title="Retirer" onclick="removeResist('${cat}',${i})">🚫 ${esc(val)} ✕</span>`;
-        const empty='<span style="font-size:11px;color:var(--text3);font-style:italic">Aucune</span>';
+        const empty='<span style="font-size:12px;color:var(--text3);font-style:italic">Aucune</span>';
         const lockR=v=>`<span class="status-badge bonus" style="opacity:.85" title="Résistance passive (automatique)">🛡 ${esc(v)} 🔒</span>`;
         const lockI=v=>`<span class="status-badge malus" style="background:#2e1b00;border-color:#ff9800;color:#ff9800;opacity:.85" title="Immunité passive (automatique)">✦ ${esc(v)} 🔒</span>`;
         const stRow=(s,i)=>`<span class="status-badge ${s.type||'neutral'}" title="${esc(s.desc||'')}">${s.icon||'◆'} ${esc(s.name||'')}${(s.value&&s.stat)?` ${s.value>0?'+':''}${s.value} ${esc(s.stat.toUpperCase())}`:''} <span onclick="event.stopPropagation();removeStatus(${i})" style="cursor:pointer;font-weight:700;opacity:.7">×</span></span>`;
-        const lbl=t=>`<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">${t}</div>`;
+        const lbl=t=>`<div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">${t}</div>`;
         return`<div style="margin-bottom:10px">${lbl('Statuts actifs')}<div style="display:flex;flex-wrap:wrap;gap:4px">${sts.length?sts.map(stRow).join(''):empty}</div></div>
         <div style="margin-bottom:8px">${lbl('Résistances dégâts')}<div style="display:flex;flex-wrap:wrap;gap:4px">${(res.length||passRes.length)?res.map((v,i)=>tag('dmgResistances',v,i)).join('')+passRes.map(lockR).join(''):empty}</div></div>
         <div style="margin-bottom:8px">${lbl('Immunités dégâts')}<div style="display:flex;flex-wrap:wrap;gap:4px">${(imm.length||passImm.length)?imm.map((v,i)=>tagImm('dmgImmunities',v,i)).join('')+passImm.map(lockI).join(''):empty}</div></div>
@@ -154,15 +148,15 @@ function tabPerso(p){
       <input class="fi mb6" value="${esc(p.charName)}" onchange="upd('charName',this.value);render()">
 
       ${(p.classes||[]).map(c=>{const d=SRD.classes.find(cl=>cl.name===c.name);if(!d)return'';return`<div style="background:var(--surface2);border-radius:6px;padding:8px 10px;margin-bottom:6px">
-        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">Classe</div>
+        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">Classe</div>
         <div style="font-size:13px;color:var(--cp);font-weight:600;margin-top:2px">${esc(c.name)} — Niveau ${c.level}</div>
-        <div style="font-size:12px;color:var(--text2);margin-top:2px">Dé: ${d.hd} • Armures: ${esc(d.armor.split(',')[0])}${d.spellcaster?' • <span style="color:var(--cp)">✦ Lanceur de sorts</span>':''}</div>
+        <div style="font-size:13px;color:var(--text2);margin-top:2px">Dé: ${d.hd} • Armures: ${esc(d.armor.split(',')[0])}${d.spellcaster?' • <span style="color:var(--cp)">✦ Lanceur de sorts</span>':''}</div>
       </div>`;}).join('')}
 
       ${rd?`<div style="background:var(--surface2);border-radius:6px;padding:8px 10px;margin-bottom:6px">
-        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">Race</div>
+        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">Race</div>
         <div style="font-size:13px;color:var(--cp);font-weight:600;margin-top:2px">${esc(p.race)}</div>
-        <div style="font-size:12px;color:var(--text2);margin-top:2px">Langues : ${esc(rd.languages)}</div>
+        <div style="font-size:13px;color:var(--text2);margin-top:2px">Langues : ${esc(rd.languages)}</div>
       </div>`:''}
 
       <div class="fl mb6">Historique</div>
@@ -197,15 +191,15 @@ function tabPerso(p){
           <div class="rest-btn short" onclick="doShortRest()">
             <div style="font-size:16px">☕</div>
             <div style="font-weight:600">Repos court</div>
-            <div style="font-size:10px;color:var(--text3);margin-top:1px">≥ 1 heure</div>
-            <div style="font-size:10px;margin-top:2px">Lance le dé de vie + CON</div>
-            ${_chantB?`<div style="font-size:10px;color:var(--cp);font-weight:600;margin-top:4px;border-top:1px solid rgba(200,168,75,.3);padding-top:3px">🎶 +${_chantB} PV (${esc(_chantSrc)})</div>`:''}
+            <div style="font-size:11px;color:var(--text3);margin-top:1px">≥ 1 heure</div>
+            <div style="font-size:11px;margin-top:2px">Lance le dé de vie + CON</div>
+            ${_chantB?`<div style="font-size:11px;color:var(--cp);font-weight:600;margin-top:4px;border-top:1px solid rgba(200,168,75,.3);padding-top:3px">🎶 +${_chantB} PV (${esc(_chantSrc)})</div>`:''}
           </div>
           <div class="rest-btn long" onclick="doLongRest()">
             <div style="font-size:16px">🌙</div>
             <div style="font-weight:600">Repos long</div>
-            <div style="font-size:10px;color:var(--text3);margin-top:1px">≥ 8 heures</div>
-            <div style="font-size:10px;margin-top:2px">PV max + sorts + charges</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:1px">≥ 8 heures</div>
+            <div style="font-size:11px;margin-top:2px">PV max + sorts + charges</div>
           </div>
         </div>
       </div>`;
@@ -238,18 +232,18 @@ function openPrivacySettings(){
     {id:'xp',label:'✧ Expérience',desc:'XP & niveau'},
   ];
   openModal(`<div class="pt">🔒 Confidentialité</div>
-    <div style="font-size:12px;color:var(--text3);margin-bottom:14px">Le MJ voit toujours tout. Choisissez ce que les autres joueurs peuvent voir onglet par onglet.</div>
+    <div style="font-size:13px;color:var(--text3);margin-bottom:14px">Le MJ voit toujours tout. Choisissez ce que les autres joueurs peuvent voir onglet par onglet.</div>
     ${tabs.map(t=>{
       const checked=priv[t.id]!==false;
       return`<label style="display:flex;align-items:center;gap:10px;padding:8px 4px;cursor:pointer;border-bottom:1px solid var(--border)">
         <input type="checkbox" ${checked?'checked':''} onchange="togglePrivacy('${t.id}',this.checked)" style="width:16px;height:16px;accent-color:var(--cp);flex-shrink:0">
         <div>
           <div style="font-size:13px;font-weight:600">${t.label}</div>
-          <div style="font-size:11px;color:var(--text3)">${t.desc}</div>
+          <div style="font-size:12px;color:var(--text3)">${t.desc}</div>
         </div>
       </label>`;
     }).join('')}
-    <div style="font-size:11px;color:var(--text3);margin-top:10px;padding:8px;background:rgba(200,168,75,.06);border-radius:6px;border:1px solid rgba(200,168,75,.15)">🔐 Les <strong>Secrets</strong> (onglet Historique) sont toujours privés — uniquement toi et le MJ.</div>
+    <div style="font-size:12px;color:var(--text3);margin-top:10px;padding:8px;background:rgba(200,168,75,.06);border-radius:6px;border:1px solid rgba(200,168,75,.15)">🔐 Les <strong>Secrets</strong> (onglet Historique) sont toujours privés — uniquement toi et le MJ.</div>
     <div style="display:flex;justify-content:flex-end;margin-top:14px"><button class="btn bac" onclick="closeModal()">Fermer</button></div>`);
 }
 
@@ -310,6 +304,29 @@ function getPassiveImmunities(p){
 }
 function getEffectiveResistances(p){return [...new Set([...(p.dmgResistances||[]),...getPassiveResistances(p)])];}
 function getEffectiveImmunities(p){return [...new Set([...(p.dmgImmunities||[]),...getPassiveImmunities(p)])];}
+// Modal Dégâts / Soins (ouvert depuis le rail) — saisie montant + type de dégâts (plus de sélecteur permanent).
+function openHpModal(){
+  const p=P();const ws=p.wildshape;
+  const er=(typeof getEffectiveResistances==='function')?getEffectiveResistances(p):[];
+  const ei=(typeof getEffectiveImmunities==='function')?getEffectiveImmunities(p):[];
+  const list=(typeof _DMG_TYPES!=='undefined'?_DMG_TYPES:[]);
+  openModal(`<div class="pt">${ws&&ws.active?'🐺 PV de la bête':'❤ Points de vie'}</div>
+    <span id="hpModalMarker" style="display:none"></span>
+    <div class="fl mb6">Montant</div>
+    <input class="fi" id="hpDelta" type="number" min="0" placeholder="ex : 8" style="margin-bottom:10px">
+    <div class="fl mb6">Type de dégâts <span style="color:var(--text3);font-weight:400">(facultatif — 🛡 résistance / ✦ immunité)</span></div>
+    <select id="hpDmgType" class="fi" style="margin-bottom:14px"><option value="">— Non typé —</option>${list.map(t=>`<option value="${esc(t)}">${ei.includes(t)?'✦ ':er.includes(t)?'🛡 ':''}${esc(t)}</option>`).join('')}</select>
+    <div style="display:flex;gap:8px">
+      <button class="btn" style="flex:1;background:#b71c1c;color:#fff;border-color:#b71c1c" onclick="_railApplyHp(-1)">💥 Dégâts</button>
+      <button class="btn" style="flex:1;background:#2e7d32;color:#fff;border-color:#2e7d32" onclick="_railApplyHp(1)">💚 Soins</button>
+    </div>`);
+  setTimeout(()=>{const i=document.getElementById('hpDelta');if(i)i.focus();},60);
+}
+function _railApplyHp(sign){
+  applyHp(sign);
+  if(document.getElementById('hpModalMarker')) closeModal(); // ferme sauf si applyHp a ouvert son propre modal (endurance/rage/veille)
+}
+
 // Veille concentration : pop-up de jet de sauvegarde quand on subit des dégâts en concentrant.
 function promptConcSave(dmg){
   const p=P(); if(!p||!(p.statuses||[]).some(s=>s.name==='Concentration'))return;
@@ -317,7 +334,7 @@ function promptConcSave(dmg){
   openModal(`<div style="text-align:center;padding:6px 4px">
     <div style="font-size:32px;margin-bottom:4px">🎯</div>
     <div class="pt" style="margin-bottom:6px">Concentration menacée</div>
-    <div style="font-size:13px;color:var(--text2);margin-bottom:16px">Tu as subi <strong style="color:#e53935">${dmg}</strong> dégâts en te concentrant${p.concentrationSpell?` sur <strong style="color:var(--cp)">${esc(p.concentrationSpell)}</strong>`:''}.<br>Jet de sauvegarde : <strong>CON DD ${dc}</strong>.<br><span style="font-size:11px;color:var(--text3)">Échec = concentration brisée.</span></div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:16px">Tu as subi <strong style="color:#e53935">${dmg}</strong> dégâts en te concentrant${p.concentrationSpell?` sur <strong style="color:var(--cp)">${esc(p.concentrationSpell)}</strong>`:''}.<br>Jet de sauvegarde : <strong>CON DD ${dc}</strong>.<br><span style="font-size:12px;color:var(--text3)">Échec = concentration brisée.</span></div>
     <div style="display:flex;gap:8px;justify-content:center">
       <button class="btn bac" onclick="closeModal();${typeof rollConcSave==='function'?`rollConcSave(${dmg})`:''}">🎲 Lancer le JS CON</button>
       <button class="btn" onclick="closeModal()">Plus tard</button>
@@ -362,7 +379,7 @@ function applyHp(sign){
       const _newHp=Math.max(0,Math.min(_effMax+(p.hpTemp||0),p.hp-dmg));
       if(_newHp===0&&p.race==='Demi-Orc'&&!p.relentlessEnduranceUsed){
         p.hp=0;_markUnsaved();render();
-        openModal('<div style="text-align:center;padding:20px 16px"><div style="font-size:36px;margin-bottom:8px">🧟</div><div class="pt" style="margin-bottom:6px">Endurance implacable</div><div style="font-size:14px;color:var(--text2);margin-bottom:20px">Vous tombez à 0 PV !<br>Utiliser <strong>Endurance implacable</strong> pour tomber à <strong style="color:#4caf50">1 PV</strong> ?<br><span style="font-size:11px;color:var(--text3)">(1 utilisation par repos long)</span></div><div style="display:flex;gap:8px;justify-content:center"><button class="btn bprimary" style="min-width:80px" onclick="useRelentlessEndurance()">✅ Oui</button><button class="btn" style="min-width:80px" onclick="closeModal()">❌ Non</button></div></div>');
+        openModal('<div style="text-align:center;padding:20px 16px"><div style="font-size:36px;margin-bottom:8px">🧟</div><div class="pt" style="margin-bottom:6px">Endurance implacable</div><div style="font-size:14px;color:var(--text2);margin-bottom:20px">Vous tombez à 0 PV !<br>Utiliser <strong>Endurance implacable</strong> pour tomber à <strong style="color:#4caf50">1 PV</strong> ?<br><span style="font-size:12px;color:var(--text3)">(1 utilisation par repos long)</span></div><div style="display:flex;gap:8px;justify-content:center"><button class="btn bprimary" style="min-width:80px" onclick="useRelentlessEndurance()">✅ Oui</button><button class="btn" style="min-width:80px" onclick="closeModal()">❌ Non</button></div></div>');
         return;
       }
       p.hp=_newHp;
@@ -524,16 +541,16 @@ function addResist(cat,val){const p=P();if(!val||!val.trim())return;if(!p[cat])p
 function openResistModal(){
   openModal(`<div>
     <div class="pt" style="margin-bottom:12px">+ Résistances & Immunités</div>
-    <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Résistances aux dégâts</div>
+    <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Résistances aux dégâts</div>
     <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px">${_DMG_TYPES.map(t=>`<span class="status-badge bonus" style="cursor:pointer" onclick="addResist('dmgResistances','${esc(t)}');closeModal()">🛡 ${esc(t)}</span>`).join('')}</div>
-    <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Immunités aux dégâts</div>
+    <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Immunités aux dégâts</div>
     <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px">${_DMG_TYPES.map(t=>`<span class="status-badge" style="background:#2e1b00;border-color:#ff9800;color:#ff9800;cursor:pointer" onclick="addResist('dmgImmunities','${esc(t)}');closeModal()">✦ ${esc(t)}</span>`).join('')}</div>
-    <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Immunités aux conditions</div>
+    <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Immunités aux conditions</div>
     <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px">${_COND_TYPES.map(t=>`<span class="status-badge malus" style="cursor:pointer" onclick="addResist('condImmunities','${esc(t)}');closeModal()">🚫 ${esc(t)}</span>`).join('')}</div>
-    <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Personnalisé</div>
+    <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Personnalisé</div>
     <div style="display:flex;gap:6px">
       <input class="fi" id="resistCustom" placeholder="Type de dégât ou condition..." style="flex:1">
-      <select id="resistCat" style="padding:7px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px">
+      <select id="resistCat" style="padding:7px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px">
         <option value="dmgResistances">Résistance</option>
         <option value="dmgImmunities">Immunité dégâts</option>
         <option value="condImmunities">Immunité condition</option>

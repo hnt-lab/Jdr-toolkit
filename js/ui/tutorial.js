@@ -87,7 +87,7 @@ function _renderTutoStep(){
     </div>
     <div style="font-size:30px;margin-bottom:6px;line-height:1">${s.icon}</div>
     <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px">${s.title}</div>
-    <p style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:14px">${s.text}</p>
+    <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:14px">${s.text}</p>
     <div style="display:flex;gap:8px">
       ${_tutoIdx>0?`<button class="btn bsm" style="flex:1" onclick="_tutoIdx--;_renderTutoStep()">← Préc.</button>`:''}
       <button class="btn bac bsm" style="flex:2" onclick="${isLast?'_tutoFinish()':'_tutoIdx++;_renderTutoStep()'}">

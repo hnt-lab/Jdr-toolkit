@@ -11,7 +11,7 @@ function tabXP(p){
     <span style="color:var(--text3)">XP</span>
   </div>
   <div class="xp-bar-wrap"><div class="xp-bar-fill" style="width:${pct}%"></div></div>
-  <div style="font-size:12px;color:var(--text3);margin-bottom:10px">${toNext>0?`${toNext.toLocaleString()} XP jusqu'au niveau ${lvl+1}`:'Prêt !'}</div>`;
+  <div style="font-size:13px;color:var(--text3);margin-bottom:10px">${toNext>0?`${toNext.toLocaleString()} XP jusqu'au niveau ${lvl+1}`:'Prêt !'}</div>`;
 
   const lvlUpBtn=canLvlUp?`<div style="padding:10px;background:var(--cglow);border:1px solid var(--cp);border-radius:8px;text-align:center;margin-bottom:10px">
     <div style="font-size:14px;font-weight:600;color:var(--cp);margin-bottom:6px">⬆ Niveau ${lvl+1} disponible !</div>
@@ -19,7 +19,7 @@ function tabXP(p){
   </div>`:p.pendingLevelUp?`<div style="padding:10px;background:var(--cglow);border:1px solid #ffd54f;border-radius:8px;text-align:center;font-size:13px;color:#ffd54f;margin-bottom:10px">⬆ Voir l'onglet <strong>Niveau +</strong></div>`:'';
 
   const niveauTable=`<div class="panel"><div class="pt">Table des niveaux</div>
-    <table style="width:100%;border-collapse:collapse;font-size:12px">
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
       <thead><tr style="color:var(--text3);border-bottom:1px solid var(--border)"><th style="text-align:left;padding:4px 8px">Niv.</th><th style="text-align:right;padding:4px 8px">XP</th><th style="text-align:right;padding:4px 8px">Maîtrise</th></tr></thead>
       <tbody>${XP_LEVELS.map((xp,i)=>`<tr style="background:${i+1===lvl?'var(--cglow)':'transparent'};border-bottom:1px solid var(--border)">
         <td style="padding:4px 8px;color:${i+1===lvl?'var(--cp)':'var(--text2)'};font-weight:${i+1===lvl?700:400}">${i+1}${i+1===lvl?' ◀':''}</td>
@@ -39,7 +39,7 @@ function tabXP(p){
 
   // Mode MJ : tout + récompenses rapides + ajout XP
   const recompenses=`<div class="panel" style="padding:8px;margin-top:10px">
-    <div class="pt" style="font-size:11px">Récompenses rapides</div>
+    <div class="pt" style="font-size:12px">Récompenses rapides</div>
     ${[[10,'Piège désamorcé'],[25,'Gobelin tué'],[50,'Rencontre facile'],[100,'Rencontre moyenne'],[200,'Rencontre difficile'],[450,'Boss tué'],[1000,'Jalon narratif']].map(([xp,lbl])=>`<div class="xp-reward" onclick="quickXP(${xp})">+${xp} XP — ${lbl}</div>`).join('')}
   </div>`;
 
@@ -48,14 +48,14 @@ function tabXP(p){
       <span>🎯 Calculateur de rencontre</span>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
-      <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Nb de joueurs</div><input class="fi" id="enc_size" type="number" min="1" max="8" value="${_encGroupSize}" oninput="encRefresh()"></div>
-      <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Niveau moyen</div><input class="fi" id="enc_level" type="number" min="1" max="20" value="${_encGroupLevel}" oninput="encRefresh()"></div>
+      <div><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Nb de joueurs</div><input class="fi" id="enc_size" type="number" min="1" max="8" value="${_encGroupSize}" oninput="encRefresh()"></div>
+      <div><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Niveau moyen</div><input class="fi" id="enc_level" type="number" min="1" max="20" value="${_encGroupLevel}" oninput="encRefresh()"></div>
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-      <div style="font-size:11px;font-weight:600;color:var(--text2)">Monstres de la rencontre</div>
+      <div style="font-size:12px;font-weight:600;color:var(--text2)">Monstres de la rencontre</div>
       <button class="btn bsm bprimary" onclick="encAddMonster()">+ Monstre</button>
     </div>
-    <div id="enc_monsterList">${_encMonsters.length?_encMonsters.map((m,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 8px;background:var(--surface2);border-radius:6px;margin-bottom:4px"><span style="font-size:12px"><strong>${esc(m.name)}</strong> <span style="color:var(--text3)">CR ${m.cr}</span> — <span style="color:var(--cp)">${m.xp.toLocaleString()} XP</span></span><button class="btn bsm" style="color:#e53935;border-color:rgba(229,57,53,.4);padding:0 6px" onclick="encRemoveMonster(${i})">✕</button></div>`).join(''):'<div style="font-size:11px;color:var(--text3);font-style:italic;text-align:center;padding:8px">Aucun monstre — ajoutez-en ci-dessus.</div>'}</div>
+    <div id="enc_monsterList">${_encMonsters.length?_encMonsters.map((m,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 8px;background:var(--surface2);border-radius:6px;margin-bottom:4px"><span style="font-size:13px"><strong>${esc(m.name)}</strong> <span style="color:var(--text3)">CR ${m.cr}</span> — <span style="color:var(--cp)">${m.xp.toLocaleString()} XP</span></span><button class="btn bsm" style="color:#e53935;border-color:rgba(229,57,53,.4);padding:0 6px" onclick="encRemoveMonster(${i})">✕</button></div>`).join(''):'<div style="font-size:12px;color:var(--text3);font-style:italic;text-align:center;padding:8px">Aucun monstre — ajoutez-en ci-dessus.</div>'}</div>
     <div id="enc_result" style="margin-top:8px">${encResultHTML(_encGroupSize,_encGroupLevel)}</div>
     <button class="btn bac" style="width:100%;margin-top:10px" onclick="encDistribute()">⭐ Distribuer l'XP aux joueurs</button>
   </div>`;
@@ -63,7 +63,7 @@ function tabXP(p){
   return`<div class="g2" style="gap:10px">
     <div>
       <div class="panel mb10">
-        <div class="pt" style="display:flex;align-items:center;justify-content:space-between"><span>Expérience</span><span style="font-size:10px;color:var(--cp);border:1px solid var(--cp);border-radius:10px;padding:2px 8px">🎲 MJ</span></div>
+        <div class="pt" style="display:flex;align-items:center;justify-content:space-between"><span>Expérience</span><span style="font-size:11px;color:var(--cp);border:1px solid var(--cp);border-radius:10px;padding:2px 8px">🎲 MJ</span></div>
         ${xpBar}
         <div style="display:flex;gap:6px;margin-bottom:10px">
           <input class="fi" id="xpAdd" type="number" placeholder="XP à ajouter" min="0">
@@ -74,8 +74,8 @@ function tabXP(p){
       </div>
       ${encCalcPanel}
       <div style="margin-top:10px;padding:10px;background:rgba(229,57,53,.05);border:1px solid rgba(229,57,53,.3);border-radius:8px">
-        <div style="font-size:12px;font-weight:600;color:#e53935;margin-bottom:6px">🔄 Réinitialisation des niveaux</div>
-        <div style="font-size:11px;color:var(--text3);margin-bottom:8px">Remet le personnage au niveau 1. Les capacités de classe sont réinitialisées, l'XP est conservée et il devra repasser toutes les étapes de montée de niveau.</div>
+        <div style="font-size:13px;font-weight:600;color:#e53935;margin-bottom:6px">🔄 Réinitialisation des niveaux</div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:8px">Remet le personnage au niveau 1. Les capacités de classe sont réinitialisées, l'XP est conservée et il devra repasser toutes les étapes de montée de niveau.</div>
         <button class="btn bsm" style="color:#e53935;border-color:rgba(229,57,53,.5);width:100%" onclick="mjRespecCharacter()">🔄 Réinitialiser les niveaux</button>
       </div>
     </div>
@@ -605,7 +605,7 @@ function _luConfirmHP(roll,avg){
     <div style="font-size:32px;margin-bottom:8px">${roll!==null?'🎲':'📊'}</div>
     <div class="pt" style="margin-bottom:8px">Confirmer les PV gagnés</div>
     <div style="font-size:18px;font-weight:700;color:var(--cp);margin-bottom:8px">${used>0?'+'+used:used} PV${roll!==null?' (dé lancé)':' (moyenne)'}</div>
-    <div style="font-size:12px;color:var(--text3);margin-bottom:16px">Ce choix est <strong>définitif</strong> — il ne pourra pas être modifié.</div>
+    <div style="font-size:13px;color:var(--text3);margin-bottom:16px">Ce choix est <strong>définitif</strong> — il ne pourra pas être modifié.</div>
     <div style="display:flex;gap:8px;justify-content:center">
       <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
       <button class="btn bac" style="flex:2" onclick="LU.hpRoll=${roll!==null?roll:'null'};LU.hpConfirmed=true;closeModal();renderTab()">✓ Confirmer</button>
@@ -621,7 +621,7 @@ function _luIRLHP(hdVal,avg){
     <div style="font-size:32px;margin-bottom:8px">🎲</div>
     <div class="pt" style="margin-bottom:8px">Lancer le dé de vie — Mode IRL</div>
     <div style="font-size:28px;font-weight:700;color:var(--cp);margin-bottom:12px">1d${hdVal}</div>
-    <div style="font-size:12px;color:var(--text3);margin-bottom:12px">Lance ton vrai dé et entre le résultat :</div>
+    <div style="font-size:13px;color:var(--text3);margin-bottom:12px">Lance ton vrai dé et entre le résultat :</div>
     <input class="fi" id="luIRLHPInput" type="number" min="1" max="${hdVal}" style="text-align:center;font-size:22px;margin-bottom:14px;width:80px">
     <div style="display:flex;gap:8px;justify-content:center">
       <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
@@ -784,7 +784,7 @@ function tabLevelUp(p){
 
   const displaySteps=LU.steps.length?LU.steps:['direction','recap'];
   const progress=LU.steps.length>1?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:16px">
-    ${displaySteps.map((s,i)=>`<span class="cp-step${i<LU.step-1?' done':i===LU.step-1?' active':''}">${i<LU.step-1?'✓ ':''+(i+1)+'. '}${stepLabels[s]||s}</span>${i<displaySteps.length-1?'<span style="color:var(--text3);font-size:10px;align-self:center">›</span>':''}`).join('')}
+    ${displaySteps.map((s,i)=>`<span class="cp-step${i<LU.step-1?' done':i===LU.step-1?' active':''}">${i<LU.step-1?'✓ ':''+(i+1)+'. '}${stepLabels[s]||s}</span>${i<displaySteps.length-1?'<span style="color:var(--text3);font-size:11px;align-self:center">›</span>':''}`).join('')}
   </div>`:'';
 
   const curStep=LU.steps[LU.step-1]||'direction';
@@ -820,15 +820,15 @@ function luStepDirection(p,newLvl,mc){
       <h3>🔀 Se multiclasser</h3>
       <p>Commencer une nouvelle classe. Les prérequis de caractéristiques s'appliquent.</p>
     </div>
-    ${LU.choice==='multiclass'?`<div style="margin-top:12px"><p style="font-size:12px;color:var(--text2);margin-bottom:10px">Choisis la classe (vert = prérequis OK) :</p>
+    ${LU.choice==='multiclass'?`<div style="margin-top:12px"><p style="font-size:13px;color:var(--text2);margin-bottom:10px">Choisis la classe (vert = prérequis OK) :</p>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">${SRD.classes.map(c=>{
       const alr=(p.classes||[]).find(cl=>cl.name===c.name);
       const req=checkMcReq(p,c.name);
       return`<div style="background:var(--surface2);border:2px solid ${LU.mcTarget===c.name?'var(--cp)':req.ok?'var(--border)':'var(--border)'};border-radius:8px;padding:10px;cursor:${req.ok?'pointer':'not-allowed'};opacity:${req.ok?1:.4};text-align:center;transition:all .2s" onclick="${req.ok?`LU.mcTarget='${esc(c.name)}';renderTab()`:''}">
-        <div style="font-family:var(--F);font-size:12px;color:var(--cp)">${esc(c.name)}</div>
-        <div style="font-size:10px;color:var(--text3)">${c.hd}${c.spellcaster?' ✦':''}</div>
-        ${alr?`<div style="font-size:10px;color:#4caf50">Niv.${alr.level}</div>`:''}
-        ${req.ok?`<div style="font-size:10px;color:#4caf50">✓</div>`:`<div style="font-size:10px;color:#e53935">${req.msg}</div>`}
+        <div style="font-family:var(--F);font-size:13px;color:var(--cp)">${esc(c.name)}</div>
+        <div style="font-size:11px;color:var(--text3)">${c.hd}${c.spellcaster?' ✦':''}</div>
+        ${alr?`<div style="font-size:11px;color:#4caf50">Niv.${alr.level}</div>`:''}
+        ${req.ok?`<div style="font-size:11px;color:#4caf50">✓</div>`:`<div style="font-size:11px;color:#e53935">${req.msg}</div>`}
       </div>`;}).join('')}</div></div>`:''}
     ${LU.choice&&(LU.choice==='continue'||(LU.choice==='multiclass'&&LU.mcTarget))?`<button class="btn bac" style="margin-top:14px;width:100%" onclick="luDirectionNext()">Continuer →</button>`:''}
   </div>`.replace('p_placeholder','');
@@ -876,8 +876,8 @@ function luStepArchetype(p){
   const terrains=['Arctique','Désert','Forêt','Littoral','Marais','Montagne','Outreterre','Plaine'];
   const canContinue=LU.archetypeChoice&&(!needsTerrain||LU.terrainChoice);
   const terrainSection=needsTerrain?`<div style="margin-top:12px;padding:10px;background:var(--surface2);border-radius:10px">
-    <div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:8px">🗺 Choisis ton terrain</div>
-    <div style="font-size:11px;color:var(--text3);margin-bottom:8px">Détermine tes sorts de cercle — toujours préparés, ne comptent pas dans le quota.</div>
+    <div style="font-size:13px;font-weight:600;color:var(--cp);margin-bottom:8px">🗺 Choisis ton terrain</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:8px">Détermine tes sorts de cercle — toujours préparés, ne comptent pas dans le quota.</div>
     <div style="display:flex;gap:6px;flex-wrap:wrap">
       ${terrains.map(t=>`<button class="btn bsm${LU.terrainChoice===t?' bprimary':''}" onclick="LU.terrainChoice='${t}';renderTab()">${t}</button>`).join('')}
     </div>
@@ -906,31 +906,31 @@ function luStepASI(p){
   const valid=isFeat?!!choice.featName&&(!needStatPick||choice.stats.length>0):(choice.type==='asi'&&choice.stats.length===1)||(choice.type==='double'&&choice.stats.length===2);
 
   const statPickerSection=needStatPick?`<div style="margin-top:10px;padding:10px;background:var(--surface2);border-radius:8px">
-    <div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:8px">Ce don accorde <strong>+1</strong> à une caractéristique de ton choix :</div>
+    <div style="font-size:13px;font-weight:600;color:var(--cp);margin-bottom:8px">Ce don accorde <strong>+1</strong> à une caractéristique de ton choix :</div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
       ${featGrants.map(i=>`<div onclick="LU.asiChoice.stats=[${i}];renderTab()" style="text-align:center;padding:8px 4px;background:${choice.stats[0]===i?'rgba(76,175,80,.18)':'var(--surface)'};border:2px solid ${choice.stats[0]===i?'#4caf50':'var(--border)'};border-radius:8px;cursor:pointer;transition:all .2s">
-        <div style="font-size:10px;color:var(--text3)">${ABILITIES[i]}</div>
+        <div style="font-size:11px;color:var(--text3)">${ABILITIES[i]}</div>
         <div style="font-size:18px;font-weight:700;color:${choice.stats[0]===i?'#4caf50':'var(--text)'}">${ab[i]}</div>
-        <div style="font-size:11px;color:var(--cp)">${fmt(mod(ab[i]))}</div>
+        <div style="font-size:12px;color:var(--cp)">${fmt(mod(ab[i]))}</div>
         ${choice.stats[0]===i?`<div style="font-size:9px;color:#4caf50">+1 ✓</div>`:''}
       </div>`).join('')}
     </div>
   </div>`:'';
 
-  const featGrantInfo=featGrants.length===1?`<div style="margin-top:6px;font-size:11px;color:#4caf50">+1 ${ABILITIES[featGrants[0]]} inclus automatiquement</div>`:'';
+  const featGrantInfo=featGrants.length===1?`<div style="margin-top:6px;font-size:12px;color:#4caf50">+1 ${ABILITIES[featGrants[0]]} inclus automatiquement</div>`:'';
 
   const featSection=isFeat?(FEATS_DB?`
     <input class="fi" id="featSearch" placeholder="Rechercher un don (ex: Alert, Actor...)..." oninput="luFilterFeats(this.value)" style="margin-bottom:8px">
-    ${choice.featName?(()=>{const selPrereq=selFeatData?_checkFeatPrereqs(selFeatData,p):null;const prereqRow=selPrereq?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px">${selPrereq.reasons.map(r=>`<span style="font-size:10px;color:${r.ok?'#4caf50':'#e53935'};background:${r.ok?'rgba(76,175,80,.1)':'rgba(229,57,53,.1)'};border-radius:3px;padding:2px 6px">${r.ok?'✅':'❌'} ${esc(r.label)}</span>`).join('')}</div>`:'';return`<div style="padding:10px;background:rgba(76,175,80,.1);border:1px solid #4caf50;border-radius:8px;margin-bottom:8px">
+    ${choice.featName?(()=>{const selPrereq=selFeatData?_checkFeatPrereqs(selFeatData,p):null;const prereqRow=selPrereq?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px">${selPrereq.reasons.map(r=>`<span style="font-size:11px;color:${r.ok?'#4caf50':'#e53935'};background:${r.ok?'rgba(76,175,80,.1)':'rgba(229,57,53,.1)'};border-radius:3px;padding:2px 6px">${r.ok?'✅':'❌'} ${esc(r.label)}</span>`).join('')}</div>`:'';return`<div style="padding:10px;background:rgba(76,175,80,.1);border:1px solid #4caf50;border-radius:8px;margin-bottom:8px">
       <div style="font-size:13px;font-weight:600;color:#4caf50">✓ ${esc(choice.featName)}</div>
-      <div style="font-size:11px;color:var(--text2);margin-top:4px;line-height:1.4">${esc(selFeatData?selFeatData.tx:''||'')}</div>
+      <div style="font-size:12px;color:var(--text2);margin-top:4px;line-height:1.4">${esc(selFeatData?selFeatData.tx:''||'')}</div>
       ${prereqRow}
       ${featGrantInfo}
       ${statPickerSection}
-      <button class="btn bsm" style="margin-top:8px;font-size:11px" onclick="LU.asiChoice.featName='';LU.asiChoice.stats=[];renderTab()">Changer</button>
+      <button class="btn bsm" style="margin-top:8px;font-size:12px" onclick="LU.asiChoice.featName='';LU.asiChoice.stats=[];renderTab()">Changer</button>
     </div>`})():''}
     <div id="featResults"></div>
-  `:`<div style="text-align:center;padding:14px;color:var(--text3);font-size:12px">Compendium non chargé — patiente un instant puis reviens à cet écran.</div>`):'';
+  `:`<div style="text-align:center;padding:14px;color:var(--text3);font-size:13px">Compendium non chargé — patiente un instant puis reviens à cet écran.</div>`):'';
 
   return`<div>
     <p style="font-size:13px;color:var(--text2);margin-bottom:12px">Amélioration de caractéristiques — Choisis l'une des options :</p>
@@ -940,7 +940,7 @@ function luStepASI(p){
       <button class="smb${isFeat?' on':''}" onclick="LU.asiChoice={type:'feat',featName:'',stats:[],val:0};if(!FEATS_DB)loadFeatsDB(()=>renderTab());else renderTab()">🎯 Prendre un Don</button>
     </div>
     ${isFeat?featSection:`
-      <p style="font-size:12px;color:var(--text3);margin-bottom:10px">Maximum 20. Clique sur les caractéristiques à améliorer :</p>
+      <p style="font-size:13px;color:var(--text3);margin-bottom:10px">Maximum 20. Clique sur les caractéristiques à améliorer :</p>
       <div class="g6">
         ${ABILITIES.map((ab_name,i)=>{
           const cur=ab[i];const isSel=choice.stats.includes(i);const atMax=cur>=20;
@@ -949,7 +949,7 @@ function luStepASI(p){
           return`<div class="sb hi${isSel?' selected':''}" style="cursor:${atMax?'not-allowed':'pointer'};border-color:${isSel?'#4caf50':atMax?'var(--border)':'var(--border)'};" onclick="${atMax||(!canSel&&!isSel)?'':('luToggleASI('+i+')')}">
             <div class="sn">${ABILITIES_SH[i]}</div>
             <div style="font-size:18px;font-weight:700;color:${isSel?'#4caf50':atMax?'var(--text3)':'var(--text)'}">${cur+bonus}</div>
-            <div style="font-size:11px;color:${isSel?'#4caf50':'var(--cp)'};">${fmt(mod(cur+bonus))}</div>
+            <div style="font-size:12px;color:${isSel?'#4caf50':'var(--cp)'};">${fmt(mod(cur+bonus))}</div>
             ${isSel?`<div style="font-size:9px;color:#4caf50">+${choice.val}</div>`:''}
             ${atMax?`<div style="font-size:9px;color:var(--text3)">MAX</div>`:''}
           </div>`;
@@ -976,12 +976,12 @@ function luFilterFeats(q){
   const p=P();
   const _featCard=(f,prereq)=>{
     const grants=_parseFeatAbilityGrants(f.tx);
-    const grantBadge=grants.length?` <span style="font-size:10px;color:#4caf50;font-weight:400;background:rgba(76,175,80,.12);border-radius:3px;padding:1px 5px">+1 ${grants.map(i=>ABILITIES_SH[i]).join('/')}</span>`:'';
+    const grantBadge=grants.length?` <span style="font-size:11px;color:#4caf50;font-weight:400;background:rgba(76,175,80,.12);border-radius:3px;padding:1px 5px">+1 ${grants.map(i=>ABILITIES_SH[i]).join('/')}</span>`:'';
     const prereqFail=prereq&&!prereq.ok;
-    const prereqRow=prereq?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">${prereq.reasons.map(r=>`<span style="font-size:10px;color:${r.ok?'#4caf50':'#e53935'};background:${r.ok?'rgba(76,175,80,.1)':'rgba(229,57,53,.1)'};border-radius:3px;padding:1px 5px">${r.ok?'✅':'❌'} ${esc(r.label)}</span>`).join('')}</div>`:'';
+    const prereqRow=prereq?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">${prereq.reasons.map(r=>`<span style="font-size:11px;color:${r.ok?'#4caf50':'#e53935'};background:${r.ok?'rgba(76,175,80,.1)':'rgba(229,57,53,.1)'};border-radius:3px;padding:1px 5px">${r.ok?'✅':'❌'} ${esc(r.label)}</span>`).join('')}</div>`:'';
     return`<div class="lu-choice" style="margin-bottom:6px;padding:8px 10px;cursor:pointer;opacity:${prereqFail?.55:1}" onclick="LU.asiChoice.featName='${esc(f.n)}';LU.asiChoice.stats=[];renderTab()">
       <h3 style="font-size:13px;margin-bottom:4px">${esc(f.n)}${grantBadge}</h3>
-      <p style="font-size:11px;color:var(--text2);line-height:1.4">${esc(f.tx||'')}</p>
+      <p style="font-size:12px;color:var(--text2);line-height:1.4">${esc(f.tx||'')}</p>
       ${prereqRow}
     </div>`;
   };
@@ -1010,7 +1010,7 @@ function luFilterFeats(q){
     const pageItems=all.slice(_luFeatPage*pageSize,_luFeatPage*pageSize+pageSize);
     const nav=`<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 0">
       <button class="btn bsm" ${_luFeatPage<=0?'disabled':''} onclick="_luFeatPageGo(-1)">← Précédents</button>
-      <span style="font-size:11px;color:var(--text3);text-align:center">Page ${_luFeatPage+1}/${totalPages} · ${all.length} dons</span>
+      <span style="font-size:12px;color:var(--text3);text-align:center">Page ${_luFeatPage+1}/${totalPages} · ${all.length} dons</span>
       <button class="btn bsm" ${_luFeatPage>=totalPages-1?'disabled':''} onclick="_luFeatPageGo(1)">Suivants →</button>
     </div>`;
     el.innerHTML=nav+_sortAndCard(pageItems)+nav;
@@ -1021,7 +1021,7 @@ function luFilterFeats(q){
   for(let i=0;i<FEATS_DB.length&&res.length<18;i++){
     if(FEATS_DB[i].n&&FEATS_DB[i].n.toLowerCase().includes(low)&&_filterSpellFeat(FEATS_DB[i]))res.push(FEATS_DB[i]);
   }
-  el.innerHTML=res.length?_sortAndCard(res):'<div style="font-size:12px;color:var(--text3);text-align:center;padding:8px">Aucun résultat.</div>';
+  el.innerHTML=res.length?_sortAndCard(res):'<div style="font-size:13px;color:var(--text3);text-align:center;padding:8px">Aucun résultat.</div>';
 }
 
 // ── Sorts ──
@@ -1082,24 +1082,24 @@ function luStepSpells(p){
   const cantripFull=selCantrips.length>=needCantrip;
   const leveledFull=selLeveled.length>=leveledCount;
   const ready=cantripFull&&leveledFull;
-  const spellRow=(s)=>{const isSel=sel.includes(s.name);const isC=s.level===0;const dis=!isSel&&(isC?cantripFull:leveledFull);const sid='luspd_'+(s.name||'').replace(/[^a-zA-Z0-9]/g,'_');const meta=[s.level===0?'Sort mineur':'Niv. '+s.level,s.school,s.castTime,s.range].filter(Boolean).join(' · ');return`<div style="margin-bottom:3px"><div class="sk-choice${isSel?' selected':dis?' disabled':''}" onclick="${dis?'':'luToggleSpell(\''+esc(s.name)+'\')'}"><span class="sk-dot${isSel?' p':''}"></span><span style="flex:1;font-size:13px">${esc(s.name)}${s.level>1?` <span style="font-size:10px;color:var(--text3)">niv.${s.level}</span>`:''}</span><span style="font-size:11px;color:var(--text3)">${esc(s.school||'')}</span><span onclick="event.stopPropagation();var d=document.getElementById('${sid}');if(d)d.style.display=d.style.display==='none'?'block':'none'" style="cursor:pointer;color:var(--cp);font-size:14px;padding:0 5px" title="Voir la description">ⓘ</span>${isSel?`<span style="color:var(--cp)">✓</span>`:''}</div><div id="${sid}" style="display:none;white-space:pre-wrap;font-size:11px;color:var(--text2);line-height:1.5;padding:6px 10px;background:var(--surface2);border-radius:0 0 6px 6px">${meta?`<div style="color:var(--text3);margin-bottom:4px">${esc(meta)}</div>`:''}${esc(s.desc||'Pas de description disponible.')}</div></div>`;};
+  const spellRow=(s)=>{const isSel=sel.includes(s.name);const isC=s.level===0;const dis=!isSel&&(isC?cantripFull:leveledFull);const sid='luspd_'+(s.name||'').replace(/[^a-zA-Z0-9]/g,'_');const meta=[s.level===0?'Sort mineur':'Niv. '+s.level,s.school,s.castTime,s.range].filter(Boolean).join(' · ');return`<div style="margin-bottom:3px"><div class="sk-choice${isSel?' selected':dis?' disabled':''}" onclick="${dis?'':'luToggleSpell(\''+esc(s.name)+'\')'}"><span class="sk-dot${isSel?' p':''}"></span><span style="flex:1;font-size:13px">${esc(s.name)}${s.level>1?` <span style="font-size:11px;color:var(--text3)">niv.${s.level}</span>`:''}</span><span style="font-size:12px;color:var(--text3)">${esc(s.school||'')}</span><span onclick="event.stopPropagation();var d=document.getElementById('${sid}');if(d)d.style.display=d.style.display==='none'?'block':'none'" style="cursor:pointer;color:var(--cp);font-size:14px;padding:0 5px" title="Voir la description">ⓘ</span>${isSel?`<span style="color:var(--cp)">✓</span>`:''}</div><div id="${sid}" style="display:none;white-space:pre-wrap;font-size:12px;color:var(--text2);line-height:1.5;padding:6px 10px;background:var(--surface2);border-radius:0 0 6px 6px">${meta?`<div style="color:var(--text3);margin-bottom:4px">${esc(meta)}</div>`:''}${esc(s.desc||'Pas de description disponible.')}</div></div>`;};
   // Section "remplacer un sort connu" (lanceurs connus uniquement)
   const ownLeveled=(p.spells||[]).filter(s=>{const d=_spDb.find(x=>x.name===s.name);return d?d.level>=1:false;});
   const swapHtml=(canSwap&&ownLeveled.length)?`<details style="margin-top:14px;border-top:1px solid var(--border);padding-top:10px">
-    <summary style="cursor:pointer;font-size:12px;color:var(--text2);list-style:none">🔄 Remplacer un sort connu <span style="color:var(--text3)">(optionnel — 1 par niveau)</span>${LU.swapOut?` <span style="color:var(--cp)">: ${esc(LU.swapOut)}</span>`:''}</summary>
+    <summary style="cursor:pointer;font-size:13px;color:var(--text2);list-style:none">🔄 Remplacer un sort connu <span style="color:var(--text3)">(optionnel — 1 par niveau)</span>${LU.swapOut?` <span style="color:var(--cp)">: ${esc(LU.swapOut)}</span>`:''}</summary>
     <div style="margin-top:8px">
-      <p style="font-size:11px;color:var(--text3);margin-bottom:6px">Oublie un sort connu : tu pourras choisir 1 sort de plus ci-dessus en remplacement.</p>
+      <p style="font-size:12px;color:var(--text3);margin-bottom:6px">Oublie un sort connu : tu pourras choisir 1 sort de plus ci-dessus en remplacement.</p>
       ${ownLeveled.map(s=>{const on=LU.swapOut===s.name;return`<div class="sk-choice${on?' selected':''}" onclick="luToggleSwap('${jsq(s.name)}')"><span class="sk-dot${on?' p':''}"></span><span style="flex:1;font-size:13px">${esc(s.name)}</span>${on?`<span style="color:var(--cp)">↺</span>`:''}</div>`;}).join('')}
     </div>
   </details>`:'';
   const needLabel=[needCantrip?`${needCantrip} sort mineur`:'',leveledCount?`${leveledCount} sort${leveledCount>1?'s':''}`:''].filter(Boolean).join(' + ')||'aucun sort';
   return`<div>
-    <p style="font-size:13px;color:var(--text2);margin-bottom:8px">Choisis <strong style="color:var(--cp)">${needLabel}</strong>.${isGrimoire?' <span style="font-size:11px;color:var(--text3)">(ajoutés à ton grimoire — à préparer ensuite)</span>':''} <span style="font-size:11px;color:var(--text3)">(${needCantrip?selCantrips.length+'/'+needCantrip+' mineur · ':''}${selLeveled.length}/${leveledCount} sort${leveledCount>1?'s':''})</span></p>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:8px">Choisis <strong style="color:var(--cp)">${needLabel}</strong>.${isGrimoire?' <span style="font-size:12px;color:var(--text3)">(ajoutés à ton grimoire — à préparer ensuite)</span>':''} <span style="font-size:12px;color:var(--text3)">(${needCantrip?selCantrips.length+'/'+needCantrip+' mineur · ':''}${selLeveled.length}/${leveledCount} sort${leveledCount>1?'s':''})</span></p>
     <input type="text" placeholder="🔍 Rechercher..." value="${esc(_luSpellSearch)}" oninput="_luSpellSearch=this.value;renderTab()" style="width:100%;box-sizing:border-box;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;margin-bottom:8px">
-    ${isCantripLevel?`<div style="font-size:12px;font-weight:600;color:var(--cp);margin:8px 0 4px">Sorts mineurs</div>${cantrips.length?cantrips.map(spellRow).join(''):'<div style="font-size:12px;color:var(--text3);padding:4px 0">Aucun résultat.</div>'}`:``}
-    <div style="font-size:12px;font-weight:600;color:var(--cp);margin:8px 0 4px">Sorts niveau 1</div>
-    ${l1.length?l1.map(spellRow).join(''):'<div style="font-size:12px;color:var(--text3);padding:4px 0">Aucun résultat.</div>'}
-    ${maxLvl>=2?`<div style="font-size:12px;font-weight:600;color:var(--cp);margin:8px 0 4px">Sorts niveau 2–${maxLvl}</div>${l2plus.length?l2plus.map(spellRow).join(''):'<div style="font-size:12px;color:var(--text3);padding:4px 0">Aucun sort disponible à ce niveau.</div>'}`:``}
+    ${isCantripLevel?`<div style="font-size:13px;font-weight:600;color:var(--cp);margin:8px 0 4px">Sorts mineurs</div>${cantrips.length?cantrips.map(spellRow).join(''):'<div style="font-size:13px;color:var(--text3);padding:4px 0">Aucun résultat.</div>'}`:``}
+    <div style="font-size:13px;font-weight:600;color:var(--cp);margin:8px 0 4px">Sorts niveau 1</div>
+    ${l1.length?l1.map(spellRow).join(''):'<div style="font-size:13px;color:var(--text3);padding:4px 0">Aucun résultat.</div>'}
+    ${maxLvl>=2?`<div style="font-size:13px;font-weight:600;color:var(--cp);margin:8px 0 4px">Sorts niveau 2–${maxLvl}</div>${l2plus.length?l2plus.map(spellRow).join(''):'<div style="font-size:13px;color:var(--text3);padding:4px 0">Aucun sort disponible à ce niveau.</div>'}`:``}
     ${swapHtml}
     <div style="display:flex;gap:8px;margin-top:12px">
       <button class="btn" style="flex:1" onclick="LU.step--;_luSpellSearch='';renderTab()">← Retour</button>
@@ -1133,7 +1133,7 @@ function luStepExpertise(p){
   const sel=LU.expertiseChoices;const count=2;
   return`<div>
     <p style="font-size:13px;color:var(--text2);margin-bottom:8px">Choisis <strong style="color:var(--cp)">${count}</strong> compétences maîtrisées pour doubler ton bonus (expertise). (${sel.length}/${count})</p>
-    ${profSkills.length?profSkills.map(sk=>{const isSel=sel.includes(sk.name);const dis=!isSel&&sel.length>=count;return`<div class="sk-choice${isSel?' selected':dis?' disabled':''}" onclick="${dis?'':'luToggleExpertise(\''+esc(sk.name)+'\')'}"><span class="sk-dot${isSel?' p':''}"></span><span style="flex:1;font-size:13px">${esc(sk.name)}</span><span style="font-size:11px;color:var(--text3)">${ABILITIES_SH[sk.ab]}</span>${isSel?`<span style="color:var(--cp)">✓ Expertise</span>`:''}</div>`;}).join(''):`<div style="font-size:12px;color:var(--text3);font-style:italic;padding:8px 0">Aucune compétence maîtrisée disponible. Ajoute des maîtrises d'abord dans l'onglet Compétences.</div>`}
+    ${profSkills.length?profSkills.map(sk=>{const isSel=sel.includes(sk.name);const dis=!isSel&&sel.length>=count;return`<div class="sk-choice${isSel?' selected':dis?' disabled':''}" onclick="${dis?'':'luToggleExpertise(\''+esc(sk.name)+'\')'}"><span class="sk-dot${isSel?' p':''}"></span><span style="flex:1;font-size:13px">${esc(sk.name)}</span><span style="font-size:12px;color:var(--text3)">${ABILITIES_SH[sk.ab]}</span>${isSel?`<span style="color:var(--cp)">✓ Expertise</span>`:''}</div>`;}).join(''):`<div style="font-size:13px;color:var(--text3);font-style:italic;padding:8px 0">Aucune compétence maîtrisée disponible. Ajoute des maîtrises d'abord dans l'onglet Compétences.</div>`}
     <div style="display:flex;gap:8px;margin-top:12px">
       <button class="btn" style="flex:1" onclick="LU.step--;renderTab()">← Retour</button>
       <button class="btn bac" style="flex:2" onclick="LU.step++;renderTab()" ${sel.length>=count||profSkills.length<count?'':'disabled'}>Continuer →</button>
@@ -1151,7 +1151,7 @@ function luStepMcSkill(p){
   const already=p.skillProf||{};
   return`<div>
     <p style="font-size:13px;color:var(--text2);margin-bottom:8px">Multiclassage en <strong style="color:var(--cp)">${esc(LU.mcTarget)}</strong> — Choisis <strong style="color:var(--cp)">${count}</strong> compétence${count>1?'s':''} dans la liste de classe. (${sel.length}/${count})</p>
-    ${available.map(sk=>{const isSel=sel.includes(sk);const alreadyHas=already[sk]>=1;const dis=alreadyHas||(!isSel&&sel.length>=count);return`<div class="sk-choice${isSel?' selected':dis?' disabled':''}" onclick="${(dis&&!isSel)?'':'luToggleMcSkill(\''+esc(sk)+'\')'}"><span class="sk-dot${isSel?' p':''}"></span><span style="flex:1;font-size:13px">${esc(sk)}</span>${alreadyHas?`<span style="font-size:11px;color:var(--text3)">déjà maîtrisée</span>`:isSel?`<span style="color:var(--cp)">✓</span>`:''}</div>`;}).join('')}
+    ${available.map(sk=>{const isSel=sel.includes(sk);const alreadyHas=already[sk]>=1;const dis=alreadyHas||(!isSel&&sel.length>=count);return`<div class="sk-choice${isSel?' selected':dis?' disabled':''}" onclick="${(dis&&!isSel)?'':'luToggleMcSkill(\''+esc(sk)+'\')'}"><span class="sk-dot${isSel?' p':''}"></span><span style="flex:1;font-size:13px">${esc(sk)}</span>${alreadyHas?`<span style="font-size:12px;color:var(--text3)">déjà maîtrisée</span>`:isSel?`<span style="color:var(--cp)">✓</span>`:''}</div>`;}).join('')}
     <div style="display:flex;gap:8px;margin-top:12px">
       <button class="btn" style="flex:1" onclick="LU.step--;renderTab()">← Retour</button>
       <button class="btn bac" style="flex:2" onclick="LU.step++;renderTab()" ${sel.length>=count?'':'disabled'}>Continuer →</button>
@@ -1177,20 +1177,20 @@ function luStepInvocations(p){
   });
   return`<div>
     <p style="font-size:13px;color:var(--text2);margin-bottom:8px">Choisis <strong style="color:var(--cp)">${toChoose}</strong> manifestation${toChoose>1?'s':''} occulte${toChoose>1?'s':''}. (${sel.length}/${toChoose} sélectionnée${sel.length>1?'s':''})</p>
-    ${alreadyHas.length?`<div style="font-size:11px;color:var(--text3);margin-bottom:8px;padding:5px 8px;background:var(--surface2);border-radius:6px">Déjà choisies : ${alreadyHas.map(n=>esc(n)).join(', ')}</div>`:''}
+    ${alreadyHas.length?`<div style="font-size:12px;color:var(--text3);margin-bottom:8px;padding:5px 8px;background:var(--surface2);border-radius:6px">Déjà choisies : ${alreadyHas.map(n=>esc(n)).join(', ')}</div>`:''}
     ${available.map(inv=>{
       const isSel=sel.includes(inv.name);const dis=!isSel&&sel.length>=toChoose;
       return`<div class="lu-choice${isSel?' selected':dis?' disabled':''}" style="margin-bottom:6px;padding:8px 10px;cursor:${dis?'default':'pointer'}" onclick="${dis?'':'luToggleInvocation(\''+esc(inv.name)+'\')'}">
         <div style="display:flex;align-items:flex-start;gap:8px">
           <span style="color:var(--cp);font-size:14px;margin-top:1px;flex-shrink:0">${isSel?'✓':'◯'}</span>
           <div style="flex:1">
-            <div style="font-size:13px;font-weight:600">${esc(inv.name)}${inv.minLevel>0?` <span style="font-size:10px;color:var(--text3);font-weight:400">niv.${inv.minLevel}+</span>`:''}</div>
-            <div style="font-size:11px;color:var(--text2);margin-top:3px;line-height:1.4">${esc(inv.desc)}</div>
+            <div style="font-size:13px;font-weight:600">${esc(inv.name)}${inv.minLevel>0?` <span style="font-size:11px;color:var(--text3);font-weight:400">niv.${inv.minLevel}+</span>`:''}</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:3px;line-height:1.4">${esc(inv.desc)}</div>
           </div>
         </div>
       </div>`;
     }).join('')}
-    ${!available.length?`<div style="font-size:12px;color:var(--text3);font-style:italic;padding:8px">Toutes les manifestations disponibles ont déjà été choisies.</div>`:''}
+    ${!available.length?`<div style="font-size:13px;color:var(--text3);font-style:italic;padding:8px">Toutes les manifestations disponibles ont déjà été choisies.</div>`:''}
     <div style="display:flex;gap:8px;margin-top:12px">
       <button class="btn" style="flex:1" onclick="LU.step--;renderTab()">← Retour</button>
       <button class="btn bac" style="flex:2" onclick="LU.step++;renderTab()" ${sel.length>=toChoose||!available.length?'':'disabled'}>Continuer →</button>
@@ -1213,12 +1213,12 @@ function luStepSecretsM(p){
   const allSpells=_spDb.filter(s=>!knownNames.includes(s.name)&&s.level>0&&(!q||s.name.toLowerCase().includes(q)||(s.nameEN||'').toLowerCase().includes(q)));
   const maxLvl=_maxSpellLevelForLevelUp(p,'Barde');
   const byLevel={};allSpells.forEach(s=>{if(s.level<=maxLvl){if(!byLevel[s.level])byLevel[s.level]=[];byLevel[s.level].push(s);}});
-  const spellRow=(s)=>{const isSel=sel.includes(s.name);const dis=!isSel&&sel.length>=count;return`<div class="sk-choice${isSel?' selected':dis?' disabled':''}" onclick="${dis?'':'luToggleSecret(\''+esc(s.name)+'\')'}"><span class="sk-dot${isSel?' p':''}"></span><span style="flex:1;font-size:13px">${esc(s.name)} <span style="font-size:10px;color:var(--text3)">niv.${s.level}</span></span><span style="font-size:11px;color:var(--text3)">${esc(s.school||'')}</span>${isSel?`<span style="color:var(--cp)">✓</span>`:''}</div>`;};
+  const spellRow=(s)=>{const isSel=sel.includes(s.name);const dis=!isSel&&sel.length>=count;return`<div class="sk-choice${isSel?' selected':dis?' disabled':''}" onclick="${dis?'':'luToggleSecret(\''+esc(s.name)+'\')'}"><span class="sk-dot${isSel?' p':''}"></span><span style="flex:1;font-size:13px">${esc(s.name)} <span style="font-size:11px;color:var(--text3)">niv.${s.level}</span></span><span style="font-size:12px;color:var(--text3)">${esc(s.school||'')}</span>${isSel?`<span style="color:var(--cp)">✓</span>`:''}</div>`;};
   return`<div>
     <p style="font-size:13px;color:var(--text2);margin-bottom:4px">🎭 <strong style="color:var(--cp)">Secrets Magiques</strong> — Choisis ${count} sorts de <em>n'importe quelle classe</em>. (${sel.length}/${count})</p>
     <input type="text" placeholder="🔍 Rechercher un sort..." value="${esc(_luSecretsSearch)}" oninput="_luSecretsSearch=this.value;renderTab()" style="width:100%;box-sizing:border-box;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;margin-bottom:8px">
-    ${Object.keys(byLevel).sort((a,b)=>a-b).map(lvl=>`<div style="font-size:12px;font-weight:600;color:var(--cp);margin:8px 0 4px">Niveau ${lvl}</div>${byLevel[lvl].map(spellRow).join('')}`).join('')}
-    ${!allSpells.length?`<div style="font-size:12px;color:var(--text3);padding:8px 0">Aucun résultat.</div>`:''}
+    ${Object.keys(byLevel).sort((a,b)=>a-b).map(lvl=>`<div style="font-size:13px;font-weight:600;color:var(--cp);margin:8px 0 4px">Niveau ${lvl}</div>${byLevel[lvl].map(spellRow).join('')}`).join('')}
+    ${!allSpells.length?`<div style="font-size:13px;color:var(--text3);padding:8px 0">Aucun résultat.</div>`:''}
     <div style="display:flex;gap:8px;margin-top:12px">
       <button class="btn" style="flex:1" onclick="LU.step--;_luSecretsSearch='';renderTab()">← Retour</button>
       <button class="btn bac" style="flex:2" onclick="LU.step++;_luSecretsSearch='';renderTab()" ${sel.length>=count?'':'disabled'}>Continuer →</button>
@@ -1270,31 +1270,31 @@ function luStepRecap(p,newLvl){
     <p style="font-size:13px;color:var(--text2);margin-bottom:14px">Récapitulatif — niveau <strong style="color:var(--cp)">${newLvl}</strong>. Confirme pour appliquer.</p>
 
     <div style="background:var(--surface2);border-radius:8px;padding:12px;margin-bottom:12px">
-      <div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:8px">Ce qui change</div>
+      <div style="font-size:13px;font-weight:600;color:var(--cp);margin-bottom:8px">Ce qui change</div>
       ${isMulti?`<div style="font-size:13px;color:var(--text2)">🔀 Multiclassage → <strong>${esc(LU.mcTarget)}</strong> niveau 1</div>
-        <div style="font-size:12px;color:var(--text3);margin-top:4px">${esc((SRD.classes.find(c=>c.name===LU.mcTarget)||{}).mcProf||'—')}</div>`:
+        <div style="font-size:13px;color:var(--text3);margin-top:4px">${esc((SRD.classes.find(c=>c.name===LU.mcTarget)||{}).mcProf||'—')}</div>`:
       `${explainFeats.map(f=>`<div style="padding:6px 0;border-bottom:1px solid var(--border)">
           <div style="font-size:13px;font-weight:600;color:var(--cp)">✦ ${esc(f.name)}</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:2px;line-height:1.5">${esc(f.desc)}</div>
+          <div style="font-size:13px;color:var(--text2);margin-top:2px;line-height:1.5">${esc(f.desc)}</div>
         </div>`).join('')}
       ${LU.archetypeChoice?`<div style="padding:6px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:600;color:var(--cp)">🎭 Archétype : ${esc(LU.archetypeChoice)}</div></div>`:''}
       ${LU.terrainChoice?`<div style="padding:6px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:600;color:var(--cp)">🗺 Terrain du cercle : ${esc(LU.terrainChoice)}</div></div>`:''}
       ${LU.styleChoice?`<div style="padding:6px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:600;color:var(--cp)">⚔ Style : ${esc(LU.styleChoice)}</div></div>`:''}
-      ${LU.asiChoice&&LU.asiChoice.type==='feat'&&LU.asiChoice.featName?(()=>{const rf=FEATS_DB&&FEATS_DB.find(f=>f.n===LU.asiChoice.featName);const rg=rf?_parseFeatAbilityGrants(rf.tx):[];const ri=LU.asiChoice.stats[0];const statNote=rg.length>1&&ri!==undefined?` <span style="font-size:11px;font-weight:400">(+1 ${ABILITIES[ri]})</span>`:rg.length===1?` <span style="font-size:11px;font-weight:400">(+1 ${ABILITIES[rg[0]]})</span>`:'';return`<div style="padding:6px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:600;color:#4caf50">🎯 Don : ${esc(LU.asiChoice.featName)}${statNote}</div></div>`;})():''}
+      ${LU.asiChoice&&LU.asiChoice.type==='feat'&&LU.asiChoice.featName?(()=>{const rf=FEATS_DB&&FEATS_DB.find(f=>f.n===LU.asiChoice.featName);const rg=rf?_parseFeatAbilityGrants(rf.tx):[];const ri=LU.asiChoice.stats[0];const statNote=rg.length>1&&ri!==undefined?` <span style="font-size:12px;font-weight:400">(+1 ${ABILITIES[ri]})</span>`:rg.length===1?` <span style="font-size:12px;font-weight:400">(+1 ${ABILITIES[rg[0]]})</span>`:'';return`<div style="padding:6px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:600;color:#4caf50">🎯 Don : ${esc(LU.asiChoice.featName)}${statNote}</div></div>`;})():''}
       ${LU.asiChoice&&LU.asiChoice.type!=='feat'&&LU.asiChoice.stats.length?`<div style="padding:6px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:600;color:#4caf50">📈 Amélioration : +${LU.asiChoice.val} à ${LU.asiChoice.stats.map(j=>ABILITIES[j]).join(' et ')}</div></div>`:''}
       ${LU.expertiseChoices.length?`<div style="padding:6px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:600;color:#4caf50">🎯 Expertise : ${LU.expertiseChoices.join(', ')}</div></div>`:''}
       ${LU.newSpells.length?`<div style="padding:6px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:600;color:var(--cp)">✨ Nouveaux sorts : ${LU.newSpells.join(', ')}</div></div>`:''}
-      ${LU.swapOut?`<div style="padding:6px 0;border-bottom:1px solid var(--border)"><div style="font-size:12px;color:var(--text3)">🔄 Sort remplacé : <span style="color:#e57373">${esc(LU.swapOut)}</span></div></div>`:''}
+      ${LU.swapOut?`<div style="padding:6px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;color:var(--text3)">🔄 Sort remplacé : <span style="color:#e57373">${esc(LU.swapOut)}</span></div></div>`:''}
       ${LU.secretsChoices.length?`<div style="padding:6px 0;border-bottom:1px solid var(--border)"><div style="font-size:13px;font-weight:600;color:#9c27b0">🎭 Secrets Magiques : ${LU.secretsChoices.join(', ')}</div></div>`:''}
       ${LU.metamagicChoices.length?`<div style="padding:6px 0"><div style="font-size:13px;font-weight:600;color:var(--cp)">🔮 Métamagie : ${LU.metamagicChoices.join(', ')}</div></div>`:''}
-      ${(!explainFeats.length&&!LU.archetypeChoice&&!LU.styleChoice&&!(LU.asiChoice&&(LU.asiChoice.featName||(LU.asiChoice.stats&&LU.asiChoice.stats.length)))&&!LU.expertiseChoices.length&&!LU.newSpells.length&&!LU.secretsChoices.length&&!LU.metamagicChoices.length)?`<div style="font-size:12px;color:var(--text3);font-style:italic;padding:6px 0">Aucune nouvelle capacité de classe à ce niveau — tes points de vie augmentent.</div>`:''}
+      ${(!explainFeats.length&&!LU.archetypeChoice&&!LU.styleChoice&&!(LU.asiChoice&&(LU.asiChoice.featName||(LU.asiChoice.stats&&LU.asiChoice.stats.length)))&&!LU.expertiseChoices.length&&!LU.newSpells.length&&!LU.secretsChoices.length&&!LU.metamagicChoices.length)?`<div style="font-size:13px;color:var(--text3);font-style:italic;padding:6px 0">Aucune nouvelle capacité de classe à ce niveau — tes points de vie augmentent.</div>`:''}
       `}
     </div>
 
     <div style="padding:8px 12px;background:var(--cglow);border:1px solid var(--cp);border-radius:8px;margin-bottom:8px">
       ${(()=>{
         const d=mc?SRD.classes.find(c=>c.name===mc.name):null;
-        if(!d)return'<div style="font-size:12px;color:var(--text2)">PV gagnés : ?</div>';
+        if(!d)return'<div style="font-size:13px;color:var(--text2)">PV gagnés : ?</div>';
         const ab=p.abilities||[10,10,10,10,10,10];
         const conM=mod(ab[2]);
         const avg=Math.floor(d.hdVal/2)+1;
@@ -1303,20 +1303,20 @@ function luStepRecap(p,newLvl){
         const rolledTag=LU.hpRoll!==null?`<span style="font-size:9px;color:#4caf50;margin-left:4px">🎲 dé lancé</span>`:`<span style="font-size:9px;color:var(--text3);margin-left:4px">(moyenne)</span>`;
         if(LU.hpConfirmed){
           return`<div style="padding:8px 10px;background:rgba(76,175,80,.08);border:1px solid rgba(76,175,80,.4);border-radius:8px">
-            <div style="font-size:12px;color:#4caf50;font-weight:600;margin-bottom:2px">✓ PV confirmés — définitif</div>
+            <div style="font-size:13px;color:#4caf50;font-weight:600;margin-bottom:2px">✓ PV confirmés — définitif</div>
             <div style="font-size:15px;font-weight:700;color:var(--cp)">${used} + CON (${fmt(conM)}) = +${total} PV</div>
           </div>`;
         }
         return`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-          <div style="font-size:12px;color:var(--text2)">PV gagnés : <strong style="color:var(--cp)">${used} + CON (${fmt(conM)}) = <span style="font-size:15px">${total}</span></strong>${rolledTag}</div>
+          <div style="font-size:13px;color:var(--text2)">PV gagnés : <strong style="color:var(--cp)">${used} + CON (${fmt(conM)}) = <span style="font-size:15px">${total}</span></strong>${rolledTag}</div>
         </div>
         <div style="display:flex;gap:6px">
-          <button class="btn bsm" onclick="_luConfirmHP(null,${avg})" style="flex:1;font-size:11px">${avg} Moyenne</button>
-          <button class="btn bsm bac" onclick="_luRollHP(${d.hdVal},${avg})" style="flex:1;font-size:11px">🎲 Lancer 1${esc('d'+d.hdVal)}</button>
+          <button class="btn bsm" onclick="_luConfirmHP(null,${avg})" style="flex:1;font-size:12px">${avg} Moyenne</button>
+          <button class="btn bsm bac" onclick="_luRollHP(${d.hdVal},${avg})" style="flex:1;font-size:12px">🎲 Lancer 1${esc('d'+d.hdVal)}</button>
         </div>`;
       })()}
     </div>
-    ${!isMulti&&isPrepared?`<div style="padding:8px 12px;background:rgba(0,150,136,.08);border:1px solid rgba(0,150,136,.3);border-radius:8px;margin-bottom:8px;font-size:12px;color:var(--text2)">💡 <strong>Sorts :</strong> Tu peux préparer n'importe quel sort de ta liste de classe lors d'un repos long. Accède à <strong>Sorts → 📚 Parcourir</strong> pour ajouter de nouveaux sorts.</div>`:''}
+    ${!isMulti&&isPrepared?`<div style="padding:8px 12px;background:rgba(0,150,136,.08);border:1px solid rgba(0,150,136,.3);border-radius:8px;margin-bottom:8px;font-size:13px;color:var(--text2)">💡 <strong>Sorts :</strong> Tu peux préparer n'importe quel sort de ta liste de classe lors d'un repos long. Accède à <strong>Sorts → 📚 Parcourir</strong> pour ajouter de nouveaux sorts.</div>`:''}
 
     <div style="display:flex;gap:8px">
       <button class="btn" style="flex:1" onclick="LU.step--;renderTab()">← Retour</button>

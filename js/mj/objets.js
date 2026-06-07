@@ -5,35 +5,35 @@ function mjTabObjets(){
     <div style="flex:1;min-width:0">
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
         <span style="font-size:13px;font-weight:600;color:var(--text)">${esc(obj.name||'?')}</span>
-        ${ri?`<span style="font-size:10px;padding:1px 6px;border-radius:4px;background:${ri.color}22;color:${ri.color};border:1px solid ${ri.color}55">${obj.rarity}</span>`:''}
-        ${obj.attunement?`<span style="font-size:10px;padding:1px 6px;border-radius:4px;background:rgba(156,39,176,.1);color:#9c27b0;border:1px solid rgba(156,39,176,.3)">🔗 Lien requis</span>`:''}
+        ${ri?`<span style="font-size:11px;padding:1px 6px;border-radius:4px;background:${ri.color}22;color:${ri.color};border:1px solid ${ri.color}55">${obj.rarity}</span>`:''}
+        ${obj.attunement?`<span style="font-size:11px;padding:1px 6px;border-radius:4px;background:rgba(156,39,176,.1);color:#9c27b0;border:1px solid rgba(156,39,176,.3)">🔗 Lien requis</span>`:''}
       </div>
-      <div style="font-size:11px;color:var(--text3)">${esc(obj.type||'')}${ri?' · '+ri.level+' · '+ri.price:obj.value?' — '+obj.value+' po':''}</div>
-      ${obj.desc?`<div style="font-size:11px;color:var(--text2);margin-top:2px">${esc(obj.desc)}</div>`:''}
+      <div style="font-size:12px;color:var(--text3)">${esc(obj.type||'')}${ri?' · '+ri.level+' · '+ri.price:obj.value?' — '+obj.value+' po':''}</div>
+      ${obj.desc?`<div style="font-size:12px;color:var(--text2);margin-top:2px">${esc(obj.desc)}</div>`:''}
     </div>
     <div style="display:flex;gap:4px;align-items:center">
       <button class="btn bsm bprimary" onclick="mjOpenGiveItem(${i})">🎁 Donner</button>
       <button class="btn bsm" title="Enregistrer dans un compendium" onclick="mjItemToPack(${i})">📚</button>
       <button class="btn bsm" style="color:#e53935;border-color:#e53935" onclick="mjDeleteItem(${i})">✕</button>
     </div>
-  </div>`;}).join(''):`<div style="color:var(--text3);font-size:12px;font-style:italic;text-align:center;padding:16px">Aucun objet dans votre liste. Créez-en un ou cherchez dans le compendium.</div>`;
+  </div>`;}).join(''):`<div style="color:var(--text3);font-size:13px;font-style:italic;text-align:center;padding:16px">Aucun objet dans votre liste. Créez-en un ou cherchez dans le compendium.</div>`;
 
   const rarFilterBar=['','Commun','Peu commun','Rare','Très rare','Légendaire','Artefact'].map(r=>{
     const ri=r?RARITY_INFO[r]:null;
     const active=_encRarityFilter===r;
     const col=ri?ri.color:'var(--cp)';
-    return`<button class="btn bsm" onclick="_encRarityFilter='${r}';renderMJContent();setTimeout(()=>mjFilterItems(document.getElementById('itemSearch')?document.getElementById('itemSearch').value:''),30)" style="font-size:10px;padding:2px 8px;${active?`background:${col};color:#fff;border-color:transparent`:`border-color:var(--border);color:var(--text2)`}">${r||'Tout'}</button>`;
+    return`<button class="btn bsm" onclick="_encRarityFilter='${r}';renderMJContent();setTimeout(()=>mjFilterItems(document.getElementById('itemSearch')?document.getElementById('itemSearch').value:''),30)" style="font-size:11px;padding:2px 8px;${active?`background:${col};color:#fff;border-color:transparent`:`border-color:var(--border);color:var(--text2)`}">${r||'Tout'}</button>`;
   }).join('');
 
   const compSection=ITEMS_DB
     ?`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:12px">
-        <div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:8px">📚 Compendium — ${ITEMS_DB.length.toLocaleString()} objets D&D 5e</div>
+        <div style="font-size:13px;font-weight:600;color:var(--cp);margin-bottom:8px">📚 Compendium — ${ITEMS_DB.length.toLocaleString()} objets D&D 5e</div>
         <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">${rarFilterBar}</div>
         <input class="fi" id="itemSearch" placeholder="Chercher : Épée longue, Potion de soins, Anneau..." oninput="mjFilterItems(this.value)" onfocus="mjFilterItems(this.value)" style="margin-bottom:6px">
         <div id="itemResults" style="max-height:220px;overflow-y:auto"></div>
       </div>`
     :`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:12px;text-align:center">
-        <div style="font-size:12px;color:var(--text3);margin-bottom:8px">Chargez le compendium pour ajouter des objets depuis la base D&amp;D 5e SRD.</div>
+        <div style="font-size:13px;color:var(--text3);margin-bottom:8px">Chargez le compendium pour ajouter des objets depuis la base D&amp;D 5e SRD.</div>
         <button class="btn bsm bprimary" onclick="loadItemsDB(()=>renderMJContent())">📚 Charger le compendium d'objets</button>
       </div>`;
 
@@ -56,7 +56,7 @@ function _mjGetRarity(it){
 function _mjRarBadge(rar){
   if(!rar||!RARITY_INFO[rar])return '';
   const ri=RARITY_INFO[rar];
-  return`<span style="font-size:10px;padding:1px 6px;border-radius:4px;background:${ri.color}22;color:${ri.color};border:1px solid ${ri.color}55;white-space:nowrap">${rar}</span>`;
+  return`<span style="font-size:11px;padding:1px 6px;border-radius:4px;background:${ri.color}22;color:${ri.color};border:1px solid ${ri.color}55;white-space:nowrap">${rar}</span>`;
 }
 function mjFilterItems(q){
   const el=document.getElementById('itemResults');if(!el||!ITEMS_DB)return;
@@ -81,14 +81,14 @@ function mjFilterItems(q){
       <div style="display:flex;align-items:center;gap:6px;width:100%">
         <span style="font-size:16px;flex-shrink:0">${_TYPE_ICON[it.t]||'📦'}</span>
         <div style="flex:1;min-width:0">
-          <div style="font-size:12px;font-weight:600">${esc(it.n)}</div>
-          <div style="font-size:11px;color:var(--text3)">${esc(it.d||'')}${it.mg?' ✨':''}</div>
+          <div style="font-size:13px;font-weight:600">${esc(it.n)}</div>
+          <div style="font-size:12px;color:var(--text3)">${esc(it.d||'')}${it.mg?' ✨':''}</div>
         </div>
-        <span style="color:var(--cp);font-size:11px;white-space:nowrap;flex-shrink:0">+ Ajouter</span>
+        <span style="color:var(--cp);font-size:12px;white-space:nowrap;flex-shrink:0">+ Ajouter</span>
       </div>
-      ${rar?`<div style="display:flex;gap:6px;align-items:center;padding-left:22px">${_mjRarBadge(rar)}${ri?`<span style="font-size:10px;color:var(--text3)">${ri.level} · ${ri.price}</span>`:''}</div>`:''}
+      ${rar?`<div style="display:flex;gap:6px;align-items:center;padding-left:22px">${_mjRarBadge(rar)}${ri?`<span style="font-size:11px;color:var(--text3)">${ri.level} · ${ri.price}</span>`:''}</div>`:''}
     </div>`;
-  }).join(''):`<div style="font-size:12px;color:var(--text3);text-align:center;padding:8px">Aucun résultat${rarF?' pour la rareté "'+esc(rarF)+'"':q.trim()?' pour "'+esc(q)+'"':''}</div>`;
+  }).join(''):`<div style="font-size:13px;color:var(--text3);text-align:center;padding:8px">Aucun résultat${rarF?' pour la rareté "'+esc(rarF)+'"':q.trim()?' pour "'+esc(q)+'"':''}</div>`;
 }
 
 async function mjAddItemFromCompendium(idx){
@@ -131,7 +131,7 @@ function mjOpenNewItem(){
     </div>
     <div class="fl mb6">Description</div>
     <textarea class="fi" id="item_desc" rows="3" placeholder="Description, effets magiques..." style="margin-bottom:10px;resize:vertical"></textarea>
-    <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);cursor:pointer;margin-bottom:16px">
+    <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);cursor:pointer;margin-bottom:16px">
       <input type="checkbox" id="item_attunement" style="accent-color:var(--cp)">
       <span>🔗 Nécessite un lien (attunement)</span>
     </label>
@@ -164,14 +164,14 @@ function mjOpenGiveItem(itemIdx){
   if(!_mjPlayersData.length){showToast('❌ Aucun joueur dans la campagne.');return;}
   const item=_mjObjets[itemIdx];
   openModal(`<div class="pt">🎁 Donner "${esc(item.name||'?')}"</div>
-    <div style="font-size:12px;color:var(--text2);margin-bottom:14px">Choisissez le joueur qui recevra cet objet dans son inventaire.</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:14px">Choisissez le joueur qui recevra cet objet dans son inventaire.</div>
     ${_mjPlayersData.map((pp,pi)=>`<div class="charlib-item" onclick="mjGiveItem(${itemIdx},${pi})">
       <span style="font-size:20px">${pp.avatar||'⚔'}</span>
       <div style="flex:1">
         <div style="font-size:13px;font-weight:600">${esc(pp.charData&&pp.charData.charName||pp.playerName||'?')}</div>
-        <div style="font-size:11px;color:var(--text3)">${esc(pp.playerName||'')}</div>
+        <div style="font-size:12px;color:var(--text3)">${esc(pp.playerName||'')}</div>
       </div>
-      <span style="color:var(--cp);font-size:11px">Donner →</span>
+      <span style="color:var(--cp);font-size:12px">Donner →</span>
     </div>`).join('')}
     <div style="display:flex;justify-content:flex-end;margin-top:10px"><button class="btn" onclick="closeModal()">Annuler</button></div>`);
 }

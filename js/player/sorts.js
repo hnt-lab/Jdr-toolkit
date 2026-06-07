@@ -13,10 +13,10 @@ function renderConcPanel(p){
   return `<div class="conc-panel-pulse" style="background:var(--surface2);border:2px solid #ffd54f;border-radius:10px;padding:12px;margin-bottom:10px">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
       <span style="font-size:18px">🎯</span>
-      <div style="flex:1"><div style="font-size:13px;font-weight:700;color:#ffd54f">Concentration</div>${concSpell?`<div style="font-size:12px;color:var(--text2);margin-top:1px">${esc(concSpell)}</div>`:''}</div>
-      <button class="btn bsm" style="font-size:11px" onclick="toggleConcentration()">✕ Briser</button>
+      <div style="flex:1"><div style="font-size:13px;font-weight:700;color:#ffd54f">Concentration</div>${concSpell?`<div style="font-size:13px;color:var(--text2);margin-top:1px">${esc(concSpell)}</div>`:''}</div>
+      <button class="btn bsm" style="font-size:12px" onclick="toggleConcentration()">✕ Briser</button>
     </div>
-    <div style="font-size:11px;color:var(--text3);margin-bottom:10px;line-height:1.5">Si tu subis des dégâts, lance un <strong style="color:var(--text2)">JS CON</strong> (DD = max 10 ou moitié des dégâts reçus). Échec = concentration brisée.</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:10px;line-height:1.5">Si tu subis des dégâts, lance un <strong style="color:var(--text2)">JS CON</strong> (DD = max 10 ou moitié des dégâts reçus). Échec = concentration brisée.</div>
     <div style="display:flex;gap:6px;align-items:center">
       <input type="number" id="concDmgInput" placeholder="Dégâts reçus" min="0" style="flex:1;padding:7px 10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px">
       <button class="btn bac" style="white-space:nowrap;font-size:13px" onclick="rollConcSave(parseInt(document.getElementById('concDmgInput')?.value)||0)">🎲 ${conSaveLabel}</button>
@@ -46,7 +46,7 @@ function tabSorts(p){
   // Panneau Concentration déplacé vers l'onglet Combat (renderConcPanel).
 
   if(_sortSubTab === 'compendium' && (userIsMJ||prepCaster)){
-    return`<div>${subBar}${prepCaster&&!userIsMJ?`<div style="font-size:11px;color:var(--text3);padding:4px 0 8px">Cliquez sur un sort pour l'ajouter à votre liste. Vous pouvez ensuite le préparer depuis "Mes sorts".</div>`:''}${renderCompendiumSearch(p)}</div>`;
+    return`<div>${subBar}${prepCaster&&!userIsMJ?`<div style="font-size:12px;color:var(--text3);padding:4px 0 8px">Cliquez sur un sort pour l'ajouter à votre liste. Vous pouvez ensuite le préparer depuis "Mes sorts".</div>`:''}${renderCompendiumSearch(p)}</div>`;
   }
 
   if(_sortSubTab === 'apprendre' && magLvl){
@@ -74,10 +74,10 @@ function tabSorts(p){
     else if(paladinC) prepMax = Math.max(1, chaM + Math.ceil(paladinC.level/2));
     else if(artificerC) prepMax = Math.max(1, intM + Math.ceil(artificerC.level/2));
     const prepCount = allSpells.filter(s=>{const sp=findSpellData(s.name);return s.prepared&&sp&&sp.level>0;}).length;
-    prepInfo = `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:8px;background:var(--surface2);border-radius:8px;font-size:12px">
+    prepInfo = `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:8px;background:var(--surface2);border-radius:8px;font-size:13px">
       <span style="color:var(--text2)">Sorts préparés :</span>
       <strong style="color:${prepCount>prepMax?'#e53935':'#4caf50'};font-size:14px">${prepCount}/${prepMax}</strong>
-      <span style="color:var(--text3);font-size:11px">(Cliquez sur un sort pour le préparer / retirer)</span>
+      <span style="color:var(--text3);font-size:12px">(Cliquez sur un sort pour le préparer / retirer)</span>
     </div>`;
   }
 
@@ -87,22 +87,22 @@ function tabSorts(p){
   const slotHtml=(()=>{
     if(warlockSlots){
       return`<div style="margin-bottom:10px;padding:10px;background:var(--surface2);border-radius:8px">
-        <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Magie de pacte — Niv.${warlockSlots[1]}</div>
+        <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Magie de pacte — Niv.${warlockSlots[1]}</div>
         <div style="display:flex;align-items:center;gap:8px">
           <div style="display:flex;gap:4px">${Array.from({length:warlockSlots[0]},(_,si)=>`<span class="slot-bubble${si<(slotsUsed[9]||0)?' used':''}" onclick="toggleWarlockSlot(${si},${warlockSlots[0]})" style="width:16px;height:16px"></span>`).join('')}</div>
-          <span style="font-size:11px;color:var(--text3)">${warlockSlots[0]-(slotsUsed[9]||0)}/${warlockSlots[0]}</span>
+          <span style="font-size:12px;color:var(--text3)">${warlockSlots[0]-(slotsUsed[9]||0)}/${warlockSlots[0]}</span>
           <button class="btn bsm" onclick="P().spellSlotsUsed=P().spellSlotsUsed||[];P().spellSlotsUsed[9]=0;render()">↺</button>
         </div>
       </div>`;
     }
     if(!slots)return'';
     const rows=slots.map((total,ni)=>total?`<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
-      <span style="font-size:11px;color:var(--text2);width:46px">Niv. ${ni+1}</span>
+      <span style="font-size:12px;color:var(--text2);width:46px">Niv. ${ni+1}</span>
       <div>${Array.from({length:total},(_,si)=>`<span class="slot-bubble${si<(slotsUsed[ni]||0)?' used':''}" onclick="toggleSlot(${ni},${si},${total})"></span>`).join('')}</div>
-      <span style="font-size:10px;color:var(--text3)">${total-(slotsUsed[ni]||0)}/${total}</span>
+      <span style="font-size:11px;color:var(--text3)">${total-(slotsUsed[ni]||0)}/${total}</span>
     </div>`:''). join('');
     return`<div style="margin-bottom:10px;padding:10px;background:var(--surface2);border-radius:8px">
-      <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Emplacements de sorts</div>
+      <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Emplacements de sorts</div>
       ${rows}
       <button class="btn bsm" style="margin-top:4px" onclick="upd('spellSlotsUsed',[]);render()">↺ Récupérer tous (repos long)</button>
     </div>`;
@@ -113,15 +113,15 @@ function tabSorts(p){
     const arch=(p.archetype||{})['Druide']||'';
     if(!arch.toLowerCase().includes('terres'))return'';
     const terrain=p.druidTerrain||'';
-    if(!terrain)return`<div style="font-size:11px;color:var(--text3);padding:8px 0;font-style:italic">⭐ Sorts du Cercle — terrain non configuré. Réinitialisez votre personnage (respec MJ) pour choisir un terrain.</div>`;
+    if(!terrain)return`<div style="font-size:12px;color:var(--text3);padding:8px 0;font-style:italic">⭐ Sorts du Cercle — terrain non configuré. Réinitialisez votre personnage (respec MJ) pour choisir un terrain.</div>`;
     const cs=getDruidCircleSpells(p);
     if(!cs.length)return'';
     return`<div style="margin-bottom:10px;padding:10px;background:rgba(200,168,75,.06);border:1px solid rgba(200,168,75,.3);border-radius:10px">
-      <div style="font-size:11px;font-weight:700;color:var(--cp);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">⭐ Sorts du Cercle — ${esc(terrain)}</div>
-      <div style="font-size:10px;color:var(--text3);margin-bottom:8px;font-style:italic">Toujours préparés · Ne comptent pas dans le quota · Consomment un emplacement de sort au lancer</div>
-      ${cs.map(sp=>{const d=findSpellData(sp.name);return`<div style="font-size:12px;padding:5px 8px;margin-bottom:3px;background:var(--surface2);border-radius:6px;display:flex;align-items:center;gap:8px">
-        <span style="color:var(--cp);font-size:11px">⭐</span>
-        <div style="flex:1"><span style="font-weight:500">${esc(sp.name)}</span>${d?`<span style="font-size:10px;color:var(--text3);margin-left:6px">${sp.level===0?'Cantrip':'Niv.'+sp.level}${d.school?' · '+esc(d.school):''}${d.castTime?' · '+esc(d.castTime):''}</span>`:'<span style="font-size:10px;color:var(--text3);margin-left:6px">Niv.'+sp.level+'</span>'}</div>
+      <div style="font-size:12px;font-weight:700;color:var(--cp);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">⭐ Sorts du Cercle — ${esc(terrain)}</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:8px;font-style:italic">Toujours préparés · Ne comptent pas dans le quota · Consomment un emplacement de sort au lancer</div>
+      ${cs.map(sp=>{const d=findSpellData(sp.name);return`<div style="font-size:13px;padding:5px 8px;margin-bottom:3px;background:var(--surface2);border-radius:6px;display:flex;align-items:center;gap:8px">
+        <span style="color:var(--cp);font-size:12px">⭐</span>
+        <div style="flex:1"><span style="font-weight:500">${esc(sp.name)}</span>${d?`<span style="font-size:11px;color:var(--text3);margin-left:6px">${sp.level===0?'Cantrip':'Niv.'+sp.level}${d.school?' · '+esc(d.school):''}${d.castTime?' · '+esc(d.castTime):''}</span>`:'<span style="font-size:11px;color:var(--text3);margin-left:6px">Niv.'+sp.level+'</span>'}</div>
       </div>`;}).join('')}
     </div>`;
   })();
@@ -196,14 +196,14 @@ function _renderLongRestPrepModal(p){
   const shown=q?list.filter(s=>s.name.toLowerCase().includes(q)||(s.nameEN||'').toLowerCase().includes(q)):list;
   const byLvl={};shown.forEach(s=>{(byLvl[s.level]=byLvl[s.level]||[]).push(s);});
   const full=_lrPrep.sel.size>=N;
-  const row=s=>{const on=_lrPrep.sel.has(s.name);const dis=!on&&full;return`<div class="sk-choice${on?' selected':dis?' disabled':''}" onclick="${dis?'':`_lrPrepToggle('${jsq(s.name)}')`}"><span class="sk-dot${on?' p':''}"></span><span style="flex:1;font-size:13px">${esc(s.name)}</span><span style="font-size:11px;color:var(--text3)">${esc(s.school||'')}</span>${on?'<span style="color:var(--cp)">✓</span>':''}</div>`;};
+  const row=s=>{const on=_lrPrep.sel.has(s.name);const dis=!on&&full;return`<div class="sk-choice${on?' selected':dis?' disabled':''}" onclick="${dis?'':`_lrPrepToggle('${jsq(s.name)}')`}"><span class="sk-dot${on?' p':''}"></span><span style="flex:1;font-size:13px">${esc(s.name)}</span><span style="font-size:12px;color:var(--text3)">${esc(s.school||'')}</span>${on?'<span style="color:var(--cp)">✓</span>':''}</div>`;};
   let body='';
-  Object.keys(byLvl).map(Number).sort((a,b)=>a-b).forEach(l=>{body+=`<div style="font-size:12px;font-weight:600;color:var(--cp);margin:8px 0 4px">Niveau ${l}</div>${byLvl[l].map(row).join('')}`;});
-  if(!shown.length)body=`<div style="font-size:12px;color:var(--text3);padding:8px 0">Aucun sort.</div>`;
-  const alwaysHtml=always.size?`<div style="font-size:11px;color:var(--text3);margin-bottom:8px">⭐ Toujours préparés (hors quota) : ${[...always].map(esc).join(', ')}</div>`:'';
+  Object.keys(byLvl).map(Number).sort((a,b)=>a-b).forEach(l=>{body+=`<div style="font-size:13px;font-weight:600;color:var(--cp);margin:8px 0 4px">Niveau ${l}</div>${byLvl[l].map(row).join('')}`;});
+  if(!shown.length)body=`<div style="font-size:13px;color:var(--text3);padding:8px 0">Aucun sort.</div>`;
+  const alwaysHtml=always.size?`<div style="font-size:12px;color:var(--text3);margin-bottom:8px">⭐ Toujours préparés (hors quota) : ${[...always].map(esc).join(', ')}</div>`:'';
   openModal(`<div class="pt">🌙 Préparation des sorts — ${esc(className)}</div>
-    ${_lrPrep.multi?`<div style="font-size:11px;color:#ff9800;margin-bottom:8px">Multiclasse : préparation de la classe principale (${esc(className)}). Les autres classes se préparent depuis l'onglet Sorts.</div>`:''}
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:12px"><span style="color:var(--text2)">Sorts préparés :</span><strong style="color:${_lrPrep.sel.size>N?'#e53935':'#4caf50'};font-size:15px">${_lrPrep.sel.size}/${N}</strong></div>
+    ${_lrPrep.multi?`<div style="font-size:12px;color:#ff9800;margin-bottom:8px">Multiclasse : préparation de la classe principale (${esc(className)}). Les autres classes se préparent depuis l'onglet Sorts.</div>`:''}
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:13px"><span style="color:var(--text2)">Sorts préparés :</span><strong style="color:${_lrPrep.sel.size>N?'#e53935':'#4caf50'};font-size:15px">${_lrPrep.sel.size}/${N}</strong></div>
     ${alwaysHtml}
     <input type="text" placeholder="🔍 Rechercher..." value="${esc(_lrPrep.search||'')}" oninput="_lrPrepSearch(this.value)" style="width:100%;box-sizing:border-box;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;margin-bottom:8px">
     <div style="max-height:46vh;overflow-y:auto">${body}</div>
@@ -245,8 +245,8 @@ function renderLearnSpell(p, magLvl){
   return`<div>
     <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:12px">
       <div style="font-size:13px;font-weight:600;color:var(--cp);margin-bottom:4px">📜 Copier un sort dans votre grimoire</div>
-      <div style="font-size:12px;color:var(--text3)">Coût : 2h + <strong>50 po par niveau du sort</strong> — Tous les sorts Magicien disponibles</div>
-      <div style="font-size:12px;color:var(--text2);margin-top:4px">Votre trésor actuel : <strong style="color:var(--cp)">${cur.po||0} po</strong></div>
+      <div style="font-size:13px;color:var(--text3)">Coût : 2h + <strong>50 po par niveau du sort</strong> — Tous les sorts Magicien disponibles</div>
+      <div style="font-size:13px;color:var(--text2);margin-top:4px">Votre trésor actuel : <strong style="color:var(--cp)">${cur.po||0} po</strong></div>
     </div>
     ${!isLoaded?`<div style="text-align:center;padding:16px"><button class="btn bprimary" onclick="loadSpellsDB(()=>render())">⬇️ Charger le compendium</button></div>`:`
       <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">
@@ -254,12 +254,12 @@ function renderLearnSpell(p, magLvl){
           oninput="_learnSpellSearch.q=this.value;render()"
           style="flex:2;min-width:140px;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px">
         <select onchange="_learnSpellSearch.school=this.value;render()"
-          style="flex:1;min-width:100px;padding:7px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px">
+          style="flex:1;min-width:100px;padding:7px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px">
           <option value="">Toutes écoles</option>
           ${schools.map(sc=>`<option value="${sc}"${_learnSpellSearch.school===sc?' selected':''}>${sc}</option>`).join('')}
         </select>
       </div>
-      <div style="font-size:11px;color:var(--text3);margin-bottom:8px">${results.length} sort(s) disponible(s) à copier</div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:8px">${results.length} sort(s) disponible(s) à copier</div>
       <div style="max-height:400px;overflow-y:auto">
         ${results.map(s=>{
           const cost = s.level * 50;
@@ -267,8 +267,8 @@ function renderLearnSpell(p, magLvl){
           return`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:5px;display:flex;align-items:center;gap:8px">
             <div style="flex:1;min-width:0">
               <div style="font-size:13px;font-weight:600">${esc(s.name)}</div>
-              <div style="font-size:11px;color:var(--text3)">Niv.${s.level} • ${esc(s.school)} • ${esc(s.castTime)}</div>
-              <div style="font-size:11px;color:${canAfford?'#4caf50':'#e53935'};margin-top:2px">${cost} po — ${canAfford?'✓ Fonds suffisants':'✗ Fonds insuffisants'}</div>
+              <div style="font-size:12px;color:var(--text3)">Niv.${s.level} • ${esc(s.school)} • ${esc(s.castTime)}</div>
+              <div style="font-size:12px;color:${canAfford?'#4caf50':'#e53935'};margin-top:2px">${cost} po — ${canAfford?'✓ Fonds suffisants':'✗ Fonds insuffisants'}</div>
             </div>
             <button class="btn bsm${canAfford?' bprimary':''}" onclick="learnSpell('${jsq(s.name)}',${s.level},${cost})" ${canAfford?'':'disabled'}>Copier</button>
           </div>`;
@@ -312,7 +312,7 @@ function renderCompendiumSearch(p){
     ${!isLoaded?`
       <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center;margin-bottom:12px">
         <div style="font-size:14px;font-weight:600;color:var(--cp);margin-bottom:6px">📚 Compendium de sorts</div>
-        <div style="font-size:12px;color:var(--text3);margin-bottom:12px">1213 sorts disponibles. Placez <strong>spells_db.json</strong> dans le même dossier que la fiche.</div>
+        <div style="font-size:13px;color:var(--text3);margin-bottom:12px">1213 sorts disponibles. Placez <strong>spells_db.json</strong> dans le même dossier que la fiche.</div>
         <button class="btn bprimary" onclick="loadSpellsDB(()=>render())">⬇️ Charger le compendium</button>
       </div>
     `:`
@@ -321,30 +321,30 @@ function renderCompendiumSearch(p){
           oninput="_spellSearch.q=this.value;render()"
           style="flex:2;min-width:140px;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px">
         <select onchange="_spellSearch.cls=this.value;render()"
-          style="flex:1;min-width:100px;padding:7px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px">
+          style="flex:1;min-width:100px;padding:7px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px">
           <option value="">Toutes classes</option>
           ${['Barbare','Barde','Clerc','Druide','Guerrier','Moine','Paladin','Rôdeur','Roublard','Ensorceleur','Occultiste','Magicien','Artificier'].map(c=>`<option value="${c}"${_spellSearch.cls===c?' selected':''}>${c}</option>`).join('')}
         </select>
         <select onchange="_spellSearch.lvl=this.value;render()"
-          style="padding:7px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px">
+          style="padding:7px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px">
           <option value="">Tous niveaux</option>
           ${[0,1,2,3,4,5,6,7,8,9].map(n=>`<option value="${n}"${_spellSearch.lvl==n?' selected':''}>${n===0?'Cantrips':'Niv.'+n}</option>`).join('')}
         </select>
         <select onchange="_spellSearch.school=this.value;render()"
-          style="padding:7px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px">
+          style="padding:7px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px">
           <option value="">Toutes écoles</option>
           ${schools.map(sc=>`<option value="${sc}"${_spellSearch.school===sc?' selected':''}>${sc}</option>`).join('')}
         </select>
       </div>
-      <div style="font-size:11px;color:var(--text3);margin-bottom:8px">${results.length} résultat(s) ${results.length===50?'(50 max — affinez la recherche)':''}</div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:8px">${results.length} résultat(s) ${results.length===50?'(50 max — affinez la recherche)':''}</div>
       <div style="max-height:420px;overflow-y:auto">
         ${results.map(s=>{
           const already = knownNames.includes(s.name)||knownNames.includes(s.nameEN);
           return`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:5px;display:flex;align-items:center;gap:8px">
             <div style="flex:1;min-width:0">
-              <div style="font-size:13px;font-weight:600;color:${already?'var(--cp)':'var(--text)'}">${esc(s.name)}${s.ritual?' <span style="font-size:10px;color:var(--cp)">(R)</span>':''}</div>
-              <div style="font-size:11px;color:var(--text3)">${s.level===0?'Cantrip':'Niv.'+s.level} • ${esc(s.school)} • ${esc(s.castTime)} • ${esc(s.range)}</div>
-              <div style="font-size:11px;color:var(--text3);margin-top:2px">${s.classes.join(', ')}</div>
+              <div style="font-size:13px;font-weight:600;color:${already?'var(--cp)':'var(--text)'}">${esc(s.name)}${s.ritual?' <span style="font-size:11px;color:var(--cp)">(R)</span>':''}</div>
+              <div style="font-size:12px;color:var(--text3)">${s.level===0?'Cantrip':'Niv.'+s.level} • ${esc(s.school)} • ${esc(s.castTime)} • ${esc(s.range)}</div>
+              <div style="font-size:12px;color:var(--text3);margin-top:2px">${s.classes.join(', ')}</div>
             </div>
             ${already
               ? `<button class="btn bsm bdanger" onclick="removeSpellFromChar('${jsq(s.name)}')">Retirer</button>`
@@ -354,7 +354,7 @@ function renderCompendiumSearch(p){
         }).join('')}
       </div>
       <div style="margin-top:8px;text-align:right">
-        <button class="btn bsm" onclick="clearSpellsCache();render()" style="font-size:10px;color:var(--text3)">🗑 Vider le cache</button>
+        <button class="btn bsm" onclick="clearSpellsCache();render()" style="font-size:11px;color:var(--text3)">🗑 Vider le cache</button>
       </div>
     `}
   </div>`;
@@ -405,13 +405,13 @@ function _openSupportSpellModal(name,def,spellMod,upcastLvl){
   if(def.maxTargets===1){
     const listHtml=allTargets.map((t,i)=>`<div style="${rowStyle};cursor:pointer" onclick="closeModal();_applySupport([${i}])">`+
       `<span style="font-size:18px">${t.avatar}</span><div style="flex:1"><div style="font-size:13px;font-weight:600">${esc(t.name)}</div></div>`+
-      `<span style="font-size:11px;color:var(--cp)">${def.heal?healLabel:'+1'+def.die} →</span></div>`).join('');
-    openModal(`<div class="pt">${def.icon} ${esc(name)}</div><div style="font-size:11px;color:var(--text3);margin-bottom:12px">${def.heal?`Soigne : <strong style="color:var(--cp)">${healLabel}</strong>`:esc(def.detail)}</div>${listHtml}<button class="btn" style="width:100%;margin-top:4px" onclick="closeModal()">Annuler</button>`);
+      `<span style="font-size:12px;color:var(--cp)">${def.heal?healLabel:'+1'+def.die} →</span></div>`).join('');
+    openModal(`<div class="pt">${def.icon} ${esc(name)}</div><div style="font-size:12px;color:var(--text3);margin-bottom:12px">${def.heal?`Soigne : <strong style="color:var(--cp)">${healLabel}</strong>`:esc(def.detail)}</div>${listHtml}<button class="btn" style="width:100%;margin-top:4px" onclick="closeModal()">Annuler</button>`);
   }else{
     const listHtml=allTargets.map((t,i)=>`<div id="starg_${i}" style="${rowStyle};cursor:pointer" onclick="_toggleSupTarget(${i})">`+
       `<div id="stchk_${i}" style="width:18px;height:18px;border-radius:4px;border:2px solid var(--border);background:var(--surface);flex-shrink:0"></div>`+
       `<span style="font-size:18px">${t.avatar}</span><div style="flex:1"><div style="font-size:13px;font-weight:600">${esc(t.name)}</div></div></div>`).join('');
-    openModal(`<div class="pt">${def.icon} ${esc(name)} — jusqu'à ${def.maxTargets} cibles</div><div style="font-size:11px;color:var(--text3);margin-bottom:10px">${esc(def.detail)}</div>${listHtml}<div style="display:flex;gap:8px;margin-top:8px"><button class="btn" style="flex:1" onclick="closeModal()">Annuler</button><button class="btn bac" id="stConfBtn" style="flex:2;opacity:.5" disabled onclick="_applySupport([..._supportTargetSel])">✓ Confirmer (<span id="stCnt">0</span>)</button></div>`);
+    openModal(`<div class="pt">${def.icon} ${esc(name)} — jusqu'à ${def.maxTargets} cibles</div><div style="font-size:12px;color:var(--text3);margin-bottom:10px">${esc(def.detail)}</div>${listHtml}<div style="display:flex;gap:8px;margin-top:8px"><button class="btn" style="flex:1" onclick="closeModal()">Annuler</button><button class="btn bac" id="stConfBtn" style="flex:2;opacity:.5" disabled onclick="_applySupport([..._supportTargetSel])">✓ Confirmer (<span id="stCnt">0</span>)</button></div>`);
   }
 }
 function _toggleSupTarget(idx){
@@ -438,7 +438,7 @@ function _applySupport(indices){
     if(_isIRLMode()){
       const formula=`${diceCount}${def.dieBase}${spellMod>=0?'+'+spellMod:spellMod}`;
       _healIRLPending={targets,name};
-      openModal(`<div class="pt">${def.icon} ${esc(name)} — Mode IRL</div><div style="text-align:center;padding:12px 0"><div style="font-size:14px;color:var(--text2);margin-bottom:4px">Lance : <strong style="color:var(--cp)">${formula}</strong></div><div style="font-size:11px;color:var(--text3);margin-bottom:12px">Pour : <strong>${targets.map(t=>esc(t.name)).join(', ')}</strong></div><input class="fi" id="healIRLIn" type="number" min="1" style="text-align:center;font-size:22px;margin-bottom:12px"><div style="display:flex;gap:8px"><button class="btn" style="flex:1" onclick="closeModal()">Annuler</button><button class="btn bac" style="flex:2" onclick="(()=>{const v=parseInt(document.getElementById('healIRLIn').value)||0;if(v<1)return;_applyHealTargets(_healIRLPending.targets,v,_healIRLPending.name);_healIRLPending=null;closeModal();})()">✓ Soigner</button></div></div>`);
+      openModal(`<div class="pt">${def.icon} ${esc(name)} — Mode IRL</div><div style="text-align:center;padding:12px 0"><div style="font-size:14px;color:var(--text2);margin-bottom:4px">Lance : <strong style="color:var(--cp)">${formula}</strong></div><div style="font-size:12px;color:var(--text3);margin-bottom:12px">Pour : <strong>${targets.map(t=>esc(t.name)).join(', ')}</strong></div><input class="fi" id="healIRLIn" type="number" min="1" style="text-align:center;font-size:22px;margin-bottom:12px"><div style="display:flex;gap:8px"><button class="btn" style="flex:1" onclick="closeModal()">Annuler</button><button class="btn bac" style="flex:2" onclick="(()=>{const v=parseInt(document.getElementById('healIRLIn').value)||0;if(v<1)return;_applyHealTargets(_healIRLPending.targets,v,_healIRLPending.name);_healIRLPending=null;closeModal();})()">✓ Soigner</button></div></div>`);
     }else{
       let total=spellMod;for(let i=0;i<diceCount;i++)total+=Math.ceil(Math.random()*dieSize);total=Math.max(1,total);
       _applyHealTargets(targets,total,name);
@@ -508,9 +508,9 @@ function castSpell(name,level){
   _castPendingSlots={name,level,available,d,isConc};
   openModal(`<div>
     <div style="font-size:15px;font-weight:700;color:var(--cp);margin-bottom:4px">✦ ${esc(name)}</div>
-    <div style="font-size:12px;color:var(--text2);margin-bottom:14px">Choisir l'emplacement de sort :</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:14px">Choisir l'emplacement de sort :</div>
     ${available.map((sl,i)=>`<button class="btn bprimary" style="width:100%;margin-bottom:8px;padding:10px 14px;text-align:left;font-size:13px" onclick="closeModal();_confirmCastSlot(${i})">${esc(sl.label)}</button>`).join('')}
-    <button class="btn" style="width:100%;font-size:12px;margin-top:4px" onclick="closeModal();_castPendingSlots=null">Annuler</button>
+    <button class="btn" style="width:100%;font-size:13px;margin-top:4px" onclick="closeModal();_castPendingSlots=null">Annuler</button>
   </div>`);
 }
 function _confirmCastSlot(idx){if(!_castPendingSlots)return;const{name,level,available,d,isConc}=_castPendingSlots;_castPendingSlots=null;_spendAndCast(name,level,available[idx],d,isConc);}
@@ -535,11 +535,11 @@ function _finalizeCast(name,d,upcastLvl,isConc){
   }
   if(_isIRLMode()){
     let html=`<strong style="font-size:16px">${esc(name)}</strong>`;
-    if(upcastLvl)html+=` <span style="font-size:11px;color:var(--cp)">(amplifié niv.${upcastLvl})</span>`;
-    if(isConc)html+=`<br><span style="font-size:12px;color:#ffd54f">🎯 Concentration activée</span>`;
+    if(upcastLvl)html+=` <span style="font-size:12px;color:var(--cp)">(amplifié niv.${upcastLvl})</span>`;
+    if(isConc)html+=`<br><span style="font-size:13px;color:#ffd54f">🎯 Concentration activée</span>`;
     if(save)html+=`<br>JS <strong>${esc(save)}</strong> — DD <strong style="font-size:20px;color:var(--cp)">${spellDC}</strong>`;
     if(dmg)html+=`<br>Dégâts : lance <strong style="font-size:15px">${esc(dmg)}</strong>`;
-    if(!dmg&&!save)html+=`<br><span style="font-size:12px;color:var(--text3)">Applique l'effet du sort</span>`;
+    if(!dmg&&!save)html+=`<br><span style="font-size:13px;color:var(--text3)">Applique l'effet du sort</span>`;
     showIRLRoll(html);
   }else{
     rollSpellPlayer(name,dmg,save);

@@ -26,7 +26,7 @@ setTimeout(()=>{
   const msg=document.getElementById('splashMsg');
   const spinner=el.querySelector('.auth-spinner');
   if(spinner)spinner.style.display='none';
-  if(msg){msg.innerHTML='Problème de connexion<br><span style="font-size:11px;color:#5a5870">Vérifiez votre réseau et réessayez.</span>';}
+  if(msg){msg.innerHTML='Problème de connexion<br><span style="font-size:12px;color:#5a5870">Vérifiez votre réseau et réessayez.</span>';}
   const btn=document.createElement('button');
   btn.textContent='↺ Réessayer';
   btn.style.cssText='margin-top:8px;padding:8px 20px;background:none;border:1px solid #c8a84b;border-radius:6px;color:#c8a84b;font-size:13px;cursor:pointer;font-family:inherit';
@@ -51,9 +51,9 @@ function _showUpdateOverlay(){
       <g style="filter:drop-shadow(0 0 4px rgba(200,168,75,.45))"><animateTransform attributeName="transform" type="rotate" from="0 158 82" to="360 158 82" dur="4.5s" repeatCount="indefinite"/><g fill="#c8a84b"><rect x="171" y="78.5" width="9" height="7" rx="2" transform="rotate(-10 158 82)"/><rect x="171" y="78.5" width="9" height="7" rx="2" transform="rotate(50 158 82)"/><rect x="171" y="78.5" width="9" height="7" rx="2" transform="rotate(110 158 82)"/><rect x="171" y="78.5" width="9" height="7" rx="2" transform="rotate(170 158 82)"/><rect x="171" y="78.5" width="9" height="7" rx="2" transform="rotate(230 158 82)"/><rect x="171" y="78.5" width="9" height="7" rx="2" transform="rotate(290 158 82)"/></g><circle cx="158" cy="82" r="15" fill="#b8860b" stroke="#7d641d" stroke-width="2"/><circle cx="158" cy="82" r="8" fill="#16110a"/><circle cx="158" cy="82" r="3.5" fill="#d9bd6e"/></g>
     </svg>
     <div style="font-family:var(--F,'serif');font-size:18px;color:#c8a84b;letter-spacing:.08em;margin-bottom:8px;text-shadow:0 0 14px rgba(200,168,75,.4)">Nouvelle mise à jour disponible</div>
-    <div style="font-size:12px;color:#9a8a5a;margin-bottom:22px">L'atelier a affûté ses outils — une nouvelle version est prête.</div>
+    <div style="font-size:13px;color:#9a8a5a;margin-bottom:22px">L'atelier a affûté ses outils — une nouvelle version est prête.</div>
     <div id="_updateBar" style="display:none;height:5px;background:rgba(200,168,75,.15);border:1px solid rgba(200,168,75,.3);border-radius:3px;margin-bottom:16px;overflow:hidden"><div id="_updateBarFill" style="height:100%;width:0%;background:linear-gradient(90deg,#c8a84b,#7fd1c4,#d9bd6e);border-radius:3px;transition:width .1s linear"></div></div>
-    <div id="_updateStatus" style="font-size:11px;color:#9a8a5a;margin-bottom:16px;display:none">Rouages en mouvement…</div>
+    <div id="_updateStatus" style="font-size:12px;color:#9a8a5a;margin-bottom:16px;display:none">Rouages en mouvement…</div>
     <div id="_updateBtns" style="display:flex;gap:10px">
       <button onclick="_doUpdate()" style="flex:2;padding:11px;border-radius:8px;border:1px solid #7d641d;background:linear-gradient(#d9bd6e,#c8a84b);color:#1a1400;font-weight:700;font-size:14px;cursor:pointer;font-family:var(--B,'sans-serif')">⚙ Mettre à jour</button>
       <button onclick="_skipUpdate()" style="flex:1;padding:11px;border-radius:8px;border:1px solid #6b5527;background:transparent;color:#9a8a5a;font-size:13px;cursor:pointer">Plus tard</button>
@@ -191,7 +191,7 @@ function _showRageImplacablePopup(p){
   _implacableConMod=Math.floor((conVal-10)/2);
   openModal(`<div class="pt">💪 Rage implacable — 0 PV !</div>
     <div style="font-size:13px;color:var(--text2);margin-bottom:12px">Tu tombes à 0 PV pendant ta rage.<br>Lance un <strong>JS CON DD ${_implacableDC}</strong> pour rester à 1 PV !</div>
-    <div style="font-size:12px;color:var(--text3);margin-bottom:16px">DD actuel : ${_implacableDC}${uses>0?' ('+uses+' usage'+(uses>1?'s':'')+')':''} . +5 par usage, remis à 0 au repos.</div>
+    <div style="font-size:13px;color:var(--text3);margin-bottom:16px">DD actuel : ${_implacableDC}${uses>0?' ('+uses+' usage'+(uses>1?'s':'')+')':''} . +5 par usage, remis à 0 au repos.</div>
     <button class="btn bac" style="width:100%;margin-bottom:8px" onclick="_doRageImplacableRoll()">🎲 Lancer JS CON DD ${_implacableDC}</button>
     <button class="btn" style="width:100%" onclick="closeModal()">✕ Lancer physiquement</button>`);
 }
@@ -251,7 +251,7 @@ function showBanner(icon,title,detail,opts){
   const ex=document.getElementById('_buffNotif');if(ex)ex.remove();
   const d=document.createElement('div');d.id='_buffNotif';
   d.style.borderColor=v.c;d.style.boxShadow=`0 4px 24px ${v.g}`;
-  d.innerHTML=`<div style="font-size:26px;margin-bottom:4px">${icon}</div><div style="font-size:13px;font-weight:700;color:${v.c};margin-bottom:2px">${esc(title)}</div>${detail?`<div style="font-size:11px;color:var(--text2);margin-bottom:4px">${esc(detail)}</div>`:''}${opts.source?`<div style="font-size:10px;color:var(--text3)">par ${esc(opts.source)}</div>`:''}`;
+  d.innerHTML=`<div style="font-size:26px;margin-bottom:4px">${icon}</div><div style="font-size:13px;font-weight:700;color:${v.c};margin-bottom:2px">${esc(title)}</div>${detail?`<div style="font-size:12px;color:var(--text2);margin-bottom:4px">${esc(detail)}</div>`:''}${opts.source?`<div style="font-size:11px;color:var(--text3)">par ${esc(opts.source)}</div>`:''}`;
   document.body.appendChild(d);
   const hide=()=>{d.style.transition='opacity .4s';d.style.opacity='0';setTimeout(()=>{if(d.parentNode)d.remove();},400);};
   setTimeout(hide,opts.duration||4500);d.addEventListener('click',hide);
@@ -368,7 +368,7 @@ function _showInitiativePopup(){
   document.getElementById('combatPopupTitle').textContent='Le combat commence !';
   const _barbLvlInit=((p.classes||[]).find(c=>c.name==='Barbare')||{}).level||0;
   const _initHasAdv=_barbLvlInit>=7;
-  const _initAdvNote=_initHasAdv?'<div style="font-size:11px;color:#e53935;margin-bottom:6px">🦅 Instinct sauvage — 2d20, prend le meilleur</div>':'';
+  const _initAdvNote=_initHasAdv?'<div style="font-size:12px;color:#e53935;margin-bottom:6px">🦅 Instinct sauvage — 2d20, prend le meilleur</div>':'';
   const _initIRLBtn=typeof _isIRLMode==='function'&&_isIRLMode()?`<button onclick="_rollMyInitiativeIRL();event.stopPropagation()" style="margin-top:6px;padding:8px 16px;background:transparent;color:var(--cp);border:2px solid var(--cp);border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--F)">✏ Saisir le résultat IRL</button>`:'';
   document.getElementById('combatPopupSub').innerHTML=`${_initAdvNote}<button onclick="_rollMyInitiative();event.stopPropagation()" style="margin-top:10px;padding:12px 28px;background:var(--cp);color:#000;border:none;border-radius:10px;font-size:18px;font-weight:700;cursor:pointer;font-family:var(--F)">🎲 Lancer mon initiative</button>${_initIRLBtn?'<br>'+_initIRLBtn:''}`;
   const box=popup.querySelector('.combat-popup-box');
@@ -400,9 +400,9 @@ async function _rollMyInitiativeIRL(){
   const advTxt=hasAdv?'Lance 2 dés, entre le meilleur résultat :':'Entre le résultat de ton d20 :';
   openModal(`<div style="text-align:center;padding:14px 12px">
     <div class="pt" style="margin-bottom:8px">Initiative — Mode IRL</div>
-    <div style="font-size:12px;color:var(--text3);margin-bottom:12px">${advTxt}${hasAdv?'<br><span style="color:#e53935;font-size:11px">🦅 Instinct sauvage — avantage</span>':''}</div>
+    <div style="font-size:13px;color:var(--text3);margin-bottom:12px">${advTxt}${hasAdv?'<br><span style="color:#e53935;font-size:12px">🦅 Instinct sauvage — avantage</span>':''}</div>
     <input class="fi" id="initIRLInput" type="number" min="1" max="20" style="text-align:center;font-size:22px;width:80px;margin-bottom:14px">
-    <div style="font-size:11px;color:var(--text3);margin-bottom:12px">+${dexMod>=0?'+':''}${dexMod} DEX sera ajouté automatiquement</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:12px">+${dexMod>=0?'+':''}${dexMod} DEX sera ajouté automatiquement</div>
     <div style="display:flex;gap:8px;justify-content:center">
       <button class="btn" onclick="closeModal()">Annuler</button>
       <button class="btn bac" onclick="(async()=>{const v=parseInt(document.getElementById('initIRLInput')?.value)||0;if(v<1||v>20){showToast('❌ Invalide (1-20)');return;}const tot=v+${dexMod};const sub=document.getElementById('combatPopupSub');if(sub)sub.innerHTML='<div style=\"font-size:52px;font-weight:800;color:var(--cp);\">'+tot+'</div><div style=\"font-size:13px;color:var(--text3);margin-top:4px\">d20('+v+') ${dexMod>=0?'+':''}${dexMod} DEX</div>';closeModal();try{await fbDb.collection('characters').doc(currentUser.uid+'_'+currentCampaignId).update({'characterData.pendingInitiative':tot});}catch(e){}const popup=document.getElementById('combatPopup');if(popup){clearTimeout(popup._timer);popup._timer=setTimeout(()=>{popup.className='';},3000);}})()">Valider</button>
@@ -447,7 +447,7 @@ async function playerEndTurn(){
     await fbDb.collection('characters').doc(currentUser.uid+'_'+currentCampaignId).update({turnDone:true});
     const banner=document.getElementById('combatTurnBanner');
     if(banner)banner.style.display='none';
-    showToast('⏩ Fin de tour signalée. <button onclick="_undoEndTurn()" style="margin-left:8px;padding:3px 10px;border:1px solid var(--cp);border-radius:6px;background:transparent;color:var(--cp);cursor:pointer;font-size:12px">Annuler</button>',6000);
+    showToast('⏩ Fin de tour signalée. <button onclick="_undoEndTurn()" style="margin-left:8px;padding:3px 10px;border:1px solid var(--cp);border-radius:6px;background:transparent;color:var(--cp);cursor:pointer;font-size:13px">Annuler</button>',6000);
   }catch(e){showToast('❌ Erreur : '+e.message);}
 }
 async function _undoEndTurn(){
@@ -515,8 +515,8 @@ function openPlayerReadonlySheetFull(p,priv,playerInfo,isMJ){
   const charName=esc(p.charName||playerInfo?.playerName||'?');
 
   // helpers
-  const roCell=(label,val)=>`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3);margin-bottom:3px">${label}</div><div style="font-size:13px">${val}</div></div>`;
-  const roSection=(label)=>`<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 8px">${label}</div>`;
+  const roCell=(label,val)=>`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px"><div style="font-size:11px;color:var(--text3);margin-bottom:3px">${label}</div><div style="font-size:13px">${val}</div></div>`;
+  const roSection=(label)=>`<div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 8px">${label}</div>`;
 
   // Onglet Perso
   const persoContent=isPublic('perso')?`
@@ -531,16 +531,16 @@ function openPlayerReadonlySheetFull(p,priv,playerInfo,isMJ){
     </div>
     ${isPublic('competences')&&abilities?`${roSection('Caractéristiques')}
     <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-bottom:4px">
-      ${ABILITIES_SH.map((s,i)=>{const v=abilities[i]||10;const m=Math.floor((v-10)/2);return`<div style="text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 3px"><div style="font-size:9px;color:var(--text3);font-weight:600">${s}</div><div style="font-size:18px;font-weight:700">${v}</div><div style="font-size:11px;color:var(--cp)">${m>=0?'+':''}${m}</div></div>`;}).join('')}
+      ${ABILITIES_SH.map((s,i)=>{const v=abilities[i]||10;const m=Math.floor((v-10)/2);return`<div style="text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 3px"><div style="font-size:9px;color:var(--text3);font-weight:600">${s}</div><div style="font-size:18px;font-weight:700">${v}</div><div style="font-size:12px;color:var(--cp)">${m>=0?'+':''}${m}</div></div>`;}).join('')}
     </div>`:''}
-    ${!isPublic('competences')?`<div style="padding:8px;background:var(--surface2);border-radius:6px;font-size:12px;color:var(--text3);margin-bottom:8px">🔒 Caractéristiques — section privée</div>`:''}
+    ${!isPublic('competences')?`<div style="padding:8px;background:var(--surface2);border-radius:6px;font-size:13px;color:var(--text3);margin-bottom:8px">🔒 Caractéristiques — section privée</div>`:''}
     ${(()=>{
       // Capacités & traits (race + background)
       const traits=[];
       if(SRD&&SRD.races){const rd=SRD.races.find(r=>r.name===p.race);if(rd&&rd.traits){if(Array.isArray(rd.traits))rd.traits.forEach(t=>traits.push({name:t.name,source:esc(p.race||''),desc:t.desc||''}));else if(typeof rd.traits==='string')traits.push({name:'Traits raciaux',source:esc(p.race||''),desc:rd.traits});}}
       if(SRD&&SRD.backgrounds){const bd=SRD.backgrounds.find(b=>b.name===p.background);if(bd&&bd.feature)traits.push({name:bd.feature,source:esc(p.background||''),desc:bd.featureDesc||''});}
       if(!traits.length)return'';
-      return`${roSection('Capacités & traits')}${traits.map(t=>`<div style="margin-bottom:8px;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px"><div style="font-size:12px;font-weight:600;color:var(--cp)">${esc(t.name)}</div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">${t.source}</div>${t.desc?`<div style="font-size:12px;color:var(--text2);margin-top:4px">${esc(t.desc)}</div>`:''}</div>`).join('')}`;
+      return`${roSection('Capacités & traits')}${traits.map(t=>`<div style="margin-bottom:8px;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px"><div style="font-size:13px;font-weight:600;color:var(--cp)">${esc(t.name)}</div><div style="font-size:11px;color:var(--text3);margin-bottom:3px">${t.source}</div>${t.desc?`<div style="font-size:13px;color:var(--text2);margin-top:4px">${esc(t.desc)}</div>`:''}</div>`).join('')}`;
     })()}
     ${(()=>{
       const sts=p.statuses||[];if(!sts.length)return'';
@@ -562,18 +562,18 @@ function openPlayerReadonlySheetFull(p,priv,playerInfo,isMJ){
         const atkM=finesse?Math.max(forM,dexM):w.slot==='ranged'?dexM:forM;
         const bonus=pb+atkM;
         const slotLabel=w.slot==='mainhand'?'Main droite':w.slot==='offhand'?'Main gauche':'Distance';
-        return`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;margin-bottom:5px"><div><div style="font-size:13px;font-weight:600">${esc(w.name)}</div><div style="font-size:10px;color:var(--text3)">${slotLabel}</div></div><span style="color:var(--cp);font-weight:700">${bonus>=0?'+':''}${bonus}${srdW?' / '+esc(srdW.damage):''}</span></div>`;
+        return`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;margin-bottom:5px"><div><div style="font-size:13px;font-weight:600">${esc(w.name)}</div><div style="font-size:11px;color:var(--text3)">${slotLabel}</div></div><span style="color:var(--cp);font-weight:700">${bonus>=0?'+':''}${bonus}${srdW?' / '+esc(srdW.damage):''}</span></div>`;
       }).join('')}`:'';
       // Sauvegardes
       const mc=(p.classes||[])[0];const saveProfIds=mc?(CLASS_SAVES[mc.name]||[]):[];
       const savesHtml=`${roSection('Sauvegardes')}<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:4px">${ABILITIES_SH.map((ab,i)=>{const m=Math.floor((abilities[i]-10)/2)+(saveProfIds.includes(i)?pb:0);const hasSave=saveProfIds.includes(i);return`<div style="text-align:center;background:var(--surface2);border:1px solid ${hasSave?'rgba(200,168,75,.4)':'var(--border)'};border-radius:8px;padding:6px 2px"><div style="font-size:9px;color:var(--text3);font-weight:600">${ab}</div><div style="font-size:15px;font-weight:700;color:${hasSave?'var(--cp)':'var(--text)'}">${m>=0?'+':''}${m}</div></div>`;}).join('')}</div>`;
       return`<div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;margin-bottom:12px">
-        <div><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:4px"><span>Points de vie</span><span style="font-weight:700;color:${hp<=0?'#e53935':hpColor}">${hp<=0?(p.deathSaves?.fail>=3?'💀 Mort':'⚠ À terre'):hp+' / '+hpMax}</span></div>
+        <div><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text3);margin-bottom:4px"><span>Points de vie</span><span style="font-weight:700;color:${hp<=0?'#e53935':hpColor}">${hp<=0?(p.deathSaves?.fail>=3?'💀 Mort':'⚠ À terre'):hp+' / '+hpMax}</span></div>
         <div style="height:10px;background:var(--surface2);border-radius:5px;overflow:hidden"><div style="height:100%;width:${hpPct}%;background:${hpColor};border-radius:5px"></div></div></div>
-        ${p.ac?`<div style="text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 14px"><div style="font-size:10px;color:var(--text3)">CA</div><div style="font-size:22px;font-weight:700">${p.ac}</div></div>`:''}
+        ${p.ac?`<div style="text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 14px"><div style="font-size:11px;color:var(--text3)">CA</div><div style="font-size:22px;font-weight:700">${p.ac}</div></div>`:''}
       </div>
-      ${conds.length?`<div style="margin-bottom:12px"><div style="font-size:10px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Conditions</div><div style="display:flex;flex-wrap:wrap;gap:5px">${conds.map(c=>`<span class="status-badge malus">⚠ ${esc(c)}</span>`).join('')}</div></div>`:''}
-      ${charges?`<div style="margin-bottom:8px"><div style="font-size:10px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Capacités</div>${charges}</div>`:''}
+      ${conds.length?`<div style="margin-bottom:12px"><div style="font-size:11px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Conditions</div><div style="display:flex;flex-wrap:wrap;gap:5px">${conds.map(c=>`<span class="status-badge malus">⚠ ${esc(c)}</span>`).join('')}</div></div>`:''}
+      ${charges?`<div style="margin-bottom:8px"><div style="font-size:11px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Capacités</div>${charges}</div>`:''}
       ${weaponsHtml}${savesHtml}`;
     })()}
   `:`<div style="padding:12px;background:var(--surface2);border-radius:8px;font-size:13px;color:var(--text3)">🔒 Section Combat — privée</div>`;
@@ -581,26 +581,26 @@ function openPlayerReadonlySheetFull(p,priv,playerInfo,isMJ){
   // Onglet Sorts
   const spells=p.spells||[];
   const sortsContent=isPublic('sorts')?(spells.length?
-    [0,1,2,3,4,5,6,7,8,9].map(lvl=>{const ls=spells.filter(s=>s.level===lvl);if(!ls.length)return'';return`<div style="margin-bottom:12px"><div style="font-size:11px;color:var(--text3);margin-bottom:5px">${lvl===0?'Sorts mineurs':'Niveau '+lvl}</div><div style="display:flex;flex-wrap:wrap;gap:4px">${ls.map(s=>`<span style="font-size:11px;padding:2px 8px;border-radius:10px;border:1px solid ${s.prepared?'rgba(200,168,75,.4)':'var(--border)'};color:${s.prepared?'var(--cp)':'var(--text2)'}">${esc(s.name)}</span>`).join('')}</div></div>`;}).join('')
-    :`<div style="font-size:12px;color:var(--text3);font-style:italic">Aucun sort connu.</div>`)
+    [0,1,2,3,4,5,6,7,8,9].map(lvl=>{const ls=spells.filter(s=>s.level===lvl);if(!ls.length)return'';return`<div style="margin-bottom:12px"><div style="font-size:12px;color:var(--text3);margin-bottom:5px">${lvl===0?'Sorts mineurs':'Niveau '+lvl}</div><div style="display:flex;flex-wrap:wrap;gap:4px">${ls.map(s=>`<span style="font-size:12px;padding:2px 8px;border-radius:10px;border:1px solid ${s.prepared?'rgba(200,168,75,.4)':'var(--border)'};color:${s.prepared?'var(--cp)':'var(--text2)'}">${esc(s.name)}</span>`).join('')}</div></div>`;}).join('')
+    :`<div style="font-size:13px;color:var(--text3);font-style:italic">Aucun sort connu.</div>`)
     :`<div style="padding:12px;background:var(--surface2);border-radius:8px;font-size:13px;color:var(--text3)">🔒 Section Sorts — privée</div>`;
 
   // Onglet Équipement
   const equipContent=isPublic('equipement')?`
     ${(()=>{const eq=p.equip||{};const worn=[{k:'chest',l:'Torse'},{k:'mainhand',l:'Main principale'},{k:'offhand',l:'Main secondaire'},{k:'ranged',l:'Distance'}].filter(s=>eq[s.k]&&eq[s.k].name);
-    return worn.length?`<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Équipement porté</div>${worn.map(s=>`<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px"><span style="color:var(--text3);min-width:130px;font-size:11px">${s.l}</span><span>${esc(eq[s.k].name)}</span></div>`).join('')}`:`<div style="font-size:12px;color:var(--text3);font-style:italic">Aucun équipement porté.</div>`;})()}
+    return worn.length?`<div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Équipement porté</div>${worn.map(s=>`<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px"><span style="color:var(--text3);min-width:130px;font-size:12px">${s.l}</span><span>${esc(eq[s.k].name)}</span></div>`).join('')}`:`<div style="font-size:13px;color:var(--text3);font-style:italic">Aucun équipement porté.</div>`;})()}
   `:`<div style="padding:12px;background:var(--surface2);border-radius:8px;font-size:13px;color:var(--text3)">🔒 Section Équipement — privée</div>`;
 
   // Onglet Sac
   const sacContent=isPublic('sac')?`
     ${(()=>{const inv=p.inventory||[];const cur=p.currency||{};
-    const curLine=[{k:'pp',l:'pp'},{k:'po',l:'po'},{k:'pe',l:'pe'},{k:'pa',l:'pa'},{k:'pc',l:'pc'}].filter(x=>cur[x.k]>0).map(x=>`<span style="font-size:12px;padding:3px 9px;border-radius:10px;border:1px solid var(--border);color:var(--cp)">${cur[x.k]} ${x.l}</span>`).join('');
-    return`${curLine?`<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">${curLine}</div>`:''}${inv.length?`<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Inventaire</div>${inv.map(item=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px"><span>${esc(item.name||item)}</span>${item.qty!==undefined?`<span style="color:var(--text3)">×${item.qty}</span>`:''}</div>`).join('')}`:`<div style="font-size:12px;color:var(--text3);font-style:italic">Sac vide.</div>`}`;})()}
+    const curLine=[{k:'pp',l:'pp'},{k:'po',l:'po'},{k:'pe',l:'pe'},{k:'pa',l:'pa'},{k:'pc',l:'pc'}].filter(x=>cur[x.k]>0).map(x=>`<span style="font-size:13px;padding:3px 9px;border-radius:10px;border:1px solid var(--border);color:var(--cp)">${cur[x.k]} ${x.l}</span>`).join('');
+    return`${curLine?`<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">${curLine}</div>`:''}${inv.length?`<div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Inventaire</div>${inv.map(item=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px"><span>${esc(item.name||item)}</span>${item.qty!==undefined?`<span style="color:var(--text3)">×${item.qty}</span>`:''}</div>`).join('')}`:`<div style="font-size:13px;color:var(--text3);font-style:italic">Sac vide.</div>`}`;})()}
   `:`<div style="padding:12px;background:var(--surface2);border-radius:8px;font-size:13px;color:var(--text3)">🔒 Section Sac — privée</div>`;
 
   // Onglet Historique
   const histContent=isPublic('historique')?`
-    ${[{l:'Traits',v:p.traits},{l:'Idéaux',v:p.ideals},{l:'Liens',v:p.bonds},{l:'Défauts',v:p.flaws},{l:'Langues',v:p.languages},{l:'Backstory',v:p.backstory}].filter(x=>x.v).map(x=>`<div style="margin-bottom:14px"><div style="font-size:10px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">${x.l}</div><div style="font-size:13px;color:var(--text2);white-space:pre-wrap;line-height:1.55">${esc(x.v)}</div></div>`).join('')||`<div style="font-size:12px;color:var(--text3);font-style:italic">Aucune info.</div>`}
+    ${[{l:'Traits',v:p.traits},{l:'Idéaux',v:p.ideals},{l:'Liens',v:p.bonds},{l:'Défauts',v:p.flaws},{l:'Langues',v:p.languages},{l:'Backstory',v:p.backstory}].filter(x=>x.v).map(x=>`<div style="margin-bottom:14px"><div style="font-size:11px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">${x.l}</div><div style="font-size:13px;color:var(--text2);white-space:pre-wrap;line-height:1.55">${esc(x.v)}</div></div>`).join('')||`<div style="font-size:13px;color:var(--text3);font-style:italic">Aucune info.</div>`}
   `:`<div style="padding:12px;background:var(--surface2);border-radius:8px;font-size:13px;color:var(--text3)">🔒 Section Historique — privée</div>`;
 
   const tabs=[{id:'perso',l:'Perso',c:persoContent},{id:'combat',l:'Combat',c:combatContent},{id:'sorts',l:'Sorts',c:sortsContent},{id:'equipement',l:'Équip.',c:equipContent},{id:'sac',l:'Sac',c:sacContent},{id:'historique',l:'Hist.',c:histContent}];
@@ -614,13 +614,13 @@ function openPlayerReadonlySheetFull(p,priv,playerInfo,isMJ){
       ${portrait?`<img src="${portrait}" style="width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid var(--cp);flex-shrink:0">`:`<div style="width:52px;height:52px;border-radius:50%;background:var(--surface2);border:2px solid var(--cp);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">${playerInfo?.avatar||'⚔'}</div>`}
       <div style="flex:1;min-width:0">
         <div style="font-size:16px;font-weight:700;color:var(--text)">${charName}</div>
-        <div style="font-size:12px;color:var(--cp)">${esc(cls)}</div>
-        <div style="font-size:11px;color:var(--text3)">${esc(p.race||'')}${p.background?' · '+esc(p.background):''} · Joueur : ${esc(playerInfo?.playerName||'')}</div>
+        <div style="font-size:13px;color:var(--cp)">${esc(cls)}</div>
+        <div style="font-size:12px;color:var(--text3)">${esc(p.race||'')}${p.background?' · '+esc(p.background):''} · Joueur : ${esc(playerInfo?.playerName||'')}</div>
       </div>
       <button onclick="document.getElementById('roSheetOverlay')?.remove()" style="background:none;border:1px solid var(--border);color:var(--text3);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:13px;flex-shrink:0">✕</button>
     </div>
     <div style="display:flex;overflow-x:auto;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface)">
-      ${tabs.map(t=>`<button id="rotab_${t.id}" onclick="_roTab('${t.id}')" style="flex:1;min-width:52px;padding:9px 5px;border:none;background:none;font-size:12px;cursor:pointer;border-bottom:2px solid ${t.id===first?'var(--cp)':'transparent'};color:${t.id===first?'var(--cp)':'var(--text3)'};font-weight:${t.id===first?'700':'400'};white-space:nowrap">${t.l}</button>`).join('')}
+      ${tabs.map(t=>`<button id="rotab_${t.id}" onclick="_roTab('${t.id}')" style="flex:1;min-width:52px;padding:9px 5px;border:none;background:none;font-size:13px;cursor:pointer;border-bottom:2px solid ${t.id===first?'var(--cp)':'transparent'};color:${t.id===first?'var(--cp)':'var(--text3)'};font-weight:${t.id===first?'700':'400'};white-space:nowrap">${t.l}</button>`).join('')}
     </div>
     <div style="flex:1;overflow-y:auto">
       ${tabs.map(t=>`<div id="rocontent_${t.id}" style="padding:16px;display:${t.id===first?'block':'none'}">${t.c}</div>`).join('')}

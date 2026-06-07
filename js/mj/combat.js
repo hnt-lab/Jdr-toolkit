@@ -9,11 +9,11 @@ function mjTabCombat(){
     const hpPct=c.hpMax?Math.max(0,Math.min(100,c.hp/c.hpMax*100)):0;
     const hpColor=hpPct>50?'#4caf50':hpPct>25?'#ff9800':'#e53935';
     const condHtml=c.conditions&&c.conditions.length?`<div style="margin-top:3px">${c.conditions.map((cd,ci)=>`<span class="status-badge malus" style="cursor:pointer" onclick="mjRemoveCond(${realIdx},${ci})">⚠ ${esc(cd)} ✕</span>`).join('')}</div>`:'';
-    const speedHtml=c.speed?`<div style="font-size:10px;color:var(--text3);margin-top:1px">🚶 ${esc(c.speed)}</div>`:'';
+    const speedHtml=c.speed?`<div style="font-size:11px;color:var(--text3);margin-top:1px">🚶 ${esc(c.speed)}</div>`:'';
     const ds=c.deathSaves||{success:0,fail:0};
-    const dsaveHtml=isDead&&c.isPlayer?`<div style="margin-top:4px;display:flex;gap:4px;align-items:center;flex-wrap:wrap"><span style="font-size:10px;color:var(--text3)">JS mort :</span><span style="color:#4caf50;font-size:11px">${Array.from({length:3},(_,i)=>`<span style="opacity:${ds.success>i?1:0.3}">●</span>`).join('')}</span><span style="color:#e53935;font-size:11px">${Array.from({length:3},(_,i)=>`<span style="opacity:${ds.fail>i?1:0.3}">●</span>`).join('')}</span><button class="btn bsm" style="font-size:9px;padding:1px 4px;color:#4caf50;border-color:#4caf50" onclick="mjDsave(${realIdx},'success')">✓</button><button class="btn bsm" style="font-size:9px;padding:1px 4px;color:#e53935;border-color:#e53935" onclick="mjDsave(${realIdx},'fail')">✕</button><button class="btn bsm" style="font-size:9px;padding:1px 4px" onclick="mjDsave(${realIdx},'reset')">↺</button></div>`:'';
+    const dsaveHtml=isDead&&c.isPlayer?`<div style="margin-top:4px;display:flex;gap:4px;align-items:center;flex-wrap:wrap"><span style="font-size:11px;color:var(--text3)">JS mort :</span><span style="color:#4caf50;font-size:12px">${Array.from({length:3},(_,i)=>`<span style="opacity:${ds.success>i?1:0.3}">●</span>`).join('')}</span><span style="color:#e53935;font-size:12px">${Array.from({length:3},(_,i)=>`<span style="opacity:${ds.fail>i?1:0.3}">●</span>`).join('')}</span><button class="btn bsm" style="font-size:9px;padding:1px 4px;color:#4caf50;border-color:#4caf50" onclick="mjDsave(${realIdx},'success')">✓</button><button class="btn bsm" style="font-size:9px;padding:1px 4px;color:#e53935;border-color:#e53935" onclick="mjDsave(${realIdx},'fail')">✕</button><button class="btn bsm" style="font-size:9px;padding:1px 4px" onclick="mjDsave(${realIdx},'reset')">↺</button></div>`:'';
     const isSurprised=!!c.surprised;
-    const surprisedBadge=isSurprised?`<span style="font-size:10px;background:rgba(229,57,53,.15);color:#e53935;border:1px solid rgba(229,57,53,.4);border-radius:6px;padding:1px 6px;margin-left:4px;vertical-align:middle">😵 SURPRIS</span>`:'';
+    const surprisedBadge=isSurprised?`<span style="font-size:11px;background:rgba(229,57,53,.15);color:#e53935;border:1px solid rgba(229,57,53,.4);border-radius:6px;padding:1px 6px;margin-left:4px;vertical-align:middle">😵 SURPRIS</span>`:'';
     return`<div class="combat-row${isActive?' active-turn':''}${isDead?' dead':''}" style="${isSurprised?'border-left:3px solid #e53935;padding-left:6px;':''}">
       ${_mjCombatStarted?`<div style="width:34px;text-align:center;cursor:pointer" title="Cliquer pour modifier" onclick="mjEditInitiative(${realIdx})"><span style="font-family:var(--F);font-size:14px;color:var(--cp);border-bottom:1px dashed rgba(200,168,75,.4)">${c.initiative||0}</span></div>`:''}
       <div style="width:26px;text-align:center;font-size:18px">${c.isPlayer?(c.avatar||'⚔'):'👾'}</div>
@@ -23,19 +23,19 @@ function mjTabCombat(){
       </div>
       <div class="cbt-actions" style="display:flex;align-items:center;gap:4px">
         <div style="text-align:center;min-width:60px">
-          <div style="font-size:11px;color:${hpColor};font-weight:600">${isDead?'💀 À terre':c.hp+'/'+c.hpMax}</div>
+          <div style="font-size:12px;color:${hpColor};font-weight:600">${isDead?'💀 À terre':c.hp+'/'+c.hpMax}</div>
           <div class="hp-bar" style="width:60px"><div class="hp-fill" style="width:${hpPct}%;background:${hpColor}"></div></div>
         </div>
         <button class="btn bsm" style="padding:2px 7px;font-size:14px" onclick="mjHpChange(${realIdx},-1)">−</button>
         <button class="btn bsm" style="padding:2px 7px;font-size:14px" onclick="mjHpChange(${realIdx},1)">+</button>
-        <button class="btn bsm" style="font-size:10px;padding:2px 6px" onclick="mjOpenHpModal(${realIdx})">✏</button>
-        <button class="btn bsm" style="font-size:10px;padding:2px 6px" onclick="mjOpenCondModal(${realIdx})">⚠</button>
-        <button class="btn bsm" style="font-size:10px;padding:2px 6px${isSurprised?';background:rgba(229,57,53,.15);border-color:#e53935;color:#e53935':''}" onclick="mjToggleSurprise(${realIdx})" title="Basculer état : Surpris">😵</button>
-        <button class="btn bsm" style="font-size:10px;padding:2px 6px;border-color:var(--cp);color:var(--cp)" onclick="mjOpenCombatDice(${realIdx})">🎲</button>
-        <button class="btn bsm" style="font-size:10px;padding:2px 6px;color:#e53935;border-color:#e53935" onclick="mjRemoveCombatant(${realIdx})">✕</button>
-        ${isActive?`<button class="btn bsm" style="font-size:10px;padding:2px 8px;border-color:#7c3aed;color:#a78bfa;font-weight:600" onclick="mjNextTurn()">⏩</button>`:''}
+        <button class="btn bsm" style="font-size:11px;padding:2px 6px" onclick="mjOpenHpModal(${realIdx})">✏</button>
+        <button class="btn bsm" style="font-size:11px;padding:2px 6px" onclick="mjOpenCondModal(${realIdx})">⚠</button>
+        <button class="btn bsm" style="font-size:11px;padding:2px 6px${isSurprised?';background:rgba(229,57,53,.15);border-color:#e53935;color:#e53935':''}" onclick="mjToggleSurprise(${realIdx})" title="Basculer état : Surpris">😵</button>
+        <button class="btn bsm" style="font-size:11px;padding:2px 6px;border-color:var(--cp);color:var(--cp)" onclick="mjOpenCombatDice(${realIdx})">🎲</button>
+        <button class="btn bsm" style="font-size:11px;padding:2px 6px;color:#e53935;border-color:#e53935" onclick="mjRemoveCombatant(${realIdx})">✕</button>
+        ${isActive?`<button class="btn bsm" style="font-size:11px;padding:2px 8px;border-color:#7c3aed;color:#a78bfa;font-weight:600" onclick="mjNextTurn()">⏩</button>`:''}
       </div>
-      <div style="width:36px;text-align:center;font-size:11px;color:var(--text3)">CA ${c.ac||0}</div>
+      <div style="width:36px;text-align:center;font-size:12px;color:var(--text3)">CA ${c.ac||0}</div>
     </div>`;
   }).join(''):`<div style="color:var(--text3);font-style:italic;font-size:13px;text-align:center;padding:16px">Aucun combattant. Ajoutez des joueurs ou des monstres.</div>`;
 
@@ -49,7 +49,7 @@ function mjTabCombat(){
       ${!_mjCombatStarted&&_mjCombatants.length?`<button class="btn bsm" style="border-color:#ffd54f;color:#ffd54f" onclick="mjStartCombat()">🎲 Lancer l'initiative</button>`:''}
       ${_mjCombatStarted?`<button class="btn bsm" style="border-color:var(--cp);color:var(--cp)" onclick="mjNextTurn()">▶ Tour suivant</button>
         <button class="btn bsm" style="border-color:#4caf50;color:#4caf50" onclick="mjEndCombat()">🏁 Fin du combat</button>
-        <div style="display:flex;align-items:center;gap:6px;padding:4px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:12px">
+        <div style="display:flex;align-items:center;gap:6px;padding:4px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:13px">
           🔄 Round <strong style="color:var(--cp)">${_mjRound}</strong>
           ${currentC?` — Tour de <strong style="color:var(--cp)">${esc(currentC.name)}</strong>`:''}
         </div>`:''}
@@ -192,7 +192,7 @@ function mjOpenAddMonster(){
   _mjNewMonsterAttacks=[];_mjNewMonsterSpells=[];_mjNewMonsterTraits=[];_mjEditingMonsterIdx=-1;
   window._mjPendingAbilities=null;
   const npcSection=_mjNPCs.length?`<div style="margin-bottom:12px;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px">
-      <div style="font-size:11px;font-weight:600;color:var(--cp);margin-bottom:6px">👤 Mes PNJ (${_mjNPCs.length})</div>
+      <div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:6px">👤 Mes PNJ (${_mjNPCs.length})</div>
       <div style="max-height:90px;overflow-y:auto">${_mjNPCs.map((n,ni)=>`<div class="aci" onclick="mjFillFromNPC(${ni})" style="padding:5px 8px">
         <div class="ain">${esc(n.name||'?')}</div>
         <div class="ais">PV ${n.hp||'?'} · CA ${n.ac||'?'}</div>
@@ -200,7 +200,7 @@ function mjOpenAddMonster(){
     </div>`:'';
   const compSection=MONSTERS_DB
     ?`<div style="margin-bottom:12px;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px">
-        <div style="font-size:11px;font-weight:600;color:var(--cp);margin-bottom:6px">📚 Compendium (${MONSTERS_DB.length} monstres)</div>
+        <div style="font-size:12px;font-weight:600;color:var(--cp);margin-bottom:6px">📚 Compendium (${MONSTERS_DB.length} monstres)</div>
         <input class="fi" id="monSearch" placeholder="Rechercher : Gobelin, Dragon..." oninput="mjFilterMonsters(this.value)" onfocus="mjFilterMonsters(this.value)" style="margin-bottom:4px">
         <div id="monResults" style="max-height:120px;overflow-y:auto"></div>
       </div>`
@@ -220,27 +220,27 @@ function mjOpenAddMonster(){
     </div>
     <div style="border-top:1px solid var(--border);padding-top:12px;margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <div style="font-size:12px;font-weight:700;color:var(--text2)">⚔ Attaques</div>
+        <div style="font-size:13px;font-weight:700;color:var(--text2)">⚔ Attaques</div>
         <button class="btn bsm" onclick="mjToggleMonsterSubForm('mAttForm')">+ Ajouter</button>
       </div>
       <div id="mAttForm" style="display:none;background:var(--surface2);border-radius:8px;padding:10px;margin-bottom:8px">
         <input class="fi" id="mAtt_name" placeholder="Nom (ex: Cimeterre, Arc court...)" style="margin-bottom:6px">
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px">
-          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Bonus attaque</div><input class="fi" id="mAtt_bonus" type="number" value="0"></div>
-          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Dés de dégâts</div><input class="fi" id="mAtt_dice" placeholder="1d6" value="1d6"></div>
-          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Bonus dégâts</div><input class="fi" id="mAtt_dmgBonus" type="number" value="0"></div>
+          <div><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Bonus attaque</div><input class="fi" id="mAtt_bonus" type="number" value="0"></div>
+          <div><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Dés de dégâts</div><input class="fi" id="mAtt_dice" placeholder="1d6" value="1d6"></div>
+          <div><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Bonus dégâts</div><input class="fi" id="mAtt_dmgBonus" type="number" value="0"></div>
         </div>
         <div class="g2" style="gap:6px;margin-bottom:8px">
-          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Type de dégâts</div><input class="fi" id="mAtt_type" placeholder="tranchant, feu..."></div>
-          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Portée (optionnel)</div><input class="fi" id="mAtt_range" placeholder="1.5m / 18/72m"></div>
+          <div><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Type de dégâts</div><input class="fi" id="mAtt_type" placeholder="tranchant, feu..."></div>
+          <div><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Portée (optionnel)</div><input class="fi" id="mAtt_range" placeholder="1.5m / 18/72m"></div>
         </div>
         <button class="btn bac bsm" style="width:100%" onclick="mjConfirmAddFormAttack()">✓ Confirmer cette attaque</button>
       </div>
-      <div id="mAdd_attacksList"><div style="font-size:11px;color:var(--text3);font-style:italic;padding:4px 0">Aucune attaque définie</div></div>
+      <div id="mAdd_attacksList"><div style="font-size:12px;color:var(--text3);font-style:italic;padding:4px 0">Aucune attaque définie</div></div>
     </div>
     <div style="border-top:1px solid var(--border);padding-top:12px;margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <div style="font-size:12px;font-weight:700;color:var(--text2)">✦ Sorts & Pouvoirs</div>
+        <div style="font-size:13px;font-weight:700;color:var(--text2)">✦ Sorts & Pouvoirs</div>
         <button class="btn bsm" onclick="mjToggleMonsterSubForm('mSpForm')">+ Ajouter</button>
       </div>
       <div id="mSpForm" style="display:none;background:var(--surface2);border-radius:8px;padding:10px;margin-bottom:8px">
@@ -250,35 +250,35 @@ function mjOpenAddMonster(){
         </div>
         <input class="fi" id="mSp_name" placeholder="Nom du sort (ex: Boule de feu)" style="margin-bottom:6px">
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px">
-          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Niveau sort</div><input class="fi" id="mSp_level" type="number" value="1" min="0" max="9"></div>
-          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Stat sauvegarde</div><input class="fi" id="mSp_saveStat" placeholder="DEX, CON..."></div>
-          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">DD sauvegarde</div><input class="fi" id="mSp_saveDC" type="number" value="13" min="0"></div>
+          <div><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Niveau sort</div><input class="fi" id="mSp_level" type="number" value="1" min="0" max="9"></div>
+          <div><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Stat sauvegarde</div><input class="fi" id="mSp_saveStat" placeholder="DEX, CON..."></div>
+          <div><div style="font-size:11px;color:var(--text3);margin-bottom:3px">DD sauvegarde</div><input class="fi" id="mSp_saveDC" type="number" value="13" min="0"></div>
         </div>
         <div class="g2" style="gap:6px;margin-bottom:6px">
-          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Dés de dégâts</div><input class="fi" id="mSp_dice" placeholder="8d6, 2d8..."></div>
-          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Type de dégâts</div><input class="fi" id="mSp_type" placeholder="feu, foudre..."></div>
+          <div><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Dés de dégâts</div><input class="fi" id="mSp_dice" placeholder="8d6, 2d8..."></div>
+          <div><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Type de dégâts</div><input class="fi" id="mSp_type" placeholder="feu, foudre..."></div>
         </div>
-        <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Description (optionnel)</div><textarea class="fi" id="mSp_desc" rows="2" placeholder="Zone 6m, chaque créature doit réussir un JS..." style="resize:vertical;margin-bottom:8px"></textarea></div>
+        <div><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Description (optionnel)</div><textarea class="fi" id="mSp_desc" rows="2" placeholder="Zone 6m, chaque créature doit réussir un JS..." style="resize:vertical;margin-bottom:8px"></textarea></div>
         <button class="btn bac bsm" style="width:100%" onclick="mjConfirmAddFormSpell()">✓ Confirmer ce sort</button>
       </div>
-      <div id="mAdd_spellsList"><div style="font-size:11px;color:var(--text3);font-style:italic;padding:4px 0">Aucun sort défini</div></div>
+      <div id="mAdd_spellsList"><div style="font-size:12px;color:var(--text3);font-style:italic;padding:4px 0">Aucun sort défini</div></div>
     </div>
     <div style="border-top:1px solid var(--border);padding-top:12px;margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <div style="font-size:12px;font-weight:700;color:var(--text2)">📜 Traits & Capacités passives</div>
+        <div style="font-size:13px;font-weight:700;color:var(--text2)">📜 Traits & Capacités passives</div>
         <button class="btn bsm" onclick="mjToggleMonsterSubForm('mTrForm')">+ Ajouter</button>
       </div>
       <div id="mTrForm" style="display:none;background:var(--surface2);border-radius:8px;padding:10px;margin-bottom:8px">
         <input class="fi" id="mTr_name" placeholder="Nom (ex: Vision dans le noir, Résistance au feu...)" style="margin-bottom:6px">
         <textarea class="fi" id="mTr_desc" rows="2" placeholder="Description du trait ou de la capacité..." style="resize:vertical;margin-bottom:6px"></textarea>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px">
-          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Charges (0=passif)</div><input class="fi" id="mTr_uses" type="number" min="0" value="0"></div>
-          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Récupération</div><select class="fi" id="mTr_recovery"><option value="passive">Passif</option><option value="short">Repos court</option><option value="long">Repos long</option></select></div>
-          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Dé (ex: 2d6+3)</div><input class="fi" id="mTr_dice" placeholder="2d6+3"></div>
+          <div><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Charges (0=passif)</div><input class="fi" id="mTr_uses" type="number" min="0" value="0"></div>
+          <div><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Récupération</div><select class="fi" id="mTr_recovery"><option value="passive">Passif</option><option value="short">Repos court</option><option value="long">Repos long</option></select></div>
+          <div><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Dé (ex: 2d6+3)</div><input class="fi" id="mTr_dice" placeholder="2d6+3"></div>
         </div>
         <button class="btn bac bsm" style="width:100%" onclick="mjConfirmAddFormTrait()">✓ Confirmer ce trait</button>
       </div>
-      <div id="mAdd_traitsList"><div style="font-size:11px;color:var(--text3);font-style:italic;padding:4px 0">Aucun trait défini</div></div>
+      <div id="mAdd_traitsList"><div style="font-size:12px;color:var(--text3);font-style:italic;padding:4px 0">Aucun trait défini</div></div>
     </div>
     <div style="display:flex;gap:8px">
       <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
@@ -290,7 +290,7 @@ function mjFilterMonsters(q){
   const el=document.getElementById('monResults');if(!el||!MONSTERS_DB)return;
   if(!q.trim()){
     const sorted=MONSTERS_DB.map((m,i)=>({i,m})).sort((a,b)=>(a.m.n||'').localeCompare(b.m.n||'')).slice(0,15);
-    el.innerHTML=sorted.map(({i,m})=>`<div class="charlib-item" style="padding:5px 8px;cursor:pointer" onclick="mjFillMonster(${i})"><div style="flex:1"><div style="font-size:12px;font-weight:600">${esc(m.n)}</div><div style="font-size:11px;color:var(--text3)">CR ${m.cr||'?'} — CA ${m.ac||'?'} — ${m.hp||'?'} PV — ${m.t||''}</div></div><span style="color:var(--cp);font-size:11px">↑ Remplir</span></div>`).join('');return;}
+    el.innerHTML=sorted.map(({i,m})=>`<div class="charlib-item" style="padding:5px 8px;cursor:pointer" onclick="mjFillMonster(${i})"><div style="flex:1"><div style="font-size:13px;font-weight:600">${esc(m.n)}</div><div style="font-size:12px;color:var(--text3)">CR ${m.cr||'?'} — CA ${m.ac||'?'} — ${m.hp||'?'} PV — ${m.t||''}</div></div><span style="color:var(--cp);font-size:12px">↑ Remplir</span></div>`).join('');return;}
   const low=q.toLowerCase();
   const res=[];
   for(let i=0;i<MONSTERS_DB.length;i++){
@@ -300,11 +300,11 @@ function mjFilterMonsters(q){
   const res20=res.slice(0,20);
   el.innerHTML=res20.length?res20.map(({i,m})=>`<div class="charlib-item" style="padding:5px 8px;cursor:pointer" onclick="mjFillMonster(${i})">
     <div style="flex:1">
-      <div style="font-size:12px;font-weight:600">${esc(m.n)}</div>
-      <div style="font-size:11px;color:var(--text3)">CR ${m.cr||'?'} — CA ${m.ac||'?'} — ${m.hp||'?'} PV — ${m.t||''}</div>
+      <div style="font-size:13px;font-weight:600">${esc(m.n)}</div>
+      <div style="font-size:12px;color:var(--text3)">CR ${m.cr||'?'} — CA ${m.ac||'?'} — ${m.hp||'?'} PV — ${m.t||''}</div>
     </div>
-    <span style="color:var(--cp);font-size:11px">↑ Remplir</span>
-  </div>`).join(''):'<div style="font-size:12px;color:var(--text3);text-align:center;padding:6px">Aucun résultat</div>';
+    <span style="color:var(--cp);font-size:12px">↑ Remplir</span>
+  </div>`).join(''):'<div style="font-size:13px;color:var(--text3);text-align:center;padding:6px">Aucun résultat</div>';
 }
 
 function mjFillMonster(idx){
@@ -367,8 +367,8 @@ function mjFillMonster(idx){
   const likelyCaster=_specialActions.some(n=>/spellcast|innate|spell/i.test(n))||/mage|sorcier|lich|archimage|wizard|cleric|shaman|druid|warlock|witch|archmage/i.test(m.n+' '+m.t);
   const res=document.getElementById('monResults');
   const info=(_mjNewMonsterAttacks.length?_mjNewMonsterAttacks.length+' att.':'')+(_mjNewMonsterTraits.length?(_mjNewMonsterAttacks.length?' · ':'')+_mjNewMonsterTraits.length+' trait(s)':'');
-  const spellWarn=likelyCaster?'<div style="font-size:10px;color:#ffd54f;text-align:center;margin-top:2px">⚠ Ce monstre a probablement des sorts — à ajouter manuellement.</div>':'';
-  if(res)res.innerHTML='<div style="font-size:11px;color:var(--cp);text-align:center;padding:4px">✅ "'+esc(m.n)+'" importé'+(info?' ('+info+')':'')+'</div>'+spellWarn;
+  const spellWarn=likelyCaster?'<div style="font-size:11px;color:#ffd54f;text-align:center;margin-top:2px">⚠ Ce monstre a probablement des sorts — à ajouter manuellement.</div>':'';
+  if(res)res.innerHTML='<div style="font-size:12px;color:var(--cp);text-align:center;padding:4px">✅ "'+esc(m.n)+'" importé'+(info?' ('+info+')':'')+'</div>'+spellWarn;
 }
 
 function mjConfirmAddMonster(){
@@ -404,12 +404,12 @@ function mjRenderAttacksList(){
     ?_mjNewMonsterAttacks.map((a,i)=>`<div style="display:flex;align-items:center;gap:6px;padding:6px 8px;background:rgba(255,255,255,.04);border-radius:6px;margin-bottom:4px">
         <span>⚔</span>
         <div style="flex:1;min-width:0">
-          <div style="font-size:12px;font-weight:600">${esc(a.name)}</div>
-          <div style="font-size:11px;color:var(--text3)">${a.atkBonus>=0?'+':''}${a.atkBonus} att. · ${esc(a.dmgDice)}${a.dmgBonus?fmt(a.dmgBonus):''} ${esc(a.dmgType)}${a.range?' · '+esc(a.range):''}</div>
+          <div style="font-size:13px;font-weight:600">${esc(a.name)}</div>
+          <div style="font-size:12px;color:var(--text3)">${a.atkBonus>=0?'+':''}${a.atkBonus} att. · ${esc(a.dmgDice)}${a.dmgBonus?fmt(a.dmgBonus):''} ${esc(a.dmgType)}${a.range?' · '+esc(a.range):''}</div>
         </div>
         <button class="btn bsm" style="color:#e53935;padding:1px 6px;flex-shrink:0" onclick="mjRemoveFormAttack(${i})">✕</button>
       </div>`).join('')
-    :'<div style="font-size:11px;color:var(--text3);font-style:italic;padding:4px 0">Aucune attaque définie</div>';
+    :'<div style="font-size:12px;color:var(--text3);font-style:italic;padding:4px 0">Aucune attaque définie</div>';
 }
 
 function mjConfirmAddFormAttack(){
@@ -438,12 +438,12 @@ function mjRenderSpellsList(){
     ?_mjNewMonsterSpells.map((s,i)=>`<div style="display:flex;align-items:center;gap:6px;padding:6px 8px;background:rgba(255,255,255,.04);border-radius:6px;margin-bottom:4px">
         <span>✦</span>
         <div style="flex:1;min-width:0">
-          <div style="font-size:12px;font-weight:600">${esc(s.name)}${s.level?' <span style="font-weight:400;color:var(--text3)">Niv.'+s.level+'</span>':''}</div>
-          <div style="font-size:11px;color:var(--text3)">${s.saveStat&&s.saveDC?`DD${s.saveDC} ${esc(s.saveStat)} `:''} ${s.dmgDice?esc(s.dmgDice)+' '+esc(s.dmgType):''}</div>
+          <div style="font-size:13px;font-weight:600">${esc(s.name)}${s.level?' <span style="font-weight:400;color:var(--text3)">Niv.'+s.level+'</span>':''}</div>
+          <div style="font-size:12px;color:var(--text3)">${s.saveStat&&s.saveDC?`DD${s.saveDC} ${esc(s.saveStat)} `:''} ${s.dmgDice?esc(s.dmgDice)+' '+esc(s.dmgType):''}</div>
         </div>
         <button class="btn bsm" style="color:#e53935;padding:1px 6px;flex-shrink:0" onclick="mjRemoveFormSpell(${i})">✕</button>
       </div>`).join('')
-    :'<div style="font-size:11px;color:var(--text3);font-style:italic;padding:4px 0">Aucun sort défini</div>';
+    :'<div style="font-size:12px;color:var(--text3);font-style:italic;padding:4px 0">Aucun sort défini</div>';
 }
 
 function mjConfirmAddFormSpell(){
@@ -475,7 +475,7 @@ function _mjSpellSearch(q){
   const db=getSpellsDB();
   if(!db||!db.length){
     res.style.display='block';
-    res.innerHTML='<div style="padding:8px;font-size:11px;color:var(--text3)">⏳ Chargement du compendium...</div>';
+    res.innerHTML='<div style="padding:8px;font-size:12px;color:var(--text3)">⏳ Chargement du compendium...</div>';
     loadSpellsDB(()=>_mjSpellSearch(q));
     return;
   }
@@ -484,9 +484,9 @@ function _mjSpellSearch(q){
   }else{
     _mjSpellHits=db.filter(s=>(s.name||'').toLowerCase().includes(q)||(s.nameEN||'').toLowerCase().includes(q)).slice(0,15);
   }
-  if(!_mjSpellHits.length){res.style.display='block';res.innerHTML='<div style="padding:8px;font-size:11px;color:var(--text3);font-style:italic">Aucun sort trouvé.</div>';return;}
+  if(!_mjSpellHits.length){res.style.display='block';res.innerHTML='<div style="padding:8px;font-size:12px;color:var(--text3);font-style:italic">Aucun sort trouvé.</div>';return;}
   res.style.display='block';
-  res.innerHTML=_mjSpellHits.map((s,i)=>`<div onclick="_mjSpellFill(${i})" style="padding:7px 10px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.06)" onmouseenter="this.style.background='rgba(200,168,75,.1)'" onmouseleave="this.style.background=''"><div style="font-size:12px;font-weight:600;color:var(--text)">${esc(s.name)}</div><div style="font-size:10px;color:var(--text3)">${s.level===0?'Tour de magie':'Niveau '+(s.level||1)} · ${esc(s.school||'')}${s.damage?' · 🎲 '+s.damage:''}</div></div>`).join('');
+  res.innerHTML=_mjSpellHits.map((s,i)=>`<div onclick="_mjSpellFill(${i})" style="padding:7px 10px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.06)" onmouseenter="this.style.background='rgba(200,168,75,.1)'" onmouseleave="this.style.background=''"><div style="font-size:13px;font-weight:600;color:var(--text)">${esc(s.name)}</div><div style="font-size:11px;color:var(--text3)">${s.level===0?'Tour de magie':'Niveau '+(s.level||1)} · ${esc(s.school||'')}${s.damage?' · 🎲 '+s.damage:''}</div></div>`).join('');
 }
 function _mjSpellFill(i){
   const s=_mjSpellHits[i];if(!s)return;
@@ -513,13 +513,13 @@ function mjRenderTraitsList(){
     ?_mjNewMonsterTraits.map((t,i)=>`<div style="display:flex;align-items:flex-start;gap:6px;padding:6px 8px;background:rgba(255,255,255,.04);border-radius:6px;margin-bottom:4px">
         <span style="margin-top:1px">📜</span>
         <div style="flex:1;min-width:0">
-          <div style="font-size:12px;font-weight:600">${esc(t.name)}</div>
-          ${t.desc?`<div style="font-size:11px;color:var(--text3)">${esc(t.desc)}</div>`:''}
-          ${(t.uses&&t.uses>0)||t.dice?`<div style="font-size:10px;color:var(--cp);margin-top:2px">${t.uses>0?t.uses+'× · '+(t.recovery==='short'?'Repos court':t.recovery==='long'?'Repos long':'Passif'):''}${t.dice?' · 🎲 '+esc(t.dice):''}</div>`:''}
+          <div style="font-size:13px;font-weight:600">${esc(t.name)}</div>
+          ${t.desc?`<div style="font-size:12px;color:var(--text3)">${esc(t.desc)}</div>`:''}
+          ${(t.uses&&t.uses>0)||t.dice?`<div style="font-size:11px;color:var(--cp);margin-top:2px">${t.uses>0?t.uses+'× · '+(t.recovery==='short'?'Repos court':t.recovery==='long'?'Repos long':'Passif'):''}${t.dice?' · 🎲 '+esc(t.dice):''}</div>`:''}
         </div>
         <button class="btn bsm" style="color:#e53935;padding:1px 6px;flex-shrink:0" onclick="mjRemoveFormTrait(${i})">✕</button>
       </div>`).join('')
-    :'<div style="font-size:11px;color:var(--text3);font-style:italic;padding:4px 0">Aucun trait défini</div>';
+    :'<div style="font-size:12px;color:var(--text3);font-style:italic;padding:4px 0">Aucun trait défini</div>';
 }
 
 function mjConfirmAddFormTrait(){
@@ -687,11 +687,11 @@ function mjEndCombat(){
     </div>
     ${survivors.length?`<div style="margin-bottom:12px">
       <div class="fl mb6" style="color:#4caf50">✅ Debout (${survivors.length})</div>
-      ${survivors.map(c=>`<div style="font-size:12px;padding:5px 10px;background:rgba(76,175,80,.08);border-radius:6px;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center"><span>${c.isPlayer?(c.avatar||'⚔')+' ':' 👾 '}${esc(c.name)}</span><span style="color:#4caf50;font-weight:600">${c.hp}/${c.hpMax} PV</span></div>`).join('')}
+      ${survivors.map(c=>`<div style="font-size:13px;padding:5px 10px;background:rgba(76,175,80,.08);border-radius:6px;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center"><span>${c.isPlayer?(c.avatar||'⚔')+' ':' 👾 '}${esc(c.name)}</span><span style="color:#4caf50;font-weight:600">${c.hp}/${c.hpMax} PV</span></div>`).join('')}
     </div>`:''}
     ${fallen.length?`<div style="margin-bottom:16px">
       <div class="fl mb6" style="color:#e53935">💀 Hors combat (${fallen.length})</div>
-      ${fallen.map(c=>`<div style="font-size:12px;padding:5px 10px;background:rgba(229,57,53,.08);border-radius:6px;margin-bottom:4px">${c.isPlayer?(c.avatar||'⚔')+' ':' 👾 '}${esc(c.name)}</div>`).join('')}
+      ${fallen.map(c=>`<div style="font-size:13px;padding:5px 10px;background:rgba(229,57,53,.08);border-radius:6px;margin-bottom:4px">${c.isPlayer?(c.avatar||'⚔')+' ':' 👾 '}${esc(c.name)}</div>`).join('')}
     </div>`:''}
     <div style="display:flex;gap:8px;margin-top:8px">
       <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
@@ -721,29 +721,29 @@ function mjOpenCombatDice(idx){
   const mods=ab.map(v=>Math.floor((v-10)/2));
   const AB=['FOR','DEX','CON','INT','SAG','CHA'];
   const btnStyle='padding:8px 4px;text-align:center;width:100%';
-  const makeBtn=(label,bonus,fn)=>`<button class="btn" style="${btnStyle}" onclick="${fn}(${idx},'${label}',${bonus})"><div style="font-size:11px;font-weight:700">${label}</div><div style="font-size:12px;color:var(--cp)">${fmt(bonus)}</div></button>`;
+  const makeBtn=(label,bonus,fn)=>`<button class="btn" style="${btnStyle}" onclick="${fn}(${idx},'${label}',${bonus})"><div style="font-size:12px;font-weight:700">${label}</div><div style="font-size:13px;color:var(--cp)">${fmt(bonus)}</div></button>`;
   const attacks=c.attacks||[];const spells=c.spells||[];const traits=c.traits||[];
   const attacksHtml=attacks.length
     ?attacks.map((a,ai)=>`<div style="display:flex;align-items:center;gap:8px;padding:8px;background:rgba(255,255,255,.04);border-radius:8px;margin-bottom:6px">
         <div style="flex:1;min-width:0">
           <div style="font-size:13px;font-weight:700">⚔ ${esc(a.name)}</div>
-          <div style="font-size:11px;color:var(--text3)">${a.atkBonus>=0?'+':''}${a.atkBonus} att. · ${esc(a.dmgDice)}${a.dmgBonus?fmt(a.dmgBonus):''} ${esc(a.dmgType||'')}${a.range?' · '+esc(a.range):''}</div>
+          <div style="font-size:12px;color:var(--text3)">${a.atkBonus>=0?'+':''}${a.atkBonus} att. · ${esc(a.dmgDice)}${a.dmgBonus?fmt(a.dmgBonus):''} ${esc(a.dmgType||'')}${a.range?' · '+esc(a.range):''}</div>
         </div>
         <button class="btn bac bsm" style="flex-shrink:0" onclick="mjRollAttack(${idx},${ai})">🎲 Lancer</button>
       </div>`).join('')
-    :`<div style="text-align:center;padding:20px;color:var(--text3);font-style:italic">Aucune attaque définie.<br><span style="font-size:11px">Utilisez ✏ Éditer pour en ajouter.</span></div>`;
+    :`<div style="text-align:center;padding:20px;color:var(--text3);font-style:italic">Aucune attaque définie.<br><span style="font-size:12px">Utilisez ✏ Éditer pour en ajouter.</span></div>`;
   const spellsHtml=spells.length
     ?spells.map((s,si)=>`<div style="padding:8px;background:rgba(255,255,255,.04);border-radius:8px;margin-bottom:6px">
         <div style="display:flex;align-items:center;gap:8px">
           <div style="flex:1;min-width:0">
-            <div style="font-size:13px;font-weight:700">✦ ${esc(s.name)}${s.level?` <span style="font-size:11px;font-weight:400;color:var(--text3)">Niv.${s.level}</span>`:''}</div>
-            <div style="font-size:11px;color:var(--text3)">${s.saveStat&&s.saveDC?`JS ${esc(s.saveStat)} DD <b>${s.saveDC}</b>`:''} ${s.dmgDice?'· '+esc(s.dmgDice)+' '+esc(s.dmgType||''):''}</div>
+            <div style="font-size:13px;font-weight:700">✦ ${esc(s.name)}${s.level?` <span style="font-size:12px;font-weight:400;color:var(--text3)">Niv.${s.level}</span>`:''}</div>
+            <div style="font-size:12px;color:var(--text3)">${s.saveStat&&s.saveDC?`JS ${esc(s.saveStat)} DD <b>${s.saveDC}</b>`:''} ${s.dmgDice?'· '+esc(s.dmgDice)+' '+esc(s.dmgType||''):''}</div>
           </div>
           ${s.dmgDice||s.saveDC?`<button class="btn bac bsm" style="flex-shrink:0" onclick="mjRollSpell(${idx},${si})">🎲 Lancer</button>`:''}
         </div>
-        ${s.desc?`<div style="font-size:11px;color:var(--text2);margin-top:4px;font-style:italic">${esc(s.desc)}</div>`:''}
+        ${s.desc?`<div style="font-size:12px;color:var(--text2);margin-top:4px;font-style:italic">${esc(s.desc)}</div>`:''}
       </div>`).join('')
-    :`<div style="text-align:center;padding:20px;color:var(--text3);font-style:italic">Aucun sort défini.<br><span style="font-size:11px">Utilisez ✏ Éditer pour en ajouter.</span></div>`;
+    :`<div style="text-align:center;padding:20px;color:var(--text3);font-style:italic">Aucun sort défini.<br><span style="font-size:12px">Utilisez ✏ Éditer pour en ajouter.</span></div>`;
   const traitsHtml=traits.length
     ?traits.map((t,ti)=>{
       const hasUses=t.uses&&t.uses>0;
@@ -752,14 +752,14 @@ function mjOpenCombatDice(idx){
       const recovLabel=t.recovery==='short'?'Repos court':t.recovery==='long'?'Repos long':'';
       return`<div style="padding:8px;background:rgba(255,255,255,.04);border-radius:8px;margin-bottom:6px">
         <div style="font-size:13px;font-weight:700;margin-bottom:4px">📜 ${esc(t.name)}</div>
-        ${t.desc?`<div style="font-size:12px;color:var(--text2);margin-bottom:6px">${esc(t.desc)}</div>`:''}
+        ${t.desc?`<div style="font-size:13px;color:var(--text2);margin-bottom:6px">${esc(t.desc)}</div>`:''}
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
           ${t.dice?`<button class="btn bsm bac" onclick="mjRollTrait(${idx},${ti})">🎲 ${esc(t.dice)}</button>`:''}
-          ${hasUses?`<div style="display:flex;gap:3px">${Array.from({length:maxUses},(_,bi)=>`<span class="slot-bubble${bi<remaining?'':' used'}" onclick="mjUseTraitCharge(${idx},'${esc(t.name)}',${maxUses})"></span>`).join('')}</div><span style="font-size:10px;color:var(--text3)">${remaining}/${maxUses}${recovLabel?' · '+recovLabel:''}</span><button class="btn bsm" style="padding:1px 6px" onclick="mjRecoverTraitCharge(${idx},'${esc(t.name)}',${maxUses})">↺</button>`:''}
+          ${hasUses?`<div style="display:flex;gap:3px">${Array.from({length:maxUses},(_,bi)=>`<span class="slot-bubble${bi<remaining?'':' used'}" onclick="mjUseTraitCharge(${idx},'${esc(t.name)}',${maxUses})"></span>`).join('')}</div><span style="font-size:11px;color:var(--text3)">${remaining}/${maxUses}${recovLabel?' · '+recovLabel:''}</span><button class="btn bsm" style="padding:1px 6px" onclick="mjRecoverTraitCharge(${idx},'${esc(t.name)}',${maxUses})">↺</button>`:''}
         </div>
       </div>`;
     }).join('')
-    :`<div style="text-align:center;padding:20px;color:var(--text3);font-style:italic">Aucun trait défini.<br><span style="font-size:11px">Utilisez ✏ Éditer pour en ajouter.</span></div>`;
+    :`<div style="text-align:center;padding:20px;color:var(--text3);font-style:italic">Aucun trait défini.<br><span style="font-size:12px">Utilisez ✏ Éditer pour en ajouter.</span></div>`;
   openWideModal(`<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
     <div class="pt" style="margin:0;flex:1">🎲 ${esc(c.name)}</div>
     <button class="btn bsm" onclick="mjOpenEditMonster(${idx})">✏ Éditer</button>
@@ -771,17 +771,17 @@ function mjOpenCombatDice(idx){
     <button onclick="mjDiceShowTab(this,'dtraits')">📜 Traits${traits.length?' ('+traits.length+')':''}</button>
   </div>
   <div id="dtests">
-    <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Caractéristiques</div>
+    <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Caractéristiques</div>
     <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:12px">
       ${AB.map((a,i)=>makeBtn(a,mods[i],'mjCombatRoll')).join('')}
     </div>
-    <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Jets de sauvegarde</div>
+    <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Jets de sauvegarde</div>
     <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:12px">
       ${AB.map((a,i)=>makeBtn('JS '+a,mods[i],'mjCombatRoll')).join('')}
     </div>
-    <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Dés libres</div>
+    <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Dés libres</div>
     <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px">
-      ${['d4','d6','d8','d10','d12','d20','d100'].map(d=>`<button class="btn" style="padding:5px 9px;font-size:12px" onclick="mjCombatRollFree(${idx},'${d}')">${d}</button>`).join('')}
+      ${['d4','d6','d8','d10','d12','d20','d100'].map(d=>`<button class="btn" style="padding:5px 9px;font-size:13px" onclick="mjCombatRollFree(${idx},'${d}')">${d}</button>`).join('')}
     </div>
   </div>
   <div id="dattacks" style="display:none">${attacksHtml}</div>
@@ -831,11 +831,11 @@ function mjRollAttack(cIdx,aIdx){
     const rolls=[];for(let i=0;i<numDice;i++)rolls.push(Math.ceil(Math.random()*ds));
     const dmgBonus=parseInt(a.dmgBonus)||0;
     const totalDmg=rolls.reduce((s,v)=>s+v,0)+dmgBonus;
-    dmgHtml=`<div style="font-size:13px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">Dégâts : <span style="color:var(--text2)">${rolls.join('+')}${dmgBonus?fmt(dmgBonus):''}</span> = <b style="color:var(--cp);font-size:16px">${totalDmg}</b> <span style="font-size:11px;color:var(--text3)">${esc(a.dmgType||'')}${isCrit?' (critique — dés doublés)':''}</span></div>`;
+    dmgHtml=`<div style="font-size:13px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">Dégâts : <span style="color:var(--text2)">${rolls.join('+')}${dmgBonus?fmt(dmgBonus):''}</span> = <b style="color:var(--cp);font-size:16px">${totalDmg}</b> <span style="font-size:12px;color:var(--text3)">${esc(a.dmgType||'')}${isCrit?' (critique — dés doublés)':''}</span></div>`;
     logDmg=` / ${totalDmg} dégâts ${a.dmgType||''}${isCrit?' 🎉':''}`;
   }
   const el=document.getElementById('mjDiceResult');
-  if(el){el.style.display='block';el.innerHTML=`<div style="font-size:12px;color:var(--text3);margin-bottom:4px">${esc(c.name)} — ${esc(a.name)}</div><div>d20(${r})${fmt(atkBonus)} = <span style="font-size:22px;color:${col};font-weight:800">${total}</span>${isCrit?' 🎉 CRITIQUE!':isFumble?' 💀 FUMBLE!':''}</div>${dmgHtml}`;}
+  if(el){el.style.display='block';el.innerHTML=`<div style="font-size:13px;color:var(--text3);margin-bottom:4px">${esc(c.name)} — ${esc(a.name)}</div><div>d20(${r})${fmt(atkBonus)} = <span style="font-size:22px;color:${col};font-weight:800">${total}</span>${isCrit?' 🎉 CRITIQUE!':isFumble?' 💀 FUMBLE!':''}</div>${dmgHtml}`;}
   _mjCombatLog.push(`⚔ ${esc(c.name)} — ${esc(a.name)} : att.=${r}${fmt(atkBonus)}=<b>${total}</b>${isCrit?' 🎉':isFumble?' 💀':''}${logDmg}`);
 }
 
@@ -848,13 +848,13 @@ function mjRollSpell(cIdx,sIdx){
     const dq=parseInt(parts[0])||1;const ds=parseInt(parts[1])||6;
     const rolls=[];for(let i=0;i<dq;i++)rolls.push(Math.ceil(Math.random()*ds));
     const totalDmg=rolls.reduce((sum,v)=>sum+v,0);
-    dmgHtml=`<div style="font-size:13px;margin-top:6px">Dégâts : <span style="color:var(--text2)">${rolls.join('+')}</span> = <b style="color:var(--cp);font-size:16px">${totalDmg}</b> <span style="font-size:11px;color:var(--text3)">${esc(s.dmgType||'')}</span></div>`;
+    dmgHtml=`<div style="font-size:13px;margin-top:6px">Dégâts : <span style="color:var(--text2)">${rolls.join('+')}</span> = <b style="color:var(--cp);font-size:16px">${totalDmg}</b> <span style="font-size:12px;color:var(--text3)">${esc(s.dmgType||'')}</span></div>`;
     logDmg=` / ${totalDmg} dégâts ${s.dmgType||''}`;
   }
   const others=_mjCombatants.filter((_,i)=>i!==cIdx);
-  const saveTargetsHtml=s.saveStat&&s.saveDC&&others.length?`<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"><div style="font-size:11px;color:var(--text3);margin-bottom:5px">🎯 Lancer le JS ${esc(s.saveStat)} DD${s.saveDC} pour :</div><div style="display:flex;flex-wrap:wrap;gap:4px">${others.map(oc=>`<button class="btn bsm" style="font-size:10px" onclick="mjRollSaveFor(${_mjCombatants.indexOf(oc)},${cIdx},${sIdx})">${esc(oc.name)}</button>`).join('')}</div></div>`:'';
+  const saveTargetsHtml=s.saveStat&&s.saveDC&&others.length?`<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"><div style="font-size:12px;color:var(--text3);margin-bottom:5px">🎯 Lancer le JS ${esc(s.saveStat)} DD${s.saveDC} pour :</div><div style="display:flex;flex-wrap:wrap;gap:4px">${others.map(oc=>`<button class="btn bsm" style="font-size:11px" onclick="mjRollSaveFor(${_mjCombatants.indexOf(oc)},${cIdx},${sIdx})">${esc(oc.name)}</button>`).join('')}</div></div>`:'';
   const el=document.getElementById('mjDiceResult');
-  if(el){el.style.display='block';el.innerHTML=`<div style="font-size:12px;color:var(--text3);margin-bottom:4px">${esc(c.name)} — ${esc(s.name)}</div>${s.saveStat&&s.saveDC?`<div style="font-size:14px;margin-bottom:4px">JS <b>${esc(s.saveStat)}</b> DD <span style="font-size:22px;color:var(--cp);font-weight:800">${s.saveDC}</span></div>`:''}${dmgHtml||'<div style="color:var(--text3);font-size:12px">Sort d\'effet — pas de jets de dégâts</div>'}${saveTargetsHtml}`;}
+  if(el){el.style.display='block';el.innerHTML=`<div style="font-size:13px;color:var(--text3);margin-bottom:4px">${esc(c.name)} — ${esc(s.name)}</div>${s.saveStat&&s.saveDC?`<div style="font-size:14px;margin-bottom:4px">JS <b>${esc(s.saveStat)}</b> DD <span style="font-size:22px;color:var(--cp);font-weight:800">${s.saveDC}</span></div>`:''}${dmgHtml||'<div style="color:var(--text3);font-size:13px">Sort d\'effet — pas de jets de dégâts</div>'}${saveTargetsHtml}`;}
   _mjCombatLog.push(`✦ ${esc(c.name)} — ${esc(s.name)}${s.saveDC?` DD${s.saveDC} ${s.saveStat}`:''}${logDmg}`);
 }
 const _SAVE_IDX={FOR:0,STR:0,DEX:1,CON:2,INT:3,SAG:4,WIS:4,CHA:5};
@@ -869,7 +869,7 @@ function mjRollSaveFor(targetIdx,casterIdx,spellIdx){
   const total=d20+mod;
   const success=total>=spell.saveDC;
   const el=document.getElementById('mjDiceResult');
-  if(el){el.innerHTML+=`<div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border);font-size:12px"><b>${esc(target.name)}</b> JS ${esc(spell.saveStat||'')} : d20(${d20})${mod>=0?'+':''}${mod} = <b style="color:${success?'#4caf50':'#e53935'};font-size:15px">${total}</b> ${success?'✅ Réussite':'❌ Échec'}</div>`;}
+  if(el){el.innerHTML+=`<div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border);font-size:13px"><b>${esc(target.name)}</b> JS ${esc(spell.saveStat||'')} : d20(${d20})${mod>=0?'+':''}${mod} = <b style="color:${success?'#4caf50':'#e53935'};font-size:15px">${total}</b> ${success?'✅ Réussite':'❌ Échec'}</div>`;}
   _mjCombatLog.push(`🎯 JS ${esc(spell.saveStat||'')} DD${spell.saveDC} — ${esc(target.name)} : ${total} (${success?'Réussite':'Échec'})`);
 }
 
@@ -887,15 +887,15 @@ function mjOpenEditMonster(idx){
     </div>
     <div style="border-top:1px solid var(--border);padding-top:12px;margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <div style="font-size:12px;font-weight:700;color:var(--text2)">⚔ Attaques</div>
+        <div style="font-size:13px;font-weight:700;color:var(--text2)">⚔ Attaques</div>
         <button class="btn bsm" onclick="mjToggleMonsterSubForm('mEdAttForm')">+ Ajouter</button>
       </div>
       <div id="mEdAttForm" style="display:none;background:var(--surface2);border-radius:8px;padding:10px;margin-bottom:8px">
         <input class="fi" id="mAtt_name" placeholder="Nom (ex: Cimeterre)" style="margin-bottom:6px">
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px">
-          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Bonus att.</div><input class="fi" id="mAtt_bonus" type="number" value="0"></div>
-          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Dés dégâts</div><input class="fi" id="mAtt_dice" value="1d6"></div>
-          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Bonus dégâts</div><input class="fi" id="mAtt_dmgBonus" type="number" value="0"></div>
+          <div><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Bonus att.</div><input class="fi" id="mAtt_bonus" type="number" value="0"></div>
+          <div><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Dés dégâts</div><input class="fi" id="mAtt_dice" value="1d6"></div>
+          <div><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Bonus dégâts</div><input class="fi" id="mAtt_dmgBonus" type="number" value="0"></div>
         </div>
         <div class="g2" style="gap:6px;margin-bottom:8px">
           <div><input class="fi" id="mAtt_type" placeholder="Type dégâts"></div>
@@ -907,7 +907,7 @@ function mjOpenEditMonster(idx){
     </div>
     <div style="border-top:1px solid var(--border);padding-top:12px;margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <div style="font-size:12px;font-weight:700;color:var(--text2)">✦ Sorts & Pouvoirs</div>
+        <div style="font-size:13px;font-weight:700;color:var(--text2)">✦ Sorts & Pouvoirs</div>
         <button class="btn bsm" onclick="mjToggleMonsterSubForm('mEdSpForm')">+ Ajouter</button>
       </div>
       <div id="mEdSpForm" style="display:none;background:var(--surface2);border-radius:8px;padding:10px;margin-bottom:8px">
@@ -917,9 +917,9 @@ function mjOpenEditMonster(idx){
         </div>
         <input class="fi" id="mSp_name" placeholder="Nom du sort" style="margin-bottom:6px">
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px">
-          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Niveau</div><input class="fi" id="mSp_level" type="number" value="1" min="0"></div>
-          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Stat save</div><input class="fi" id="mSp_saveStat" placeholder="DEX"></div>
-          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">DD save</div><input class="fi" id="mSp_saveDC" type="number" value="13"></div>
+          <div><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Niveau</div><input class="fi" id="mSp_level" type="number" value="1" min="0"></div>
+          <div><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Stat save</div><input class="fi" id="mSp_saveStat" placeholder="DEX"></div>
+          <div><div style="font-size:11px;color:var(--text3);margin-bottom:3px">DD save</div><input class="fi" id="mSp_saveDC" type="number" value="13"></div>
         </div>
         <div class="g2" style="gap:6px;margin-bottom:6px">
           <div><input class="fi" id="mSp_dice" placeholder="Dés (ex: 8d6)"></div>
@@ -932,16 +932,16 @@ function mjOpenEditMonster(idx){
     </div>
     <div style="border-top:1px solid var(--border);padding-top:12px;margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <div style="font-size:12px;font-weight:700;color:var(--text2)">📜 Traits & Capacités</div>
+        <div style="font-size:13px;font-weight:700;color:var(--text2)">📜 Traits & Capacités</div>
         <button class="btn bsm" onclick="mjToggleMonsterSubForm('mEdTrForm')">+ Ajouter</button>
       </div>
       <div id="mEdTrForm" style="display:none;background:var(--surface2);border-radius:8px;padding:10px;margin-bottom:8px">
         <input class="fi" id="mTr_name" placeholder="Nom du trait" style="margin-bottom:6px">
         <textarea class="fi" id="mTr_desc" rows="2" placeholder="Description..." style="resize:vertical;margin-bottom:6px"></textarea>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px">
-          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Charges (0=passif)</div><input class="fi" id="mTr_uses" type="number" min="0" value="0"></div>
-          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Récupération</div><select class="fi" id="mTr_recovery"><option value="passive">Passif</option><option value="short">Repos court</option><option value="long">Repos long</option></select></div>
-          <div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Dé (ex: 2d6+3)</div><input class="fi" id="mTr_dice" placeholder="2d6+3"></div>
+          <div><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Charges (0=passif)</div><input class="fi" id="mTr_uses" type="number" min="0" value="0"></div>
+          <div><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Récupération</div><select class="fi" id="mTr_recovery"><option value="passive">Passif</option><option value="short">Repos court</option><option value="long">Repos long</option></select></div>
+          <div><div style="font-size:11px;color:var(--text3);margin-bottom:3px">Dé (ex: 2d6+3)</div><input class="fi" id="mTr_dice" placeholder="2d6+3"></div>
         </div>
         <button class="btn bac bsm" style="width:100%" onclick="mjConfirmAddFormTrait()">✓ Confirmer</button>
       </div>
@@ -1114,7 +1114,7 @@ function mjOpenCondModal(idx){
     <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px">
       ${MJ_CONDITIONS.map((cd,mi)=>`<span class="cond-pill${current.includes(cd.n)?' on':''}" title="${esc(cd.d)}" onclick="mjToggleCond(${idx},${mi},this)">${cd.n}</span>`).join('')}
     </div>
-    <div id="condDesc" style="min-height:28px;font-size:11px;color:var(--text3);font-style:italic;padding:4px 2px;margin-bottom:10px">Survolez une condition pour voir sa description.</div>
+    <div id="condDesc" style="min-height:28px;font-size:12px;color:var(--text3);font-style:italic;padding:4px 2px;margin-bottom:10px">Survolez une condition pour voir sa description.</div>
     <div class="fl mb6">Condition personnalisée</div>
     <div style="display:flex;gap:6px;margin-bottom:14px">
       <input class="fi" id="condCustom" placeholder="Ex: Maudit, Béni, Rage..." style="flex:1">

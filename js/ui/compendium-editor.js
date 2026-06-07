@@ -157,7 +157,7 @@ async function openPackEditor(compId){
         <div style="flex:1;min-width:0;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(spec.name(e))}</div>
         <button class="btn bsm" onclick="ceEditEntry('${compId}','${type}',${i})">✏️</button>
         <button class="btn bsm" style="color:#e53935;border-color:rgba(229,57,53,.3)" onclick="ceDeleteEntry('${compId}','${type}',${i})">🗑</button>
-      </div>`).join('') : `<div style="font-size:12px;color:var(--text3);font-style:italic;padding:4px 0">Aucune entrée.</div>`;
+      </div>`).join('') : `<div style="font-size:13px;color:var(--text3);font-style:italic;padding:4px 0">Aucune entrée.</div>`;
     return `<details class="acc" style="margin-bottom:8px">
       <summary>${spec.icon} ${spec.label} <span style="color:var(--text3);font-weight:400">(${arr.length})</span></summary>
       <div class="acc-body">
@@ -167,7 +167,7 @@ async function openPackEditor(compId){
     </details>`;
   }).join('');
   openWideModal(`<div class="pt">📚 Éditeur — ${esc(c.name||'Compendium')}</div>
-    <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Crée et modifie ton contenu. Les champs marqués <span style="color:#e57373">*</span> sont obligatoires.</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:12px">Crée et modifie ton contenu. Les champs marqués <span style="color:#e57373">*</span> sont obligatoires.</div>
     <div style="max-height:60vh;overflow-y:auto">${sections}</div>
     <div style="display:flex;justify-content:flex-end;margin-top:12px"><button class="btn bsm" onclick="closeModal()">Fermer</button></div>`);
 }
@@ -244,11 +244,11 @@ function mjSaveToPersoPack(type, entry){
   const ids = Object.keys(_mjCompLib);
   const list = ids.length ? ids.map(id => `<div class="charlib-item" style="cursor:pointer" onclick="_mjDoSaveToPack('${id}')">
       <div style="flex:1"><div style="font-size:13px;font-weight:600">${esc(_mjCompLib[id].name||'Compendium')}</div>
-      <div style="font-size:11px;color:var(--text3)">${(_mjCompLib[id].spells||[]).length} sorts · ${(_mjCompLib[id].items||[]).length} objets · ${(_mjCompLib[id].monsters||[]).length} monstres</div></div>
-      <span style="color:var(--cp);font-size:11px">+ Ajouter</span></div>`).join('')
-    : `<div style="font-size:12px;color:var(--text3);font-style:italic;padding:6px 0">Aucun compendium perso pour l'instant.</div>`;
+      <div style="font-size:12px;color:var(--text3)">${(_mjCompLib[id].spells||[]).length} sorts · ${(_mjCompLib[id].items||[]).length} objets · ${(_mjCompLib[id].monsters||[]).length} monstres</div></div>
+      <span style="color:var(--cp);font-size:12px">+ Ajouter</span></div>`).join('')
+    : `<div style="font-size:13px;color:var(--text3);font-style:italic;padding:6px 0">Aucun compendium perso pour l'instant.</div>`;
   openModal(`<div class="pt">📚 Enregistrer dans un compendium</div>
-    <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Choisis un compendium perso, ou crée-en un nouveau :</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:12px">Choisis un compendium perso, ou crée-en un nouveau :</div>
     <div style="max-height:40vh;overflow-y:auto;margin-bottom:10px">${list}</div>
     <div style="display:flex;gap:8px">
       <button class="btn bsm bprimary" onclick="_mjNewPackForEntry()">+ Nouveau compendium</button>

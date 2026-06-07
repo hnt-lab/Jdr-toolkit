@@ -1,7 +1,7 @@
 function mjTabRegles(){
   function ds(id,html){return`<div class="mj-rules-section" data-ruleid="${id}" draggable="true" ondragstart="mjRuleDragStart('${id}',this)" ondragend="mjRuleDragEnd(this)" ondragover="mjRuleDragOver(event,this)" ondrop="mjRuleDrop(event,'${id}')">${html}</div>`;}
-  function dh(id,title){const col=_rulesCollapsed[id];return`<div class="pt" style="display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none" onclick="toggleRuleSection('${id}')"><span class="mj-drag-handle" title="Glisser pour réorganiser" onclick="event.stopPropagation()">⠿</span>${title}<span id="rschev_${id}" style="margin-left:auto;font-size:10px;color:var(--text3);transition:transform .2s${col?';transform:rotate(-90deg)':''}">▼</span></div>`;}
-  function gh(id,label){const col=_rulesCollapsed[id];return`<div style="display:flex;align-items:center;gap:6px;padding:4px 0 8px;color:var(--text3);font-size:11px;cursor:pointer;user-select:none" onclick="toggleRuleSection('${id}')"><span class="mj-drag-handle" title="Glisser pour réorganiser" onclick="event.stopPropagation()">⠿</span>${label}<span id="rschev_${id}" style="margin-left:auto;font-size:10px;transition:transform .2s${col?';transform:rotate(-90deg)':''}">▼</span></div>`;}
+  function dh(id,title){const col=_rulesCollapsed[id];return`<div class="pt" style="display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none" onclick="toggleRuleSection('${id}')"><span class="mj-drag-handle" title="Glisser pour réorganiser" onclick="event.stopPropagation()">⠿</span>${title}<span id="rschev_${id}" style="margin-left:auto;font-size:11px;color:var(--text3);transition:transform .2s${col?';transform:rotate(-90deg)':''}">▼</span></div>`;}
+  function gh(id,label){const col=_rulesCollapsed[id];return`<div style="display:flex;align-items:center;gap:6px;padding:4px 0 8px;color:var(--text3);font-size:12px;cursor:pointer;user-select:none" onclick="toggleRuleSection('${id}')"><span class="mj-drag-handle" title="Glisser pour réorganiser" onclick="event.stopPropagation()">⠿</span>${label}<span id="rschev_${id}" style="margin-left:auto;font-size:11px;transition:transform .2s${col?';transform:rotate(-90deg)':''}">▼</span></div>`;}
   function rb(id,html){return`<div id="rsb_${id}"${_rulesCollapsed[id]?' style="display:none"':''}>${html}</div>`;}
   return`<div id="mjRulesContainer">
     ${ds('s-actions',`${gh('s-actions','⚔ Combat — Actions &amp; Initiative')}
@@ -22,7 +22,7 @@ function mjTabRegles(){
           <tr><td><strong>Utiliser un objet</strong></td><td>Pour interagir avec un 2e objet dans le tour, ou un objet qui requiert l'action explicitement.</td></tr>
           <tr><td><strong>Improviser</strong></td><td>Toute action hors liste — le MJ décide de la possibilité et du jet requis.</td></tr>
         </table>
-        <div style="font-size:11px;color:var(--text3);margin-top:8px;line-height:1.8">
+        <div style="font-size:12px;color:var(--text3);margin-top:8px;line-height:1.8">
           <strong>Action bonus</strong> : 1 max/tour, accordée par une capacité spécifique (Ruse du roublard, sort en action bonus…).<br>
           <strong>Réaction</strong> : 1 max/tour. Recharge au début de ton tour. Exemples : attaque d'opportunité, bouclier, représailles infernales.<br>
           <strong>Interaction libre</strong> : 1 objet simple par tour sans action (dégainer, ouvrir une porte…). Le 2e objet coûte l'action.
@@ -109,7 +109,7 @@ function mjTabRegles(){
           <tr><td>Trois quarts (75%)</td><td><strong style="color:var(--cp)">+5 CA et JS DEX</strong></td><td>Meurtrière, herse, gros tronc</td></tr>
           <tr><td>Totale (100%)</td><td>Impossible à cibler</td><td>Mur plein</td></tr>
         </table>
-        <div style="font-size:11px;color:var(--text3);margin-top:4px">Si plusieurs sources : seul le type le plus élevé s'applique (pas de cumul).</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:4px">Si plusieurs sources : seul le type le plus élevé s'applique (pas de cumul).</div>
       </div>
       <div class="regles-section">
         <div class="pt">🎯 Attaques spéciales</div>
@@ -133,11 +133,11 @@ function mjTabRegles(){
           <tr><td>Très grande (TG)</td><td>4,5 m × 4,5 m</td></tr>
           <tr><td>Gigantesque (Gig)</td><td>6 m × 6 m ou plus</td></tr>
         </table>
-        <div style="font-size:11px;color:var(--text3);margin-top:4px">Se faufiler dans un espace d'1 taille en dessous : coût ×2, désavantage attaques et JS DEX, attaques contre lui en avantage.</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:4px">Se faufiler dans un espace d'1 taille en dessous : coût ×2, désavantage attaques et JS DEX, attaques contre lui en avantage.</div>
       </div>
       <div class="regles-section">
         <div class="pt">💥 Types de dégâts</div>
-        <table class="regles-table" style="font-size:11px">
+        <table class="regles-table" style="font-size:12px">
           <tr><th>Type</th><th>Exemples</th></tr>
           <tr><td><strong>Acide</strong></td><td>Souffle dragon noir, gelée noire</td></tr>
           <tr><td><strong>Contondant</strong></td><td>Marteaux, chute, constriction</td></tr>
@@ -176,7 +176,7 @@ function mjTabRegles(){
       ${dh('s-armes-c','⚔ Armes courantes')}
       ${rb('s-armes-c',`<table class="regles-table">
         <tr><th>Arme</th><th>Dégâts</th><th>Propriétés</th></tr>
-        <tr><td colspan="3" style="color:var(--cp);font-size:11px;font-weight:600">Corps à corps</td></tr>
+        <tr><td colspan="3" style="color:var(--cp);font-size:12px;font-weight:600">Corps à corps</td></tr>
         <tr><td>Bâton</td><td>1d6 contondant</td><td>Polyvalente (1d8)</td></tr>
         <tr><td>Dague</td><td>1d4 perforant</td><td>Finesse, légère, lancer (6/18m)</td></tr>
         <tr><td>Gourdin</td><td>1d4 contondant</td><td>Légère</td></tr>
@@ -187,7 +187,7 @@ function mjTabRegles(){
         <tr><td>Masse d'armes</td><td>1d6 contondant</td><td>—</td></tr>
         <tr><td>Massue</td><td>1d8 contondant</td><td>À deux mains</td></tr>
         <tr><td>Serpe</td><td>1d4 tranchant</td><td>Légère</td></tr>
-        <tr><td colspan="3" style="color:var(--cp);font-size:11px;font-weight:600">À distance</td></tr>
+        <tr><td colspan="3" style="color:var(--cp);font-size:12px;font-weight:600">À distance</td></tr>
         <tr><td>Arc court</td><td>1d6 perforant</td><td>Munitions (24/96m), 2 mains</td></tr>
         <tr><td>Arbalète légère</td><td>1d8 perforant</td><td>Munitions (24/96m), chargement, 2 mains</td></tr>
         <tr><td>Fléchette</td><td>1d4 perforant</td><td>Finesse, lancer (6/18m)</td></tr>
@@ -198,7 +198,7 @@ function mjTabRegles(){
       ${dh('s-armes-g','⚔ Armes de guerre')}
       ${rb('s-armes-g',`<table class="regles-table">
         <tr><th>Arme</th><th>Dégâts</th><th>Propriétés</th></tr>
-        <tr><td colspan="3" style="color:var(--cp);font-size:11px;font-weight:600">Corps à corps</td></tr>
+        <tr><td colspan="3" style="color:var(--cp);font-size:12px;font-weight:600">Corps à corps</td></tr>
         <tr><td>Cimeterre</td><td>1d6 tranchant</td><td>Finesse, légère</td></tr>
         <tr><td>Coutille</td><td>1d10 tranchant</td><td>Lourde, allonge, 2 mains</td></tr>
         <tr><td>Épée à deux mains</td><td>2d6 tranchant</td><td>Lourde, 2 mains</td></tr>
@@ -217,38 +217,38 @@ function mjTabRegles(){
         <tr><td>Pique</td><td>1d10 perforant</td><td>Lourde, allonge, 2 mains</td></tr>
         <tr><td>Rapière</td><td>1d8 perforant</td><td>Finesse</td></tr>
         <tr><td>Trident</td><td>1d6 perforant</td><td>Lancer (6/18m), polyvalente (1d8)</td></tr>
-        <tr><td colspan="3" style="color:var(--cp);font-size:11px;font-weight:600">À distance</td></tr>
+        <tr><td colspan="3" style="color:var(--cp);font-size:12px;font-weight:600">À distance</td></tr>
         <tr><td>Arc long</td><td>1d8 perforant</td><td>Munitions (45/180m), lourde, 2 mains</td></tr>
         <tr><td>Arbalète de poing</td><td>1d6 perforant</td><td>Munitions (9/36m), légère, chargement</td></tr>
         <tr><td>Arbalète lourde</td><td>1d10 perforant</td><td>Munitions (30/120m), lourde, chargement, 2 mains</td></tr>
         <tr><td>Filet</td><td>—</td><td>Spéciale‡, lancer (1,5/4,5m)</td></tr>
         <tr><td>Sarbacane</td><td>1 perforant</td><td>Munitions (7,5/30m), chargement</td></tr>
       </table>
-      <div style="font-size:11px;color:var(--text3);margin-top:6px;line-height:1.7"><strong>Finesse</strong> : FOR ou DEX &nbsp;·&nbsp; <strong>Légère</strong> : combat à 2 armes &nbsp;·&nbsp; <strong>Allonge</strong> : +1,5m portée &nbsp;·&nbsp; <strong>Lourde</strong> : désavantage taille P &nbsp;·&nbsp; <strong>Chargement</strong> : 1 tir/action &nbsp;·&nbsp; <strong>Improvisée</strong> : 1d4 &nbsp;·&nbsp; <strong>Argent</strong> : plaquer une arme 100 po &nbsp;·&nbsp; <strong>†Lance d'arçon</strong> : désavantage ≤1,5m, 2 mains hors monture &nbsp;·&nbsp; <strong>‡Filet</strong> : entrave ≤taille G, JS FOR DD10 pour se libérer, 5 dgts tranchants (CA10) détruisent le filet, 1 attaque/action max</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:6px;line-height:1.7"><strong>Finesse</strong> : FOR ou DEX &nbsp;·&nbsp; <strong>Légère</strong> : combat à 2 armes &nbsp;·&nbsp; <strong>Allonge</strong> : +1,5m portée &nbsp;·&nbsp; <strong>Lourde</strong> : désavantage taille P &nbsp;·&nbsp; <strong>Chargement</strong> : 1 tir/action &nbsp;·&nbsp; <strong>Improvisée</strong> : 1d4 &nbsp;·&nbsp; <strong>Argent</strong> : plaquer une arme 100 po &nbsp;·&nbsp; <strong>†Lance d'arçon</strong> : désavantage ≤1,5m, 2 mains hors monture &nbsp;·&nbsp; <strong>‡Filet</strong> : entrave ≤taille G, JS FOR DD10 pour se libérer, 5 dgts tranchants (CA10) détruisent le filet, 1 attaque/action max</div>
       `)}
     </div>`)}
     ${ds('s-armures',`<div class="regles-section">
       ${dh('s-armures','🛡 Armures')}
       ${rb('s-armures',`<table class="regles-table">
         <tr><th>Armure</th><th>CA</th><th>Discrétion</th></tr>
-        <tr><td colspan="3" style="color:var(--cp);font-size:11px;font-weight:600">Légères</td></tr>
+        <tr><td colspan="3" style="color:var(--cp);font-size:12px;font-weight:600">Légères</td></tr>
         <tr><td>Matelassée</td><td>11 + mod DEX</td><td>Désavantage</td></tr>
         <tr><td>Cuir</td><td>11 + mod DEX</td><td>—</td></tr>
         <tr><td>Cuir clouté</td><td>12 + mod DEX</td><td>—</td></tr>
-        <tr><td colspan="3" style="color:var(--cp);font-size:11px;font-weight:600">Intermédiaires</td></tr>
+        <tr><td colspan="3" style="color:var(--cp);font-size:12px;font-weight:600">Intermédiaires</td></tr>
         <tr><td>Peau</td><td>12 + mod DEX (max +2)</td><td>—</td></tr>
         <tr><td>Chemise de mailles</td><td>13 + mod DEX (max +2)</td><td>—</td></tr>
         <tr><td>Écailles</td><td>14 + mod DEX (max +2)</td><td>Désavantage</td></tr>
         <tr><td>Cuirasse</td><td>14 + mod DEX (max +2)</td><td>—</td></tr>
         <tr><td>Demi-plate</td><td>15 + mod DEX (max +2)</td><td>Désavantage</td></tr>
-        <tr><td colspan="3" style="color:var(--cp);font-size:11px;font-weight:600">Lourdes</td></tr>
+        <tr><td colspan="3" style="color:var(--cp);font-size:12px;font-weight:600">Lourdes</td></tr>
         <tr><td>Broigne</td><td>14</td><td>Désavantage</td></tr>
         <tr><td>Cotte de mailles</td><td>16 (FOR 13 ou −3m)</td><td>Désavantage</td></tr>
         <tr><td>Clibanion</td><td>17 (FOR 15 ou −3m)</td><td>Désavantage</td></tr>
         <tr><td>Harnois</td><td>18 (FOR 15 ou −3m)</td><td>Désavantage</td></tr>
         <tr><td>Bouclier</td><td>+2</td><td>—</td></tr>
       </table>
-      <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:10px 0 4px">Mettre / Ôter une armure</div>
+      <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:10px 0 4px">Mettre / Ôter une armure</div>
       <table class="regles-table">
         <tr><th>Catégorie</th><th>Mettre</th><th>Ôter</th></tr>
         <tr><td>Légère</td><td>1 min</td><td>1 min</td></tr>
@@ -279,10 +279,10 @@ function mjTabRegles(){
     </div>`)}
     ${ds('s-multiclasse',`<div class="regles-section">
       ${dh('s-multiclasse','🔀 Multiclassage')}
-      ${rb('s-multiclasse',`<div style="font-size:11px;color:var(--text3);margin-bottom:8px">Option : ajouter un niveau dans une autre classe plutôt que dans sa classe actuelle. Nécessite les valeurs minimum dans les deux classes.</div>
+      ${rb('s-multiclasse',`<div style="font-size:12px;color:var(--text3);margin-bottom:8px">Option : ajouter un niveau dans une autre classe plutôt que dans sa classe actuelle. Nécessite les valeurs minimum dans les deux classes.</div>
       <div class="g2" style="gap:10px">
         <div>
-          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Prérequis</div>
+          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Prérequis</div>
           <table class="regles-table">
             <tr><th>Classe</th><th>Minimum requis</th></tr>
             <tr><td>Barbare</td><td>FOR 13</td></tr>
@@ -300,7 +300,7 @@ function mjTabRegles(){
           </table>
         </div>
         <div>
-          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Maîtrises gagnées (nouveau niveau)</div>
+          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Maîtrises gagnées (nouveau niveau)</div>
           <table class="regles-table">
             <tr><th>Classe</th><th>Maîtrises gagnées</th></tr>
             <tr><td>Barbare</td><td>Boucliers, armes courantes &amp; de guerre</td></tr>
@@ -318,9 +318,9 @@ function mjTabRegles(){
           </table>
         </div>
       </div>
-      <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:10px 0 4px">Emplacements de sorts multiclasse (niveau total de lanceur)</div>
+      <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:10px 0 4px">Emplacements de sorts multiclasse (niveau total de lanceur)</div>
       <div style="max-height:220px;overflow-y:auto">
-      <table class="regles-table" style="font-size:11px">
+      <table class="regles-table" style="font-size:12px">
         <tr><th>Niv.</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th></tr>
         <tr><td>1</td><td>2</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
         <tr><td>2</td><td>3</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
@@ -344,11 +344,11 @@ function mjTabRegles(){
         <tr><td>20</td><td>4</td><td>3</td><td>3</td><td>3</td><td>3</td><td>2</td><td>2</td><td>1</td><td>1</td></tr>
       </table>
       </div>
-      <div style="font-size:11px;color:var(--text3);margin-top:6px;line-height:1.7">Niv. lanceur = Barde+Clerc+Druide+Ensorc.+Mage (×1) + Paladin+Rôdeur (×½ arrondi inf.) + Guerrier/Roublard éligibles (×⅓ arrondi inf.) &nbsp;·&nbsp; Occultiste : Magie de pacte utilisable pour sorts des autres classes et vice versa &nbsp;·&nbsp; Attaque supplémentaire : ne se cumule pas entre classes &nbsp;·&nbsp; Défense sans armure : une seule source</div>`)}
+      <div style="font-size:12px;color:var(--text3);margin-top:6px;line-height:1.7">Niv. lanceur = Barde+Clerc+Druide+Ensorc.+Mage (×1) + Paladin+Rôdeur (×½ arrondi inf.) + Guerrier/Roublard éligibles (×⅓ arrondi inf.) &nbsp;·&nbsp; Occultiste : Magie de pacte utilisable pour sorts des autres classes et vice versa &nbsp;·&nbsp; Attaque supplémentaire : ne se cumule pas entre classes &nbsp;·&nbsp; Défense sans armure : une seule source</div>`)}
     </div>`)}
     ${ds('s-epuisement',`<div class="regles-section">
       ${dh('s-epuisement','😵 Épuisement · 🍖 Faim & Soif')}
-      ${rb('s-epuisement',`<div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Niveaux d'épuisement</div>
+      ${rb('s-epuisement',`<div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Niveaux d'épuisement</div>
         <table class="regles-table">
           <tr><th>Niv.</th><th>Effet</th></tr>
           <tr><td>1</td><td>Désavantage aux jets de caractéristique</td></tr>
@@ -358,14 +358,14 @@ function mjTabRegles(){
           <tr><td>5</td><td>Vitesse réduite à 0</td></tr>
           <tr><td style="color:#e53935;font-weight:600">6</td><td style="color:#e53935">Mort</td></tr>
         </table>
-        <div style="font-size:11px;color:var(--text3);margin-top:5px;margin-bottom:10px">Repos long : −1 niveau d'épuisement.</div>
-        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Faim</div>
-        <div style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:8px">
+        <div style="font-size:12px;color:var(--text3);margin-top:5px;margin-bottom:10px">Repos long : −1 niveau d'épuisement.</div>
+        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Faim</div>
+        <div style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:8px">
           Besoin : <strong>500 g/jour</strong>. Moins de la moitié → JS CON DD 10 ou +1 épuisement.<br>
           Sans nourriture : après <strong>3 + mod CON jours</strong> (min 1), +1 épuisement automatique/jour.
         </div>
-        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Soif</div>
-        <div style="font-size:12px;color:var(--text2);line-height:1.7">
+        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Soif</div>
+        <div style="font-size:13px;color:var(--text2);line-height:1.7">
           Besoin : <strong>3,5 l/jour</strong> (7 l en chaleur extrême).<br>
           Sans eau 1 jour → JS CON DD 15 ou +1 épuisement (+2 si raté de 5+).<br>
           Armure intermédiaire/lourde → désavantage au jet.
@@ -381,7 +381,7 @@ function mjTabRegles(){
           <tr><td>Normale</td><td>90 m</td><td>4,5 km</td><td>36 km</td><td>—</td></tr>
           <tr><td>Lente</td><td>60 m</td><td>3 km</td><td>27 km</td><td style="color:var(--cp)">Discrétion</td></tr>
         </table>
-        <div style="font-size:11px;color:var(--text3);margin-top:6px;line-height:1.7">
+        <div style="font-size:12px;color:var(--text3);margin-top:6px;line-height:1.7">
           <strong>Marche forcée</strong> : après 8h/jour, chaque heure supplémentaire → JS CON DD (10 + 1/h sup.). Échec = 1 niveau d'épuisement.<br>
           <strong>Terrain difficile</strong> : vitesse ÷ 2 (forêt dense, marais, montagne, glace, ruines…)<br>
           <strong>Monture</strong> : peut galoper 1h à vitesse ×2 (allure rapide). Véhicule terrestre = allure normale.
@@ -410,7 +410,7 @@ function mjTabRegles(){
           <tr><td>Saut en hauteur (élan)</td><td>mod FOR ÷ 3 + 1 m (min 0)</td><td>—</td></tr>
           <tr><td>Saut en hauteur (sur place)</td><td>Moitié ci-dessus</td><td>—</td></tr>
         </table>
-        <div style="font-size:11px;color:var(--text3);margin-top:6px">Atterrissage en terrain difficile → DEX (Acrobaties) DD 10 ou chute à terre.</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:6px">Atterrissage en terrain difficile → DEX (Acrobaties) DD 10 ou chute à terre.</div>
       </div>
       <div class="regles-section">
         <div class="pt">👁 Types de vision</div>
@@ -475,21 +475,21 @@ function mjTabRegles(){
           <tr><td>1 po</td><td>= 100 pc</td></tr>
           <tr><td>1 pp</td><td>= 1000 pc</td></tr>
         </table>
-        <div style="font-size:11px;color:var(--text3);margin-top:6px">5 ft = 1,5 m &nbsp;·&nbsp; 1 mile = 1,5 km &nbsp;·&nbsp; 1 lb = 500 g</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:6px">5 ft = 1,5 m &nbsp;·&nbsp; 1 mile = 1,5 km &nbsp;·&nbsp; 1 lb = 500 g</div>
       </div>
     </div>`)}`)}
     ${ds('s-temps-mort',`${gh('s-temps-mort','🌙 Temps morts')}
     ${rb('s-temps-mort',`
       <div class="regles-section" style="margin-bottom:10px">
         <div class="pt">👤 Antagonistes</div>
-        <div style="font-size:12px;color:var(--text2);line-height:1.6">
+        <div style="font-size:13px;color:var(--text2);line-height:1.6">
           PNJ actifs qui s'opposent au groupe (2–3 simultanément recommandés). Chaque temps mort résolu, faire <strong>avancer 1 plan d'antagoniste</strong> : attaque, intrigue, événement de fond. Chaque antagoniste a des <strong>Objectifs</strong>, des <strong>Ressources</strong> et un plan en 3–4 étapes.
         </div>
       </div>
       <div class="regles-section">
         <div class="pt">📋 Activités — 1 semaine = 5 jours, 8h/jour minimum</div>
         <div style="max-height:380px;overflow-y:auto">
-        <table class="regles-table" style="font-size:10px">
+        <table class="regles-table" style="font-size:11px">
           <tr><th style="min-width:130px">Activité</th><th>Ressources</th><th>Jet / Résultat</th></tr>
           <tr><td><strong>🛒 Acheter objet mag.</strong></td><td>1 sem + 100 po min</td><td>CHA Persuasion (+1/sem sup., +1/100 po, max +10) → qualité du vendeur</td></tr>
           <tr><td><strong>🍺 Faire la fête</strong></td><td>1 sem + 10/50/250 po (peuple/bourgeois/aristocratie)</td><td>CHA Persuasion : ≤5 ennemi · 6-10 rien · 11-15 allié · 16-20 ×2 · 21+ ×3</td></tr>
@@ -509,7 +509,7 @@ function mjTabRegles(){
           <tr><td><strong>🏰 Construire</strong></td><td>Terrain + charte royale requis</td><td>Fort 15k/100j · Donjon 50k/400j · Palace 500k/1 200j · Siège guilde 5k/60j · Temple 50k/400j</td></tr>
         </table>
         </div>
-        <div style="font-size:10px;color:var(--text3);margin-top:6px">Complications : 10% de chances par semaine d'activité. Absent lors d'une construction = +3 jours par jour d'absence.</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:6px">Complications : 10% de chances par semaine d'activité. Absent lors d'une construction = +3 jours par jour d'absence.</div>
       </div>
     `)}`)}
     ${ds('s-packs',`<div class="regles-section">
@@ -537,7 +537,7 @@ function mjTabRegles(){
         <tr><td>Transport entre deux villes</td><td>3 pc / 1,5 km</td></tr>
         <tr><td>Voyage en bateau</td><td>1 pa / 1,5 km</td></tr>
       </table>
-      <div style="font-size:11px;color:var(--text3);margin-top:6px;line-height:1.7"><strong>Sorts niv.1–2</strong> : 10–50 po + composantes coûteuses &nbsp;·&nbsp; Sorts niv. supérieur : temple ou université, tarif ou service rendu en échange</div>`)}
+      <div style="font-size:12px;color:var(--text3);margin-top:6px;line-height:1.7"><strong>Sorts niv.1–2</strong> : 10–50 po + composantes coûteuses &nbsp;·&nbsp; Sorts niv. supérieur : temple ou université, tarif ou service rendu en échange</div>`)}
     </div>`)}
     ${ds('s-depart',`${gh('s-depart','🪙 Or de départ &amp; Revente')}
     ${rb('s-depart',`<div class="g2" style="gap:10px">
@@ -562,7 +562,7 @@ function mjTabRegles(){
       </div>
       <div class="regles-section">
         <div class="pt">💱 Vente d'équipement</div>
-        <div style="font-size:12px;color:var(--text2);line-height:1.8">
+        <div style="font-size:13px;color:var(--text2);line-height:1.8">
           Un objet se revend à <strong>la moitié de son prix de liste</strong>.<br>
           Les objets magiques et les pierres précieuses trouvent des acheteurs plus difficilement — à la discrétion du MJ.
         </div>
@@ -597,7 +597,7 @@ function mjTabRegles(){
           <tr><td><strong>DD de sort</strong></td><td>8 + bonus de maîtrise + mod. caractéristique d'incantation</td></tr>
           <tr><td><strong>Bonus d'attaque de sort</strong></td><td>Bonus de maîtrise + mod. caractéristique d'incantation</td></tr>
         </table>
-        <div style="font-size:11px;color:var(--text3);margin-top:6px">Caractéristique d'incantation : INT (Magicien), SAG (Clerc/Druide/Rôdeur), CHA (Barde/Paladin/Ensorceleur/Occultiste)</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:6px">Caractéristique d'incantation : INT (Magicien), SAG (Clerc/Druide/Rôdeur), CHA (Barde/Paladin/Ensorceleur/Occultiste)</div>
       </div>
       <div class="regles-section">
         <div class="pt">🔄 Concentration</div>
@@ -634,7 +634,7 @@ function mjTabRegles(){
           <tr><td><strong>Ligne</strong></td><td>S'étend depuis l'origine. Largeur précisée. Toi non inclus.</td></tr>
           <tr><td><strong>Sphère</strong></td><td>Point d'origine = centre. Rayon vers l'extérieur. Toi inclus.</td></tr>
         </table>
-        <div style="font-size:11px;color:var(--text3);margin-top:4px">Obstrué par un abri total. Ligne droite du point d'origine vers chaque case — si bloquée, case exclue de la zone.</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:4px">Obstrué par un abri total. Ligne droite du point d'origine vers chaque case — si bloquée, case exclue de la zone.</div>
       </div>
       <div class="regles-section">
         <div class="pt">⚡ Règles spéciales</div>
@@ -647,9 +647,9 @@ function mjTabRegles(){
     </div>`)}`)}
     ${ds('s-magie-sauvage',`<div class="regles-section">
       ${dh('s-magie-sauvage','🎲 Magie Sauvage — Table de Sursaut (d100)')}
-      ${rb('s-magie-sauvage',`<div style="font-size:11px;color:var(--text3);margin-bottom:8px">Déclenché par <strong>Marée du chaos</strong> ou à la discrétion du MJ après qu'un ensorceleur lance un sort. Lancez 1d100.</div>
+      ${rb('s-magie-sauvage',`<div style="font-size:12px;color:var(--text3);margin-bottom:8px">Déclenché par <strong>Marée du chaos</strong> ou à la discrétion du MJ après qu'un ensorceleur lance un sort. Lancez 1d100.</div>
       <div style="max-height:320px;overflow-y:auto">
-      <table class="regles-table" style="font-size:11px">
+      <table class="regles-table" style="font-size:12px">
         <tr><th style="width:52px">d100</th><th>Effet</th></tr>
         <tr><td>01–02</td><td>Lancez sur ce tableau au début de chacun de vos tours pendant 1 minute (ignorez ce résultat lors des lancers suivants).</td></tr>
         <tr><td>03–04</td><td>Pendant 1 minute, vous voyez toute créature invisible dans votre ligne de vue.</td></tr>
@@ -708,20 +708,20 @@ function mjTabRegles(){
     ${ds('s-rencontres',`<div class="regles-section">
       ${dh('s-rencontres','⚔ Construction de rencontre')}
       ${rb('s-rencontres',`
-        <div style="font-size:11px;color:var(--text3);margin-bottom:8px"><strong>Étapes :</strong> 1) Seuils XP du groupe par difficulté · 2) Additionner XP des monstres · 3) Appliquer le multiplicateur · 4) Comparer aux seuils.</div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:8px"><strong>Étapes :</strong> 1) Seuils XP du groupe par difficulté · 2) Additionner XP des monstres · 3) Appliquer le multiplicateur · 4) Comparer aux seuils.</div>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
           <div style="flex:1;min-width:200px">
-            <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:4px">Seuils XP par PJ et par niveau</div>
+            <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">Seuils XP par PJ et par niveau</div>
             <div style="max-height:210px;overflow-y:auto">
-            <table class="regles-table" style="font-size:10px">
+            <table class="regles-table" style="font-size:11px">
               <tr><th>Niv.</th><th style="color:#4caf50">Facile</th><th style="color:#ff9800">Moy.</th><th style="color:#f44336">Diff.</th><th style="color:#b71c1c">Mort.</th></tr>
               ${[...Array(20)].map((_,i)=>`<tr><td>${i+1}</td><td>${ENC_THRESHOLDS[i][0]}</td><td>${ENC_THRESHOLDS[i][1]}</td><td>${ENC_THRESHOLDS[i][2]}</td><td>${ENC_THRESHOLDS[i][3]}</td></tr>`).join('')}
             </table>
             </div>
           </div>
           <div style="flex:0 0 auto">
-            <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:4px">Multiplicateur</div>
-            <table class="regles-table" style="font-size:11px">
+            <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">Multiplicateur</div>
+            <table class="regles-table" style="font-size:12px">
               <tr><th>Monstres</th><th>×</th></tr>
               <tr><td>1</td><td>×1</td></tr>
               <tr><td>2</td><td>×1,5</td></tr>
@@ -730,7 +730,7 @@ function mjTabRegles(){
               <tr><td>11–14</td><td>×3</td></tr>
               <tr><td>15+</td><td>×4</td></tr>
             </table>
-            <div style="font-size:10px;color:var(--text3);margin-top:6px;line-height:1.5"><strong>Budget journalier</strong> :<br>6–8 rencontres Moyennes<br>avant épuisement.</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:6px;line-height:1.5"><strong>Budget journalier</strong> :<br>6–8 rencontres Moyennes<br>avant épuisement.</div>
           </div>
         </div>
       `)}
@@ -740,7 +740,7 @@ function mjTabRegles(){
       <div class="g2" style="gap:10px">
         <div class="regles-section">
           <div class="pt">🤒 Maladies</div>
-          <div style="font-size:11px;color:var(--text2);line-height:1.6">
+          <div style="font-size:12px;color:var(--text2);line-height:1.6">
             <strong>Fièvre rieuse</strong> (humanoïdes, gnomes immunisés) — Infection : contact à 3 m d'une victime en crise (JS CON DD 10). Symptômes 1d4h après. Gagne 1 niveau d'épuisement. Stress → JS CON DD 13 : échec = 5 (1d10) dégâts psychiques + incapable 1 min. Repos long : JS CON DD 13, succès = DD − 1d6. DD 0 = guérison. 3 échecs → folie illimitée.<br><br>
             <strong>Peste des égouts</strong> — Morsure de rat ou contact cadavre (JS CON DD 11). Symptômes 1d4 jours. Épuisement, dés de vie donnent ½ PV, 0 PV au repos long. Repos long : JS CON DD 11, échec = +1 épuisement, succès = −1. Niveau 0 = guérison.<br><br>
             <strong>Pourriture oculaire</strong> — Eau contaminée (JS CON DD 15). 1 jour après : −1 aux attaques et jets de vue. Fin de chaque repos long : malus +1. À −5 : aveugle. Guérison : sort ou onguent d'œil vif (3 doses).
@@ -749,7 +749,7 @@ function mjTabRegles(){
         <div>
           <div class="regles-section" style="margin-bottom:10px">
             <div class="pt">☠ Poisons</div>
-            <table class="regles-table" style="font-size:10px">
+            <table class="regles-table" style="font-size:11px">
               <tr><th>Type</th><th>Activation</th></tr>
               <tr><td><strong>Blessure</strong></td><td>Armes, munitions, pièges tranchants/perforants</td></tr>
               <tr><td><strong>Contact</strong></td><td>Peau touchant l'objet enduit</td></tr>
@@ -757,7 +757,7 @@ function mjTabRegles(){
               <tr><td><strong>Inhalation</strong></td><td>Cube 1,5 m (poudre ou gaz, muqueuses)</td></tr>
             </table>
             <div style="max-height:170px;overflow-y:auto;margin-top:6px">
-            <table class="regles-table" style="font-size:10px">
+            <table class="regles-table" style="font-size:11px">
               <tr><th>Poison</th><th>Type</th><th>Prix/dose</th></tr>
               <tr><td>Essence éthérée</td><td>Inhalation</td><td>300 po</td></tr>
               <tr><td>Fumées d'othur</td><td>Inhalation</td><td>500 po</td></tr>
@@ -778,8 +778,8 @@ function mjTabRegles(){
           </div>
           <div class="regles-section">
             <div class="pt">🧠 Folie</div>
-            <div style="font-size:11px;color:var(--text2);line-height:1.5;margin-bottom:6px">JS SAG ou CHA pour résister. Guérison : <em>apaisement des émotions</em> (supprime), <em>restauration partielle</em> (courte/longue), <em>restauration supérieure</em> (illimitée).</div>
-            <table class="regles-table" style="font-size:10px">
+            <div style="font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:6px">JS SAG ou CHA pour résister. Guérison : <em>apaisement des émotions</em> (supprime), <em>restauration partielle</em> (courte/longue), <em>restauration supérieure</em> (illimitée).</div>
+            <table class="regles-table" style="font-size:11px">
               <tr><th>Type</th><th>Durée</th><th>Exemples d'effet</th></tr>
               <tr><td><strong>Passagère</strong></td><td>1d10 min</td><td>Paralysé · Incapable + cri · Effrayé · Bégaiement · Attaque la créature la plus proche · Hallucinations (désav. jets) · Inconscient</td></tr>
               <tr><td><strong>Persistante</strong></td><td>1d10×10 h</td><td>Comportement compulsif · Paranoïa (désav. SAG/CHA) · Révulsion · Amnésie partielle · Tremblement (désav. FOR/DEX) · Aveugle ou sourd</td></tr>
@@ -794,15 +794,15 @@ function mjTabRegles(){
       <div class="g2" style="gap:10px">
         <div class="regles-section">
           <div class="pt">Rareté, niveau &amp; prix</div>
-          <table class="regles-table" style="font-size:11px">
+          <table class="regles-table" style="font-size:12px">
             <tr><th>Rareté</th><th>Niveau rec.</th><th>Prix indicatif</th></tr>
             ${Object.entries(RARITY_INFO).map(([name,ri])=>`<tr><td><span style="color:${ri.color}">■</span> ${name}</td><td>${ri.level}</td><td>${ri.price}</td></tr>`).join('')}
           </table>
-          <div style="font-size:10px;color:var(--text3);margin-top:6px;line-height:1.5">Prix de revente = ½ du prix de liste. Objets consommables (potions, parchemins) = ½ prix.</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:6px;line-height:1.5">Prix de revente = ½ du prix de liste. Objets consommables (potions, parchemins) = ½ prix.</div>
         </div>
         <div class="regles-section">
           <div class="pt">🔗 Attunement (Lien)</div>
-          <div style="font-size:12px;color:var(--text2);line-height:1.7">
+          <div style="font-size:13px;color:var(--text2);line-height:1.7">
             • Maximum <strong>3 objets liés</strong> simultanément.<br>
             • Établir un lien : <strong>repos court</strong> passé en contact avec l'objet.<br>
             • Rompre un lien : <strong>repos court</strong>, ou mort du personnage.<br>
@@ -817,13 +817,13 @@ function mjTabRegles(){
     ${ds('s-pieges',`<div class="regles-section">
       ${dh('s-pieges','🪤 Pièges')}
       ${rb('s-pieges',`
-        <div style="font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.6">
+        <div style="font-size:12px;color:var(--text2);margin-bottom:8px;line-height:1.6">
           <strong>Détecter :</strong> SAG (Perception) passive ou active vs DD du piège. <strong>Désamorcer :</strong> INT (Investigation) puis DEX (outils de voleur). Pièges magiques : INT (Arcanes) ou <em>dissipation de la magie</em>.
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
           <div style="flex:1;min-width:180px">
-            <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:4px">DD et bonus d'attaque</div>
-            <table class="regles-table" style="font-size:11px">
+            <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">DD et bonus d'attaque</div>
+            <table class="regles-table" style="font-size:12px">
               <tr><th>Danger</th><th>DD JS</th><th>Bonus att.</th></tr>
               <tr><td>Gênant</td><td>10–11</td><td>+3 à +5</td></tr>
               <tr><td>Dangereux</td><td>12–15</td><td>+6 à +8</td></tr>
@@ -831,8 +831,8 @@ function mjTabRegles(){
             </table>
           </div>
           <div style="flex:1;min-width:200px">
-            <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:4px">Dégâts par niveau</div>
-            <table class="regles-table" style="font-size:11px">
+            <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">Dégâts par niveau</div>
+            <table class="regles-table" style="font-size:12px">
               <tr><th>Niveaux PJ</th><th>Gênant</th><th>Dangereux</th><th>Mortel</th></tr>
               <tr><td>1–4</td><td>1d10</td><td>2d10</td><td>4d10</td></tr>
               <tr><td>5–10</td><td>2d10</td><td>4d10</td><td>10d10</td></tr>
@@ -841,7 +841,7 @@ function mjTabRegles(){
             </table>
           </div>
         </div>
-        <div style="font-size:11px;color:var(--text2);margin-top:8px;line-height:1.6">
+        <div style="font-size:12px;color:var(--text2);margin-top:8px;line-height:1.6">
           <strong>Pièges complexes</strong> — Font un jet d'initiative et agissent à chaque tour (comme un combat). Détection et désarmement identiques aux pièges simples.<br>
           <strong>Exemples :</strong> Aiguille empoisonnée · Chute de filet · Effondrement de plafond · Fléchettes empoisonnées · Fosse (simple/camouflée/à fermeture/hérissée) · Statue soufflant des flammes · Sphère roulante.
         </div>
@@ -849,12 +849,12 @@ function mjTabRegles(){
     </div>`)}
     ${ds('s-comparses',`${gh('s-comparses','🤝 Comparses (Sidekicks)')}
     ${rb('s-comparses',`
-      <div style="font-size:11px;color:var(--text3);margin-bottom:8px">PNJ spéciaux qui rejoignent le groupe. Le MJ choisit le type ou laisse les joueurs décider. 3 types disponibles :</div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:8px">PNJ spéciaux qui rejoignent le groupe. Le MJ choisit le type ou laisse les joueurs décider. 3 types disponibles :</div>
       <div class="g2" style="gap:10px">
         <div class="regles-section">
           <div class="pt">⚔ Compagnon d'armes</div>
-          <div style="font-size:10px;color:var(--text3);margin-bottom:4px">Maîtrise : toutes armures, armes courantes &amp; de guerre, boucliers</div>
-          <table class="regles-table" style="font-size:10px">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:4px">Maîtrise : toutes armures, armes courantes &amp; de guerre, boucliers</div>
+          <table class="regles-table" style="font-size:11px">
             <tr><th>Niv.</th><th>PV max</th><th>Capacité</th></tr>
             <tr><td>1</td><td>13 (2d8+4)</td><td>Rôle martial</td></tr>
             <tr><td>2</td><td>19 (3d8+6)</td><td>Second souffle (1d10 + niv, 1×/repos court)</td></tr>
@@ -866,8 +866,8 @@ function mjTabRegles(){
         </div>
         <div class="regles-section">
           <div class="pt">🎭 Expert</div>
-          <div style="font-size:10px;color:var(--text3);margin-bottom:4px">Maîtrise : armes courantes, rapières, épées courtes, armures légères</div>
-          <table class="regles-table" style="font-size:10px">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:4px">Maîtrise : armes courantes, rapières, épées courtes, armures légères</div>
+          <table class="regles-table" style="font-size:11px">
             <tr><th>Niv.</th><th>PV max</th><th>Capacité</th></tr>
             <tr><td>1</td><td>11 (2d8+2)</td><td>Serviable, Outils</td></tr>
             <tr><td>2</td><td>16 (3d8+3)</td><td>Ruse (Foncer/Désengager/Se cacher en bonus)</td></tr>
@@ -879,8 +879,8 @@ function mjTabRegles(){
         </div>
         <div class="regles-section">
           <div class="pt">✨ Incantateur</div>
-          <div style="font-size:10px;color:var(--text3);margin-bottom:4px">Maîtrise : armes courantes, armures légères. 2 rôles : Guérisseur ou Mage</div>
-          <table class="regles-table" style="font-size:10px">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:4px">Maîtrise : armes courantes, armures légères. 2 rôles : Guérisseur ou Mage</div>
+          <table class="regles-table" style="font-size:11px">
             <tr><th>Niv.</th><th>PV</th><th>Min.</th><th>Sorts</th><th>Emp1</th><th>Emp2</th><th>Capacité</th></tr>
             <tr><td>1</td><td>9 (2d8)</td><td>2</td><td>2</td><td>2</td><td>—</td><td>Rôle magique, Incantation</td></tr>
             <tr><td>2</td><td>13 (3d8)</td><td>2</td><td>2</td><td>2</td><td>—</td><td>+1 sort niv1 (bénédiction ou mains brûlantes)</td></tr>
@@ -894,7 +894,7 @@ function mjTabRegles(){
     `)}`)}
     ${ds('s-compendium',`<div class="regles-section">
       ${dh('s-compendium','📚 Compendium D&D 5e')}
-      ${rb('s-compendium',`<div style="font-size:11px;color:var(--text3);margin-bottom:10px">Référence rapide — descriptions en français</div>
+      ${rb('s-compendium',`<div style="font-size:12px;color:var(--text3);margin-bottom:10px">Référence rapide — descriptions en français</div>
       <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">
         <button class="btn bsm${_mjReglesComp==='classes'?' bprimary':''}" onclick="mjSetReglesComp('classes')">⚔ Classes${CLASSES_DB?' ('+CLASSES_DB.length+')':''}</button>
         <button class="btn bsm${_mjReglesComp==='dons'?' bprimary':''}" onclick="mjSetReglesComp('dons')">🎯 Dons${FEATS_DB?' ('+FEATS_DB.length+')':''}</button>
@@ -902,7 +902,7 @@ function mjTabRegles(){
         <button class="btn bsm${_mjReglesComp==='historiques'?' bprimary':''}" onclick="mjSetReglesComp('historiques')">📖 Historiques${BACKGROUNDS_DB?' ('+BACKGROUNDS_DB.length+')':''}</button>
         ${_mjReglesComp?'<button class="btn bsm" style="color:#e53935;border-color:#e53935" onclick="mjSetReglesComp(\'\')">✕ Fermer</button>':''}
       </div>
-      ${_mjReglesComp?'<input class="fi" id="compSearch" placeholder="Rechercher..." oninput="mjFilterComp(this.value)" style="margin-bottom:8px" autofocus><div id="compResults" style="max-height:300px;overflow-y:auto"></div>':'<div style="font-size:12px;color:var(--text3);font-style:italic">Cliquez sur une catégorie pour rechercher.</div>'}`)}
+      ${_mjReglesComp?'<input class="fi" id="compSearch" placeholder="Rechercher..." oninput="mjFilterComp(this.value)" style="margin-bottom:8px" autofocus><div id="compResults" style="max-height:300px;overflow-y:auto"></div>':'<div style="font-size:13px;color:var(--text3);font-style:italic">Cliquez sur une catégorie pour rechercher.</div>'}`)}
     </div>`)}
   </div>`;
 }
@@ -915,9 +915,9 @@ function mjSetReglesComp(cat){
 function mjFilterComp(q){
   const el=document.getElementById('compResults');if(!el)return;
   const db=_mjReglesComp==='dons'?FEATS_DB:_mjReglesComp==='races'?RACES_DB:_mjReglesComp==='historiques'?BACKGROUNDS_DB:_mjReglesComp==='classes'?CLASSES_DB:null;
-  if(!db){el.innerHTML='<div style="font-size:12px;color:var(--text3);text-align:center;padding:8px">Compendium non chargé — revenez dans un instant.</div>';return;}
+  if(!db){el.innerHTML='<div style="font-size:13px;color:var(--text3);text-align:center;padding:8px">Compendium non chargé — revenez dans un instant.</div>';return;}
   if(!q.trim()){
-    el.innerHTML='<div style="font-size:12px;color:var(--text3);text-align:center;padding:8px">Tapez pour rechercher parmi '+db.length+' entrées.</div>';
+    el.innerHTML='<div style="font-size:13px;color:var(--text3);text-align:center;padding:8px">Tapez pour rechercher parmi '+db.length+' entrées.</div>';
     return;
   }
   const low=q.toLowerCase();
@@ -925,7 +925,7 @@ function mjFilterComp(q){
   for(let i=0;i<db.length&&res.length<20;i++){
     if(db[i].n&&db[i].n.toLowerCase().includes(low))res.push(db[i]);
   }
-  if(!res.length){el.innerHTML='<div style="font-size:12px;color:var(--text3);text-align:center;padding:8px">Aucun résultat.</div>';return;}
+  if(!res.length){el.innerHTML='<div style="font-size:13px;color:var(--text3);text-align:center;padding:8px">Aucun résultat.</div>';return;}
   el.innerHTML=res.map(e=>{
     let meta='';
     if(e.ab)meta+=` · <span style="color:var(--cp)">${esc(e.ab)}</span>`;
@@ -936,8 +936,8 @@ function mjFilterComp(q){
     if(e.wp)meta+=` · Armes : ${esc(e.wp)}`;
     return`<div style="border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:6px;background:var(--surface2)">
       <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px">${esc(e.n)}</div>
-      ${meta?`<div style="font-size:11px;color:var(--text3);margin-bottom:4px">${meta}</div>`:''}
-      <div style="font-size:11px;color:var(--text2);line-height:1.5">${esc(e.tx||'')}</div>
+      ${meta?`<div style="font-size:12px;color:var(--text3);margin-bottom:4px">${meta}</div>`:''}
+      <div style="font-size:12px;color:var(--text2);line-height:1.5">${esc(e.tx||'')}</div>
     </div>`;
   }).join('');
 }
