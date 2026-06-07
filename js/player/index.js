@@ -434,12 +434,13 @@ async function _openPlayerWhisperModal(){
       if(data.userId===currentUser?.uid)return;
       if(data.leftCampaign||data.ejectedFromCampaign)return;
       const cd=data.characterData||{};
-      recips.push({uid:data.userId,name:data.playerName||'Joueur',sub:cd.charName||'',isMJ:false});
+      recips.push({uid:data.userId,name:cd.charName||data.playerName||'Joueur',sub:data.playerName||'',isMJ:false});
     });
     window._whisperRecipients=recips;
     const el=document.getElementById('whisperRecipList');
     if(!el)return;
-    el.innerHTML=recips.length?recips.map((r,i)=>`<button class="btn bsm" id="wrecip_${i}" style="padding:5px 10px" onclick="_selectWhisperRecip(${i})">${esc(r.name)}${r.isMJ?' 🎲':''}</button>`).join(''):'<div style="font-size:13px;color:var(--text3)">Aucun participant.</div>';
+    el.innerHTML=recips.length?recips.map((r,i)=>`<button class="btn bsm" id="wrecip_${i}" style="padding:5px 10px" onclick="_selectWhisperRecip(${i})" title="${esc(r.sub||'')}">${r.isMJ?'🎲 ':''}${esc(r.name)}</button>`).join(''):'<div style="font-size:13px;color:var(--text3)">Aucun participant.</div>';
+    if(recips.length)_selectWhisperRecip(0); // auto-sélection du 1er destinataire → conversation affichée d'emblée
   }catch(e){const el=document.getElementById('whisperRecipList');if(el)el.innerHTML='<div style="font-size:13px;color:#e53935">Erreur de chargement.</div>';}
 }
 function _selectWhisperRecip(i){
