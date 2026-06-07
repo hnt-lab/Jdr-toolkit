@@ -475,30 +475,37 @@ function applyCombatOrder(){applyAllSectionOrders();} // compat (appelé depuis 
 // Rend déplaçables TOUS les .panel de l'onglet courant (sauf Combat, déjà géré par cs()). Idempotent.
 function _enableTabDrag(){
   const root=document.getElementById('tabContent');if(!root)return;
-  root.querySelectorAll('.panel').forEach(pan=>{
-    const parent=pan.parentElement;
-    if(!parent)return;
-    if(parent.classList.contains('mj-rules-section'))return; // déjà enveloppé (Combat via cs(), ou run précédent)
-    if(!parent.dataset.csgroup){const gi=[...(parent.parentElement?parent.parentElement.children:[])].indexOf(parent);parent.dataset.csgroup=(state.activeTab||'tab')+'-col'+(gi<0?0:gi);}
-    const t=(((pan.querySelector('.pt')||{}).textContent)||'').replace(/[^0-9A-Za-zÀ-ÿ]/g,'').slice(0,28);
-    const sibs=[...parent.children].filter(c=>c.classList&&c.classList.contains('panel'));
-    const csid=parent.dataset.csgroup+'_'+(t||('p'+sibs.indexOf(pan)));
-    // Enveloppe propre = élément déplaçable (exactement comme cs() pour le Combat)
-    const w=document.createElement('div');
-    w.className='mj-rules-section';
-    w.setAttribute('data-csid',csid);
-    w.setAttribute('draggable','true');
-    w.setAttribute('ondragstart',"combatDragStart(event,'"+csid+"',this)");
-    w.setAttribute('ondragend','combatDragEnd(this)');
-    w.setAttribute('ondragover','combatDragOver(event,this)');
-    w.setAttribute('ondrop',"combatDrop(event,'"+csid+"')");
-    parent.insertBefore(w,pan);
-    w.appendChild(pan);
-    // Poignée visuelle dans le titre (si absente)
-    const pt=pan.querySelector('.pt');
-    if(pt&&!pt.querySelector('.mj-drag-handle')){const h=document.createElement('span');h.className='mj-drag-handle';h.title='Déplacer';h.textContent='⠿';h.style.marginRight='6px';pt.insertBefore(h,pt.firstChild);}
-  });
+  let _wrapped=0,_seen=0,_err='';
+  try{
+    root.querySelectorAll('.panel').forEach(pan=>{
+      _seen++;
+      const parent=pan.parentElement;
+      if(!parent)return;
+      if(parent.classList.contains('mj-rules-section'))return; // déjà enveloppé (Combat via cs(), ou run précédent)
+      if(!parent.dataset.csgroup){const gi=[...(parent.parentElement?parent.parentElement.children:[])].indexOf(parent);parent.dataset.csgroup=(state.activeTab||'tab')+'-col'+(gi<0?0:gi);}
+      const t=(((pan.querySelector('.pt')||{}).textContent)||'').replace(/[^0-9A-Za-zÀ-ÿ]/g,'').slice(0,28);
+      const sibs=[...parent.children].filter(c=>c.classList&&c.classList.contains('panel'));
+      const csid=parent.dataset.csgroup+'_'+(t||('p'+sibs.indexOf(pan)));
+      // Enveloppe propre = élément déplaçable (exactement comme cs() pour le Combat)
+      const w=document.createElement('div');
+      w.className='mj-rules-section';
+      w.setAttribute('data-csid',csid);
+      w.setAttribute('draggable','true');
+      w.setAttribute('ondragstart',"combatDragStart(event,'"+csid+"',this)");
+      w.setAttribute('ondragend','combatDragEnd(this)');
+      w.setAttribute('ondragover','combatDragOver(event,this)');
+      w.setAttribute('ondrop',"combatDrop(event,'"+csid+"')");
+      parent.insertBefore(w,pan);
+      w.appendChild(pan);
+      // Poignée visuelle dans le titre (si absente)
+      const pt=pan.querySelector('.pt');
+      if(pt&&!pt.querySelector('.mj-drag-handle')){const h=document.createElement('span');h.className='mj-drag-handle';h.title='Déplacer';h.textContent='⠿';h.style.marginRight='6px';pt.insertBefore(h,pt.firstChild);}
+      _wrapped++;
+    });
+  }catch(e){_err=e&&e.message?e.message:String(e);}
+  if(window._DRAG_DIAG&&typeof showToast==='function')showToast('🔧 drag — vus:'+_seen+' enveloppés:'+_wrapped+(_err?(' ERR: '+_err):''),9000);
 }
+window._DRAG_DIAG=true; // diagnostic temporaire
 function cs(id,html){return`<div class="mj-rules-section" data-csid="${id}" draggable="true" ondragstart="combatDragStart(event,'${id}',this)" ondragend="combatDragEnd(this)" ondragover="combatDragOver(event,this)" ondrop="combatDrop(event,'${id}')">${html}</div>`;}
 let _spellLevelsOpen={};
 let _equipProfOpen={all:false};
