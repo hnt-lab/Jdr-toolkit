@@ -283,6 +283,7 @@ function tabCombat(p){
   ${renderRodeur(p)}
   ${renderFamilier(p)}
   ${renderCompagnonAnimal(p)}
+  ${typeof renderConcPanel==='function'?renderConcPanel(p):''}
   ${(!wsC?.active||druLvl>=18)&&hasCaster?cs('cs-sorts',`<div class="panel"><div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>Sorts</div>
       <div class="g3 mb10">
         <div class="sb hi"><div class="sn">Bonus sort</div><div style="font-size:18px;font-weight:600;color:var(--cp)">${fmt(pb(lvl)+spellMod)}</div></div>

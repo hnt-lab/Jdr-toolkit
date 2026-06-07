@@ -3,6 +3,27 @@
 let _sortSubTab = 'mes-sorts'; // 'mes-sorts' | 'compendium' | 'apprendre'
 let _learnSpellSearch = {q:'',school:''};
 
+// Panneau Concentration (partagé) — affiché dans l'onglet Combat quand un sort de concentration est actif.
+function renderConcPanel(p){
+  if(!(p.statuses||[]).some(s=>s.name==='Concentration')) return '';
+  const _mc=mainClass(p);const _hasCON=(CLASS_SAVES[_mc?_mc.name:'']||[]).includes(2);
+  const conSaveBonus=mod(p.abilities?p.abilities[2]:10)+(_hasCON?pb(totalLevel(p)):0);
+  const conSaveLabel=`JS CON ${fmt(conSaveBonus)}${_hasCON?' (maîtrise incluse)':''}`;
+  const concSpell=p.concentrationSpell||'';
+  return `<div class="conc-panel-pulse" style="background:var(--surface2);border:2px solid #ffd54f;border-radius:10px;padding:12px;margin-bottom:10px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+      <span style="font-size:18px">🎯</span>
+      <div style="flex:1"><div style="font-size:13px;font-weight:700;color:#ffd54f">Concentration</div>${concSpell?`<div style="font-size:12px;color:var(--text2);margin-top:1px">${esc(concSpell)}</div>`:''}</div>
+      <button class="btn bsm" style="font-size:11px" onclick="toggleConcentration()">✕ Briser</button>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:10px;line-height:1.5">Si tu subis des dégâts, lance un <strong style="color:var(--text2)">JS CON</strong> (DD = max 10 ou moitié des dégâts reçus). Échec = concentration brisée.</div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <input type="number" id="concDmgInput" placeholder="Dégâts reçus" min="0" style="flex:1;padding:7px 10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px">
+      <button class="btn bac" style="white-space:nowrap;font-size:13px" onclick="rollConcSave(parseInt(document.getElementById('concDmgInput')?.value)||0)">🎲 ${conSaveLabel}</button>
+    </div>
+  </div>`;
+}
+
 function tabSorts(p){
   const hasCaster = (p.classes||[{name:p.classe,level:p.niveau||1}]).some(c=>{
     const d=SRD.classes.find(x=>x.name===c.name); return d&&d.spellcaster;
@@ -22,24 +43,7 @@ function tabSorts(p){
     ${magLvl?`<button class="btn${_sortSubTab==='apprendre'?' bprimary':''}" onclick="_sortSubTab='apprendre';render()" style="flex:1">📜 Apprendre</button>`:''}
   </div>`:'';
 
-  const isConcentrating=(p.statuses||[]).some(s=>s.name==='Concentration');
-  const _concMC=mainClass(p);const _concHasCON=(CLASS_SAVES[_concMC?_concMC.name:'']||[]).includes(2);
-  const _lvlC=totalLevel(p);
-  const conSaveBonus=mod(p.abilities?p.abilities[2]:10)+(_concHasCON?pb(_lvlC):0);
-  const conSaveLabel=`JS CON ${fmt(conSaveBonus)}${_concHasCON?' (maîtrise incluse)':''}`;
-  const concSpell=p.concentrationSpell||'';
-  const concBtn=isConcentrating?`<div style="background:var(--surface2);border:2px solid #ffd54f;border-radius:10px;padding:12px;margin-bottom:10px">
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-      <span style="font-size:18px">🎯</span>
-      <div style="flex:1"><div style="font-size:13px;font-weight:700;color:#ffd54f">Concentration</div>${concSpell?`<div style="font-size:12px;color:var(--text2);margin-top:1px">${esc(concSpell)}</div>`:''}</div>
-      <button class="btn bsm" style="font-size:11px" onclick="toggleConcentration()">✕ Briser</button>
-    </div>
-    <div style="font-size:11px;color:var(--text3);margin-bottom:10px;line-height:1.5">Si tu subis des dégâts, lance un <strong style="color:var(--text2)">JS CON</strong> (DD = max 10 ou moitié des dégâts reçus). Échec = concentration brisée automatiquement.</div>
-    <div style="display:flex;gap:6px;align-items:center">
-      <input type="number" id="concDmgInput" placeholder="Dégâts reçus" min="0" style="flex:1;padding:7px 10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px">
-      <button class="btn bac" style="white-space:nowrap;font-size:13px" onclick="rollConcSave(parseInt(document.getElementById('concDmgInput')?.value)||0)">🎲 ${conSaveLabel}</button>
-    </div>
-  </div>`:`<div style="display:flex;gap:6px;margin-bottom:10px"><input id="concSpellInput" placeholder="Sort de concentration (optionnel)…" style="flex:1;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px"><button class="btn" style="white-space:nowrap;font-size:13px" onclick="activateConcentration()">🎯 Concentrer</button></div>`;
+  // Panneau Concentration déplacé vers l'onglet Combat (renderConcPanel).
 
   if(_sortSubTab === 'compendium' && (userIsMJ||prepCaster)){
     return`<div>${subBar}${prepCaster&&!userIsMJ?`<div style="font-size:11px;color:var(--text3);padding:4px 0 8px">Cliquez sur un sort pour l'ajouter à votre liste. Vous pouvez ensuite le préparer depuis "Mes sorts".</div>`:''}${renderCompendiumSearch(p)}</div>`;
@@ -123,7 +127,6 @@ function tabSorts(p){
   })();
   return`<div>
     ${subBar}
-    ${concBtn}
     <div class="panel">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
         <div class="pt" style="margin-bottom:0">Mes sorts (${knownCount})</div>

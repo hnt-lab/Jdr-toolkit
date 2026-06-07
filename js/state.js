@@ -512,7 +512,7 @@ function renderTabBar(){
     {id:'perso',label:'🧑 Perso'},
     {id:'competences',label:'🎯 Compétences'},
     {id:'combat',label:'⚔️ Combat'},
-    {id:'sorts',label:'✨ Sorts',cls:((p.concentrationSpell||(p.statuses||[]).some(s=>s.name==='Concentration'))?'conc-pulse':'')},
+    {id:'sorts',label:'✨ Sorts'},
     {id:'equipement',label:'🛡️ Équip.'},
     {id:'sac',label:'🎒 Sac'},
     {id:'historique',label:'📖 Historique'},
