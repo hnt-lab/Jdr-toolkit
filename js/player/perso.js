@@ -97,7 +97,7 @@ function tabPerso(p){
   <div data-csgroup="perso-gauche">
     <!-- (Portrait + Statistiques déplacés dans le rail perso — renderCharRail) -->
 
-    ${ws?.active?`<div class="panel mb10" data-csid="perso-ws" draggable="true" ondragstart="combatDragStart(event,'perso-ws',this)" ondragend="combatDragEnd(this)" ondragover="combatDragOver(event,this)" ondrop="combatDrop(event,'perso-ws')" style="border-color:rgba(76,175,80,.4);background:rgba(76,175,80,.04)">
+    ${ws?.active?`<div class="panel mb10" style="border-color:rgba(76,175,80,.4);background:rgba(76,175,80,.04)">
       <div class="pt" style="color:#4caf50;display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>${ws.beast.icon} ${esc(ws.beast.name)} — Attaques & Traits</div>
       ${ws.beast.attacks.map(a=>`<div style="background:rgba(76,175,80,.08);border:1px solid rgba(76,175,80,.2);border-radius:6px;padding:8px 10px;margin-bottom:6px">
         <div style="display:flex;justify-content:space-between;align-items:center">
@@ -111,7 +111,7 @@ function tabPerso(p){
     </div>`:''}
 
     <!-- Résistances & Immunités (rétractable) -->
-    <div class="panel" data-csid="perso-statuts" draggable="true" ondragstart="combatDragStart(event,'perso-statuts',this)" ondragend="combatDragEnd(this)" ondragover="combatDragOver(event,this)" ondrop="combatDrop(event,'perso-statuts')">
+    <div class="panel">
       <div class="pt" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
         <span style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>🎯 Statuts & Résistances</span>
         <div style="display:flex;gap:6px">
@@ -146,7 +146,7 @@ function tabPerso(p){
   <!-- COLONNE DROITE -->
   <div data-csgroup="perso-droite">
     <!-- Identité -->
-    <div class="panel mb10" data-csid="perso-identite" draggable="true" ondragstart="combatDragStart(event,'perso-identite',this)" ondragend="combatDragEnd(this)" ondragover="combatDragOver(event,this)" ondrop="combatDrop(event,'perso-identite')">
+    <div class="panel mb10">
       <div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>Identité</div>
       <div class="fl mb6">Nom</div>
       <input class="fi mb6" value="${esc(p.charName)}" onchange="upd('charName',this.value);render()">
@@ -189,7 +189,7 @@ function tabPerso(p){
       const _chantG=(typeof _groupData!=='undefined'?_groupData:[]).find(gp=>gp.uid!==(typeof currentUser!=='undefined'?currentUser?.uid:null)&&gp.charData?.combatCharges?.ChantReposantResult!==undefined);
       const _chantB=_chantG?.charData.combatCharges.ChantReposantResult;
       const _chantSrc=_chantG?.charData.charName||'Barde';
-      return`<div class="panel mb10" data-csid="perso-repos" draggable="true" ondragstart="combatDragStart(event,'perso-repos',this)" ondragend="combatDragEnd(this)" ondragover="combatDragOver(event,this)" ondrop="combatDrop(event,'perso-repos')">
+      return`<div class="panel mb10">
         <div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>Repos</div>
         <div style="display:flex;gap:8px;${_chantB?'padding:6px;border:2px solid var(--cp);border-radius:10px;background:rgba(200,168,75,.04)':''}">
           <div class="rest-btn short" onclick="doShortRest()">

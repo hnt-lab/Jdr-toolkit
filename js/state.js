@@ -477,21 +477,26 @@ function _enableTabDrag(){
   const root=document.getElementById('tabContent');if(!root)return;
   root.querySelectorAll('.panel').forEach(pan=>{
     const parent=pan.parentElement;
-    if(!parent||parent.classList.contains('mj-rules-section'))return; // Combat : panels déjà enveloppés
+    if(!parent)return;
+    if(parent.classList.contains('mj-rules-section'))return; // déjà enveloppé (Combat via cs(), ou run précédent)
     if(!parent.dataset.csgroup){const gi=[...(parent.parentElement?parent.parentElement.children:[])].indexOf(parent);parent.dataset.csgroup=(state.activeTab||'tab')+'-col'+(gi<0?0:gi);}
-    pan.classList.add('mj-rules-section'); // active le feedback visuel (opacité + indicateurs de dépose)
-    if(!pan.dataset.csid){
-      const t=(((pan.querySelector('.pt')||{}).textContent)||'').replace(/[^0-9A-Za-zÀ-ÿ]/g,'').slice(0,28);
-      const sibs=[...parent.children].filter(c=>c.classList&&c.classList.contains('panel'));
-      pan.dataset.csid=parent.dataset.csgroup+'_'+(t||('p'+sibs.indexOf(pan)));
-      pan.setAttribute('draggable','true');
-      pan.setAttribute('ondragstart',"combatDragStart(event,'"+pan.dataset.csid+"',this)");
-      pan.setAttribute('ondragend','combatDragEnd(this)');
-      pan.setAttribute('ondragover','combatDragOver(event,this)');
-      pan.setAttribute('ondrop',"combatDrop(event,'"+pan.dataset.csid+"')");
-      const pt=pan.querySelector('.pt');
-      if(pt&&!pt.querySelector('.mj-drag-handle')){const h=document.createElement('span');h.className='mj-drag-handle';h.title='Déplacer';h.textContent='⠿';h.style.marginRight='6px';pt.insertBefore(h,pt.firstChild);}
-    }
+    const t=(((pan.querySelector('.pt')||{}).textContent)||'').replace(/[^0-9A-Za-zÀ-ÿ]/g,'').slice(0,28);
+    const sibs=[...parent.children].filter(c=>c.classList&&c.classList.contains('panel'));
+    const csid=parent.dataset.csgroup+'_'+(t||('p'+sibs.indexOf(pan)));
+    // Enveloppe propre = élément déplaçable (exactement comme cs() pour le Combat)
+    const w=document.createElement('div');
+    w.className='mj-rules-section';
+    w.setAttribute('data-csid',csid);
+    w.setAttribute('draggable','true');
+    w.setAttribute('ondragstart',"combatDragStart(event,'"+csid+"',this)");
+    w.setAttribute('ondragend','combatDragEnd(this)');
+    w.setAttribute('ondragover','combatDragOver(event,this)');
+    w.setAttribute('ondrop',"combatDrop(event,'"+csid+"')");
+    parent.insertBefore(w,pan);
+    w.appendChild(pan);
+    // Poignée visuelle dans le titre (si absente)
+    const pt=pan.querySelector('.pt');
+    if(pt&&!pt.querySelector('.mj-drag-handle')){const h=document.createElement('span');h.className='mj-drag-handle';h.title='Déplacer';h.textContent='⠿';h.style.marginRight='6px';pt.insertBefore(h,pt.firstChild);}
   });
 }
 function cs(id,html){return`<div class="mj-rules-section" data-csid="${id}" draggable="true" ondragstart="combatDragStart(event,'${id}',this)" ondragend="combatDragEnd(this)" ondragover="combatDragOver(event,this)" ondrop="combatDrop(event,'${id}')">${html}</div>`;}
