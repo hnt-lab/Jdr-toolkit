@@ -373,7 +373,7 @@ function rollAttack(name,bonus,dmg,slot,dmgBonus=0,rerollLow=false,advantageMode
     }
     _lastRollResultHtml=`<div>⚔ ${esc(name)} — d20(${atk})${advTag}${fmt(bonus)} = <span style="font-size:20px;color:${col};font-weight:800">${total}</span>${isCrit?' 🎉 CRITIQUE!':isFumble?' 💀 FUMBLE!':''}</div>${dmgHtml}`;
     const el=document.getElementById('rollResult');
-    if(el){el.style.display='block';el.innerHTML=_lastRollResultHtml;}
+    if(el){el.style.display='block';el.innerHTML=_lastRollResultHtml;el.classList.remove('roll-flash');void el.offsetWidth;el.classList.add('roll-flash');}
     if(slot==='ranged'){const p=P();const eq=(p.equip||{})[slot];if(eq&&eq.ammoLink){const ai=(p.inventory||[]).findIndex(i=>i.name===eq.ammoLink);if(ai>=0){p.inventory[ai].qty=Math.max(0,p.inventory[ai].qty-1);if(p.inventory[ai].qty===0)showToast('⚠️ Plus de '+eq.ammoLink+' !');saveAll();}}}
     diceHistory.push({die:'d20',label:name,roll:atk,bonus,result:total});
     if(diceHistory.length>10)diceHistory.shift();
@@ -383,7 +383,7 @@ function rollAttack(name,bonus,dmg,slot,dmgBonus=0,rerollLow=false,advantageMode
   if(_isHalfling(P()))_luckyCheckRolls(rawRolls,0,_finishAttack);
   else _finishAttack(rawRolls);
 }
-function rollDie(d){const n=parseInt(d.replace('d',''));const r=Math.ceil(Math.random()*n);_lastRollResultHtml=`${d}: <strong>${r}</strong>`;const el=document.getElementById('rollResult');if(el){el.style.display='block';el.innerHTML=_lastRollResultHtml;}}
+function rollDie(d){const n=parseInt(d.replace('d',''));const r=Math.ceil(Math.random()*n);_lastRollResultHtml=`${d}: <strong>${r}</strong>`;const el=document.getElementById('rollResult');if(el){el.style.display='block';el.innerHTML=_lastRollResultHtml;el.classList.remove('roll-flash');void el.offsetWidth;el.classList.add('roll-flash');}}
 function openLinkAmmoModal(){
   const p=P();const inv=(p.inventory||[]).filter(i=>i.name&&i.qty>0);
   openModal(`<div class="pt">🏹 Lier des munitions à l'arme à distance</div>

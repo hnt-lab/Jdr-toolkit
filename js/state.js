@@ -607,8 +607,9 @@ function renderTab(){
   if(!p.created){el.innerHTML=tabCreation(p);return;}
   const map={perso:tabPerso,competences:tabCompetences,combat:tabCombat,equipement:tabEquipement,sac:tabSac,historique:tabHistorique,xp:tabXP,sorts:tabSorts,levelup:tabLevelUp,journal:tabJournal};
   el.innerHTML=(map[state.activeTab]||tabPerso)(p);
+  _enableTabDrag();applyAllSectionOrders(); // synchrone : pas de fenêtre où les attributs de drag manquent
   setTimeout(autoGrowAll,0);
-  setTimeout(()=>{_enableTabDrag();applyAllSectionOrders();},10);
+  setTimeout(()=>{_enableTabDrag();applyAllSectionOrders();},10); // filet de sécurité
   // Pré-remplir la liste de dons quand la recherche est vide (step ASI → Don)
   setTimeout(()=>{if(typeof luFilterFeats==='function'&&document.getElementById('featResults'))luFilterFeats('');},0);
 }

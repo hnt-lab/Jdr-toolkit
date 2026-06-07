@@ -65,14 +65,19 @@
 /* ═══════════ FICHE — rail perso persistant (résumé) ═══════════ */
 /* La fiche profite de la largeur (était bridée à 920px) */
 #app{max-width:1400px}
-/* Boutons FLOTTANTS nettement plus gros sur desktop (dé, groupe, raccourcis) — mobile inchangé */
+/* Boutons FLOTTANTS un peu plus gros sur desktop (≈0.8× de la version précédente) — mobile inchangé */
 @media(min-width:900px){
-  #diceFloat{width:80px!important;height:80px!important;font-size:36px!important;bottom:30px!important;right:30px!important}
-  #partyHudBtn{width:80px!important;height:80px!important;font-size:34px!important}
-  #dicePanel,#diceShortcuts{bottom:122px!important}
-  #diceShortcuts button{width:64px!important;height:64px!important;font-size:28px!important}
-  #diceShortcuts span{font-size:21px!important}
+  #diceFloat{width:64px!important;height:64px!important;font-size:29px!important;bottom:28px!important;right:28px!important}
+  #partyHudBtn{width:64px!important;height:64px!important;font-size:27px!important}
+  #dicePanel,#diceShortcuts{bottom:102px!important}
+  #diceShortcuts button{width:56px!important;height:56px!important;font-size:25px!important}
+  #diceShortcuts span{font-size:20px!important}
+  /* Panneau Groupe : un peu plus grand et décalé pour ne pas être collé au bord */
+  #partyHudPanel{min-width:300px!important;font-size:17px!important}
 }
+/* Surbrillance brève du résultat de jet */
+@keyframes rollFlash{0%{background:rgba(200,168,75,.55);box-shadow:0 0 0 2px var(--cp)}100%{background:var(--surface2);box-shadow:none}}
+.roll-flash{animation:rollFlash .6s ease-out}
 .fiche-2col{display:block}
 @media(min-width:900px){
   .fiche-2col{display:grid;grid-template-columns:300px minmax(0,1fr);gap:18px;align-items:start}
