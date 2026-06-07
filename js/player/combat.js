@@ -134,7 +134,7 @@ function tabCombat(p){
           <span style="color:#4caf50;font-weight:600">+${a.bonus} / ${esc(a.dmg)} ${esc(a.type||'')}</span>
         </div>
         ${a.special?`<div style="font-size:17px;color:var(--text3);margin-top:3px">${esc(a.special)}</div>`:''}
-        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px"><button class="btn bsm" style="border-color:rgba(76,175,80,.4);color:#4caf50" onclick="rollCustomDmg('${esc(a.dmg)}','${esc(a.name)}')">🎲 ${esc(a.dmg)}</button></div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px"><button class="btn bsm" style="border-color:rgba(76,175,80,.4);color:#4caf50" onclick="rollAttack('${jsq(a.name)}',${a.bonus},'${esc(a.dmg)}')" title="Jet d'attaque + dégâts">🎲 Attaque</button></div>
       </div>`).join('')}
       <div style="margin-top:10px;display:flex;gap:5px;flex-wrap:wrap">${['d4','d6','d8','d10','d12','d20'].map(d=>`<button class="dice-btn" onclick="rollDie('${d}')">🎲 ${d}</button>`).join('')}</div>
       <div id="rollResult" style="margin-top:8px;padding:8px;background:var(--surface2);border-radius:6px;display:${_lastRollResultHtml?'block':'none'};font-size:19px;font-weight:600;color:var(--cp);text-align:center">${_lastRollResultHtml}</div>

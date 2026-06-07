@@ -105,7 +105,7 @@ function tabPerso(p){
           <span style="color:var(--text2);font-size:18px">+${a.bonus} / <strong>${esc(a.dmg)}</strong> ${esc(a.type||'')}</span>
         </div>
         ${a.special?`<div style="font-size:17px;color:var(--text3);margin-top:3px">${esc(a.special)}</div>`:''}
-        <button class="btn bsm" style="margin-top:6px;border-color:rgba(76,175,80,.4);color:#4caf50" onclick="rollCustomDmg('${esc(a.dmg)}','${esc(a.name)}')">🎲 ${esc(a.dmg)}</button>
+        <button class="btn bsm" style="margin-top:6px;border-color:rgba(76,175,80,.4);color:#4caf50" onclick="rollAttack('${jsq(a.name)}',${a.bonus},'${esc(a.dmg)}')" title="Jet d'attaque + dégâts">🎲 Attaque</button>
       </div>`).join('')}
       ${ws.beast.traits.map(t=>`<div style="font-size:17px;color:var(--text2);padding:5px 0;border-bottom:1px solid rgba(76,175,80,.15)">🐾 ${esc(t)}</div>`).join('')}
     </div>`:''}
