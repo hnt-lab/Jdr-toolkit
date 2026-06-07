@@ -93,25 +93,13 @@ self.addEventListener('fetch', e => {
   // Laisser passer toutes les requêtes Firebase/Google directement au réseau
   if (BYPASS.some(d => url.hostname.includes(d))) return;
 
-  // Données volumineuses & stables (data/*.json) → CACHE D'ABORD (rapide ; rafraîchi au changement de version).
-  if (url.pathname.includes('/data/')) {
-    e.respondWith(
-      caches.match(e.request).then(hit => hit || fetch(e.request).then(r => {
-        const clone = r.clone(); caches.open(CACHE).then(c => c.put(e.request, clone)); return r;
-      }))
-    );
-    return;
-  }
-
-  // Code / CSS / HTML → RÉSEAU FRAIS d'abord ({cache:'no-store'} pour contourner le cache HTTP du
-  // navigateur → les MAJ apparaissent au simple rechargement, sans F5 forcé). Fallback cache hors-ligne.
+  // CACHE D'ABORD (rapide, pas de course au chargement des scripts) → réseau si absent.
+  // La fraîcheur est garantie par le CHANGEMENT DE VERSION : un nouveau APP_VERSION = nouveau nom de
+  // cache → ancien cache supprimé (activate) → précache FRAIS rechargé → fichiers à jour servis.
   e.respondWith(
-    fetch(e.request, {cache:'no-store'})
-      .then(r => {
-        const clone = r.clone();
-        caches.open(CACHE).then(c => c.put(e.request, clone));
-        return r;
-      })
-      .catch(() => caches.match(e.request))
+    caches.match(e.request).then(hit => hit || fetch(e.request).then(r => {
+      if (r && r.ok) { const clone = r.clone(); caches.open(CACHE).then(c => c.put(e.request, clone)); }
+      return r;
+    }).catch(() => hit))
   );
 });
