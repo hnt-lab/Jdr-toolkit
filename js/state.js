@@ -614,6 +614,7 @@ function setTab(id){
   const el=document.getElementById('tabContent');if(!el)return;
   const map={perso:tabPerso,competences:tabCompetences,combat:tabCombat,equipement:tabEquipement,sac:tabSac,historique:tabHistorique,xp:tabXP,sorts:tabSorts,levelup:tabLevelUp,journal:tabJournal};
   el.innerHTML=(map[id]||tabPerso)(P());
+  _enableTabDrag();applyAllSectionOrders(); // FIX : enveloppe + ordre AUSSI au changement d'onglet (sinon le drag « saute »)
   setTimeout(autoGrowAll,0);
 }
 
