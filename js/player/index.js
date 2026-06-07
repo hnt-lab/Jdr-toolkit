@@ -181,15 +181,13 @@ function _openDiceShortcuts(){
 function _diceNav(tab){
   _closeDiceShortcuts();
   const app=document.getElementById('app');
-  if(app&&app.style.display!=='none'){
-    setTab(tab);
-  }else if(P()){
-    showApp();setTimeout(()=>setTab(tab),0);
-  }else if(currentTableId&&currentCampaignId&&!isMJ()){
-    enterCampaign(currentTableId,currentCampaignId).then(()=>{if(tab!=='perso')setTab(tab);}).catch(()=>{});
-  }else{
-    showToast('Ouvrez votre fiche depuis le Hub pour utiliser ce raccourci.');
+  if(app&&app.style.display!=='none'){setTab(tab);return;}
+  // Pas sur la fiche → ré-entrer dans la campagne (gère Personnage ET MJ), puis ouvrir l'onglet si joueur
+  if(currentTableId&&currentCampaignId&&typeof enterCampaign==='function'){
+    enterCampaign(currentTableId,currentCampaignId).then(()=>{if(tab&&tab!=='perso'&&!window._currentCampIsMJ)setTab(tab);}).catch(()=>{});
+    return;
   }
+  showToast('Rejoins ton groupe depuis le Hub pour utiliser ce raccourci.');
 }
 function _closeDiceShortcuts(){const sp=document.getElementById('diceShortcuts');if(sp)sp.style.display='none';}
 function _closeDiceShortcutsOutside(e){

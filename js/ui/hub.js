@@ -611,6 +611,7 @@ async function enterCampaign(tableId,campaignId,tName,cName,preloadedCharData,fo
   currentCampaignName=cName||'';
   const tableData=_hubCache&&_hubCache.find(t=>t.id===tableId);
   const asMJ=!!(tableData&&tableData.mjId===currentUser.uid);
+  window._currentCampIsMJ=asMJ; // mémorisé pour la barre de modes (label Personnage/MJ + ré-entrée)
   // Active les paquets de la table (rechargement paresseux ensuite via loadXDB) — migration douce de l'ancien modèle.
   if(typeof COMP!=='undefined'){ try{ COMP.applyTableSelection(typeof compTableRequiredPacks==='function'?compTableRequiredPacks(tableData):null); }catch(e){} }
   try{

@@ -39,14 +39,16 @@ function _refreshNavAvatars(){
   ['hubUserBtn','mjUserBtn','ficheUserBtn'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=a;});
 }
 // Barre de modes : Hub · Personnage/MJ (Profil = avatar, chuchotements = dé).
-function _isMJOfCurrent(){return (typeof currentTableMjId!=='undefined'&&currentTableMjId&&typeof currentUser!=='undefined'&&currentUser&&currentTableMjId===currentUser.uid);}
+function _isMJOfCurrent(){return !!window._currentCampIsMJ;}
 function _navGoChar(){
-  if(!currentCampaignId){if(typeof showToast==='function')showToast('Ouvre une campagne depuis le Hub d\'abord.');return;}
-  if(_isMJOfCurrent()){if(typeof showMJScreen==='function')showMJScreen();}
-  else{showApp();if(typeof render==='function')render();}
+  // Ré-entrer dans la campagne (même mécanisme que le bouton « Ouvrir » → gère Personnage ET MJ)
+  if(currentTableId&&currentCampaignId&&typeof enterCampaign==='function'){enterCampaign(currentTableId,currentCampaignId);return;}
+  if(typeof showToast==='function')showToast('Rejoins ton groupe depuis le Hub d\'abord.');
 }
 function _refreshModeNav(){
   const nav=document.getElementById('modeNav');if(!nav)return;
+  // La barre de modes n'apparaît qu'une fois une campagne rejointe
+  if(!currentCampaignId){nav.style.display='none';return;}
   nav.style.display='flex';
   const vis=el=>el&&el.style.display!=='none';
   const onHub=vis(document.getElementById('hubScreen'));
@@ -56,7 +58,7 @@ function _refreshModeNav(){
   nav.querySelectorAll('.mode-char-ico').forEach(el=>el.textContent=mj?'🎲':'🧙');
   const hb=nav.querySelector('.mode-hub'),ch=nav.querySelector('.mode-char');
   if(hb)hb.classList.toggle('on',!!onHub);
-  if(ch){ch.classList.toggle('on',!!onChar);ch.classList.toggle('disabled',!currentCampaignId);}
+  if(ch)ch.classList.toggle('on',!!onChar);
 }
 function showAuthScreen(){
   document.getElementById('authScreen').style.display='flex';
