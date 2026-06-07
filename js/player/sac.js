@@ -6,33 +6,33 @@ function tabSac(p){
   const _invSorted=inv.map((item,i)=>({item,i})).sort((a,b)=>(a.item.name||'').localeCompare(b.item.name||''));
   const invRows=inv.length?_invSorted.map(({item,i})=>{const _t=_itemType(item.name,item);const _ico=_TYPE_ICON[_t]||'📦';return`<div class="inv-item" style="flex-direction:column;align-items:flex-start;gap:4px;${(item.qty||0)===0?'opacity:.6':''}">
     <div style="display:flex;align-items:center;gap:8px;width:100%">
-      <span style="font-size:15px;flex-shrink:0" title="${_t||'Objet'}">${_ico}</span>
-      <span style="flex:1;font-size:13px;font-weight:600">${esc(item.name)}${item.magic?` <span class="magic-badge">✨${item.linkedTo?' '+esc(item.linkedTo):''}</span>`:''} ${(item.qty||0)===0?'<span style="font-size:11px;color:#e53935;font-weight:600;border:1px solid rgba(229,57,53,.4);border-radius:4px;padding:0 4px">Épuisé</span>':''}</span>
-      <button class="btn bsm" style="padding:1px 6px;font-size:16px;line-height:1" onclick="adjustQty(${i},-1)">−</button>
-      <input type="number" min="0" value="${item.qty||0}" style="width:38px;text-align:center;font-size:13px;font-weight:600;color:${(item.qty||0)===0?'#e53935':'var(--text)'};background:transparent;border:1px solid var(--border);border-radius:4px;padding:1px 2px;outline:none" onchange="setQty(${i},this.value)" onclick="this.select()">
-      <button class="btn bsm" style="padding:1px 6px;font-size:16px;line-height:1" onclick="adjustQty(${i},+1)">+</button>
-      <span onclick="removeInvItem(${i})" style="cursor:pointer;color:var(--text3);font-size:15px;margin-left:4px">×</span>
+      <span style="font-size:21px;flex-shrink:0" title="${_t||'Objet'}">${_ico}</span>
+      <span style="flex:1;font-size:18px;font-weight:600">${esc(item.name)}${item.magic?` <span class="magic-badge">✨${item.linkedTo?' '+esc(item.linkedTo):''}</span>`:''} ${(item.qty||0)===0?'<span style="font-size:15px;color:#e53935;font-weight:600;border:1px solid rgba(229,57,53,.4);border-radius:4px;padding:0 4px">Épuisé</span>':''}</span>
+      <button class="btn bsm" style="padding:1px 6px;font-size:22px;line-height:1" onclick="adjustQty(${i},-1)">−</button>
+      <input type="number" min="0" value="${item.qty||0}" style="width:38px;text-align:center;font-size:18px;font-weight:600;color:${(item.qty||0)===0?'#e53935':'var(--text)'};background:transparent;border:1px solid var(--border);border-radius:4px;padding:1px 2px;outline:none" onchange="setQty(${i},this.value)" onclick="this.select()">
+      <button class="btn bsm" style="padding:1px 6px;font-size:22px;line-height:1" onclick="adjustQty(${i},+1)">+</button>
+      <span onclick="removeInvItem(${i})" style="cursor:pointer;color:var(--text3);font-size:21px;margin-left:4px">×</span>
     </div>
-    ${item.desc?`<div style="font-size:12px;color:var(--text3)">${esc(item.desc)}</div>`:''}
-    ${item.statBonuses&&item.statBonuses.length?`<div style="display:flex;gap:4px;flex-wrap:wrap">${item.statBonuses.map(b=>`<span class="status-badge ${b.value>0?'bonus':'malus'}" style="font-size:11px;padding:2px 6px">${b.stat.toUpperCase()} ${b.value>0?'+':''}${b.value}</span>`).join('')}</div>`:''}
+    ${item.desc?`<div style="font-size:17px;color:var(--text3)">${esc(item.desc)}</div>`:''}
+    ${item.statBonuses&&item.statBonuses.length?`<div style="display:flex;gap:4px;flex-wrap:wrap">${item.statBonuses.map(b=>`<span class="status-badge ${b.value>0?'bonus':'malus'}" style="font-size:15px;padding:2px 6px">${b.stat.toUpperCase()} ${b.value>0?'+':''}${b.value}</span>`).join('')}</div>`:''}
     ${item.charges?`<div style="display:flex;align-items:center;gap:6px;margin-top:2px">
-      <span style="font-size:12px;color:var(--text3)">Charges:</span>
+      <span style="font-size:17px;color:var(--text3)">Charges:</span>
       <div>${Array.from({length:item.charges},(_,ci)=>`<span class="slot-bubble${ci>=(item.chargesUsed||0)?'':' used'}" onclick="toggleItemCharge(${i},${ci})"></span>`).join('')}</div>
-      <span style="font-size:11px;color:var(--text3)">${item.charges-(item.chargesUsed||0)}/${item.charges}</span>
+      <span style="font-size:15px;color:var(--text3)">${item.charges-(item.chargesUsed||0)}/${item.charges}</span>
     </div>`:''}
     ${(_t==='P'||_t==='SC')&&(item.qty||0)>0?`<div style="margin-top:4px"><button class="btn bsm" style="color:#7986cb;border-color:rgba(121,134,203,.4)" onclick="useConsumable(${i})">${_t==='P'?'🧪 Utiliser':'📜 Lancer'}</button></div>`:''}
-    ${item.attunement?`<div style="margin-top:4px"><button class="btn bsm" onclick="toggleAttunement(${i})" style="color:${item.attuned?'#e53935':'#9c27b0'};border-color:${item.attuned?'rgba(229,57,53,.4)':'rgba(156,39,176,.4)'}">${item.attuned?'🔓 Rompre le lien':'🔗 Se lier'}</button>${item.attuned?`<span style="font-size:11px;color:#9c27b0;margin-left:6px">Lié ✓</span>`:''}</div>`:''}
-  </div>`;}).join(''):`<div style="font-size:13px;color:var(--text3);font-style:italic">Inventaire vide.</div>`;
+    ${item.attunement?`<div style="margin-top:4px"><button class="btn bsm" onclick="toggleAttunement(${i})" style="color:${item.attuned?'#e53935':'#9c27b0'};border-color:${item.attuned?'rgba(229,57,53,.4)':'rgba(156,39,176,.4)'}">${item.attuned?'🔓 Rompre le lien':'🔗 Se lier'}</button>${item.attuned?`<span style="font-size:15px;color:#9c27b0;margin-left:6px">Lié ✓</span>`:''}</div>`:''}
+  </div>`;}).join(''):`<div style="font-size:18px;color:var(--text3);font-style:italic">Inventaire vide.</div>`;
   return`<div>
   <div class="panel mb10">
     <div class="pt" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
       <span>🪙 Bourse</span>
-      <span style="font-size:11px;color:var(--text3);font-style:italic">Conversion automatique</span>
+      <span style="font-size:15px;color:var(--text3);font-style:italic">Conversion automatique</span>
     </div>
     <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px">
-      ${[['pc','Cuivre','#b87333'],['pa','Argent','#b0bec5'],['pe','Électrum','#6abfad'],['po','Or','var(--cp)'],['pp','Platine','#dcdcdc']].map(([k,lbl,col])=>`<div class="coin"><div class="coin-lbl" style="color:${col}">${lbl}</div><div id="bourse_${k}" class="coin-val" style="font-size:18px;font-weight:600;text-align:center;padding:4px 0;color:var(--text)">${cur[k]||0}</div></div>`).join('')}
+      ${[['pc','Cuivre','#b87333'],['pa','Argent','#b0bec5'],['pe','Électrum','#6abfad'],['po','Or','var(--cp)'],['pp','Platine','#dcdcdc']].map(([k,lbl,col])=>`<div class="coin"><div class="coin-lbl" style="color:${col}">${lbl}</div><div id="bourse_${k}" class="coin-val" style="font-size:25px;font-weight:600;text-align:center;padding:4px 0;color:var(--text)">${cur[k]||0}</div></div>`).join('')}
     </div>
-    <div style="margin-top:8px;font-size:11px;color:var(--text3);text-align:center">10 pc → 1 pa &nbsp;·&nbsp; 5 pa → 1 pe &nbsp;·&nbsp; 2 pe → 1 po &nbsp;·&nbsp; 10 po → 1 pp</div>
+    <div style="margin-top:8px;font-size:15px;color:var(--text3);text-align:center">10 pc → 1 pa &nbsp;·&nbsp; 5 pa → 1 pe &nbsp;·&nbsp; 2 pe → 1 po &nbsp;·&nbsp; 10 po → 1 pp</div>
     <div style="display:flex;gap:8px;margin-top:10px">
       <button class="btn bsm" style="flex:1;color:#4caf50;border-color:rgba(76,175,80,.5);font-weight:600" onclick="openBourseModal('gagner')">💰 Gagner</button>
       <button class="btn bsm" style="flex:1;color:#e53935;border-color:rgba(229,57,53,.5);font-weight:600" onclick="openBourseModal('payer')">💸 Payer</button>
@@ -40,14 +40,14 @@ function tabSac(p){
   </div>
   <div class="panel">
     <div class="pt" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-      <span>Inventaire ${inv.filter(it=>it.attunement).length?`<span style="font-size:11px;padding:2px 7px;border-radius:10px;margin-left:6px;background:${attunedCount>=3?'rgba(229,57,53,.15)':'rgba(156,39,176,.1)'};color:${attunedCount>=3?'#e53935':'#9c27b0'};border:1px solid ${attunedCount>=3?'rgba(229,57,53,.4)':'rgba(156,39,176,.3)'}">🔗 ${attunedCount}/3 liés</span>`:''}</span>
+      <span>Inventaire ${inv.filter(it=>it.attunement).length?`<span style="font-size:15px;padding:2px 7px;border-radius:10px;margin-left:6px;background:${attunedCount>=3?'rgba(229,57,53,.15)':'rgba(156,39,176,.1)'};color:${attunedCount>=3?'#e53935':'#9c27b0'};border:1px solid ${attunedCount>=3?'rgba(229,57,53,.4)':'rgba(156,39,176,.3)'}">🔗 ${attunedCount}/3 liés</span>`:''}</span>
       ${isMJ()?`<button class="btn bsm bac" onclick="openMJCreateItem()">🎲 Créer objet/arme</button>`:''}
     </div>
     <div style="display:flex;gap:6px;margin-bottom:4px">
       <input class="fi" id="invName" placeholder="${ITEMS_DB?'Rechercher parmi '+ITEMS_DB.length.toLocaleString()+' objets...':'Nom ou recherche compendium...'}" oninput="filterSrdItems(this.value)" onfocus="if(this.value.trim())filterSrdItems(this.value)" onblur="setTimeout(()=>{const el=document.getElementById('srdList');if(el)el.style.display='none';},200)" style="flex:1">
       <button class="btn bsm bac" onclick="addInvItem()">+</button>
     </div>
-    ${!ITEMS_DB?`<button class="btn bsm" style="font-size:12px;width:100%;margin-bottom:6px" onclick="loadItemsDB(()=>render())">📚 Charger le compendium d'objets</button>`:''}
+    ${!ITEMS_DB?`<button class="btn bsm" style="font-size:17px;width:100%;margin-bottom:6px" onclick="loadItemsDB(()=>render())">📚 Charger le compendium d'objets</button>`:''}
     <div id="srdList" style="display:none;margin-bottom:8px;max-height:220px;overflow-y:auto"></div>
     ${invRows}
   </div>
@@ -75,7 +75,7 @@ function useConsumable(itemIdx){
     let total=0;const rolls=[];
     for(let i=0;i<parseInt(m[1]);i++){const r=Math.ceil(Math.random()*parseInt(m[2]));rolls.push(r);total+=r;}
     if(m[3])total+=parseInt(m[3]);
-    showToast(`${item.itemType==='P'?'🧪':'📜'} <strong>${esc(item.name)}</strong> : [${rolls.join('+')}]${m[3]||''} = <strong style="font-size:16px;color:var(--cp)">${total}</strong>`);
+    showToast(`${item.itemType==='P'?'🧪':'📜'} <strong>${esc(item.name)}</strong> : [${rolls.join('+')}]${m[3]||''} = <strong style="font-size:22px;color:var(--cp)">${total}</strong>`);
   } else {
     showToast(`${item.itemType==='P'?'🧪':'📜'} <strong>${esc(item.name)}</strong> utilisé !${item.desc?' — '+esc(item.desc.slice(0,80)):''}`);
   }
@@ -101,7 +101,7 @@ function openBourseModal(type){
   const coins=[['pc','Cuivre','#b87333'],['pa','Argent','#b0bec5'],['pe','Électrum','#6abfad'],['po','Or','var(--cp)'],['pp','Platine','#dcdcdc']];
   openModal(`<div class="pt" style="color:${isGain?'#4caf50':'#e53935'}">${isGain?'💰 Recevoir des pièces':'💸 Payer'}</div>
     <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:14px 0">
-      ${coins.map(([k,lbl,col])=>`<div style="text-align:center"><div style="font-size:11px;color:${col};text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">${lbl}</div><input id="bm_${k}" class="fi" type="number" min="0" value="0" style="text-align:center;font-size:16px;font-weight:600;padding:6px 2px"></div>`).join('')}
+      ${coins.map(([k,lbl,col])=>`<div style="text-align:center"><div style="font-size:15px;color:${col};text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">${lbl}</div><input id="bm_${k}" class="fi" type="number" min="0" value="0" style="text-align:center;font-size:22px;font-weight:600;padding:6px 2px"></div>`).join('')}
     </div>
     <div style="display:flex;gap:8px">
       <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
@@ -165,8 +165,8 @@ function renderSrdList(q){
     for(let i=0;i<ITEMS_DB.length&&res.length<limit;i++){
       if(!low||ITEMS_DB[i].n&&ITEMS_DB[i].n.toLowerCase().includes(low))res.push({i,it:ITEMS_DB[i]});
     }
-    if(!res.length)return'<div style="font-size:12px;color:var(--text3);text-align:center;padding:6px">Aucun résultat.</div>';
-    const suffix=!low&&ITEMS_DB.length>30?`<div style="font-size:11px;color:var(--text3);text-align:center;padding:4px">… et ${ITEMS_DB.length-30} autres — affinez la recherche</div>`:'';
+    if(!res.length)return'<div style="font-size:17px;color:var(--text3);text-align:center;padding:6px">Aucun résultat.</div>';
+    const suffix=!low&&ITEMS_DB.length>30?`<div style="font-size:15px;color:var(--text3);text-align:center;padding:4px">… et ${ITEMS_DB.length-30} autres — affinez la recherche</div>`:'';
     return res.map(({i,it})=>`<div class="aci" onclick="addCompendiumItem(${i})">
       <div class="ain">${_TYPE_ICON[it.t]||'📦'} ${esc(it.n)}${it.mg?' ✨':''}</div>
       <div class="ais">${esc(it.d||'')}${it.d1?' — '+it.d1+(it.d2?' / '+it.d2:'')+(it.dt?' '+it.dt:''):''}${it.ac?' — CA '+it.ac:''}</div>

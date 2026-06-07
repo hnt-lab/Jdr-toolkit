@@ -4,7 +4,7 @@ function tabEquipement(p){
   const eq=p.equip||{};
   const slotHtml=s=>{const item=eq[s.id];const isMagic=item&&item.magic;return`<div class="eq-slot${item?' filled':''}${isMagic?' magic-slot':''}" style="${isMagic?'border-color:#9b59b6':''}" onclick="openEquipSlot('${s.id}')">
     <div class="eq-slot-label">${s.icon} ${s.label}</div>
-    ${item?`<div class="eq-slot-item">${esc(item.name)}${isMagic?' ✨':''}</div><button class="btn bsm" onclick="event.stopPropagation();unequipSlot('${s.id}')" style="width:100%;margin-top:4px;color:#e53935;border-color:rgba(229,57,53,.3);font-size:11px;padding:2px 0">✕ Retirer</button>`:`<div class="eq-slot-empty">Vide</div>`}
+    ${item?`<div class="eq-slot-item">${esc(item.name)}${isMagic?' ✨':''}</div><button class="btn bsm" onclick="event.stopPropagation();unequipSlot('${s.id}')" style="width:100%;margin-top:4px;color:#e53935;border-color:rgba(229,57,53,.3);font-size:15px;padding:2px 0">✕ Retirer</button>`:`<div class="eq-slot-empty">Vide</div>`}
   </div>`;};
   const left=[{id:'head',label:'Tête',icon:'🪖'},{id:'shoulders',label:'Épaules',icon:'🧥'},{id:'chest',label:'Torse',icon:'🛡'},{id:'hands',label:'Mains',icon:'🧤'},{id:'legs',label:'Jambes',icon:'👖'}];
   const right=[{id:'neck',label:'Cou',icon:'📿'},{id:'ring1',label:'Anneau G',icon:'💍'},{id:'ring2',label:'Anneau D',icon:'💍'},{id:'waist',label:'Ceinture',icon:'🪢'},{id:'feet',label:'Pieds',icon:'👢'}];
@@ -33,27 +33,27 @@ function tabEquipement(p){
     <div class="panel">
       <div class="pt" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="_equipProfOpen.all=!_equipProfOpen.all;render()">
         <span>Maîtrises</span>
-        <span style="display:flex;align-items:center;gap:8px">${isMJ()?`<span style="font-size:11px;color:var(--cp)">🎲 toggle</span>`:''}<span style="font-size:12px;color:var(--text3)">${_equipProfOpen.all?'▴':'▾'}</span></span>
+        <span style="display:flex;align-items:center;gap:8px">${isMJ()?`<span style="font-size:15px;color:var(--cp)">🎲 toggle</span>`:''}<span style="font-size:17px;color:var(--text3)">${_equipProfOpen.all?'▴':'▾'}</span></span>
       </div>
       ${_equipProfOpen.all?`
-        <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:4px 0 6px">⚔ Armes</div>
+        <div style="font-size:15px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:4px 0 6px">⚔ Armes</div>
         ${allWeapons.map(w=>{
           const prof=wProfs.some(pr=>pr.toLowerCase()===w.subtype.toLowerCase()||w.name.toLowerCase().includes(pr.toLowerCase()));
           return`<div class="prof-row" style="${isMJ()?'cursor:pointer':''}" onclick="${isMJ()?`mjToggleWeaponProf('${esc(w.subtype)}')`:''}" title="${isMJ()?'Cliquer pour modifier':''}">
             <span class="prof-dot ${prof?'yes':'no'}"></span>
-            <span style="flex:1;font-size:13px;color:${prof?'var(--text)':'var(--text3)'}">${esc(w.name)}</span>
-            <span style="font-size:11px;color:var(--text3)">${esc(w.subtype)}</span>
-            ${prof?`<span style="font-size:11px;color:#4caf50">✓</span>`:`<span style="font-size:11px;color:#e53935">✗</span>`}
+            <span style="flex:1;font-size:18px;color:${prof?'var(--text)':'var(--text3)'}">${esc(w.name)}</span>
+            <span style="font-size:15px;color:var(--text3)">${esc(w.subtype)}</span>
+            ${prof?`<span style="font-size:15px;color:#4caf50">✓</span>`:`<span style="font-size:15px;color:#e53935">✗</span>`}
           </div>`;
         }).join('')}
-        <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:10px 0 6px">🛡 Armures</div>
+        <div style="font-size:15px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:10px 0 6px">🛡 Armures</div>
         ${allArmors.map(a=>{
           const prof=aProfs.some(pr=>a.type.toLowerCase().includes(pr.toLowerCase())||a.name.toLowerCase().includes(pr.toLowerCase()));
           return`<div class="prof-row" style="${isMJ()?'cursor:pointer':''}" onclick="${isMJ()?`mjToggleArmorProf('${esc(a.type)}')`:''}" title="${isMJ()?'Cliquer pour modifier':''}">
             <span class="prof-dot ${prof?'yes':'no'}"></span>
-            <span style="flex:1;font-size:13px;color:${prof?'var(--text)':'var(--text3)'}">${esc(a.name)}</span>
-            <span style="font-size:11px;color:var(--text3)">${esc(a.type)}</span>
-            ${prof?`<span style="font-size:11px;color:#4caf50">✓</span>`:`<span style="font-size:11px;color:#e53935">✗</span>`}
+            <span style="flex:1;font-size:18px;color:${prof?'var(--text)':'var(--text3)'}">${esc(a.name)}</span>
+            <span style="font-size:15px;color:var(--text3)">${esc(a.type)}</span>
+            ${prof?`<span style="font-size:15px;color:#4caf50">✓</span>`:`<span style="font-size:15px;color:#e53935">✗</span>`}
           </div>`;
         }).join('')}
       `:''}
@@ -135,8 +135,8 @@ function openEquipSlot(slotId){
   const allInv=(p.inventory||[]).filter(i=>i.name&&i.qty>0);
   const inv=allInv.filter(item=>_slotAccepts(slotId,_itemType(item.name,item)));
   const SLOT_LABELS={head:'🪖 Tête',shoulders:'🧥 Épaules',chest:'🛡 Torse',hands:'🧤 Mains',legs:'👖 Jambes',feet:'👢 Pieds',neck:'📿 Cou',ring1:'💍 Anneau G',ring2:'💍 Anneau D',waist:'🪢 Ceinture',back:'🧣 Dos',mainhand:'⚔️ Main droite',offhand:'🗡️ Main gauche',ranged:'🏹 Distance'};
-  let html=`<div style="font-size:11px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">🎒 Depuis ton sac</div>`;
-  html+=inv.length?inv.map(item=>`<div class="aci" onclick="equipItem('${slotId}','${esc(item.name)}','${esc(item.desc||'')}',${item.magic||false},'${esc(item.linkedTo||'')}')"><div class="ain">${esc(item.name)}${item.magic?` <span class="magic-badge">✨</span>`:''}</div>${item.desc?`<div class="ais">${esc(item.desc)}</div>`:''}</div>`).join(''):`<div style="font-size:13px;color:var(--text3);padding:4px;font-style:italic">${allInv.length?'Aucun objet compatible dans le sac.':'Sac vide.'}</div>`;
+  let html=`<div style="font-size:15px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">🎒 Depuis ton sac</div>`;
+  html+=inv.length?inv.map(item=>`<div class="aci" onclick="equipItem('${slotId}','${esc(item.name)}','${esc(item.desc||'')}',${item.magic||false},'${esc(item.linkedTo||'')}')"><div class="ain">${esc(item.name)}${item.magic?` <span class="magic-badge">✨</span>`:''}</div>${item.desc?`<div class="ais">${esc(item.desc)}</div>`:''}</div>`).join(''):`<div style="font-size:18px;color:var(--text3);padding:4px;font-style:italic">${allInv.length?'Aucun objet compatible dans le sac.':'Sac vide.'}</div>`;
   openModal(`<div class="pt">${SLOT_LABELS[slotId]||slotId}</div><div style="max-height:400px;overflow-y:auto">${html}</div><button class="btn bsm" style="width:100%;margin-top:8px" onclick="closeModal()">Fermer</button>`);
 }
 function equipItem(slotId,name,desc,magic,linkedTo){

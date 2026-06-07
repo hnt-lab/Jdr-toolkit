@@ -67,7 +67,7 @@ function renderCharRail(p){
       <div class="rail-statline rail-statline-3" style="margin-top:8px">
         <div class="rail-stat"><div class="rail-stat-l">🛡 CA</div><div class="rail-stat-v">${caVal}</div></div>
         <div class="rail-stat"><div class="rail-stat-l">⚡ Init</div><div class="rail-stat-v">${initVal}</div></div>
-        <div class="rail-stat"><div class="rail-stat-l">👣</div><div class="rail-stat-v" style="font-size:14px">${spdVal}</div></div>
+        <div class="rail-stat"><div class="rail-stat-l">👣</div><div class="rail-stat-v" style="font-size:19px">${spdVal}</div></div>
       </div>
     </div>
     <div class="rail-caracs">${caracs}</div>
@@ -94,26 +94,26 @@ function tabPerso(p){
 
   return`<div class="g2">
   <!-- COLONNE GAUCHE -->
-  <div>
+  <div data-csgroup="perso-gauche">
     <!-- (Portrait + Statistiques déplacés dans le rail perso — renderCharRail) -->
 
-    ${ws?.active?`<div class="panel mb10" style="border-color:rgba(76,175,80,.4);background:rgba(76,175,80,.04)">
-      <div class="pt" style="color:#4caf50;display:flex;align-items:center;gap:6px">${ws.beast.icon} ${esc(ws.beast.name)} — Attaques & Traits</div>
+    ${ws?.active?`<div class="panel mb10" data-csid="perso-ws" draggable="true" ondragstart="combatDragStart(event,'perso-ws',this)" ondragend="combatDragEnd(this)" ondragover="combatDragOver(event,this)" ondrop="combatDrop(event,'perso-ws')" style="border-color:rgba(76,175,80,.4);background:rgba(76,175,80,.04)">
+      <div class="pt" style="color:#4caf50;display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>${ws.beast.icon} ${esc(ws.beast.name)} — Attaques & Traits</div>
       ${ws.beast.attacks.map(a=>`<div style="background:rgba(76,175,80,.08);border:1px solid rgba(76,175,80,.2);border-radius:6px;padding:8px 10px;margin-bottom:6px">
         <div style="display:flex;justify-content:space-between;align-items:center">
-          <strong style="color:#4caf50;font-size:13px">${esc(a.name)}</strong>
-          <span style="color:var(--text2);font-size:13px">+${a.bonus} / <strong>${esc(a.dmg)}</strong> ${esc(a.type||'')}</span>
+          <strong style="color:#4caf50;font-size:18px">${esc(a.name)}</strong>
+          <span style="color:var(--text2);font-size:18px">+${a.bonus} / <strong>${esc(a.dmg)}</strong> ${esc(a.type||'')}</span>
         </div>
-        ${a.special?`<div style="font-size:12px;color:var(--text3);margin-top:3px">${esc(a.special)}</div>`:''}
+        ${a.special?`<div style="font-size:17px;color:var(--text3);margin-top:3px">${esc(a.special)}</div>`:''}
         <button class="btn bsm" style="margin-top:6px;border-color:rgba(76,175,80,.4);color:#4caf50" onclick="rollCustomDmg('${esc(a.dmg)}','${esc(a.name)}')">🎲 ${esc(a.dmg)}</button>
       </div>`).join('')}
-      ${ws.beast.traits.map(t=>`<div style="font-size:12px;color:var(--text2);padding:5px 0;border-bottom:1px solid rgba(76,175,80,.15)">🐾 ${esc(t)}</div>`).join('')}
+      ${ws.beast.traits.map(t=>`<div style="font-size:17px;color:var(--text2);padding:5px 0;border-bottom:1px solid rgba(76,175,80,.15)">🐾 ${esc(t)}</div>`).join('')}
     </div>`:''}
 
     <!-- Résistances & Immunités (rétractable) -->
-    <div class="panel">
+    <div class="panel" data-csid="perso-statuts" draggable="true" ondragstart="combatDragStart(event,'perso-statuts',this)" ondragend="combatDragEnd(this)" ondragover="combatDragOver(event,this)" ondrop="combatDrop(event,'perso-statuts')">
       <div class="pt" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
-        <span>🎯 Statuts & Résistances</span>
+        <span style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>🎯 Statuts & Résistances</span>
         <div style="display:flex;gap:6px">
           <button class="btn bsm" onclick="openAddStatus()">+ Statut</button>
           <button class="btn bsm" onclick="openResistModal()">+ Résist./Immu</button>
@@ -126,37 +126,61 @@ function tabPerso(p){
         const tag=(cat,val,i)=>`<span class="status-badge bonus" style="cursor:pointer" title="Retirer" onclick="removeResist('${cat}',${i})">🛡 ${esc(val)} ✕</span>`;
         const tagImm=(cat,val,i)=>`<span class="status-badge malus" style="background:#2e1b00;border-color:#ff9800;color:#ff9800;cursor:pointer" title="Retirer" onclick="removeResist('${cat}',${i})">✦ ${esc(val)} ✕</span>`;
         const tagCond=(cat,val,i)=>`<span class="status-badge malus" style="cursor:pointer" title="Retirer" onclick="removeResist('${cat}',${i})">🚫 ${esc(val)} ✕</span>`;
-        const empty='<span style="font-size:12px;color:var(--text3);font-style:italic">Aucune</span>';
+        const empty='<span style="font-size:17px;color:var(--text3);font-style:italic">Aucune</span>';
         const lockR=v=>`<span class="status-badge bonus" style="opacity:.85" title="Résistance passive (automatique)">🛡 ${esc(v)} 🔒</span>`;
         const lockI=v=>`<span class="status-badge malus" style="background:#2e1b00;border-color:#ff9800;color:#ff9800;opacity:.85" title="Immunité passive (automatique)">✦ ${esc(v)} 🔒</span>`;
         const stRow=(s,i)=>`<span class="status-badge ${s.type||'neutral'}" title="${esc(s.desc||'')}">${s.icon||'◆'} ${esc(s.name||'')}${(s.value&&s.stat)?` ${s.value>0?'+':''}${s.value} ${esc(s.stat.toUpperCase())}`:''} <span onclick="event.stopPropagation();removeStatus(${i})" style="cursor:pointer;font-weight:700;opacity:.7">×</span></span>`;
-        const lbl=t=>`<div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">${t}</div>`;
+        const lbl=t=>`<div style="font-size:15px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">${t}</div>`;
         return`<div style="margin-bottom:10px">${lbl('Statuts actifs')}<div style="display:flex;flex-wrap:wrap;gap:4px">${sts.length?sts.map(stRow).join(''):empty}</div></div>
         <div style="margin-bottom:8px">${lbl('Résistances dégâts')}<div style="display:flex;flex-wrap:wrap;gap:4px">${(res.length||passRes.length)?res.map((v,i)=>tag('dmgResistances',v,i)).join('')+passRes.map(lockR).join(''):empty}</div></div>
         <div style="margin-bottom:8px">${lbl('Immunités dégâts')}<div style="display:flex;flex-wrap:wrap;gap:4px">${(imm.length||passImm.length)?imm.map((v,i)=>tagImm('dmgImmunities',v,i)).join('')+passImm.map(lockI).join(''):empty}</div></div>
         <div>${lbl('Immunités conditions')}<div style="display:flex;flex-wrap:wrap;gap:4px">${ci.length?ci.map((v,i)=>tagCond('condImmunities',v,i)).join(''):empty}</div></div>`;
       })()}
     </div>
+    <!-- Repos (déplacé sous Statuts & Résistances) -->
+    ${(()=>{
+      const _chantG=(typeof _groupData!=='undefined'?_groupData:[]).find(gp=>gp.uid!==(typeof currentUser!=='undefined'?currentUser?.uid:null)&&gp.charData?.combatCharges?.ChantReposantResult!==undefined);
+      const _chantB=_chantG?.charData.combatCharges.ChantReposantResult;
+      const _chantSrc=_chantG?.charData.charName||'Barde';
+      return`<div class="panel mb10" data-csid="perso-repos" draggable="true" ondragstart="combatDragStart(event,'perso-repos',this)" ondragend="combatDragEnd(this)" ondragover="combatDragOver(event,this)" ondrop="combatDrop(event,'perso-repos')">
+        <div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>Repos</div>
+        <div style="display:flex;gap:8px;${_chantB?'padding:6px;border:2px solid var(--cp);border-radius:10px;background:rgba(200,168,75,.04)':''}">
+          <div class="rest-btn short" onclick="doShortRest()">
+            <div style="font-size:22px">☕</div>
+            <div style="font-weight:600">Repos court</div>
+            <div style="font-size:15px;color:var(--text3);margin-top:1px">≥ 1 heure</div>
+            <div style="font-size:15px;margin-top:2px">Lance le dé de vie + CON</div>
+            ${_chantB?`<div style="font-size:15px;color:var(--cp);font-weight:600;margin-top:4px;border-top:1px solid rgba(200,168,75,.3);padding-top:3px">🎶 +${_chantB} PV (${esc(_chantSrc)})</div>`:''}
+          </div>
+          <div class="rest-btn long" onclick="doLongRest()">
+            <div style="font-size:22px">🌙</div>
+            <div style="font-weight:600">Repos long</div>
+            <div style="font-size:15px;color:var(--text3);margin-top:1px">≥ 8 heures</div>
+            <div style="font-size:15px;margin-top:2px">PV max + sorts + charges</div>
+          </div>
+        </div>
+      </div>`;
+    })()}
   </div>
 
   <!-- COLONNE DROITE -->
-  <div>
+  <div data-csgroup="perso-droite">
     <!-- Identité -->
-    <div class="panel mb10">
-      <div class="pt">Identité</div>
+    <div class="panel mb10" data-csid="perso-identite" draggable="true" ondragstart="combatDragStart(event,'perso-identite',this)" ondragend="combatDragEnd(this)" ondragover="combatDragOver(event,this)" ondrop="combatDrop(event,'perso-identite')">
+      <div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>Identité</div>
       <div class="fl mb6">Nom</div>
       <input class="fi mb6" value="${esc(p.charName)}" onchange="upd('charName',this.value);render()">
 
       ${(p.classes||[]).map(c=>{const d=SRD.classes.find(cl=>cl.name===c.name);if(!d)return'';return`<div style="background:var(--surface2);border-radius:6px;padding:8px 10px;margin-bottom:6px">
-        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">Classe</div>
-        <div style="font-size:13px;color:var(--cp);font-weight:600;margin-top:2px">${esc(c.name)} — Niveau ${c.level}</div>
-        <div style="font-size:13px;color:var(--text2);margin-top:2px">Dé: ${d.hd} • Armures: ${esc(d.armor.split(',')[0])}${d.spellcaster?' • <span style="color:var(--cp)">✦ Lanceur de sorts</span>':''}</div>
+        <div style="font-size:15px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">Classe</div>
+        <div style="font-size:18px;color:var(--cp);font-weight:600;margin-top:2px">${esc(c.name)} — Niveau ${c.level}</div>
+        <div style="font-size:18px;color:var(--text2);margin-top:2px">Dé: ${d.hd} • Armures: ${esc(d.armor.split(',')[0])}${d.spellcaster?' • <span style="color:var(--cp)">✦ Lanceur de sorts</span>':''}</div>
       </div>`;}).join('')}
 
       ${rd?`<div style="background:var(--surface2);border-radius:6px;padding:8px 10px;margin-bottom:6px">
-        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">Race</div>
-        <div style="font-size:13px;color:var(--cp);font-weight:600;margin-top:2px">${esc(p.race)}</div>
-        <div style="font-size:13px;color:var(--text2);margin-top:2px">Langues : ${esc(rd.languages)}</div>
+        <div style="font-size:15px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">Race</div>
+        <div style="font-size:18px;color:var(--cp);font-weight:600;margin-top:2px">${esc(p.race)}</div>
+        <div style="font-size:18px;color:var(--text2);margin-top:2px">Langues : ${esc(rd.languages)}</div>
       </div>`:''}
 
       <div class="fl mb6">Historique</div>
@@ -175,35 +199,12 @@ function tabPerso(p){
 
       <!-- Inspiration -->
       <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--surface2);border-radius:6px">
-        <span style="font-size:13px;color:var(--text2)">Inspiration</span>
+        <span style="font-size:18px;color:var(--text2)">Inspiration</span>
         <span onclick="toggleInspiration()" style="cursor:pointer;font-size:24px">${p.inspiration?'✦':'✧'}</span>
       </div>
     </div>
 
-    <!-- Repos -->
-    ${(()=>{
-      const _chantG=(typeof _groupData!=='undefined'?_groupData:[]).find(gp=>gp.uid!==(typeof currentUser!=='undefined'?currentUser?.uid:null)&&gp.charData?.combatCharges?.ChantReposantResult!==undefined);
-      const _chantB=_chantG?.charData.combatCharges.ChantReposantResult;
-      const _chantSrc=_chantG?.charData.charName||'Barde';
-      return`<div class="panel">
-        <div class="pt">Repos</div>
-        <div style="display:flex;gap:8px;${_chantB?'padding:6px;border:2px solid var(--cp);border-radius:10px;background:rgba(200,168,75,.04)':''}">
-          <div class="rest-btn short" onclick="doShortRest()">
-            <div style="font-size:16px">☕</div>
-            <div style="font-weight:600">Repos court</div>
-            <div style="font-size:11px;color:var(--text3);margin-top:1px">≥ 1 heure</div>
-            <div style="font-size:11px;margin-top:2px">Lance le dé de vie + CON</div>
-            ${_chantB?`<div style="font-size:11px;color:var(--cp);font-weight:600;margin-top:4px;border-top:1px solid rgba(200,168,75,.3);padding-top:3px">🎶 +${_chantB} PV (${esc(_chantSrc)})</div>`:''}
-          </div>
-          <div class="rest-btn long" onclick="doLongRest()">
-            <div style="font-size:16px">🌙</div>
-            <div style="font-weight:600">Repos long</div>
-            <div style="font-size:11px;color:var(--text3);margin-top:1px">≥ 8 heures</div>
-            <div style="font-size:11px;margin-top:2px">PV max + sorts + charges</div>
-          </div>
-        </div>
-      </div>`;
-    })()}
+    <!-- Repos : déplacé en colonne gauche, sous Statuts & Résistances -->
 
     <!-- (panneau Statuts fusionné dans « 🎯 Statuts & Résistances » ci-dessus) -->
 
@@ -232,18 +233,18 @@ function openPrivacySettings(){
     {id:'xp',label:'✧ Expérience',desc:'XP & niveau'},
   ];
   openModal(`<div class="pt">🔒 Confidentialité</div>
-    <div style="font-size:13px;color:var(--text3);margin-bottom:14px">Le MJ voit toujours tout. Choisissez ce que les autres joueurs peuvent voir onglet par onglet.</div>
+    <div style="font-size:18px;color:var(--text3);margin-bottom:14px">Le MJ voit toujours tout. Choisissez ce que les autres joueurs peuvent voir onglet par onglet.</div>
     ${tabs.map(t=>{
       const checked=priv[t.id]!==false;
       return`<label style="display:flex;align-items:center;gap:10px;padding:8px 4px;cursor:pointer;border-bottom:1px solid var(--border)">
         <input type="checkbox" ${checked?'checked':''} onchange="togglePrivacy('${t.id}',this.checked)" style="width:16px;height:16px;accent-color:var(--cp);flex-shrink:0">
         <div>
-          <div style="font-size:13px;font-weight:600">${t.label}</div>
-          <div style="font-size:12px;color:var(--text3)">${t.desc}</div>
+          <div style="font-size:18px;font-weight:600">${t.label}</div>
+          <div style="font-size:17px;color:var(--text3)">${t.desc}</div>
         </div>
       </label>`;
     }).join('')}
-    <div style="font-size:12px;color:var(--text3);margin-top:10px;padding:8px;background:rgba(200,168,75,.06);border-radius:6px;border:1px solid rgba(200,168,75,.15)">🔐 Les <strong>Secrets</strong> (onglet Historique) sont toujours privés — uniquement toi et le MJ.</div>
+    <div style="font-size:17px;color:var(--text3);margin-top:10px;padding:8px;background:rgba(200,168,75,.06);border-radius:6px;border:1px solid rgba(200,168,75,.15)">🔐 Les <strong>Secrets</strong> (onglet Historique) sont toujours privés — uniquement toi et le MJ.</div>
     <div style="display:flex;justify-content:flex-end;margin-top:14px"><button class="btn bac" onclick="closeModal()">Fermer</button></div>`);
 }
 
@@ -334,7 +335,7 @@ function promptConcSave(dmg){
   openModal(`<div style="text-align:center;padding:6px 4px">
     <div style="font-size:32px;margin-bottom:4px">🎯</div>
     <div class="pt" style="margin-bottom:6px">Concentration menacée</div>
-    <div style="font-size:13px;color:var(--text2);margin-bottom:16px">Tu as subi <strong style="color:#e53935">${dmg}</strong> dégâts en te concentrant${p.concentrationSpell?` sur <strong style="color:var(--cp)">${esc(p.concentrationSpell)}</strong>`:''}.<br>Jet de sauvegarde : <strong>CON DD ${dc}</strong>.<br><span style="font-size:12px;color:var(--text3)">Échec = concentration brisée.</span></div>
+    <div style="font-size:18px;color:var(--text2);margin-bottom:16px">Tu as subi <strong style="color:#e53935">${dmg}</strong> dégâts en te concentrant${p.concentrationSpell?` sur <strong style="color:var(--cp)">${esc(p.concentrationSpell)}</strong>`:''}.<br>Jet de sauvegarde : <strong>CON DD ${dc}</strong>.<br><span style="font-size:17px;color:var(--text3)">Échec = concentration brisée.</span></div>
     <div style="display:flex;gap:8px;justify-content:center">
       <button class="btn bac" onclick="closeModal();${typeof rollConcSave==='function'?`rollConcSave(${dmg})`:''}">🎲 Lancer le JS CON</button>
       <button class="btn" onclick="closeModal()">Plus tard</button>
@@ -379,7 +380,7 @@ function applyHp(sign){
       const _newHp=Math.max(0,Math.min(_effMax+(p.hpTemp||0),p.hp-dmg));
       if(_newHp===0&&p.race==='Demi-Orc'&&!p.relentlessEnduranceUsed){
         p.hp=0;_markUnsaved();render();
-        openModal('<div style="text-align:center;padding:20px 16px"><div style="font-size:36px;margin-bottom:8px">🧟</div><div class="pt" style="margin-bottom:6px">Endurance implacable</div><div style="font-size:14px;color:var(--text2);margin-bottom:20px">Vous tombez à 0 PV !<br>Utiliser <strong>Endurance implacable</strong> pour tomber à <strong style="color:#4caf50">1 PV</strong> ?<br><span style="font-size:12px;color:var(--text3)">(1 utilisation par repos long)</span></div><div style="display:flex;gap:8px;justify-content:center"><button class="btn bprimary" style="min-width:80px" onclick="useRelentlessEndurance()">✅ Oui</button><button class="btn" style="min-width:80px" onclick="closeModal()">❌ Non</button></div></div>');
+        openModal('<div style="text-align:center;padding:20px 16px"><div style="font-size:36px;margin-bottom:8px">🧟</div><div class="pt" style="margin-bottom:6px">Endurance implacable</div><div style="font-size:19px;color:var(--text2);margin-bottom:20px">Vous tombez à 0 PV !<br>Utiliser <strong>Endurance implacable</strong> pour tomber à <strong style="color:#4caf50">1 PV</strong> ?<br><span style="font-size:17px;color:var(--text3)">(1 utilisation par repos long)</span></div><div style="display:flex;gap:8px;justify-content:center"><button class="btn bprimary" style="min-width:80px" onclick="useRelentlessEndurance()">✅ Oui</button><button class="btn" style="min-width:80px" onclick="closeModal()">❌ Non</button></div></div>');
         return;
       }
       p.hp=_newHp;
@@ -541,16 +542,16 @@ function addResist(cat,val){const p=P();if(!val||!val.trim())return;if(!p[cat])p
 function openResistModal(){
   openModal(`<div>
     <div class="pt" style="margin-bottom:12px">+ Résistances & Immunités</div>
-    <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Résistances aux dégâts</div>
+    <div style="font-size:17px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Résistances aux dégâts</div>
     <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px">${_DMG_TYPES.map(t=>`<span class="status-badge bonus" style="cursor:pointer" onclick="addResist('dmgResistances','${esc(t)}');closeModal()">🛡 ${esc(t)}</span>`).join('')}</div>
-    <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Immunités aux dégâts</div>
+    <div style="font-size:17px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Immunités aux dégâts</div>
     <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px">${_DMG_TYPES.map(t=>`<span class="status-badge" style="background:#2e1b00;border-color:#ff9800;color:#ff9800;cursor:pointer" onclick="addResist('dmgImmunities','${esc(t)}');closeModal()">✦ ${esc(t)}</span>`).join('')}</div>
-    <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Immunités aux conditions</div>
+    <div style="font-size:17px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Immunités aux conditions</div>
     <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px">${_COND_TYPES.map(t=>`<span class="status-badge malus" style="cursor:pointer" onclick="addResist('condImmunities','${esc(t)}');closeModal()">🚫 ${esc(t)}</span>`).join('')}</div>
-    <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Personnalisé</div>
+    <div style="font-size:17px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Personnalisé</div>
     <div style="display:flex;gap:6px">
       <input class="fi" id="resistCustom" placeholder="Type de dégât ou condition..." style="flex:1">
-      <select id="resistCat" style="padding:7px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px">
+      <select id="resistCat" style="padding:7px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:18px">
         <option value="dmgResistances">Résistance</option>
         <option value="dmgImmunities">Immunité dégâts</option>
         <option value="condImmunities">Immunité condition</option>

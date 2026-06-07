@@ -13,7 +13,7 @@ function _buildChargeChips(p){
       else if(f.chargesFormula==='level'){max=(p.classes||[]).reduce((s,c)=>s+(c.level||1),0);}
       const rem=tracked[f.name]!==undefined?tracked[f.name]:max;
       const depleted=rem<=0;
-      chips.push(`<span style="font-size:9px;padding:1px 5px;border-radius:8px;border:1px solid ${depleted?'rgba(229,57,53,.4)':'rgba(200,168,75,.35)'};color:${depleted?'#e53935':'var(--cp)'};background:${depleted?'rgba(229,57,53,.06)':'rgba(200,168,75,.06)'};white-space:nowrap">${f.icon||'⚡'} ${rem}/${max}</span>`);
+      chips.push(`<span style="font-size:13px;padding:1px 5px;border-radius:8px;border:1px solid ${depleted?'rgba(229,57,53,.4)':'rgba(200,168,75,.35)'};color:${depleted?'#e53935':'var(--cp)'};background:${depleted?'rgba(229,57,53,.06)':'rgba(200,168,75,.06)'};white-space:nowrap">${f.icon||'⚡'} ${rem}/${max}</span>`);
     }
   }
   return chips.length?`<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:3px">${chips.join('')}</div>`:'';
@@ -49,17 +49,17 @@ function _updatePartyHUD(){
 
   // Bandeau "C'est ton tour" en haut du panel
   const myTurnBannerHtml=isMyTurn?`<div style="background:linear-gradient(135deg,#6d28d9,#4338ca);border-radius:8px;padding:8px 10px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:6px;animation:combatPulse 2s ease-in-out infinite">
-    <span style="font-size:13px;font-weight:700;color:white">⚡ C'est ton tour !</span>
-    <button onclick="playerEndTurn()" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);border-radius:6px;color:white;font-size:12px;font-weight:600;padding:4px 8px;cursor:pointer;white-space:nowrap">⏩ Fin du tour</button>
+    <span style="font-size:18px;font-weight:700;color:white">⚡ C'est ton tour !</span>
+    <button onclick="playerEndTurn()" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);border-radius:6px;color:white;font-size:17px;font-weight:600;padding:4px 8px;cursor:pointer;white-space:nowrap">⏩ Fin du tour</button>
   </div>`:'';
 
   const headerHtml=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.08)">
-    <span style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">👥 Groupe</span>
-    <button style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:0 4px;line-height:1" onclick="_togglePartyHud()" title="Replier">▼</button>
+    <span style="font-size:15px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em">👥 Groupe</span>
+    <button style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:19px;padding:0 4px;line-height:1" onclick="_togglePartyHud()" title="Replier">▼</button>
   </div>`;
 
   const membersHtml=_groupData.length===0
-    ?'<div style="padding:8px 0;text-align:center;font-size:13px;color:var(--text3)">En attente des joueurs...</div>'
+    ?'<div style="padding:8px 0;text-align:center;font-size:18px;color:var(--text3)">En attente des joueurs...</div>'
     :_groupData.map(pp=>{
       const p=pp.charData||{};
       const hp=p.hp||0;const hpMax=p.hpMax||1;
@@ -81,16 +81,16 @@ function _updatePartyHUD(){
       const isRaging=(p.combatCharges||{})['RageActive']===true;
       return`<div class="party-member" data-uid="${pp.uid}" style="${dimmed?'opacity:.4;':''}cursor:${isOwn?'default':'pointer'};${isSelected?'background:rgba(200,168,75,.07);border-radius:6px;':''}">
         <div class="pm-portrait${isOwn?' self':''}${isActiveTurn?' active-turn-portrait':''}" style="width:34px;height:34px;align-self:flex-start;margin-top:2px;flex-shrink:0;${isRaging?'animation:ragePulse 2s ease-in-out infinite;border-radius:50%;border:2px solid #e53935;':''}">
-          ${portrait?`<img src="${portrait}" style="width:100%;height:100%;object-fit:cover">`:`<span style="font-size:16px">${pp.avatar||'⚔'}</span>`}
+          ${portrait?`<img src="${portrait}" style="width:100%;height:100%;object-fit:cover">`:`<span style="font-size:22px">${pp.avatar||'⚔'}</span>`}
         </div>
         <div style="flex:1;min-width:0">
           <div style="display:flex;align-items:center;gap:4px">
             <span class="pm-name${isOwn?' self':''}">${esc(charName)}</span>
-            <span style="font-size:9px;color:${isOwn?'var(--cp)':'var(--text3)'};opacity:.8;flex-shrink:0">${isOwn?'Moi':esc(pp.playerName||'')}</span>
+            <span style="font-size:13px;color:${isOwn?'var(--cp)':'var(--text3)'};opacity:.8;flex-shrink:0">${isOwn?'Moi':esc(pp.playerName||'')}</span>
           </div>
           <div style="display:flex;align-items:center;gap:4px;margin-top:2px">
             <div class="pm-hp-bar" style="flex:1"><div class="pm-hp-fill" style="width:${hpPct}%;background:${hpColor}"></div></div>
-            <span style="font-size:9px;color:${down?'#e53935':hpColor};flex-shrink:0;font-weight:700">${dead?'💀':down?'⚠ À terre':hp+'/'+hpMax}</span>
+            <span style="font-size:13px;color:${down?'#e53935':hpColor};flex-shrink:0;font-weight:700">${dead?'💀':down?'⚠ À terre':hp+'/'+hpMax}</span>
           </div>
           ${conds.length?`<div class="pm-sub" style="margin-top:1px">${conds.slice(0,3).join(' ')}${conds.length>3?` <span style="opacity:.55">+${conds.length-3}</span>`:''}</div>`:''}
           ${_buildChargeChips(p)}
@@ -141,7 +141,7 @@ function _showHudDetail(uid){
   const dead=down&&(p.deathSaves?.fail>=3);
   const conds=p.conditions||[];
   const STATS_SH=['FOR','DEX','CON','INT','SAG','CHA'];
-  const statsHtml=p.abilities?STATS_SH.map((s,i)=>{const v=p.abilities[i]||10;const m=Math.floor((v-10)/2);return`<div style="text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:3px"><div style="font-size:8px;color:var(--text3)">${s}</div><div style="font-size:13px;font-weight:700;color:var(--text)">${v}</div><div style="font-size:8px;color:var(--cp)">${m>=0?'+':''}${m}</div></div>`;}).join(''):'';
+  const statsHtml=p.abilities?STATS_SH.map((s,i)=>{const v=p.abilities[i]||10;const m=Math.floor((v-10)/2);return`<div style="text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:3px"><div style="font-size:11px;color:var(--text3)">${s}</div><div style="font-size:18px;font-weight:700;color:var(--text)">${v}</div><div style="font-size:11px;color:var(--cp)">${m>=0?'+':''}${m}</div></div>`;}).join(''):'';
   const chargesHtml=_buildChargeChips(p);
 
   // Mode : overlay (hub/mj/group-only) ou flottant (fiche perso ouverte)
@@ -151,25 +151,25 @@ function _showHudDetail(uid){
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.08)">
       ${portrait?`<img src="${portrait}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;border:2px solid var(--cp);flex-shrink:0">`:`<div style="width:42px;height:42px;border-radius:50%;background:var(--surface2);border:2px solid var(--cp);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">${pp.avatar||'⚔'}</div>`}
       <div style="flex:1;min-width:0">
-        <div style="font-size:14px;font-weight:700;color:${isOwn?'var(--cp)':'var(--text)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.charName||pp.playerName||'?')}</div>
-        <div style="font-size:11px;color:var(--text3)">${isOwn?'Moi':esc(pp.playerName||'')}</div>
+        <div style="font-size:19px;font-weight:700;color:${isOwn?'var(--cp)':'var(--text)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.charName||pp.playerName||'?')}</div>
+        <div style="font-size:15px;color:var(--text3)">${isOwn?'Moi':esc(pp.playerName||'')}</div>
       </div>
-      <button onclick="_hideHudDetail();_updatePartyHUD()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:0 4px;flex-shrink:0">✕</button>
+      <button onclick="_hideHudDetail();_updatePartyHUD()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:19px;padding:0 4px;flex-shrink:0">✕</button>
     </div>
-    ${subLine?`<div style="font-size:12px;color:var(--text3);margin-bottom:6px">${esc(subLine)}</div>`:''}
-    ${!isOwn?`<div style="font-size:12px;color:var(--text3);margin-bottom:6px">Joueur : ${esc(pp.playerName||'')}</div>`:''}
+    ${subLine?`<div style="font-size:17px;color:var(--text3);margin-bottom:6px">${esc(subLine)}</div>`:''}
+    ${!isOwn?`<div style="font-size:17px;color:var(--text3);margin-bottom:6px">Joueur : ${esc(pp.playerName||'')}</div>`:''}
     <div class="pm-combat-badge ${combatActive?'pm-combat-active':'pm-combat-inactive'}" style="margin-bottom:10px">
       ${combatActive?(isActiveTurn?'⚔ Son tour':'⚔ En combat'):'🏳 Hors combat'}
     </div>
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:${(p.shieldHp||0)>0?'4':'8'}px">
-      <div style="flex:1"><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:3px"><span>PV</span><span style="font-weight:700;color:${down?'#e53935':hpColor}">${dead?'💀':down?'⚠ À terre':hp+'/'+hpMax}</span></div><div style="height:7px;background:var(--surface2);border-radius:4px;overflow:hidden"><div style="height:100%;width:${hpPct}%;background:${hpColor};border-radius:4px"></div></div></div>
-      ${p.ac?`<div style="text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 10px;flex-shrink:0"><div style="font-size:8px;color:var(--text3)">CA</div><div style="font-size:16px;font-weight:700">${p.ac}</div></div>`:''}
+      <div style="flex:1"><div style="display:flex;justify-content:space-between;font-size:15px;color:var(--text3);margin-bottom:3px"><span>PV</span><span style="font-weight:700;color:${down?'#e53935':hpColor}">${dead?'💀':down?'⚠ À terre':hp+'/'+hpMax}</span></div><div style="height:7px;background:var(--surface2);border-radius:4px;overflow:hidden"><div style="height:100%;width:${hpPct}%;background:${hpColor};border-radius:4px"></div></div></div>
+      ${p.ac?`<div style="text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:4px 10px;flex-shrink:0"><div style="font-size:11px;color:var(--text3)">CA</div><div style="font-size:22px;font-weight:700">${p.ac}</div></div>`:''}
     </div>
-    ${(p.shieldHp||0)>0?`<div style="margin-bottom:8px;padding:4px 6px;background:rgba(33,150,243,.08);border:1px solid rgba(33,150,243,.25);border-radius:6px"><div style="display:flex;justify-content:space-between;font-size:9px;color:#42a5f5;margin-bottom:2px"><span>🔵 Bouclier magique</span><span style="font-weight:700">${p.shieldHp}/${p.shieldHpMax||p.shieldHp}</span></div><div style="height:4px;background:rgba(33,150,243,.15);border-radius:2px;overflow:hidden"><div style="height:100%;width:${Math.round((p.shieldHp/Math.max(1,p.shieldHpMax||p.shieldHp))*100)}%;background:#1565c0;border-radius:2px"></div></div></div>`:''}
-    ${conds.length?`<div style="font-size:12px;color:var(--text2);margin-bottom:8px">${conds.join(' ')}</div>`:''}
+    ${(p.shieldHp||0)>0?`<div style="margin-bottom:8px;padding:4px 6px;background:rgba(33,150,243,.08);border:1px solid rgba(33,150,243,.25);border-radius:6px"><div style="display:flex;justify-content:space-between;font-size:13px;color:#42a5f5;margin-bottom:2px"><span>🔵 Bouclier magique</span><span style="font-weight:700">${p.shieldHp}/${p.shieldHpMax||p.shieldHp}</span></div><div style="height:4px;background:rgba(33,150,243,.15);border-radius:2px;overflow:hidden"><div style="height:100%;width:${Math.round((p.shieldHp/Math.max(1,p.shieldHpMax||p.shieldHp))*100)}%;background:#1565c0;border-radius:2px"></div></div></div>`:''}
+    ${conds.length?`<div style="font-size:17px;color:var(--text2);margin-bottom:8px">${conds.join(' ')}</div>`:''}
     ${chargesHtml?`<div style="margin-bottom:8px">${chargesHtml}</div>`:''}
-    ${statsHtml?`<details style="margin-bottom:10px"><summary style="font-size:11px;color:var(--text3);cursor:pointer;list-style:none;display:flex;align-items:center;gap:3px"><span>▶</span> Caractéristiques</summary><div style="display:grid;grid-template-columns:repeat(6,1fr);gap:3px;margin-top:6px">${statsHtml}</div></details>`:''}
-    <button onclick="${isOwn?`enterCampaign('${currentTableId}','${currentCampaignId}')`:`_partyMemberClick('${uid}')`}" style="width:100%;background:none;border:1px solid rgba(200,168,75,.3);border-radius:8px;color:var(--cp);cursor:pointer;font-size:13px;padding:7px 0;font-weight:600">📋 ${isOwn?'Ma fiche':'Voir la fiche'}</button>`;
+    ${statsHtml?`<details style="margin-bottom:10px"><summary style="font-size:15px;color:var(--text3);cursor:pointer;list-style:none;display:flex;align-items:center;gap:3px"><span>▶</span> Caractéristiques</summary><div style="display:grid;grid-template-columns:repeat(6,1fr);gap:3px;margin-top:6px">${statsHtml}</div></details>`:''}
+    <button onclick="${isOwn?`enterCampaign('${currentTableId}','${currentCampaignId}')`:`_partyMemberClick('${uid}')`}" style="width:100%;background:none;border:1px solid rgba(200,168,75,.3);border-radius:8px;color:var(--cp);cursor:pointer;font-size:18px;padding:7px 0;font-weight:600">📋 ${isOwn?'Ma fiche':'Voir la fiche'}</button>`;
 
   if(onCharSheet){
     // Petit panneau flottant à côté du HUD

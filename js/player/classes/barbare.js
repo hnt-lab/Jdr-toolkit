@@ -40,24 +40,24 @@ function renderBarbare(p) {
 
   // ── Rage : charges + toggle ───────────────────────────────
   const rageBubbles = unlimited
-    ? `<div style="font-size:20px;font-weight:700;color:var(--cp)">∞</div><div style="font-size:11px;color:var(--text3);margin-top:2px">Rages illimitées</div>`
-    : `<div style="display:flex;gap:4px;flex-wrap:wrap">${Array.from({length:rageMax},(_,i)=>`<span class="slot-bubble${i<rem?'':' used'}" onclick="useCombatCharge('RageCharges',${rageMax})" title="Utiliser une rage"></span>`).join('')}</div><div style="font-size:11px;color:var(--text3);margin-top:4px">${rem}/${rageMax} • Récup. repos long</div><button class="btn bsm" style="margin-top:4px" onclick="recoverCombatCharge('RageCharges',${rageMax})">↺ Récupérer</button>`;
+    ? `<div style="font-size:20px;font-weight:700;color:var(--cp)">∞</div><div style="font-size:15px;color:var(--text3);margin-top:2px">Rages illimitées</div>`
+    : `<div style="display:flex;gap:4px;flex-wrap:wrap">${Array.from({length:rageMax},(_,i)=>`<span class="slot-bubble${i<rem?'':' used'}" onclick="useCombatCharge('RageCharges',${rageMax})" title="Utiliser une rage"></span>`).join('')}</div><div style="font-size:15px;color:var(--text3);margin-top:4px">${rem}/${rageMax} • Récup. repos long</div><button class="btn bsm" style="margin-top:4px" onclick="recoverCombatCharge('RageCharges',${rageMax})">↺ Récupérer</button>`;
 
-  const baseResTags = ['Contondant','Perforant','Tranchant'].map(r=>`<span style="font-size:12px;padding:2px 8px;border-radius:10px;background:${rageActive?'rgba(229,57,53,.2)':'var(--surface3)'};color:${rageActive?'#e53935':'var(--text3)'};border:1px solid ${rageActive?'#e53935':'var(--border)'}">${r}</span>`).join('');
-  const totemOursTags = (isTotem&&totemChoice==='Ours'&&rageActive)?['Feu','Froid','Foudre','Nécrotique','Acide','Tonnerre','Radiant','Poison'].map(r=>`<span style="font-size:12px;padding:2px 8px;border-radius:10px;background:rgba(76,175,80,.2);color:#4caf50;border:1px solid #4caf50">${r}</span>`).join(''):'';
-  const berserkerImmuTag = (isBerserker&&barbareLvl>=6&&rageActive)?`<span style="font-size:12px;padding:2px 8px;border-radius:10px;background:rgba(76,175,80,.2);color:#4caf50;border:1px solid #4caf50">🛡 Imm. charme/peur</span>`:'';
+  const baseResTags = ['Contondant','Perforant','Tranchant'].map(r=>`<span style="font-size:17px;padding:2px 8px;border-radius:10px;background:${rageActive?'rgba(229,57,53,.2)':'var(--surface3)'};color:${rageActive?'#e53935':'var(--text3)'};border:1px solid ${rageActive?'#e53935':'var(--border)'}">${r}</span>`).join('');
+  const totemOursTags = (isTotem&&totemChoice==='Ours'&&rageActive)?['Feu','Froid','Foudre','Nécrotique','Acide','Tonnerre','Radiant','Poison'].map(r=>`<span style="font-size:17px;padding:2px 8px;border-radius:10px;background:rgba(76,175,80,.2);color:#4caf50;border:1px solid #4caf50">${r}</span>`).join(''):'';
+  const berserkerImmuTag = (isBerserker&&barbareLvl>=6&&rageActive)?`<span style="font-size:17px;padding:2px 8px;border-radius:10px;background:rgba(76,175,80,.2);color:#4caf50;border:1px solid #4caf50">🛡 Imm. charme/peur</span>`:'';
 
   panels.push(`<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px">
     <div class="sb hi" style="flex:1;min-width:80px"><div class="sn">Bonus dégâts</div><div style="font-size:20px;font-weight:700;color:var(--cp)">+${rageBonus}</div></div>
-    <div style="flex:2"><div style="font-size:12px;color:var(--text3);margin-bottom:4px">Charges de Rage</div>${rageBubbles}</div>
+    <div style="flex:2"><div style="font-size:17px;color:var(--text3);margin-bottom:4px">Charges de Rage</div>${rageBubbles}</div>
   </div>
   <div style="margin-bottom:10px;padding:8px;background:${rageActive?'rgba(229,57,53,.1)':'var(--surface2)'};border-radius:6px;border:1px solid ${rageActive?'#e53935':'var(--border)'}">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-      <span style="font-size:13px;font-weight:600;color:${rageActive?'#e53935':'var(--text3)'}">${rageActive?'🔥 En rage':'💤 Hors rage'}</span>
+      <span style="font-size:18px;font-weight:600;color:${rageActive?'#e53935':'var(--text3)'}">${rageActive?'🔥 En rage':'💤 Hors rage'}</span>
       <button class="btn bsm" style="${rageActive?'color:#e53935;border-color:#e53935;':''}" onclick="toggleRageActive()">${rageActive?'⬛ Sortir de la rage':'🔸🔥 Entrer en rage'}</button>
     </div>
-    ${rageActive?`<div style="margin-bottom:8px">${isPersistante?`<div style="font-size:12px;color:#ff9800;margin-bottom:4px">♾ Rage persistante — durée illimitée.</div>`:`<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><div style="display:flex;gap:2px">${Array.from({length:10},(_,i)=>`<span style="width:14px;height:14px;border-radius:2px;border:1px solid ${i<rageTurns?'#e53935':'var(--border)'};background:${i<rageTurns?'rgba(229,57,53,.35)':'transparent'};display:inline-block"></span>`).join('')}</div><span style="font-size:12px;color:${rageTurns<=3?'#e53935':'var(--text3)'}">⏱ ${rageTurns}/10 tours</span></div><button class="btn bsm" style="color:#e53935;border-color:#e53935;margin-bottom:4px" onclick="endRageTurn()">⏩ Fin de tour</button>`}</div>`:''}
-    <div style="font-size:12px;color:var(--text3);margin-bottom:4px">Résistances actives en rage :</div>
+    ${rageActive?`<div style="margin-bottom:8px">${isPersistante?`<div style="font-size:17px;color:#ff9800;margin-bottom:4px">♾ Rage persistante — durée illimitée.</div>`:`<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><div style="display:flex;gap:2px">${Array.from({length:10},(_,i)=>`<span style="width:14px;height:14px;border-radius:2px;border:1px solid ${i<rageTurns?'#e53935':'var(--border)'};background:${i<rageTurns?'rgba(229,57,53,.35)':'transparent'};display:inline-block"></span>`).join('')}</div><span style="font-size:17px;color:${rageTurns<=3?'#e53935':'var(--text3)'}">⏱ ${rageTurns}/10 tours</span></div><button class="btn bsm" style="color:#e53935;border-color:#e53935;margin-bottom:4px" onclick="endRageTurn()">⏩ Fin de tour</button>`}</div>`:''}
+    <div style="font-size:17px;color:var(--text3);margin-bottom:4px">Résistances actives en rage :</div>
     <div style="display:flex;gap:4px;flex-wrap:wrap">${baseResTags}${totemOursTags}${berserkerImmuTag}</div>
   </div>`);
 
@@ -67,12 +67,12 @@ function renderBarbare(p) {
   if (rageActive) {
     const forMod = mod(p.abilities[0]);
     panels.push(`<div style="margin-bottom:10px;padding:8px;background:rgba(229,57,53,.07);border-radius:6px;border:1px solid rgba(229,57,53,.5);animation:combatPulse 3s ease-in-out infinite">
-      <div style="font-size:13px;font-weight:600;color:#e53935;margin-bottom:6px">🔥 Avantage en rage — Force</div>
+      <div style="font-size:18px;font-weight:600;color:#e53935;margin-bottom:6px">🔥 Avantage en rage — Force</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
         <button class="btn bsm" style="background:rgba(229,57,53,.15);color:#e53935;border-color:#e53935;font-weight:600" onclick="rollSave('JS FOR',${forMod},1)">🔥⚡ JS FOR (avantage)</button>
         <button class="btn bsm" style="background:rgba(229,57,53,.15);color:#e53935;border-color:#e53935;font-weight:600" onclick="rollSave('Jet FOR',${forMod},1)">🔥⚡ Jet FOR (avantage)</button>
       </div>
-      <div style="font-size:11px;color:var(--text3);line-height:1.5">Avantage sur tous les jets de Force en rage : sauvegardes <em>et</em> jets de compétence (Athlétisme, etc.).<br>Pour les compétences physiques hors app, applique l'avantage dans l'outil Dés ou lance deux fois et garde le meilleur.</div>
+      <div style="font-size:15px;color:var(--text3);line-height:1.5">Avantage sur tous les jets de Force en rage : sauvegardes <em>et</em> jets de compétence (Athlétisme, etc.).<br>Pour les compétences physiques hors app, applique l'avantage dans l'outil Dés ou lance deux fois et garde le meilleur.</div>
     </div>`);
   }
 
@@ -80,10 +80,10 @@ function renderBarbare(p) {
   if (barbareLvl>=2) {
     panels.push(`<div style="margin-bottom:10px;padding:8px;background:var(--surface2);border-radius:6px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-        <span style="font-size:13px;font-weight:600;color:var(--cp)">👁 Sens du danger</span>
+        <span style="font-size:18px;font-weight:600;color:var(--cp)">👁 Sens du danger</span>
         <button class="btn bsm" onclick="rollSave('JS DEX',${dexMod},1)">⚡ JS DEX (avantage)</button>
       </div>
-      <div style="font-size:12px;color:var(--text3)">Avantage aux JS DEX contre les effets visibles (pièges, sorts, effets de zone). Pas d'application si aveuglé, sourd, ou incapable d'agir.</div>
+      <div style="font-size:17px;color:var(--text3)">Avantage aux JS DEX contre les effets visibles (pièges, sorts, effets de zone). Pas d'application si aveuglé, sourd, ou incapable d'agir.</div>
     </div>`);
   }
 
@@ -94,10 +94,10 @@ function renderBarbare(p) {
     const temActive = cc['Témérité']===true;
     panels.push(`<div style="margin-bottom:10px;padding:8px;background:${temActive?'rgba(255,152,0,.1)':'var(--surface2)'};border-radius:6px;border:1px solid ${temActive?'#ff9800':'var(--border)'}">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-        <span style="font-size:13px;font-weight:600;color:${temActive?'#ff9800':'var(--cp)'}">😤 Attaque téméraire</span>
+        <span style="font-size:18px;font-weight:600;color:${temActive?'#ff9800':'var(--cp)'}">😤 Attaque téméraire</span>
         <button class="btn bsm" style="${temActive?'color:#ff9800;border-color:#ff9800':''}" onclick="toggleTémérité()">${temActive?'✕ Désactiver':'⚔ Activer'}</button>
       </div>
-      <div style="font-size:12px;color:var(--text3)">${temActive?'✅ Avantage sur tes attaques de mêlée (Force). ❌ Les attaquants ont l\'avantage contre toi jusqu\'à ton prochain tour.':'Avantage sur tes attaques de mêlée (Force) ce tour, au prix de donner l\'avantage aux attaquants jusqu\'à ton prochain tour.'}</div>
+      <div style="font-size:17px;color:var(--text3)">${temActive?'✅ Avantage sur tes attaques de mêlée (Force). ❌ Les attaquants ont l\'avantage contre toi jusqu\'à ton prochain tour.':'Avantage sur tes attaques de mêlée (Force) ce tour, au prix de donner l\'avantage aux attaquants jusqu\'à ton prochain tour.'}</div>
     </div>`);
   }
 
@@ -107,41 +107,41 @@ function renderBarbare(p) {
     const exh = p.exhaustion||0;
     const exhDesc = ['Aucun épuisement','Désavantage aux jets de compétence','Vitesse divisée par 2','Désavantage aux jets d\'attaque et de sauvegarde','PV maximum réduits de moitié','Vitesse réduite à 0','☠ La créature meurt'];
     panels.push(`<div style="margin-bottom:10px;padding:8px;background:${frenActive?'rgba(183,28,28,.1)':exh>=3?'rgba(229,57,53,.06)':'var(--surface2)'};border-radius:6px;border:1px solid ${frenActive?'#b71c1c':exh>=3?'rgba(229,57,53,.4)':'var(--border)'}">
-      <div style="font-size:13px;font-weight:700;color:${frenActive?'#b71c1c':'var(--cp)'};margin-bottom:8px">💢 Frénésie & Épuisement</div>
+      <div style="font-size:18px;font-weight:700;color:${frenActive?'#b71c1c':'var(--cp)'};margin-bottom:8px">💢 Frénésie & Épuisement</div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-        <span style="font-size:12px;font-weight:600;color:${frenActive?'#b71c1c':'var(--text2)'}">Frénésie</span>
+        <span style="font-size:17px;font-weight:600;color:${frenActive?'#b71c1c':'var(--text2)'}">Frénésie</span>
         <button class="btn bsm" style="${frenActive?'color:#b71c1c;border-color:#b71c1c':''}" onclick="P().combatCharges=P().combatCharges||{};P().combatCharges['FrénésieActive']=!${frenActive};_markUnsaved();render()">${frenActive?'✕ Désactiver':'⚔ Activer pour cette rage'}</button>
       </div>
-      <div style="font-size:12px;color:var(--text3);margin-bottom:10px">${frenActive?'⚔ Attaque bonus (mêlée) à chaque tour de rage. ⚠ +1 épuisement à la fin de la rage.':'Attaque bonus (mêlée) par tour de rage, au coût de 1 niveau d\'épuisement à la fin.'}</div>
+      <div style="font-size:17px;color:var(--text3);margin-bottom:10px">${frenActive?'⚔ Attaque bonus (mêlée) à chaque tour de rage. ⚠ +1 épuisement à la fin de la rage.':'Attaque bonus (mêlée) par tour de rage, au coût de 1 niveau d\'épuisement à la fin.'}</div>
       <div style="border-top:1px solid ${exh>=3?'rgba(229,57,53,.25)':'var(--border)'};padding-top:8px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-          <span style="font-size:12px;font-weight:600;color:${exh>=3?'#e53935':'var(--text2)'}">💀 Épuisement — ${exh}/6</span>
+          <span style="font-size:17px;font-weight:600;color:${exh>=3?'#e53935':'var(--text2)'}">💀 Épuisement — ${exh}/6</span>
           <div style="display:flex;gap:4px">
             <button class="btn bsm" onclick="changeExhaustion(1)">+1</button>
             <button class="btn bsm" onclick="changeExhaustion(-1)">-1</button>
           </div>
         </div>
         <div style="display:flex;gap:3px;margin-bottom:6px">${Array.from({length:6},(_,i)=>`<span style="width:18px;height:18px;border-radius:50%;border:2px solid ${i<exh?'#e53935':'var(--border)'};background:${i<exh?'rgba(229,57,53,.35)':'transparent'};display:inline-block"></span>`).join('')}</div>
-        <div style="font-size:12px;color:${exh>=3?'#e53935':'var(--text3)'}">Pallier actuel : ${exhDesc[exh]||''}</div>
+        <div style="font-size:17px;color:${exh>=3?'#e53935':'var(--text3)'}">Pallier actuel : ${exhDesc[exh]||''}</div>
       </div>
     </div>`);
     if (barbareLvl>=10) {
       panels.push(`<div style="margin-bottom:10px;padding:8px;background:var(--surface2);border-radius:6px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-          <span style="font-size:13px;font-weight:600;color:var(--cp)">😱 Présence intimidante</span>
-          <span style="font-size:11px;color:var(--text3)">Action • portée 9m</span>
+          <span style="font-size:18px;font-weight:600;color:var(--cp)">😱 Présence intimidante</span>
+          <span style="font-size:15px;color:var(--text3)">Action • portée 9m</span>
         </div>
         <button class="btn bsm" style="margin-bottom:6px" onclick="rollSave('JS SAG',${chaMod+pb(lvl)})">🎲 JS SAG DD ${8+pb(lvl)+chaMod} — Effrayée</button>
-        <div style="font-size:12px;color:var(--text3)">Cible une créature visible/audible à 9m. Si elle rate, elle est Effrayée jusqu\'à la fin de ton prochain tour.</div>
+        <div style="font-size:17px;color:var(--text3)">Cible une créature visible/audible à 9m. Si elle rate, elle est Effrayée jusqu\'à la fin de ton prochain tour.</div>
       </div>`);
     }
     if (barbareLvl>=14) {
       panels.push(`<div style="margin-bottom:10px;padding:8px;background:var(--surface2);border-radius:6px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-          <span style="font-size:13px;font-weight:600;color:var(--cp)">↪ Représailles</span>
-          <span style="font-size:11px;color:#9c27b0;border:1px solid rgba(156,39,176,.4);border-radius:8px;padding:1px 6px">Réaction</span>
+          <span style="font-size:18px;font-weight:600;color:var(--cp)">↪ Représailles</span>
+          <span style="font-size:15px;color:#9c27b0;border:1px solid rgba(156,39,176,.4);border-radius:8px;padding:1px 6px">Réaction</span>
         </div>
-        <div style="font-size:12px;color:var(--text3)">Quand tu subis des dégâts d\'une attaque de mêlée, tu peux immédiatement faire 1 attaque de mêlée contre l\'attaquant.</div>
+        <div style="font-size:17px;color:var(--text3)">Quand tu subis des dégâts d\'une attaque de mêlée, tu peux immédiatement faire 1 attaque de mêlée contre l\'attaquant.</div>
       </div>`);
     }
   }
@@ -154,9 +154,9 @@ function renderBarbare(p) {
       {id:'Loup',icon:'🐺',desc:'En rage, tes alliés ont l\'avantage sur les attaques de mêlée contre les créatures à 1,5m de toi.'}
     ];
     panels.push(`<div style="margin-bottom:10px;padding:8px;background:var(--surface2);border-radius:6px">
-      <div style="font-size:13px;font-weight:600;color:var(--cp);margin-bottom:8px">🌿 Esprit totem</div>
+      <div style="font-size:18px;font-weight:600;color:var(--cp);margin-bottom:8px">🌿 Esprit totem</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">${totems.map(t=>`<button class="btn bsm${totemChoice===t.id?' bac':''}" onclick="P().combatCharges=P().combatCharges||{};P().combatCharges['TotemSpirit']='${t.id}';_markUnsaved();render()">${t.icon} ${t.id}</button>`).join('')}</div>
-      ${totemChoice?`<div style="font-size:12px;color:var(--text3)">${totems.find(t=>t.id===totemChoice)?.desc||''}</div>`:'<div style="font-size:12px;color:var(--text3);font-style:italic">Choisissez votre esprit totem ci-dessus.</div>'}
+      ${totemChoice?`<div style="font-size:17px;color:var(--text3)">${totems.find(t=>t.id===totemChoice)?.desc||''}</div>`:'<div style="font-size:17px;color:var(--text3);font-style:italic">Choisissez votre esprit totem ci-dessus.</div>'}
     </div>`);
 
     if (barbareLvl>=6) {
@@ -166,15 +166,15 @@ function renderBarbare(p) {
         Loup:'🐺 Tu peux pister des créatures même à allure rapide. Déplacement furtif à vitesse normale possible.'
       })[totemChoice]||'<em style="color:var(--text3)">Choisissez d\'abord votre esprit totem (niv.3).</em>';
       panels.push(`<div style="margin-bottom:10px;padding:8px;background:var(--surface2);border-radius:6px">
-        <div style="font-size:13px;font-weight:600;color:var(--cp);margin-bottom:4px">🌿 Aspect de la bête</div>
-        <div style="font-size:12px;color:var(--text3)">${aspectDesc}</div>
+        <div style="font-size:18px;font-weight:600;color:var(--cp);margin-bottom:4px">🌿 Aspect de la bête</div>
+        <div style="font-size:17px;color:var(--text3)">${aspectDesc}</div>
       </div>`);
     }
 
     if (barbareLvl>=10) {
       panels.push(`<div style="margin-bottom:10px;padding:8px;background:var(--surface2);border-radius:6px">
-        <div style="font-size:13px;font-weight:600;color:var(--cp);margin-bottom:4px">🚶 Marcheur spirituel</div>
-        <div style="font-size:12px;color:var(--text3)">Tu peux lancer <em>Communion avec la nature</em> comme un rituel. Au lieu d'une vraie bête, tu communies avec une version spirituelle de l'animal de ton totem.</div>
+        <div style="font-size:18px;font-weight:600;color:var(--cp);margin-bottom:4px">🚶 Marcheur spirituel</div>
+        <div style="font-size:17px;color:var(--text3)">Tu peux lancer <em>Communion avec la nature</em> comme un rituel. Au lieu d'une vraie bête, tu communies avec une version spirituelle de l'animal de ton totem.</div>
       </div>`);
     }
 
@@ -189,8 +189,8 @@ function renderBarbare(p) {
         Loup:`🐺 En rage, quand tu touches une créature Grande ou plus petite, tu peux utiliser une action bonus pour la faire tomber à terre.${rageActive?' <button class="btn bsm" style="margin-left:6px" onclick="showToast(\'⚡ Action bonus : cible tombée à terre.\')">⚡ Renverser</button>':''}`
       })[totemChoice]||'<em style="color:var(--text3)">Choisissez d\'abord votre esprit totem.</em>';
       panels.push(`<div style="margin-bottom:10px;padding:8px;background:${rageActive&&totemChoice?'rgba(33,150,243,.07)':'var(--surface2)'};border-radius:6px;border:1px solid ${rageActive&&totemChoice?'rgba(33,150,243,.3)':'var(--border)'}">
-        <div style="font-size:13px;font-weight:600;color:var(--cp);margin-bottom:4px">🔗 Lien totémique</div>
-        <div style="font-size:12px;color:var(--text3)">${lienDesc}</div>
+        <div style="font-size:18px;font-weight:600;color:var(--cp);margin-bottom:4px">🔗 Lien totémique</div>
+        <div style="font-size:17px;color:var(--text3)">${lienDesc}</div>
       </div>`);
     }
   }
@@ -218,47 +218,47 @@ function renderBarbare(p) {
 
     let srsHtml;
     if (srsResult2 && Array.isArray(srsResult2) && srsResult2.length===2) {
-      srsHtml = `<div style="font-size:12px;color:#9c27b0;font-weight:600;margin-bottom:6px">🎯 Choisissez un résultat :</div>
+      srsHtml = `<div style="font-size:17px;color:#9c27b0;font-weight:600;margin-bottom:6px">🎯 Choisissez un résultat :</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
         <div style="padding:6px;background:rgba(156,39,176,.1);border:1px solid rgba(156,39,176,.3);border-radius:6px;cursor:pointer" onclick="(()=>{const p=P();if(!p.combatCharges)p.combatCharges={};p.combatCharges['SursautResult']=${srsResult2[0]};delete p.combatCharges['SursautResult2'];_markUnsaved();render();})()">
-          <div style="font-size:12px;font-weight:600;color:#9c27b0">${srsResult2[0]+1}/8</div>
-          <div style="font-size:11px;color:var(--text3);line-height:1.3">${BARBARE_SURSAUT[srsResult2[0]]||''}</div>
-          <div style="font-size:11px;color:#9c27b0;margin-top:3px">✓ Choisir</div>
+          <div style="font-size:17px;font-weight:600;color:#9c27b0">${srsResult2[0]+1}/8</div>
+          <div style="font-size:15px;color:var(--text3);line-height:1.3">${BARBARE_SURSAUT[srsResult2[0]]||''}</div>
+          <div style="font-size:15px;color:#9c27b0;margin-top:3px">✓ Choisir</div>
         </div>
         <div style="padding:6px;background:rgba(156,39,176,.1);border:1px solid rgba(156,39,176,.3);border-radius:6px;cursor:pointer" onclick="(()=>{const p=P();if(!p.combatCharges)p.combatCharges={};p.combatCharges['SursautResult']=${srsResult2[1]};delete p.combatCharges['SursautResult2'];_markUnsaved();render();})()">
-          <div style="font-size:12px;font-weight:600;color:#9c27b0">${srsResult2[1]+1}/8</div>
-          <div style="font-size:11px;color:var(--text3);line-height:1.3">${BARBARE_SURSAUT[srsResult2[1]]||''}</div>
-          <div style="font-size:11px;color:#9c27b0;margin-top:3px">✓ Choisir</div>
+          <div style="font-size:17px;font-weight:600;color:#9c27b0">${srsResult2[1]+1}/8</div>
+          <div style="font-size:15px;color:var(--text3);line-height:1.3">${BARBARE_SURSAUT[srsResult2[1]]||''}</div>
+          <div style="font-size:15px;color:#9c27b0;margin-top:3px">✓ Choisir</div>
         </div>
       </div>`;
     } else if (srsResult!==undefined) {
-      srsHtml = `<div style="padding:6px 10px;background:rgba(156,39,176,.1);border:1px solid rgba(156,39,176,.3);border-radius:6px;font-size:12px;color:var(--text2);margin-bottom:6px"><strong style="color:#9c27b0">Résultat ${srsResult+1}/8 :</strong> ${BARBARE_SURSAUT[srsResult]||''}</div>${_sursBtn(srsResult)}<div style="margin-top:6px"><button class="btn bsm" onclick="(()=>{const p=P();if(!p.combatCharges)p.combatCharges={};delete p.combatCharges['SursautResult'];_markUnsaved();render();})()">↺ Effacer</button></div>`;
+      srsHtml = `<div style="padding:6px 10px;background:rgba(156,39,176,.1);border:1px solid rgba(156,39,176,.3);border-radius:6px;font-size:17px;color:var(--text2);margin-bottom:6px"><strong style="color:#9c27b0">Résultat ${srsResult+1}/8 :</strong> ${BARBARE_SURSAUT[srsResult]||''}</div>${_sursBtn(srsResult)}<div style="margin-top:6px"><button class="btn bsm" onclick="(()=>{const p=P();if(!p.combatCharges)p.combatCharges={};delete p.combatCharges['SursautResult'];_markUnsaved();render();})()">↺ Effacer</button></div>`;
     } else {
-      srsHtml = `<div style="font-size:12px;color:var(--text3);font-style:italic">Lancé automatiquement quand tu entres en rage.</div>`;
+      srsHtml = `<div style="font-size:17px;color:var(--text3);font-style:italic">Lancé automatiquement quand tu entres en rage.</div>`;
     }
 
     let msContent = `<div style="margin-bottom:10px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-        <span style="font-size:12px;font-weight:600;color:var(--text2)">🔍 Sens de la magie (${sensMagieCur}/${sensMagieMax})</span>
+        <span style="font-size:17px;font-weight:600;color:var(--text2)">🔍 Sens de la magie (${sensMagieCur}/${sensMagieMax})</span>
         <button class="btn bsm" onclick="recoverCombatCharge('SensMagie',${sensMagieMax})">↺ Récupérer</button>
       </div>
       <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:4px">${Array.from({length:sensMagieMax},(_,i)=>`<span class="slot-bubble${i<sensMagieCur?'':' used'}" onclick="useCombatCharge('SensMagie',${sensMagieMax})" title="Utiliser Sens de la magie"></span>`).join('')}</div>
-      <div style="font-size:11px;color:var(--text3)">Action : détecter sorts/objets magiques à 18m jusqu'à la fin de ton prochain tour. Récup. repos long.</div>
+      <div style="font-size:15px;color:var(--text3)">Action : détecter sorts/objets magiques à 18m jusqu'à la fin de ton prochain tour. Récup. repos long.</div>
     </div>
     <div style="margin-bottom:8px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-        <span style="font-size:12px;font-weight:600;color:var(--text2)">⚡ Sursaut sauvage</span>
+        <span style="font-size:17px;font-weight:600;color:var(--text2)">⚡ Sursaut sauvage</span>
         <div style="display:flex;gap:4px">${barbareLvl>=10?`<button class="btn bsm" onclick="(()=>{const r=Math.floor(Math.random()*8);const p=P();if(!p.combatCharges)p.combatCharges={};p.combatCharges['SursautResult']=r;delete p.combatCharges['SursautResult2'];_markUnsaved();render();showToast('Sursaut réaction — '+(r+1)+'/8')})()">⚡ Réaction</button>`:''}<button class="btn bsm bac" onclick="${sursLancerOnClick}">🎲 Lancer${barbareLvl>=14?' (×2)':''}</button></div>
       </div>
       ${srsHtml}
     </div>`;
 
-    if (barbareLvl>=6) msContent += `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"><div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:2px">⚡ Réserve de magie</div><div style="font-size:12px;color:var(--text3)">Si tu n'as plus de charges de rage au début de ton tour (clique <em>Fin de tour</em> dans le panneau rage), tu en regagnes 1 automatiquement.</div></div>`;
-    if (barbareLvl>=10) msContent += `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"><div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:2px">🌀 Réaction instable</div><div style="font-size:12px;color:var(--text3)">Réaction : quand tu subis les effets d'un sort, tu peux déclencher un Sursaut sauvage. Utilise le bouton ⚡ Réaction ci-dessus.</div></div>`;
-    if (barbareLvl>=14) msContent += `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"><div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:2px">🎯 Sursaut contrôlé</div><div style="font-size:12px;color:var(--text3)">Lors d'un Sursaut sauvage, deux résultats sont tirés (🎲 ×2). Choisissez le résultat à appliquer en cliquant dessus.</div></div>`;
+    if (barbareLvl>=6) msContent += `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"><div style="font-size:17px;font-weight:600;color:var(--text2);margin-bottom:2px">⚡ Réserve de magie</div><div style="font-size:17px;color:var(--text3)">Si tu n'as plus de charges de rage au début de ton tour (clique <em>Fin de tour</em> dans le panneau rage), tu en regagnes 1 automatiquement.</div></div>`;
+    if (barbareLvl>=10) msContent += `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"><div style="font-size:17px;font-weight:600;color:var(--text2);margin-bottom:2px">🌀 Réaction instable</div><div style="font-size:17px;color:var(--text3)">Réaction : quand tu subis les effets d'un sort, tu peux déclencher un Sursaut sauvage. Utilise le bouton ⚡ Réaction ci-dessus.</div></div>`;
+    if (barbareLvl>=14) msContent += `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"><div style="font-size:17px;font-weight:600;color:var(--text2);margin-bottom:2px">🎯 Sursaut contrôlé</div><div style="font-size:17px;color:var(--text3)">Lors d'un Sursaut sauvage, deux résultats sont tirés (🎲 ×2). Choisissez le résultat à appliquer en cliquant dessus.</div></div>`;
 
     panels.push(`<div style="margin-bottom:10px;padding:10px;background:rgba(156,39,176,.07);border:1px solid rgba(156,39,176,.2);border-radius:8px">
-      <div style="font-size:13px;font-weight:700;color:#9c27b0;margin-bottom:10px">✨ Magie sauvage</div>
+      <div style="font-size:18px;font-weight:700;color:#9c27b0;margin-bottom:10px">✨ Magie sauvage</div>
       ${msContent}
     </div>`);
   }
@@ -266,16 +266,16 @@ function renderBarbare(p) {
   // ── Instinct sauvage (niv.7+) — Fix 21 : bouton supprimé, avantage auto ─
   if (barbareLvl>=7) {
     panels.push(`<div style="margin-bottom:10px;padding:8px;background:var(--surface2);border-radius:6px">
-      <div style="font-size:13px;font-weight:600;color:var(--cp);margin-bottom:2px">🦅 Instinct sauvage</div>
-      <div style="font-size:12px;color:var(--text3)">Avantage sur les jets d'initiative (2d20, prend le meilleur — appliqué automatiquement). Si surpris, tu peux entrer en rage au premier tour.</div>
+      <div style="font-size:18px;font-weight:600;color:var(--cp);margin-bottom:2px">🦅 Instinct sauvage</div>
+      <div style="font-size:17px;color:var(--text3)">Avantage sur les jets d'initiative (2d20, prend le meilleur — appliqué automatiquement). Si surpris, tu peux entrer en rage au premier tour.</div>
     </div>`);
   }
 
   // Fix 12 — Passives liées à la rage dans le panel Rage
   const ragePassives=[];
-  if(barbareLvl>=9)ragePassives.push(`<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-top:1px solid ${rageActive?'rgba(229,57,53,.2)':'var(--border)'}"><span style="font-size:14px">💥</span><div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--cp)">Critique brutal</div><div style="font-size:11px;color:var(--text3)">+${critDice} dé${critDice>1?'s':''} supplémentaire${critDice>1?'s':''} sur coup critique${rageActive?' (actif en rage)':''}</div></div></div>`);
-  if(barbareLvl>=11)ragePassives.push(`<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-top:1px solid ${rageActive?'rgba(229,57,53,.2)':'var(--border)'}"><span style="font-size:14px">💪</span><div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--cp)">Rage implacable</div><div style="font-size:11px;color:var(--text3)">Tombe à 0 PV en rage → popup automatique JS CON DD ${implacableDC}${implacableUses>0?' ('+implacableUses+' usage':''}</div></div><button class="btn bsm" onclick="P().combatCharges=P().combatCharges||{};P().combatCharges['RageImplacableUses']=0;_markUnsaved();render()" title="Remettre à 0 au repos">↺</button></div>`);
-  if(barbareLvl>=15)ragePassives.push(`<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-top:1px solid ${rageActive?'rgba(229,57,53,.2)':'var(--border)'}"><span style="font-size:14px">♾</span><div style="font-size:12px;color:var(--cp)">Rage persistante — la rage ne s\'arrête plus si pas d\'action hostile</div></div>`);
+  if(barbareLvl>=9)ragePassives.push(`<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-top:1px solid ${rageActive?'rgba(229,57,53,.2)':'var(--border)'}"><span style="font-size:19px">💥</span><div style="flex:1"><div style="font-size:17px;font-weight:600;color:var(--cp)">Critique brutal</div><div style="font-size:15px;color:var(--text3)">+${critDice} dé${critDice>1?'s':''} supplémentaire${critDice>1?'s':''} sur coup critique${rageActive?' (actif en rage)':''}</div></div></div>`);
+  if(barbareLvl>=11)ragePassives.push(`<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-top:1px solid ${rageActive?'rgba(229,57,53,.2)':'var(--border)'}"><span style="font-size:19px">💪</span><div style="flex:1"><div style="font-size:17px;font-weight:600;color:var(--cp)">Rage implacable</div><div style="font-size:15px;color:var(--text3)">Tombe à 0 PV en rage → popup automatique JS CON DD ${implacableDC}${implacableUses>0?' ('+implacableUses+' usage':''}</div></div><button class="btn bsm" onclick="P().combatCharges=P().combatCharges||{};P().combatCharges['RageImplacableUses']=0;_markUnsaved();render()" title="Remettre à 0 au repos">↺</button></div>`);
+  if(barbareLvl>=15)ragePassives.push(`<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-top:1px solid ${rageActive?'rgba(229,57,53,.2)':'var(--border)'}"><span style="font-size:19px">♾</span><div style="font-size:17px;color:var(--cp)">Rage persistante — la rage ne s\'arrête plus si pas d\'action hostile</div></div>`);
 
   // Fix 13 — Liseré animé quand en rage (ragePulse CSS)
   const rageAnimStyle = rageActive ? 'animation:ragePulse 2s ease-in-out infinite;' : '';
@@ -397,8 +397,8 @@ function checkRageImplacable() {
   openModal(`<div style="text-align:center;padding:16px 12px">
     <div style="font-size:36px;margin-bottom:8px">💪</div>
     <div class="pt" style="margin-bottom:6px">Rage implacable</div>
-    <div style="font-size:14px;color:var(--text2);margin-bottom:6px">Tu tombes à 0 PV en rage !</div>
-    <div style="font-size:13px;font-weight:600;color:var(--cp);margin-bottom:14px">JS CON DD ${dc}${uses>0?' (usage '+uses+')':''}</div>
+    <div style="font-size:19px;color:var(--text2);margin-bottom:6px">Tu tombes à 0 PV en rage !</div>
+    <div style="font-size:18px;font-weight:600;color:var(--cp);margin-bottom:14px">JS CON DD ${dc}${uses>0?' (usage '+uses+')':''}</div>
     <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
       <button class="btn bac" onclick="_implacableRoll(${dc},${conMod})">🎲 Lancer</button>
       <button class="btn" onclick="_implacableIRL(${dc},${conMod})">✏ IRL</button>
@@ -418,7 +418,7 @@ function _implacableRoll(dc, conMod) {
 function _implacableIRL(dc, conMod) {
   openModal(`<div style="text-align:center;padding:14px 12px">
     <div class="pt" style="margin-bottom:8px">Rage implacable — Mode IRL</div>
-    <div style="font-size:13px;color:var(--text2);margin-bottom:12px">Lance 1d20, entre le résultat brut :</div>
+    <div style="font-size:18px;color:var(--text2);margin-bottom:12px">Lance 1d20, entre le résultat brut :</div>
     <input class="fi" id="implacableIRLInput" type="number" min="1" max="20" style="text-align:center;font-size:22px;width:80px;margin-bottom:14px">
     <div style="display:flex;gap:8px;justify-content:center">
       <button class="btn" onclick="closeModal()">Annuler</button>

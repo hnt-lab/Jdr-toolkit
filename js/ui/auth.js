@@ -68,28 +68,28 @@ function openUserSettings(){
     return`<div class="charlib-item" onclick="enterCampaignFromLib('${campId}','${esc(c.tableName||'')}','${esc(c.campaignName||'')}')">
       <span style="font-size:20px">${currentUserData.avatar||'⚔'}</span>
       <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:600;color:var(--text)">${esc(c.charName||'?')}</div>
-        <div style="font-size:12px;color:var(--text3)">${subtitle}</div>
+        <div style="font-size:18px;font-weight:600;color:var(--text)">${esc(c.charName||'?')}</div>
+        <div style="font-size:17px;color:var(--text3)">${subtitle}</div>
       </div>
-      <span style="color:var(--cp);font-size:12px;flex-shrink:0">${actionLabel}</span>
+      <span style="color:var(--cp);font-size:17px;flex-shrink:0">${actionLabel}</span>
       <button class="btn bsm" style="flex-shrink:0;margin-left:4px" onclick="event.stopPropagation();exportCharacter('${campId}')" title="Exporter en JSON">⬇</button>
       <button class="btn bsm" style="color:#e53935;border-color:rgba(229,57,53,.3);margin-left:4px;flex-shrink:0" onclick="event.stopPropagation();deleteCharFromLib('${campId}')" title="Supprimer ce personnage">🗑</button>
     </div>`;}).join('')
-    :`<div style="font-size:13px;color:var(--text3);font-style:italic;padding:6px 0">Aucun personnage sauvegardé.</div>`;
+    :`<div style="font-size:18px;color:var(--text3);font-style:italic;padding:6px 0">Aucun personnage sauvegardé.</div>`;
   // Section compendiums
   const compIds=Object.keys(_mjCompLib);
   const compHtml=compIds.length?compIds.map(id=>{
     const c=_mjCompLib[id];
     return`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:6px;display:flex;align-items:center;gap:8px">
       <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:600;color:var(--text)">${esc(c.name)}</div>
-        <div style="font-size:12px;color:var(--text3)">${(c.feats||[]).length} capacité(s) · ${(c.spells||[]).length} sort(s) · ${(c.items||[]).length} objet(s)</div>
+        <div style="font-size:18px;font-weight:600;color:var(--text)">${esc(c.name)}</div>
+        <div style="font-size:17px;color:var(--text3)">${(c.feats||[]).length} capacité(s) · ${(c.spells||[]).length} sort(s) · ${(c.items||[]).length} objet(s)</div>
       </div>
       <button class="btn bsm" onclick="closeModal();mjOpenCompendiumEditor('${id}')" title="Éditer">✏️</button>
       <button class="btn bsm" onclick="exportMJCompendium('${id}')" title="Exporter">📤</button>
       <button class="btn bsm" style="color:#e53935;border-color:rgba(229,57,53,.3)" onclick="mjDeleteComp('${id}')" title="Supprimer">🗑</button>
     </div>`;}).join('')
-    :`<div style="font-size:13px;color:var(--text3);font-style:italic;padding:6px 0">Aucun compendium personnalisé.</div>`;
+    :`<div style="font-size:18px;color:var(--text3);font-style:italic;padding:6px 0">Aucun compendium personnalisé.</div>`;
   openModal(`<div class="pt" style="margin-bottom:12px">⚙ Paramètres du profil</div>
     <details class="acc" open>
       <summary>🧑 Profil</summary>
@@ -121,16 +121,16 @@ function openUserSettings(){
       <summary>🔄 Mise à jour</summary>
       <div class="acc-body">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-          <div><div style="font-size:13px;color:var(--text2)">Version installée</div><div style="font-size:16px;font-weight:700;color:var(--cp);font-family:monospace">v${typeof APP_VERSION!=='undefined'?APP_VERSION:'—'}</div></div>
-          ${typeof _pendingSwUpdate!=='undefined'&&_pendingSwUpdate?`<span style="font-size:11px;padding:2px 8px;border-radius:10px;background:rgba(200,168,75,.15);border:1px solid var(--cp);color:var(--cp)">Mise à jour disponible</span>`:'<span style="font-size:12px;color:var(--text3)">✓ À jour</span>'}
+          <div><div style="font-size:18px;color:var(--text2)">Version installée</div><div style="font-size:22px;font-weight:700;color:var(--cp);font-family:monospace">v${typeof APP_VERSION!=='undefined'?APP_VERSION:'—'}</div></div>
+          ${typeof _pendingSwUpdate!=='undefined'&&_pendingSwUpdate?`<span style="font-size:15px;padding:2px 8px;border-radius:10px;background:rgba(200,168,75,.15);border:1px solid var(--cp);color:var(--cp)">Mise à jour disponible</span>`:'<span style="font-size:17px;color:var(--text3)">✓ À jour</span>'}
         </div>
-        ${typeof _pendingSwUpdate!=='undefined'&&_pendingSwUpdate?`<button class="btn bac" style="width:100%" onclick="closeModal();_showUpdateOverlay()">✨ Installer la mise à jour</button>`:`<div style="font-size:12px;color:var(--text3);font-style:italic">Aucune mise à jour en attente. Le site vérifie automatiquement au chargement.</div>`}
+        ${typeof _pendingSwUpdate!=='undefined'&&_pendingSwUpdate?`<button class="btn bac" style="width:100%" onclick="closeModal();_showUpdateOverlay()">✨ Installer la mise à jour</button>`:`<div style="font-size:17px;color:var(--text3);font-style:italic">Aucune mise à jour en attente. Le site vérifie automatiquement au chargement.</div>`}
       </div>
     </details>
     <details class="acc">
       <summary>❓ Aide & Guide</summary>
       <div class="acc-body">
-        <p style="font-size:13px;color:var(--text3);margin-bottom:10px">Revoir les guides de démarrage pas à pas.</p>
+        <p style="font-size:18px;color:var(--text3);margin-bottom:10px">Revoir les guides de démarrage pas à pas.</p>
         <div style="display:flex;flex-direction:column;gap:6px">
           <button class="btn bsm" onclick="closeModal();startTutorial('player')">📖 Guide Joueur</button>
           <button class="btn bsm" onclick="closeModal();startTutorial('fiche')">🧑 Guide Fiche de personnage</button>
@@ -141,7 +141,7 @@ function openUserSettings(){
     <details class="acc">
       <summary>🔐 Compte</summary>
       <div class="acc-body">
-        <div style="font-size:13px;color:var(--text3);margin-bottom:10px">Email : <strong style="color:var(--text2)">${esc(currentUser.email)}</strong></div>
+        <div style="font-size:18px;color:var(--text3);margin-bottom:10px">Email : <strong style="color:var(--text2)">${esc(currentUser.email)}</strong></div>
         <div style="display:flex;flex-direction:column;gap:6px">
           <button class="btn bsm" onclick="openChangeEmail()">✉️ Changer l'email</button>
           <button class="btn bsm" onclick="openChangePassword()">🔑 Changer le mot de passe</button>
@@ -165,7 +165,7 @@ function selectSettingsAvatar(av){
 
 function openChangeEmail(){
   openModal(`<div class="pt">✉️ Changer l'email</div>
-    <div style="font-size:13px;color:var(--text3);margin-bottom:12px">Email actuel : <strong style="color:var(--text2)">${esc(currentUser.email)}</strong></div>
+    <div style="font-size:18px;color:var(--text3);margin-bottom:12px">Email actuel : <strong style="color:var(--text2)">${esc(currentUser.email)}</strong></div>
     <div class="fl mb6">Nouvel email</div>
     <input class="fi" id="newEmail" type="email" placeholder="nouveau@email.com" style="margin-bottom:10px">
     <div class="fl mb6">Mot de passe actuel (confirmation)</div>
@@ -222,7 +222,7 @@ async function doChangePassword(){
 
 function openDeleteAccount(){
   openModal(`<div class="pt" style="color:#e53935">⚠️ Supprimer le compte</div>
-    <p style="font-size:13px;color:var(--text2);margin-bottom:14px">Cette action est <strong>irréversible</strong>. Toutes vos données seront supprimées définitivement.</p>
+    <p style="font-size:18px;color:var(--text2);margin-bottom:14px">Cette action est <strong>irréversible</strong>. Toutes vos données seront supprimées définitivement.</p>
     <div class="fl mb6">Mot de passe (confirmation)</div>
     <input class="fi" id="deleteAccPwd" type="password" placeholder="••••••••" style="margin-bottom:10px">
     <div class="fl mb6">Tapez <strong style="color:var(--cp)">SUPPRIMER</strong> pour confirmer</div>
@@ -248,7 +248,7 @@ async function doDeleteAccount(){
 }
 function openFeedbackModal(){
   openModal(`<div class="pt" style="margin-bottom:12px">💬 Avis & retours bêta</div>
-    <p style="font-size:13px;color:var(--text2);margin-bottom:14px">Un bug ? Une idée ? Un truc qui manque ? Dis-nous tout — chaque retour compte.</p>
+    <p style="font-size:18px;color:var(--text2);margin-bottom:14px">Un bug ? Une idée ? Un truc qui manque ? Dis-nous tout — chaque retour compte.</p>
     <div class="fl mb6">Type</div>
     <select class="fi" id="fbType" style="margin-bottom:10px">
       <option value="bug">🐛 Bug / problème</option>
@@ -352,12 +352,12 @@ function openCharOrCreate(tableId,campId){
     <div style="margin-bottom:14px">
       <div class="fl mb6" style="margin-bottom:8px">Utiliser un personnage existant</div>
       ${others.map(([cid,c])=>`<div class="charlib-item" style="cursor:pointer" onclick="useExistingCharForCampaign('${cid}','${tableId}','${campId}')">
-        <span style="font-size:18px">${(currentUserData&&currentUserData.avatar)||'⚔'}</span>
+        <span style="font-size:25px">${(currentUserData&&currentUserData.avatar)||'⚔'}</span>
         <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:600">${esc(c.charName||'?')}</div>
-          <div style="font-size:12px;color:var(--text3)">${esc(c.charClass||'')} • ${esc(c.campaignName||'')}</div>
+          <div style="font-size:18px;font-weight:600">${esc(c.charName||'?')}</div>
+          <div style="font-size:17px;color:var(--text3)">${esc(c.charClass||'')} • ${esc(c.campaignName||'')}</div>
         </div>
-        <span style="color:var(--cp);font-size:12px">Utiliser →</span>
+        <span style="color:var(--cp);font-size:17px">Utiliser →</span>
       </div>`).join('')}
     </div>`:'';
   openModal(`<div class="pt">+ Rejoindre la campagne</div>
