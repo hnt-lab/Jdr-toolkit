@@ -478,6 +478,8 @@ function applyCombatOrder(){applyAllSectionOrders();} // compat (appelé depuis 
 function _enableTabDrag(){
   const root=document.getElementById('tabContent');if(!root)return;
   let _wrapped=0,_seen=0,_err='';
+  const _p0=root.querySelector('.panel');
+  const _p0par=_p0&&_p0.parentElement?(_p0.parentElement.getAttribute('class')||('csg:'+_p0.parentElement.getAttribute('data-csgroup'))||_p0.parentElement.tagName):'none';
   try{
     root.querySelectorAll('.panel').forEach(pan=>{
       _seen++;
@@ -504,10 +506,10 @@ function _enableTabDrag(){
       if(pt&&!pt.querySelector('.mj-drag-handle')){const h=document.createElement('span');h.className='mj-drag-handle';h.title='Déplacer';h.textContent='⠿';h.style.marginRight='6px';pt.insertBefore(h,pt.firstChild);}
       _wrapped++;
     });
-  }catch(e){_err=e&&e.message?e.message:String(e);}
-  if(window._DRAG_DIAG&&typeof showToast==='function')showToast('🔧 drag — vus:'+_seen+' enveloppés:'+_wrapped+(_err?(' ERR: '+_err):''),9000);
+  }catch(e){_err=e&&e.stack?e.stack.split('\n').slice(0,2).join(' | '):String(e);}
+  if(window._DRAG_DIAG&&typeof showToast==='function')showToast('🔧 vus:'+_seen+' env:'+_wrapped+' | p0par:['+_p0par+']'+(_err?(' | ERR: '+_err):' | sans erreur'),15000);
 }
-window._DRAG_DIAG=false; // diagnostic (mettre true pour réafficher le toast)
+window._DRAG_DIAG=true; // diagnostic (remettre false ensuite)
 function cs(id,html){return`<div class="mj-rules-section" data-csid="${id}" draggable="true" ondragstart="combatDragStart(event,'${id}',this)" ondragend="combatDragEnd(this)" ondragover="combatDragOver(event,this)" ondrop="combatDrop(event,'${id}')">${html}</div>`;}
 let _spellLevelsOpen={};
 let _equipProfOpen={all:false};
