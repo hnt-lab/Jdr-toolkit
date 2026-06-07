@@ -45,11 +45,7 @@ function renderCompagnonAnimal(p) {
         <div class="sb"><div class="sn">Vitesse</div><div style="font-size:15px;font-weight:600;line-height:1.3">${bc.speed}</div></div>
       </div>
       <div class="hp-bar mb6"><div class="hp-fill" style="width:${bpct}%;background:${bhpColor}"></div></div>
-      <div class="hp-ctrl mb8">
-        <input class="fi" id="bcHpDelta" type="number" placeholder="montant" style="width:70px">
-        <button class="btn bsm" style="background:#b71c1c;color:#fff;border-color:#b71c1c" onclick="applyBeastCompanionHp(-1)">Dégâts</button>
-        <button class="btn bsm" style="background:#2e7d32;color:#fff;border-color:#2e7d32" onclick="applyBeastCompanionHp(1)">Soins</button>
-      </div>
+      <button class="btn bsm" style="width:100%;margin-bottom:8px;background:#b71c1c;color:#fff;border-color:#b71c1c" onclick="openBeastHpModal()">💥 Dégâts / 💚 Soins</button>
       <div class="g6 mb8">${ABILITIES_SH.map((ab,i)=>`<div class="sb" style="padding:3px"><div class="sn" style="font-size:13px">${ab}</div><div style="font-size:18px;font-weight:600">${bc.ab[i]}</div><div class="sm" style="font-size:13px">${fmt(Math.floor((bc.ab[i]-10)/2))}</div></div>`).join('')}</div>
       ${bc.attacks&&bc.attacks.length?`<div style="margin-bottom:8px"><div class="fl mb4">Attaques</div>${bc.attacks.map(a=>`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 10px;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center"><div><strong style="font-size:18px">${a.name}</strong>${a.special?`<div style="font-size:15px;color:var(--text3)">${a.special}</div>`:''}</div><div style="display:flex;align-items:center;gap:6px"><span style="font-size:17px;color:var(--text2)">+${a.bonus} / <strong>${a.dmg}</strong> ${a.type}</span>${a.dmg&&a.dmg.includes('d')?`<button class="btn bsm" onclick="rollCustomDmg('${a.dmg}','${a.name}')">🎲</button>`:''}</div></div>`).join('')}</div>`:''}
       ${bc.traits&&bc.traits.length?`<div><div class="fl mb4">Traits</div>${bc.traits.map(t=>`<div style="font-size:17px;color:var(--text2);padding:2px 0">▹ ${t}</div>`).join('')}</div>`:''}
@@ -101,6 +97,23 @@ function removeBeastCompanion() {
   const p = P(); delete p.beastCompanion; closeModal(); saveAll(); render(); showToast('🐾 Compagnon retiré.');
 }
 
+// Modal Dégâts/Soins du compagnon — calqué sur openHpModal (perso)
+function openBeastHpModal(){
+  const bc=P().beastCompanion;if(!bc||!bc.active)return;
+  openModal(`<div class="pt">🐾 PV — ${esc(bc.name)}</div>
+    <span id="bcHpModalMarker" style="display:none"></span>
+    <div class="fl mb6">Montant</div>
+    <input class="fi" id="bcHpDelta" type="number" min="0" placeholder="ex : 8" style="margin-bottom:14px">
+    <div style="display:flex;gap:8px">
+      <button class="btn" style="flex:1;background:#b71c1c;color:#fff;border-color:#b71c1c" onclick="_beastApplyHp(-1)">💥 Dégâts</button>
+      <button class="btn" style="flex:1;background:#2e7d32;color:#fff;border-color:#2e7d32" onclick="_beastApplyHp(1)">💚 Soins</button>
+    </div>`);
+  setTimeout(()=>{const i=document.getElementById('bcHpDelta');if(i)i.focus();},60);
+}
+function _beastApplyHp(sign){
+  applyBeastCompanionHp(sign);
+  if(document.getElementById('bcHpModalMarker'))closeModal();
+}
 function applyBeastCompanionHp(sign) {
   const p = P(); const bc = p.beastCompanion; if (!bc?.active) return;
   const delta = parseInt(document.getElementById('bcHpDelta')?.value)||0; if (delta<=0) return;

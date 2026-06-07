@@ -137,30 +137,10 @@ function tabPerso(p){
         <div>${lbl('Immunités conditions')}<div style="display:flex;flex-wrap:wrap;gap:4px">${ci.length?ci.map((v,i)=>tagCond('condImmunities',v,i)).join(''):empty}</div></div>`;
       })()}
     </div>
-    <!-- Repos (déplacé sous Statuts & Résistances) -->
-    ${(()=>{
-      const _chantG=(typeof _groupData!=='undefined'?_groupData:[]).find(gp=>gp.uid!==(typeof currentUser!=='undefined'?currentUser?.uid:null)&&gp.charData?.combatCharges?.ChantReposantResult!==undefined);
-      const _chantB=_chantG?.charData.combatCharges.ChantReposantResult;
-      const _chantSrc=_chantG?.charData.charName||'Barde';
-      return`<div class="panel mb10" data-csid="perso-repos" draggable="true" ondragstart="combatDragStart(event,'perso-repos',this)" ondragend="combatDragEnd(this)" ondragover="combatDragOver(event,this)" ondrop="combatDrop(event,'perso-repos')">
-        <div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>Repos</div>
-        <div style="display:flex;gap:8px;${_chantB?'padding:6px;border:2px solid var(--cp);border-radius:10px;background:rgba(200,168,75,.04)':''}">
-          <div class="rest-btn short" onclick="doShortRest()">
-            <div style="font-size:22px">☕</div>
-            <div style="font-weight:600">Repos court</div>
-            <div style="font-size:15px;color:var(--text3);margin-top:1px">≥ 1 heure</div>
-            <div style="font-size:15px;margin-top:2px">Lance le dé de vie + CON</div>
-            ${_chantB?`<div style="font-size:15px;color:var(--cp);font-weight:600;margin-top:4px;border-top:1px solid rgba(200,168,75,.3);padding-top:3px">🎶 +${_chantB} PV (${esc(_chantSrc)})</div>`:''}
-          </div>
-          <div class="rest-btn long" onclick="doLongRest()">
-            <div style="font-size:22px">🌙</div>
-            <div style="font-weight:600">Repos long</div>
-            <div style="font-size:15px;color:var(--text3);margin-top:1px">≥ 8 heures</div>
-            <div style="font-size:15px;margin-top:2px">PV max + sorts + charges</div>
-          </div>
-        </div>
-      </div>`;
-    })()}
+    <!-- Sauvegardes (déplacé depuis Combat — concerne tous les jets) -->
+    <div class="panel"><div class="pt">Sauvegardes</div>
+      ${(()=>{const rageActive=(p.combatCharges||{})['RageActive']===true;return ABILITIES_SH.map((ab,i)=>{const saves=CLASS_SAVES[mc?mc.name:'']||[];const hasSave=saves.includes(i);const m=mod(p.abilities[i])+(hasSave?pb(lvl):0);const forRageAdv=i===0&&rageActive;return forRageAdv?`<div style="display:flex;align-items:center;gap:3px"><div class="save-btn" style="flex:1" onclick="rollSave('${ab}',${m})"><span class="save-dot${hasSave?' p':''}"></span><span style="flex:1;font-size:18px">${ab}</span><span style="color:var(--cp);font-weight:600">${fmt(m)}</span><span style="font-size:15px;color:var(--text3)">🎲</span></div><button class="btn bsm" style="padding:2px 6px;color:#e53935;border-color:#e53935;font-size:15px;flex-shrink:0" onclick="rollSave('${ab}',${m},1)" title="Avantage (rage)">🔥⚡</button></div>`:`<div class="save-btn" onclick="rollSave('${ab}',${m})"><span class="save-dot${hasSave?' p':''}"></span><span style="flex:1;font-size:18px">${ab}</span><span style="color:var(--cp);font-weight:600">${fmt(m)}</span><span style="font-size:15px;color:var(--text3)">🎲</span></div>`;}).join('');})()}
+    </div>
   </div>
 
   <!-- COLONNE DROITE -->
@@ -204,9 +184,30 @@ function tabPerso(p){
       </div>
     </div>
 
-    <!-- Repos : déplacé en colonne gauche, sous Statuts & Résistances -->
-
-    <!-- (panneau Statuts fusionné dans « 🎯 Statuts & Résistances » ci-dessus) -->
+    <!-- Repos (colonne droite, sous Identité) -->
+    ${(()=>{
+      const _chantG=(typeof _groupData!=='undefined'?_groupData:[]).find(gp=>gp.uid!==(typeof currentUser!=='undefined'?currentUser?.uid:null)&&gp.charData?.combatCharges?.ChantReposantResult!==undefined);
+      const _chantB=_chantG?.charData.combatCharges.ChantReposantResult;
+      const _chantSrc=_chantG?.charData.charName||'Barde';
+      return`<div class="panel mb10" data-csid="perso-repos" draggable="true" ondragstart="combatDragStart(event,'perso-repos',this)" ondragend="combatDragEnd(this)" ondragover="combatDragOver(event,this)" ondrop="combatDrop(event,'perso-repos')">
+        <div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>Repos</div>
+        <div style="display:flex;gap:8px;${_chantB?'padding:6px;border:2px solid var(--cp);border-radius:10px;background:rgba(200,168,75,.04)':''}">
+          <div class="rest-btn short" onclick="doShortRest()">
+            <div style="font-size:22px">☕</div>
+            <div style="font-weight:600">Repos court</div>
+            <div style="font-size:15px;color:var(--text3);margin-top:1px">≥ 1 heure</div>
+            <div style="font-size:15px;margin-top:2px">Lance le dé de vie + CON</div>
+            ${_chantB?`<div style="font-size:15px;color:var(--cp);font-weight:600;margin-top:4px;border-top:1px solid rgba(200,168,75,.3);padding-top:3px">🎶 +${_chantB} PV (${esc(_chantSrc)})</div>`:''}
+          </div>
+          <div class="rest-btn long" onclick="doLongRest()">
+            <div style="font-size:22px">🌙</div>
+            <div style="font-weight:600">Repos long</div>
+            <div style="font-size:15px;color:var(--text3);margin-top:1px">≥ 8 heures</div>
+            <div style="font-size:15px;margin-top:2px">PV max + sorts + charges</div>
+          </div>
+        </div>
+      </div>`;
+    })()}
 
   </div>
   </div>`;

@@ -30,10 +30,6 @@ function tabCompetences(p){
       </div>`;
     }).join('')}
     <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);font-size:18px;color:var(--text2)">Perception passive : <strong style="color:var(--cp)">${passive}</strong></div>
-  </div>
-  <!-- Sauvegardes : déplacé depuis Combat (concerne tous les jets, pas seulement le combat) -->
-  <div class="panel"><div class="pt">Sauvegardes</div>
-    ${(()=>{const rageActive=(p.combatCharges||{})['RageActive']===true;return ABILITIES_SH.map((ab,i)=>{const saves=CLASS_SAVES[mc?mc.name:'']||[];const hasSave=saves.includes(i);const m=mod(p.abilities[i])+(hasSave?pb(lvl):0);const forRageAdv=i===0&&rageActive;return forRageAdv?`<div style="display:flex;align-items:center;gap:3px"><div class="save-btn" style="flex:1" onclick="rollSave('${ab}',${m})"><span class="save-dot${hasSave?' p':''}"></span><span style="flex:1;font-size:18px">${ab}</span><span style="color:var(--cp);font-weight:600">${fmt(m)}</span><span style="font-size:15px;color:var(--text3)">🎲</span></div><button class="btn bsm" style="padding:2px 6px;color:#e53935;border-color:#e53935;font-size:15px;flex-shrink:0" onclick="rollSave('${ab}',${m},1)" title="Avantage (rage)">🔥⚡</button></div>`:`<div class="save-btn" onclick="rollSave('${ab}',${m})"><span class="save-dot${hasSave?' p':''}"></span><span style="flex:1;font-size:18px">${ab}</span><span style="color:var(--cp);font-weight:600">${fmt(m)}</span><span style="font-size:15px;color:var(--text3)">🎲</span></div>`;}).join('');})()}
   </div></div>
   <div>
     <div class="panel mb10"><div class="pt" style="display:flex;align-items:center;justify-content:space-between"><span>Capacités & traits</span>${isMJ()?`<button class="btn bsm" onclick="openFeatSearch()">+ Ajouter</button>`:''}</div>

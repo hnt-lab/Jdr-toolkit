@@ -472,6 +472,28 @@ function combatDragOver(e,el){if(!_combatDragId||el.dataset.csid===_combatDragId
 function combatDrop(e,targetId){e.preventDefault();if(!_combatDragId||_combatDragId===targetId)return;const target=document.querySelector('[data-csid="'+targetId+'"]');if(!target)return;const c=target.parentElement;const dragged=c.querySelector(':scope>[data-csid="'+_combatDragId+'"]');document.querySelectorAll('.mj-drop-before,.mj-drop-after').forEach(x=>x.classList.remove('mj-drop-before','mj-drop-after'));if(!dragged){_combatDragId=null;return;}/* dragged hors de ce conteneur → drop entre colonnes refusé */ if(target.classList.contains('mj-drop-before'))c.insertBefore(dragged,target);else c.insertBefore(dragged,target.nextSibling);_combatDragId=null;_sectionOrders[_csGroupKey(c)]=[...c.querySelectorAll(':scope>[data-csid]')].map(x=>x.dataset.csid);}
 function applyAllSectionOrders(){const root=document.getElementById('tabContent');if(!root)return;root.querySelectorAll('[data-csgroup]').forEach(c=>{const order=_sectionOrders[_csGroupKey(c)];if(!order||!order.length)return;const map={};c.querySelectorAll(':scope>[data-csid]').forEach(e=>map[e.dataset.csid]=e);order.forEach(id=>{if(map[id])c.appendChild(map[id]);});});}
 function applyCombatOrder(){applyAllSectionOrders();} // compat (appelé depuis renderTab)
+// Rend déplaçables TOUS les .panel de l'onglet courant (sauf Combat, déjà géré par cs()). Idempotent.
+function _enableTabDrag(){
+  const root=document.getElementById('tabContent');if(!root)return;
+  root.querySelectorAll('.panel').forEach(pan=>{
+    const parent=pan.parentElement;
+    if(!parent||parent.classList.contains('mj-rules-section'))return; // Combat : panels déjà enveloppés
+    if(!parent.dataset.csgroup){const gi=[...(parent.parentElement?parent.parentElement.children:[])].indexOf(parent);parent.dataset.csgroup=(state.activeTab||'tab')+'-col'+(gi<0?0:gi);}
+    pan.classList.add('mj-rules-section'); // active le feedback visuel (opacité + indicateurs de dépose)
+    if(!pan.dataset.csid){
+      const t=(((pan.querySelector('.pt')||{}).textContent)||'').replace(/[^0-9A-Za-zÀ-ÿ]/g,'').slice(0,28);
+      const sibs=[...parent.children].filter(c=>c.classList&&c.classList.contains('panel'));
+      pan.dataset.csid=parent.dataset.csgroup+'_'+(t||('p'+sibs.indexOf(pan)));
+      pan.setAttribute('draggable','true');
+      pan.setAttribute('ondragstart',"combatDragStart(event,'"+pan.dataset.csid+"',this)");
+      pan.setAttribute('ondragend','combatDragEnd(this)');
+      pan.setAttribute('ondragover','combatDragOver(event,this)');
+      pan.setAttribute('ondrop',"combatDrop(event,'"+pan.dataset.csid+"')");
+      const pt=pan.querySelector('.pt');
+      if(pt&&!pt.querySelector('.mj-drag-handle')){const h=document.createElement('span');h.className='mj-drag-handle';h.title='Déplacer';h.textContent='⠿';h.style.marginRight='6px';pt.insertBefore(h,pt.firstChild);}
+    }
+  });
+}
 function cs(id,html){return`<div class="mj-rules-section" data-csid="${id}" draggable="true" ondragstart="combatDragStart(event,'${id}',this)" ondragend="combatDragEnd(this)" ondragover="combatDragOver(event,this)" ondrop="combatDrop(event,'${id}')">${html}</div>`;}
 let _spellLevelsOpen={};
 let _equipProfOpen={all:false};
@@ -586,7 +608,7 @@ function renderTab(){
   const map={perso:tabPerso,competences:tabCompetences,combat:tabCombat,equipement:tabEquipement,sac:tabSac,historique:tabHistorique,xp:tabXP,sorts:tabSorts,levelup:tabLevelUp,journal:tabJournal};
   el.innerHTML=(map[state.activeTab]||tabPerso)(p);
   setTimeout(autoGrowAll,0);
-  setTimeout(()=>applyCombatOrder(_combatSectionOrder),10);
+  setTimeout(()=>{_enableTabDrag();applyAllSectionOrders();},10);
   // Pré-remplir la liste de dons quand la recherche est vide (step ASI → Don)
   setTimeout(()=>{if(typeof luFilterFeats==='function'&&document.getElementById('featResults'))luFilterFeats('');},0);
 }
