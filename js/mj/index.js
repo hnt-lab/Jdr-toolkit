@@ -12,6 +12,7 @@ function showMJScreen(){
   const _dfMJ=document.getElementById('diceFloat');if(_dfMJ)_dfMJ.style.display='flex';
   const el=document.getElementById('mjHdrCamp');
   if(el) el.textContent=(currentTableName?currentTableName+' — ':'')+currentCampaignName;
+  if(typeof _refreshNavAvatars==='function')_refreshNavAvatars();
   _mjTab='joueurs';
   renderMJTabs();
   if(!localStorage.getItem('tuto_mj_done')) setTimeout(()=>startTutorial('mj'),700);

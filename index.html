@@ -147,7 +147,7 @@
     <div class="hub-hdr-row2">
       <span id="hubVersion" style="font-size:10px;color:var(--text3);font-family:monospace;opacity:.6"></span>
       <div id="hubMJBadge" style="display:none;align-items:center;gap:5px;padding:3px 10px;background:rgba(200,168,75,.15);border:1px solid rgba(200,168,75,.4);border-radius:20px;font-size:11px;color:var(--cp);font-family:var(--F);letter-spacing:.06em">🎲 Maître de Jeu</div>
-      <button class="hub-user-btn" id="hubUserBtn" onclick="openUserSettings()">👤 Profil</button>
+      <button class="nav-avatar" id="hubUserBtn" onclick="openUserSettings()" title="Profil & Déconnexion">👤</button>
     </div>
   </div>
   <div class="hub-body">
@@ -162,7 +162,7 @@
     <span class="mj-hdr-title" style="margin-left:8px;flex-shrink:0">🎲 MJ</span>
     <span id="mjSyncDot" class="sync-dot" style="margin-left:4px" title="Mise à jour joueurs reçue"></span>
     <span id="mjHdrCamp" style="font-size:12px;color:var(--text2);flex:1;margin:0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span>
-    <button class="hub-user-btn" onclick="openUserSettings()" title="Profil &amp; Déconnexion" style="flex-shrink:0">👤 Profil</button>
+    <button class="nav-avatar" id="mjUserBtn" onclick="openUserSettings()" title="Profil &amp; Déconnexion" style="flex-shrink:0">👤</button>
   </div>
   <div class="mj-tabs" id="mjTabBar"></div>
   <div id="mjTabContent"></div>
@@ -175,7 +175,7 @@
     <span class="hdr-char" id="hdrChar" style="flex:1;text-align:center;display:flex;align-items:center;justify-content:center;gap:5px">Fiche de personnage<span id="playerSyncDot" class="sync-dot" title="Mis à jour en temps réel"></span></span>
     <span id="hdrUser" style="display:none"></span>
     <button class="btn bsm" id="mjBtn" onclick="toggleMJ()" style="border-color:var(--cp);color:var(--cp);flex-shrink:0">🎲 MJ</button>
-    <button class="hub-user-btn" onclick="openUserSettings()" title="Profil &amp; Déconnexion" style="flex-shrink:0">👤 Profil</button>
+    <button class="nav-avatar" id="ficheUserBtn" onclick="openUserSettings()" title="Profil &amp; Déconnexion" style="flex-shrink:0">👤</button>
   </div>
   <!-- BANNIÈRE TOUR DE COMBAT -->
   <div id="combatTurnBanner">

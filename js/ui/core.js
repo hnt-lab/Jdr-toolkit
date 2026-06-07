@@ -33,6 +33,11 @@ let _mjNewMonsterTraits=[];
 let _mjEditingMonsterIdx=-1;
 
 // ─── NAVIGATION ───
+// Avatar du compte affiché dans les en-têtes (clic → Profil). Remplace l'ancien bouton « 👤 Profil ».
+function _refreshNavAvatars(){
+  const a=(typeof currentUserData!=='undefined'&&currentUserData&&currentUserData.avatar)?currentUserData.avatar:'👤';
+  ['hubUserBtn','mjUserBtn','ficheUserBtn'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=a;});
+}
 function showAuthScreen(){
   document.getElementById('authScreen').style.display='flex';
   document.getElementById('hubScreen').style.display='none';
@@ -75,8 +80,7 @@ function showHub(){
   document.getElementById('app').style.display='none';
   document.getElementById('mjScreen').style.display='none';
   _expandedCamp=null;
-  const btn=document.getElementById('hubUserBtn');
-  if(btn&&currentUserData) btn.innerHTML=`👤 ${esc(currentUserData.displayName)}`;
+  _refreshNavAvatars();
   renderHub();
   if(!localStorage.getItem('tuto_player_done')) setTimeout(()=>startTutorial('player'),700);
 }
@@ -91,6 +95,7 @@ function showApp(){
   if(mjBtn) mjBtn.style.display='none';
   const hdrUser=document.getElementById('hdrUser');
   if(hdrUser&&currentUserData) hdrUser.textContent=`⚔ ${currentUserData.displayName}`;
+  _refreshNavAvatars();
 }
 
 // ─── CACHE INVALIDATION ───
@@ -130,7 +135,8 @@ fbAuth.onAuthStateChanged(async user=>{
       currentUserData=doc.exists?doc.data():{displayName:user.displayName||'Utilisateur',role:'Joueur'};
     }catch(e){currentUserData={displayName:user.displayName||'Utilisateur',role:'Joueur'};}
     hideSplash();
-    loadMJCompLib();
+    if(typeof _refreshNavAvatars==='function')_refreshNavAvatars();
+    if(typeof loadMJCompLib==='function')loadMJCompLib();
     const _authEl=document.getElementById('authScreen');
     if(_authEl&&getComputedStyle(_authEl).display!=='none'&&typeof _mjtkEntrance==='function'){_mjtkEntrance(showHub);}
     else{showHub();}
