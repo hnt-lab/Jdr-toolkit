@@ -509,7 +509,7 @@ function _enableTabDrag(){
   }catch(e){_err=e&&e.stack?e.stack.split('\n').slice(0,2).join(' | '):String(e);}
   if(window._DRAG_DIAG&&typeof showToast==='function')showToast('🔧 vus:'+_seen+' env:'+_wrapped+' | p0par:['+_p0par+']'+(_err?(' | ERR: '+_err):' | sans erreur'),15000);
 }
-window._DRAG_DIAG=true; // diagnostic (remettre false ensuite)
+window._DRAG_DIAG=false; // diagnostic (mettre true pour réafficher le toast)
 function cs(id,html){return`<div class="mj-rules-section" data-csid="${id}" draggable="true" ondragstart="combatDragStart(event,'${id}',this)" ondragend="combatDragEnd(this)" ondragover="combatDragOver(event,this)" ondrop="combatDrop(event,'${id}')">${html}</div>`;}
 let _spellLevelsOpen={};
 let _equipProfOpen={all:false};

@@ -68,7 +68,10 @@ const BYPASS = ['firebase', 'googleapis', 'gstatic', 'firestore', 'google-analyt
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE)
-      .then(c => c.addAll(PRECACHE))
+      // fetch {cache:'reload'} → on précache des fichiers FRAIS (pas le cache HTTP du navigateur)
+      .then(c => Promise.all(PRECACHE.map(u =>
+        fetch(u, {cache:'reload'}).then(r => { if (r && r.ok) return c.put(u, r); }).catch(() => {})
+      )))
       .then(() => self.skipWaiting())
   );
 });
@@ -90,10 +93,20 @@ self.addEventListener('fetch', e => {
   // Laisser passer toutes les requêtes Firebase/Google directement au réseau
   if (BYPASS.some(d => url.hostname.includes(d))) return;
 
-  // RÉSEAU D'ABORD pour tout (fraîcheur : code + JSON toujours à jour quand en ligne),
-  // fallback CACHE uniquement hors ligne. Le précache garde l'app fonctionnelle offline.
+  // Données volumineuses & stables (data/*.json) → CACHE D'ABORD (rapide ; rafraîchi au changement de version).
+  if (url.pathname.includes('/data/')) {
+    e.respondWith(
+      caches.match(e.request).then(hit => hit || fetch(e.request).then(r => {
+        const clone = r.clone(); caches.open(CACHE).then(c => c.put(e.request, clone)); return r;
+      }))
+    );
+    return;
+  }
+
+  // Code / CSS / HTML → RÉSEAU FRAIS d'abord ({cache:'no-store'} pour contourner le cache HTTP du
+  // navigateur → les MAJ apparaissent au simple rechargement, sans F5 forcé). Fallback cache hors-ligne.
   e.respondWith(
-    fetch(e.request)
+    fetch(e.request, {cache:'no-store'})
       .then(r => {
         const clone = r.clone();
         caches.open(CACHE).then(c => c.put(e.request, clone));
