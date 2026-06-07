@@ -245,7 +245,7 @@ function openPrivacySettings(){
       </label>`;
     }).join('')}
     <div style="font-size:17px;color:var(--text3);margin-top:10px;padding:8px;background:rgba(200,168,75,.06);border-radius:6px;border:1px solid rgba(200,168,75,.15)">🔐 Les <strong>Secrets</strong> (onglet Historique) sont toujours privés — uniquement toi et le MJ.</div>
-    <div style="display:flex;justify-content:flex-end;margin-top:14px"><button class="btn bac" onclick="closeModal()">Fermer</button></div>`);
+    <div style="display:flex;justify-content:flex-end;margin-top:14px"></div>`);
 }
 
 // ── PV & HP ──

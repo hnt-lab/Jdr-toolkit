@@ -788,7 +788,7 @@ function mjOpenCombatDice(idx){
   <div id="dspells" style="display:none">${spellsHtml}</div>
   <div id="dtraits" style="display:none">${traitsHtml}</div>
   <div id="mjDiceResult" style="display:none;padding:10px;background:var(--surface2);border-radius:8px;margin-top:10px;margin-bottom:6px"></div>
-  <div style="text-align:right;margin-top:8px"><button class="btn bsm" onclick="closeModal()">Fermer</button></div>`);
+  <div style="text-align:right;margin-top:8px"></div>`);
 }
 
 function mjDiceShowTab(btn,tabId){

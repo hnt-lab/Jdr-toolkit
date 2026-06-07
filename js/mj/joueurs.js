@@ -143,7 +143,7 @@ function mjShowPlayerDetail(idx){
     ${p.secrets?`<div style="background:rgba(200,168,75,.06);border:1px solid rgba(200,168,75,.3);border-radius:8px;padding:10px;margin-bottom:10px"><div style="font-size:15px;color:var(--cp);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">🔐 Secrets (MJ)</div><div style="font-size:18px;color:var(--text2);white-space:pre-wrap">${esc(p.secrets)}</div></div>`:''}
     ${(p.languages||p.proficiencies||(p.weaponProfs&&p.weaponProfs.length))?`<div style="font-size:17px;color:var(--text3);line-height:2">${p.languages?`🗣 <b>Langues :</b> <span style="color:var(--text2)">${esc(p.languages)}</span><br>`:''}${p.proficiencies?`📜 <b>Maîtrises :</b> <span style="color:var(--text2)">${esc(p.proficiencies)}</span><br>`:''}${p.weaponProfs&&p.weaponProfs.length?`⚔ <b>Armes :</b> <span style="color:var(--text2)">${p.weaponProfs.join(', ')}</span><br>`:''}${p.armorProfs&&p.armorProfs.length?`🛡 <b>Armures :</b> <span style="color:var(--text2)">${p.armorProfs.join(', ')}</span>`:''}</div>`:''}
   </div>
-  <div style="display:flex;justify-content:flex-end;margin-top:8px"><button class="btn" onclick="closeModal()">Fermer</button></div>`);
+  <div style="display:flex;justify-content:flex-end;margin-top:8px"></div>`);
 }
 
 // ─── MJ : ÉDITION DE LA FICHE JOUEUR ───────────────────────────────────────
@@ -389,7 +389,6 @@ function mjOpenCompendium(){
         <button class="btn bsm bprimary" onclick="mjCreateNewComp()">+ Nouveau</button>
         <button class="btn bsm" onclick="importMJCompendium()">📥 Importer</button>
       </div>
-      <button class="btn bsm" onclick="closeModal()">Fermer</button>
     </div>`);
 }
 
@@ -420,7 +419,6 @@ function mjOpenCompendiumEditor(id){
         <button class="btn bsm" onclick="exportMJCompendium('${id}')">📤 Exporter</button>
         <button class="btn bsm" style="color:#e53935;border-color:rgba(229,57,53,.3)" onclick="mjDeleteComp('${id}')">🗑 Supprimer</button>
       </div>
-      <button class="btn bsm" onclick="closeModal()">Fermer</button>
     </div>`);
 }
 
@@ -810,7 +808,6 @@ function mjWhisperPlayer(idx){
     <div id="mjWhisperHistory" style="min-height:80px;max-height:180px;overflow-y:auto;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px;margin-bottom:8px">${typeof _whisperConvHtml==='function'?_whisperConvHtml(targetUid):'<div style="font-size:18px;color:var(--text3);font-style:italic;text-align:center;padding:8px">Aucun message échangé.</div>'}</div>
     <textarea id="whisperMsg" placeholder="Message secret..." style="width:100%;box-sizing:border-box;min-height:64px;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:18px;resize:vertical;margin-bottom:8px"></textarea>
     <div style="display:flex;gap:8px">
-      <button class="btn" onclick="closeModal()">Fermer</button>
       <button class="btn bac" style="flex:1" onclick="_sendMJWhisperAndRefresh()">🤫 Envoyer</button>
     </div>`);
   setTimeout(()=>{const h=document.getElementById('mjWhisperHistory');if(h)h.scrollTop=h.scrollHeight;},50);

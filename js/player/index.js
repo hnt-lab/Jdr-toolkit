@@ -9,8 +9,9 @@ function uploadPortrait(input){
   reader.onload=e=>{upd('portrait',e.target.result);render();};
   reader.readAsDataURL(file);
 }
-function openModal(html){const m=document.getElementById('modal');m.className='open';m.innerHTML=`<div class="modal-box" style="max-width:480px">${html}</div>`;}
-function openWideModal(html){const m=document.getElementById('modal');m.className='open';m.innerHTML=`<div class="modal-box" style="max-width:600px">${html}</div>`;}
+function _modalCloseX(){return`<button onclick="closeModal()" title="Fermer" aria-label="Fermer" style="position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:20px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:3">✕</button>`;}
+function openModal(html){const m=document.getElementById('modal');m.className='open';m.innerHTML=`<div class="modal-box" style="max-width:560px;position:relative;padding-right:18px">${_modalCloseX()}${html}</div>`;}
+function openWideModal(html){const m=document.getElementById('modal');m.className='open';m.innerHTML=`<div class="modal-box" style="max-width:720px;position:relative;padding-right:18px">${_modalCloseX()}${html}</div>`;}
 function closeModal(){const m=document.getElementById('modal');if(m){m.className='';m.innerHTML='';}if(typeof _tutoRemoveHighlight==='function')_tutoRemoveHighlight();}
 document.addEventListener('click',e=>{
   if(document.getElementById('modal')?.className==='open'&&e.target===document.getElementById('modal'))closeModal();
@@ -374,16 +375,6 @@ function renderDicePanel(){
     </div>`).join('')}
   </div>`:''}
 
-  ${currentTableId?`<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-      <div style="font-size:17px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">Chuchotements</div>
-      <button onclick="openWhisperModal()" style="padding:4px 10px;border:1px solid var(--cp);border-radius:6px;font-size:17px;cursor:pointer;background:transparent;color:var(--cp);font-family:var(--B)">🤫 Chuchoter</button>
-    </div>
-    ${(typeof _whisperHistory!=='undefined'&&_whisperHistory.length)?_whisperHistory.slice(0,5).map(w=>`<div style="padding:5px 8px;background:var(--surface2);border-radius:6px;margin-bottom:4px;font-size:17px">
-      <div style="color:var(--cp);font-weight:600;margin-bottom:1px">${esc(w.fromName||'?')}</div>
-      <div style="color:var(--text2)">${esc(w.message||'')}</div>
-    </div>`).join(''):'<div style="font-size:17px;color:var(--text3);font-style:italic">Aucun chuchotement reçu.</div>'}
-  </div>`:''}
   `;
 }
 
@@ -418,7 +409,6 @@ async function _openPlayerWhisperModal(){
       <textarea id="whisperMsg" placeholder="Message secret..." style="flex:1;min-height:56px;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:18px;resize:vertical"></textarea>
       <div style="display:flex;flex-direction:column;gap:6px">
         <button class="btn bac" style="white-space:nowrap" onclick="_sendPlayerWhisper()">🤫 Envoyer</button>
-        <button class="btn" onclick="closeModal()">Fermer</button>
       </div>
     </div>
   </div>`);

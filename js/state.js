@@ -565,7 +565,6 @@ function openTabOrderSettings(){
     ${rows}
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;gap:8px">
       <button class="btn bsm" style="color:var(--text3)" onclick="_tabOrderReset()">↺ Ordre par défaut</button>
-      <button class="btn" onclick="closeModal()">Fermer</button>
     </div>`);
 }
 

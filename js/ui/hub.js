@@ -334,7 +334,6 @@ function openTableSettings(tableId,tableName,inviteCode){
     </details>
     <div style="display:flex;gap:8px">
       <button class="btn bdanger" style="flex:1" onclick="confirmDeleteTable('${tableId}')">🗑 Supprimer la table</button>
-      <button class="btn bac" style="flex:2" onclick="closeModal()">Fermer</button>
     </div>`);
 }
 async function saveTableCompendiums(tableId, auto){
@@ -592,7 +591,6 @@ function viewCharSheet(uid,campId){
     ${(isMJ2||isOwn)&&p.secrets?`<div style="background:rgba(200,168,75,.06);border:1px solid rgba(200,168,75,.3);border-radius:8px;padding:10px;margin-bottom:8px"><div class="fl mb6" style="color:var(--cp)">🔐 Secrets</div><div style="font-size:18px;color:var(--text2);white-space:pre-wrap">${esc(p.secrets)}</div></div>`:''}
     </div>
     <div style="display:flex;justify-content:flex-end;margin-top:8px">
-      <button class="btn" onclick="closeModal()">Fermer</button>
     </div>`);
 }
 

@@ -152,7 +152,6 @@ function openUserSettings(){
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:8px">
       <button class="btn bsm" style="color:#e53935;border-color:rgba(229,57,53,.3)" onclick="closeModal();doLogout()">🚪 Déconnexion</button>
       <button class="btn bsm" style="border-color:rgba(200,168,75,.4);color:var(--cp)" onclick="openFeedbackModal()">💬 Avis / Bug</button>
-      <button class="btn" onclick="closeModal()">Fermer</button>
     </div>`);
   window._settingsAvatar=av;
 }

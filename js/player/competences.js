@@ -26,6 +26,7 @@ function tabCompetences(p){
         <span class="sk-n${classSkill?' cs':''}">${sk.name}</span>
         <span class="sk-ab">${ABILITIES_SH[sk.ab]}</span>
         <span class="sk-v">${fmt(bonus)}</span>
+        <span title="Lancer ${sk.name}" onclick="event.stopPropagation();diceRoll('d20','${sk.name}',${bonus},'skill')" style="cursor:pointer;font-size:17px;color:var(--text3);padding-left:8px">🎲</span>
       </div>`;
     }).join('')}
     <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);font-size:18px;color:var(--text2)">Perception passive : <strong style="color:var(--cp)">${passive}</strong></div>
@@ -207,8 +208,7 @@ function openFeatSearch(){openModal(`<div class="pt">Ajouter une capacité</div>
     <div><div style="font-size:15px;color:var(--text3);margin-bottom:3px">Dé (ex : 2d6+3)</div><input class="fi" id="featCustomDice" placeholder="2d6+3"></div>
   </div>
   <button class="btn bac bsm" style="width:100%" onclick="addCustomCombatFeat()">+ Ajouter cette capacité</button>
-</div>
-<button class="btn bsm bdanger" style="margin-top:8px;width:100%" onclick="closeModal()">Fermer</button>`);}
+</div>`);}
 const FEATS_SRD=[
   {name:"Rage",classe:"Barbare",desc:"2/repos long. Bonus dégâts, résistance physique, avantage FOR."},
   {name:"Attaque supplémentaire",classe:"Guerrier/Barbare",desc:"Attaque 2 fois par action Attaquer au niv.5."},

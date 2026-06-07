@@ -169,7 +169,7 @@ async function openPackEditor(compId){
   openWideModal(`<div class="pt">📚 Éditeur — ${esc(c.name||'Compendium')}</div>
     <div style="font-size:18px;color:var(--text2);margin-bottom:12px">Crée et modifie ton contenu. Les champs marqués <span style="color:#e57373">*</span> sont obligatoires.</div>
     <div style="max-height:60vh;overflow-y:auto">${sections}</div>
-    <div style="display:flex;justify-content:flex-end;margin-top:12px"><button class="btn bsm" onclick="closeModal()">Fermer</button></div>`);
+    <div style="display:flex;justify-content:flex-end;margin-top:12px"></div>`);
 }
 
 // ─── Formulaire d'une entrée (création si index=-1) ───
