@@ -204,6 +204,11 @@
   </div>
 </div>
 <div id="modal"></div>
+<!-- Barre de navigation par modes (Hub · Personnage/MJ) — affichée une fois connecté -->
+<div id="modeNav" style="display:none">
+  <button class="mode-btn mode-hub" onclick="showHub()" title="Hub"><span class="mode-ico">🏠</span><span class="mode-lbl">Hub</span></button>
+  <button class="mode-btn mode-char" onclick="_navGoChar()" title="Personnage / MJ"><span class="mode-ico mode-char-ico">🧙</span><span class="mode-lbl mode-char-lbl">Personnage</span></button>
+</div>
 
 <script src="version.js"></script>
 <script src="js/firebase.js"></script>

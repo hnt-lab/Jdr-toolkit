@@ -75,6 +75,14 @@
   /* Panneau Groupe : un peu plus grand et décalé pour ne pas être collé au bord */
   #partyHudPanel{min-width:300px!important;font-size:17px!important}
 }
+/* Barre de navigation par modes (Hub · Personnage/MJ) — pill flottante */
+#modeNav{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:860;display:flex;gap:4px;background:var(--surface);border:1px solid var(--cp);border-radius:30px;padding:5px;box-shadow:0 4px 20px rgba(0,0,0,.55)}
+.mode-btn{display:flex;align-items:center;gap:7px;padding:9px 18px;border:none;background:transparent;color:var(--text2);font-family:var(--B);font-size:16px;border-radius:24px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.mode-btn .mode-ico{font-size:20px;line-height:1}
+.mode-btn.on{background:var(--cp);color:#1a1400;font-weight:700}
+.mode-btn:not(.on):hover{background:var(--surface2);color:var(--text)}
+.mode-btn.disabled{opacity:.4;cursor:not-allowed}
+@media(max-width:560px){ #modeNav{bottom:14px} .mode-btn{padding:8px 13px;font-size:14px} .mode-btn .mode-ico{font-size:18px} }
 /* Avatar de navigation (remplace le bouton « Profil ») */
 .nav-avatar{width:38px;height:38px;border-radius:50%;border:1.5px solid var(--cp);background:var(--surface2);color:var(--text);font-size:20px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0;transition:all .15s}
 .nav-avatar:hover{background:rgba(200,168,75,.18);box-shadow:0 0 0 2px rgba(200,168,75,.3)}

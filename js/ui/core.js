@@ -38,12 +38,33 @@ function _refreshNavAvatars(){
   const a=(typeof currentUserData!=='undefined'&&currentUserData&&currentUserData.avatar)?currentUserData.avatar:'👤';
   ['hubUserBtn','mjUserBtn','ficheUserBtn'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=a;});
 }
+// Barre de modes : Hub · Personnage/MJ (Profil = avatar, chuchotements = dé).
+function _isMJOfCurrent(){return (typeof currentTableMjId!=='undefined'&&currentTableMjId&&typeof currentUser!=='undefined'&&currentUser&&currentTableMjId===currentUser.uid);}
+function _navGoChar(){
+  if(!currentCampaignId){if(typeof showToast==='function')showToast('Ouvre une campagne depuis le Hub d\'abord.');return;}
+  if(_isMJOfCurrent()){if(typeof showMJScreen==='function')showMJScreen();}
+  else{showApp();if(typeof render==='function')render();}
+}
+function _refreshModeNav(){
+  const nav=document.getElementById('modeNav');if(!nav)return;
+  nav.style.display='flex';
+  const vis=el=>el&&el.style.display!=='none';
+  const onHub=vis(document.getElementById('hubScreen'));
+  const onChar=vis(document.getElementById('app'))||vis(document.getElementById('mjScreen'));
+  const mj=_isMJOfCurrent();
+  nav.querySelectorAll('.mode-char-lbl').forEach(el=>el.textContent=mj?'MJ':'Personnage');
+  nav.querySelectorAll('.mode-char-ico').forEach(el=>el.textContent=mj?'🎲':'🧙');
+  const hb=nav.querySelector('.mode-hub'),ch=nav.querySelector('.mode-char');
+  if(hb)hb.classList.toggle('on',!!onHub);
+  if(ch){ch.classList.toggle('on',!!onChar);ch.classList.toggle('disabled',!currentCampaignId);}
+}
 function showAuthScreen(){
   document.getElementById('authScreen').style.display='flex';
   document.getElementById('hubScreen').style.display='none';
   document.getElementById('app').style.display='none';
   const _df=document.getElementById('diceFloat');if(_df)_df.style.display='none';
   const _ds=document.getElementById('diceShortcuts');if(_ds)_ds.style.display='none';
+  const _mn=document.getElementById('modeNav');if(_mn)_mn.style.display='none';
 }
 async function joinGroupOnly(tableId,campaignId){
   const tableData=_hubCache&&_hubCache.find(t=>t.id===tableId);
@@ -80,7 +101,7 @@ function showHub(){
   document.getElementById('app').style.display='none';
   document.getElementById('mjScreen').style.display='none';
   _expandedCamp=null;
-  _refreshNavAvatars();
+  _refreshNavAvatars();_refreshModeNav();
   renderHub();
   if(!localStorage.getItem('tuto_player_done')) setTimeout(()=>startTutorial('player'),700);
 }
@@ -95,7 +116,7 @@ function showApp(){
   if(mjBtn) mjBtn.style.display='none';
   const hdrUser=document.getElementById('hdrUser');
   if(hdrUser&&currentUserData) hdrUser.textContent=`⚔ ${currentUserData.displayName}`;
-  _refreshNavAvatars();
+  _refreshNavAvatars();_refreshModeNav();
 }
 
 // ─── CACHE INVALIDATION ───
