@@ -294,9 +294,6 @@ function tabCombat(p){
       ${(()=>{const magLvl=((p.classes||[]).find(c=>c.name==='Magicien')||{}).level||0;if(!magLvl)return'';const prepMax=Math.max(1,intM+magLvl);const known=(p.spells||[]).filter(s=>{const sp=findSpellData(s.name);return sp&&sp.level>0;}).length;return`<div style="margin-top:8px;padding:8px;background:var(--surface2);border-radius:6px;font-size:18px;color:var(--text2)">📚 Sorts préparés : <strong style="color:${known>prepMax?'#e53935':'var(--cp)'}">${known}/${prepMax}</strong> (INT ${fmt(intM)} + niv. ${magLvl})</div>`;})()}
       ${renderSpellList(p, true)}
     </div>`):''}
-  ${cs('cs-sauvegardes',`<div class="panel"><div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>Sauvegardes</div>
-      ${ABILITIES_SH.map((ab,i)=>{const saves=CLASS_SAVES[mc?mc.name:'']||[];const hasSave=saves.includes(i);const m=mod(p.abilities[i])+(hasSave?pb(lvl):0);const forRageAdv=i===0&&rageActive;return forRageAdv?`<div style="display:flex;align-items:center;gap:3px"><div class="save-btn" style="flex:1" onclick="rollSave('${ab}',${m})"><span class="save-dot${hasSave?' p':''}"></span><span style="flex:1;font-size:18px">${ab}</span><span style="color:var(--cp);font-weight:600">${fmt(m)}</span><span style="font-size:15px;color:var(--text3)">🎲</span></div><button class="btn bsm" style="padding:2px 6px;color:#e53935;border-color:#e53935;font-size:15px;flex-shrink:0" onclick="rollSave('${ab}',${m},1)" title="Avantage (rage)">🔥⚡</button></div>`:`<div class="save-btn" onclick="rollSave('${ab}',${m})"><span class="save-dot${hasSave?' p':''}"></span><span style="flex:1;font-size:18px">${ab}</span><span style="color:var(--cp);font-weight:600">${fmt(m)}</span><span style="font-size:15px;color:var(--text3)">🎲</span></div>`;}).join('')}
-    </div>`)}
   </div>`;
 }
 

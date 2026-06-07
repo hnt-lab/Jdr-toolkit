@@ -132,8 +132,8 @@ function tabPerso(p){
         const stRow=(s,i)=>`<span class="status-badge ${s.type||'neutral'}" title="${esc(s.desc||'')}">${s.icon||'◆'} ${esc(s.name||'')}${(s.value&&s.stat)?` ${s.value>0?'+':''}${s.value} ${esc(s.stat.toUpperCase())}`:''} <span onclick="event.stopPropagation();removeStatus(${i})" style="cursor:pointer;font-weight:700;opacity:.7">×</span></span>`;
         const lbl=t=>`<div style="font-size:15px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">${t}</div>`;
         return`<div style="margin-bottom:10px">${lbl('Statuts actifs')}<div style="display:flex;flex-wrap:wrap;gap:4px">${sts.length?sts.map(stRow).join(''):empty}</div></div>
-        <div style="margin-bottom:8px">${lbl('Résistances dégâts')}<div style="display:flex;flex-wrap:wrap;gap:4px">${(res.length||passRes.length)?res.map((v,i)=>tag('dmgResistances',v,i)).join('')+passRes.map(lockR).join(''):empty}</div></div>
-        <div style="margin-bottom:8px">${lbl('Immunités dégâts')}<div style="display:flex;flex-wrap:wrap;gap:4px">${(imm.length||passImm.length)?imm.map((v,i)=>tagImm('dmgImmunities',v,i)).join('')+passImm.map(lockI).join(''):empty}</div></div>
+        <div style="margin-bottom:8px">${lbl('Résistances dégâts')}<div style="display:flex;flex-wrap:wrap;gap:4px">${(res.length||passRes.length)?res.map((v,i)=>passRes.includes(v)?'':tag('dmgResistances',v,i)).join('')+passRes.map(lockR).join(''):empty}</div></div>
+        <div style="margin-bottom:8px">${lbl('Immunités dégâts')}<div style="display:flex;flex-wrap:wrap;gap:4px">${(imm.length||passImm.length)?imm.map((v,i)=>passImm.includes(v)?'':tagImm('dmgImmunities',v,i)).join('')+passImm.map(lockI).join(''):empty}</div></div>
         <div>${lbl('Immunités conditions')}<div style="display:flex;flex-wrap:wrap;gap:4px">${ci.length?ci.map((v,i)=>tagCond('condImmunities',v,i)).join(''):empty}</div></div>`;
       })()}
     </div>
@@ -254,6 +254,9 @@ function openPrivacySettings(){
 function getPassiveResistances(p){
   const r=[];
   if(p.race==='Tieffelin')r.push('Feu');
+  // Résistances raciales (passives → verrouillées, non supprimables)
+  const _RR={'Nain des montagnes':['Poison'],'Nain des collines':['Poison'],'Halfelin robuste':['Poison'],'Aasimar':['Nécrotique','Radiant'],'Goliath':['Froid']};
+  if(_RR[p.race])r.push(..._RR[p.race]);
   // Dragonide — résistance au type de dégâts de son ascendance draconique
   if(p.race==='Dragonide'&&p.draconicAncestry&&typeof SRD!=='undefined'&&SRD.draconicAncestries){const anc=SRD.draconicAncestries.find(a=>a.name===p.draconicAncestry);if(anc&&anc.damage)r.push(anc.damage);}
   if(Array.isArray(p.autoResist))r.push(...p.autoResist);

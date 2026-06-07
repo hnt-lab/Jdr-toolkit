@@ -27,7 +27,6 @@ function tabSac(p){
   <div class="panel mb10">
     <div class="pt" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
       <span>🪙 Bourse</span>
-      <span style="font-size:15px;color:var(--text3);font-style:italic">Conversion automatique</span>
     </div>
     <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px">
       ${[['pc','Cuivre','#b87333'],['pa','Argent','#b0bec5'],['pe','Électrum','#6abfad'],['po','Or','var(--cp)'],['pp','Platine','#dcdcdc']].map(([k,lbl,col])=>`<div class="coin"><div class="coin-lbl" style="color:${col}">${lbl}</div><div id="bourse_${k}" class="coin-val" style="font-size:25px;font-weight:600;text-align:center;padding:4px 0;color:var(--text)">${cur[k]||0}</div></div>`).join('')}

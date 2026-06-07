@@ -894,13 +894,9 @@ function confirmCreation(){
     const style=cdLu2&&cdLu2.combatStyles?cdLu2.combatStyles.find(s=>s.name===CS.combatStyle):null;
     if(style)p.features.push({name:'Style : '+style.name,desc:style.desc,classe:CS.classe});
   }
-  // Résistances raciales auto-appliquées
-  const _RACIAL_RES={'Nain des montagnes':['Poison'],'Nain des collines':['Poison'],'Halfelin robuste':['Poison'],'Tieffelin':['Feu'],'Aasimar':['Nécrotique','Radiant'],'Goliath':['Froid']};
-  p.dmgResistances=[...(_RACIAL_RES[CS.race]||[])];
-  if(CS.race==='Dragonide'&&CS.draconicAncestry){
-    const da=SRD.draconicAncestries.find(a=>a.name===CS.draconicAncestry);
-    if(da&&da.damage)p.dmgResistances=[da.damage];
-  }
+  // Résistances raciales : désormais PASSIVES (calculées dans getPassiveResistances → verrouillées, non supprimables).
+  // On n'écrit plus rien dans la liste éditable ; la liste ne contient que les résistances ajoutées à la main.
+  p.dmgResistances=[];
   p.dmgImmunities=p.dmgImmunities||[];p.condImmunities=p.condImmunities||[];
   p.combatCharges={};
   p.xp=0;p.created=true;state.activeTab='perso';resetCS();render();

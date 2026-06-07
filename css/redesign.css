@@ -65,6 +65,11 @@
 /* ═══════════ FICHE — rail perso persistant (résumé) ═══════════ */
 /* La fiche profite de la largeur (était bridée à 920px) */
 #app{max-width:1400px}
+/* Boutons nettement plus gros sur desktop (padding ~doublé) — mobile inchangé */
+@media(min-width:900px){
+  .btn{font-size:21px;padding:13px 24px}
+  .bsm{font-size:17px;padding:7px 15px}
+}
 .fiche-2col{display:block}
 @media(min-width:900px){
   .fiche-2col{display:grid;grid-template-columns:300px minmax(0,1fr);gap:18px;align-items:start}
