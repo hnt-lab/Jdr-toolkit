@@ -8,12 +8,11 @@ function showMJScreen(){
   document.getElementById('hubScreen').style.display='none';
   document.getElementById('app').style.display='none';
   document.getElementById('mjScreen').style.display='block';
-  // Fix 23 — Dé flottant visible pour le MJ (panel simplifié)
-  const _dfMJ=document.getElementById('diceFloat');if(_dfMJ)_dfMJ.style.display='flex';
   const el=document.getElementById('mjHdrCamp');
   if(el) el.textContent=(currentTableName?currentTableName+' — ':'')+currentCampaignName;
   if(typeof _refreshNavAvatars==='function')_refreshNavAvatars();
   if(typeof _refreshModeNav==='function')_refreshModeNav();
+  if(typeof _syncFloatingUI==='function')_syncFloatingUI();
   _mjTab='joueurs';
   renderMJTabs();
   if(!localStorage.getItem('tuto_mj_done')) setTimeout(()=>startTutorial('mj'),700);

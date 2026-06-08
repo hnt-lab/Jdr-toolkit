@@ -60,13 +60,24 @@ function _refreshModeNav(){
   if(hb)hb.classList.toggle('on',!!onHub);
   if(ch)ch.classList.toggle('on',!!onChar);
 }
+// SOURCE UNIQUE de la visibilité des boutons flottants (dé + groupe). À appeler depuis TOUS les écrans.
+// ⚠️ RÉGRESSION RÉCURRENTE : ne JAMAIS re-cacher le dé/groupe ailleurs (showHub/showApp/showMJScreen).
+// Règle : dé visible dès qu'une campagne est active (Hub + jeu) ; groupe visible si campagne active + JOUEUR.
+function _syncFloatingUI(){
+  const auth=document.getElementById('authScreen');
+  const onAuth=auth&&auth.style.display!=='none';
+  const hasCamp=!!currentCampaignId;
+  const mj=!!window._currentCampIsMJ;
+  const _df=document.getElementById('diceFloat');if(_df)_df.style.display=(!onAuth&&hasCamp)?'flex':'none';
+  const hud=document.getElementById('partyHud');if(hud)hud.style.display=(!onAuth&&hasCamp&&!mj)?'block':'none';
+}
 function showAuthScreen(){
   document.getElementById('authScreen').style.display='flex';
   document.getElementById('hubScreen').style.display='none';
   document.getElementById('app').style.display='none';
-  const _df=document.getElementById('diceFloat');if(_df)_df.style.display='none';
   const _ds=document.getElementById('diceShortcuts');if(_ds)_ds.style.display='none';
   const _mn=document.getElementById('modeNav');if(_mn)_mn.style.display='none';
+  _syncFloatingUI();
 }
 async function joinGroupOnly(tableId,campaignId){
   const tableData=_hubCache&&_hubCache.find(t=>t.id===tableId);
@@ -95,11 +106,8 @@ function showHub(){
   _groupData=[];_activeCombatState=null;_combatListenerInitialized=false;_prevCombatTurnUid=null;_groupHudOpen=false;_groupOnlyMode=false;_hideHudDetail();
   const vEl=document.getElementById('hubVersion');if(vEl&&typeof APP_VERSION!=='undefined')vEl.textContent='v'+APP_VERSION;
   // Dé flottant + groupe PERSISTANTS au Hub quand une campagne est active (on « jette un œil » sans quitter le groupe)
-  const _df=document.getElementById('diceFloat');const hud=document.getElementById('partyHud');
-  const _hubHasCamp=!!currentCampaignId;const _hubMJ=!!window._currentCampIsMJ;
-  if(_df)_df.style.display=_hubHasCamp?'flex':'none';
-  if(hud)hud.style.display=(_hubHasCamp&&!_hubMJ)?'block':'none';
-  if(_hubHasCamp&&!_hubMJ){const _pp=document.getElementById('partyHudPanel');if(_pp)_pp.style.display='none';startGroupListener(currentCampaignId);if(currentTableMjId)startCombatListener(currentCampaignId,currentTableMjId);}
+  // Groupe vivant au Hub : relancer le listener (stopAllListeners l'a coupé) si campagne JOUEUR active
+  if(currentCampaignId&&!window._currentCampIsMJ){const _pp=document.getElementById('partyHudPanel');if(_pp)_pp.style.display='none';startGroupListener(currentCampaignId);if(currentTableMjId)startCombatListener(currentCampaignId,currentTableMjId);}
   const banner=document.getElementById('combatTurnBanner');if(banner)banner.style.display='none';
   const mjBadge=document.getElementById('hubMJBadge');if(mjBadge)mjBadge.style.display='none';
   document.getElementById('authScreen').style.display='none';
@@ -107,7 +115,7 @@ function showHub(){
   document.getElementById('app').style.display='none';
   document.getElementById('mjScreen').style.display='none';
   _expandedCamp=null;
-  _refreshNavAvatars();_refreshModeNav();
+  _refreshNavAvatars();_refreshModeNav();_syncFloatingUI();
   renderHub();
   if(!localStorage.getItem('tuto_player_done')) setTimeout(()=>startTutorial('player'),700);
 }
@@ -116,13 +124,12 @@ function showApp(){
   document.getElementById('hubScreen').style.display='none';
   document.getElementById('app').style.display='block';
   document.getElementById('mjScreen').style.display='none';
-  const _df=document.getElementById('diceFloat');if(_df)_df.style.display='flex';
   mjMode=false;
   const mjBtn=document.getElementById('mjBtn');
   if(mjBtn) mjBtn.style.display='none';
   const hdrUser=document.getElementById('hdrUser');
   if(hdrUser&&currentUserData) hdrUser.textContent=`⚔ ${currentUserData.displayName}`;
-  _refreshNavAvatars();_refreshModeNav();
+  _refreshNavAvatars();_refreshModeNav();_syncFloatingUI();
 }
 
 // ─── CACHE INVALIDATION ───
