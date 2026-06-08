@@ -93,9 +93,13 @@ async function joinGroupOnly(tableId,campaignId){
 function showHub(){
   stopAllListeners();
   _groupData=[];_activeCombatState=null;_combatListenerInitialized=false;_prevCombatTurnUid=null;_groupHudOpen=false;_groupOnlyMode=false;_hideHudDetail();
-  const _df=document.getElementById('diceFloat');if(_df)_df.style.display='none';
   const vEl=document.getElementById('hubVersion');if(vEl&&typeof APP_VERSION!=='undefined')vEl.textContent='v'+APP_VERSION;
-  const hud=document.getElementById('partyHud');if(hud)hud.style.display='none';
+  // Dé flottant + groupe PERSISTANTS au Hub quand une campagne est active (on « jette un œil » sans quitter le groupe)
+  const _df=document.getElementById('diceFloat');const hud=document.getElementById('partyHud');
+  const _hubHasCamp=!!currentCampaignId;const _hubMJ=!!window._currentCampIsMJ;
+  if(_df)_df.style.display=_hubHasCamp?'flex':'none';
+  if(hud)hud.style.display=(_hubHasCamp&&!_hubMJ)?'block':'none';
+  if(_hubHasCamp&&!_hubMJ){const _pp=document.getElementById('partyHudPanel');if(_pp)_pp.style.display='none';startGroupListener(currentCampaignId);if(currentTableMjId)startCombatListener(currentCampaignId,currentTableMjId);}
   const banner=document.getElementById('combatTurnBanner');if(banner)banner.style.display='none';
   const mjBadge=document.getElementById('hubMJBadge');if(mjBadge)mjBadge.style.display='none';
   document.getElementById('authScreen').style.display='none';
