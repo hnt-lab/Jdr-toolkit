@@ -43,7 +43,7 @@ function mjTabObjets(){
       <div class="pt" style="margin-bottom:0;padding-bottom:0;border-bottom:none;font-size:18px">💰 Inventaire du MJ</div>
       <button class="btn bsm bprimary" onclick="mjOpenNewItem()">+ Créer manuellement</button>
     </div>
-    ${itemList}
+    <div class="mj-grid">${itemList}</div>
   </div>`;
 }
 

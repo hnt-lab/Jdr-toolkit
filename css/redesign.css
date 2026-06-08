@@ -86,6 +86,9 @@
 /* MJ — onglet Joueurs : cartes en grille (remplit la largeur sur desktop, 1 colonne sur mobile) */
 .mj-players-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(600px,1fr));gap:12px;align-items:start}
 @media(max-width:640px){ .mj-players-grid{grid-template-columns:1fr} }
+/* MJ — listes de cartes en grille (objets, etc.) */
+.mj-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:10px;align-items:start}
+@media(max-width:560px){ .mj-grid{grid-template-columns:1fr} }
 /* Boutons FLOTTANTS un peu plus gros sur desktop (≈0.8× de la version précédente) — mobile inchangé */
 @media(min-width:900px){
   #diceFloat{width:64px!important;height:64px!important;font-size:29px!important;bottom:28px!important;right:28px!important}

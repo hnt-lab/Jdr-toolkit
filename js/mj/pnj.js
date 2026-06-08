@@ -15,8 +15,8 @@ function mjTabPNJ(){
     </div>
   </div>`).join(''):`<div style="color:var(--text3);font-size:18px;font-style:italic;padding:8px 0">Aucun PNJ sauvegardé.</div>`;
 
-  return`<div style="display:grid;grid-template-columns:280px 1fr;gap:12px">
-    <div>
+  return`<div class="md-2col">
+    <div class="md-list">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
         <div class="pt" style="margin-bottom:0;padding-bottom:0;border-bottom:none">PNJ sauvegardés</div>
         <div style="display:flex;gap:4px">
@@ -26,7 +26,7 @@ function mjTabPNJ(){
       </div>
       ${list}
     </div>
-    <div>${detail}</div>
+    <div class="md-detail">${detail}</div>
   </div>`;
 }
 
