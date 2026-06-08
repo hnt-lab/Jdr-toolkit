@@ -143,7 +143,7 @@
 <!-- HUB : TABLES & CAMPAGNES -->
 <div id="hubScreen" class="tavern-bg">
   <div class="hub-hdr">
-    <span class="hub-hdr-title">🧰 La Boîte à Outils</span>
+    <span class="hub-hdr-title hdr-home" onclick="showHub()" title="Retour au Hub" style="cursor:pointer">🧰 <span class="hdr-home-txt">La Boîte à Outils</span></span>
     <div class="hub-hdr-row2">
       <span id="hubVersion" style="font-size:10px;color:var(--text3);font-family:monospace;opacity:.6"></span>
       <div id="hubMJBadge" style="display:none;align-items:center;gap:5px;padding:3px 10px;background:rgba(200,168,75,.15);border:1px solid rgba(200,168,75,.4);border-radius:20px;font-size:11px;color:var(--cp);font-family:var(--F);letter-spacing:.06em">🎲 Maître de Jeu</div>
@@ -158,8 +158,8 @@
 <!-- ÉCRAN MJ -->
 <div id="mjScreen" style="display:none">
   <div class="mj-hdr">
-    <button class="btn bsm" onclick="showHub()" style="border-color:var(--cp);color:var(--cp);font-weight:600;flex-shrink:0" title="Retour aux tables">🧰 Tables</button>
-    <span class="mj-hdr-title" style="margin-left:8px;flex-shrink:0">🎲 MJ</span>
+    <span class="hub-hdr-title hdr-home" onclick="showHub()" title="Retour au Hub" style="cursor:pointer;flex-shrink:0">🧰 <span class="hdr-home-txt">La Boîte à Outils</span></span>
+    <span class="mj-hdr-title" style="margin-left:12px;flex-shrink:0">🎲 MJ</span>
     <span id="mjSyncDot" class="sync-dot" style="margin-left:4px" title="Mise à jour joueurs reçue"></span>
     <span id="mjHdrCamp" style="font-size:12px;color:var(--text2);flex:1;margin:0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span>
     <button class="nav-avatar" id="mjUserBtn" onclick="openUserSettings()" title="Profil &amp; Déconnexion" style="flex-shrink:0">👤</button>
@@ -171,7 +171,7 @@
 <!-- APPLICATION PRINCIPALE -->
 <div id="app" style="display:none">
   <div class="hdr">
-    <button class="btn bsm" onclick="showHub()" style="border-color:var(--cp);color:var(--cp);font-weight:600;flex-shrink:0" title="Retour aux tables">🧰 Tables</button>
+    <span class="hub-hdr-title hdr-home" onclick="showHub()" title="Retour au Hub" style="cursor:pointer;flex-shrink:0">🧰 <span class="hdr-home-txt">La Boîte à Outils</span></span>
     <span class="hdr-char" id="hdrChar" style="flex:1;text-align:center;display:flex;align-items:center;justify-content:center;gap:5px">Fiche de personnage<span id="playerSyncDot" class="sync-dot" title="Mis à jour en temps réel"></span></span>
     <span id="hdrUser" style="display:none"></span>
     <button class="btn bsm" id="mjBtn" onclick="toggleMJ()" style="border-color:var(--cp);color:var(--cp);flex-shrink:0">🎲 MJ</button>
