@@ -15,7 +15,7 @@ function mjTabJoueurs(){
         <button class="btn bsm bprimary" onclick="mjAddAllToCombat()">⚡ Tous en combat</button>
       </div>
     </div>
-    ${_mjPlayersData.map((pp,i)=>{
+    <div class="mj-players-grid">${_mjPlayersData.map((pp,i)=>{
       const p=pp.charData||{};
       const hp=p.hp||0;const hpMax=p.hpMax||1;
       const hpPct=Math.max(0,Math.min(100,hpMax?hp/hpMax*100:0));
@@ -63,7 +63,7 @@ function mjTabJoueurs(){
         ${conds.length?`<div style="margin-bottom:6px">${conds.map(c=>`<span class="status-badge malus">⚠ ${esc(c)}</span>`).join('')}</div>`:''}
         ${p.secrets?`<div style="padding:8px;background:rgba(200,168,75,.06);border:1px solid rgba(200,168,75,.2);border-radius:6px;font-size:18px;color:var(--text2)"><span style="color:var(--cp);font-size:17px">🔐 Secret :</span> ${esc(p.secrets)}</div>`:''}
       </div>`;
-    }).join('')}
+    }).join('')}</div>
   </div>`;
 }
 
