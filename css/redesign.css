@@ -5,7 +5,7 @@
    ═══════════════════════════════════════════════════════════════════ */
 
 /* --- Largeur : large mais pas pleine page (lisibilité) --- */
-.hub-body{max-width:1400px}
+.hub-body{max-width:1700px}
 @media(min-width:860px){ .hub-body{padding-left:28px;padding-right:28px} }
 /* Le texte de lecture (descriptions) garde une mesure confortable (~66-70 car./ligne, cf. Baymard/UXPin) */
 .hub-detail .camp-expanded p{max-width:70ch}
@@ -68,10 +68,21 @@
 .hdr,.mj-hdr{background:rgba(12,8,4,.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:0;border-bottom:1px solid rgba(200,168,75,.2);border-radius:0;margin:0 0 12px;padding:12px 16px;flex-wrap:nowrap;gap:10px}
 .hdr-char{font-size:20px;color:var(--text);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* Contenu des en-têtes aligné sur le conteneur 1400 (logo/avatar pas collés aux bords sur grand écran) */
-.hub-hdr,.hdr,.mj-hdr{padding-left:max(16px,calc(50vw - 700px));padding-right:max(16px,calc(50vw - 700px))}
-#app .pbar,#app .fiche-2col,#app #combatTurnBanner{max-width:1400px;margin-left:auto;margin-right:auto}
+.hub-hdr,.hdr,.mj-hdr{padding-left:max(16px,calc(50vw - 850px));padding-right:max(16px,calc(50vw - 850px))}
+#app .pbar,#app .fiche-2col,#app #combatTurnBanner{max-width:1700px;margin-left:auto;margin-right:auto}
 #app .pbar,#app .fiche-2col{padding-left:12px;padding-right:12px;box-sizing:border-box}
-#mjTabBar,#mjTabContent{max-width:1400px;margin-left:auto;margin-right:auto;padding-left:12px;padding-right:12px;box-sizing:border-box}
+#mjTabBar,#mjTabContent{max-width:1700px;margin-left:auto;margin-right:auto;padding-left:12px;padding-right:12px;box-sizing:border-box}
+/* ═══════════ PATTERN MAÎTRE-DÉTAIL STANDARD (réutilisable : Hub, MJ…) ═══════════ */
+.md-2col{display:block}
+.md-detail{min-width:0}
+@media(min-width:900px){
+  .md-2col{display:grid;grid-template-columns:minmax(300px,400px) minmax(0,1fr);gap:18px;align-items:start}
+  .md-list{position:sticky;top:8px;max-height:calc(100vh - 90px);overflow-y:auto;padding-right:4px}
+}
+.md-list-item{cursor:pointer;border:1px solid var(--border);border-radius:10px;padding:10px 12px;background:var(--surface);transition:all .12s;display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.md-list-item:hover{border-color:rgba(200,168,75,.4);background:var(--surface2)}
+.md-list-item.sel{border-color:var(--cp);background:var(--surface2);box-shadow:0 0 0 1px rgba(200,168,75,.25)}
+.md-empty{color:var(--text3);font-style:italic;text-align:center;padding:40px 16px}
 /* Boutons FLOTTANTS un peu plus gros sur desktop (≈0.8× de la version précédente) — mobile inchangé */
 @media(min-width:900px){
   #diceFloat{width:64px!important;height:64px!important;font-size:29px!important;bottom:28px!important;right:28px!important}
