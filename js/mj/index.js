@@ -50,6 +50,8 @@ function renderMJContent(){
   else if(_mjTab==='objets') el.innerHTML=mjTabObjets();
   else if(_mjTab==='journal') el.innerHTML=mjTabJournalScreen();
   else if(_mjTab==='regles'){el.innerHTML=mjTabRegles();mjInitRulesDnD();}
+  // Panneaux déplaçables aussi côté MJ (sauf Règles qui a son propre drag)
+  if(_mjTab!=='regles'&&typeof _enableTabDrag==='function'){_enableTabDrag('mjTabContent');applyAllSectionOrders('mjTabContent');}
 }
 
 // ── Chargement des joueurs de la campagne ──
