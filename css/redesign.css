@@ -63,8 +63,13 @@
 .comp-chip{font-size:17px;padding:3px 10px;border-radius:11px;background:rgba(200,168,75,.12);border:1px solid rgba(200,168,75,.35);color:var(--cp);white-space:nowrap}
 
 /* ═══════════ FICHE — rail perso persistant (résumé) ═══════════ */
-/* La fiche profite de la largeur (était bridée à 920px) */
-#app{max-width:1400px}
+/* En-tête en BANDEAU pleine largeur sur toutes les pages (comme le Hub) ; le CONTENU reste centré à 1400px */
+#app{max-width:none;margin:0;padding:0 0 90px}
+.hdr,.mj-hdr{background:rgba(12,8,4,.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:0;border-bottom:1px solid rgba(200,168,75,.2);border-radius:0;margin:0 0 12px;padding:12px 16px;flex-wrap:nowrap;gap:10px}
+.hdr-char{font-size:20px;color:var(--text);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#app .pbar,#app .fiche-2col,#app #combatTurnBanner{max-width:1400px;margin-left:auto;margin-right:auto}
+#app .pbar,#app .fiche-2col{padding-left:12px;padding-right:12px;box-sizing:border-box}
+#mjTabBar,#mjTabContent{max-width:1400px;margin-left:auto;margin-right:auto;padding-left:12px;padding-right:12px;box-sizing:border-box}
 /* Boutons FLOTTANTS un peu plus gros sur desktop (≈0.8× de la version précédente) — mobile inchangé */
 @media(min-width:900px){
   #diceFloat{width:64px!important;height:64px!important;font-size:29px!important;bottom:28px!important;right:28px!important}
@@ -89,7 +94,7 @@
 /* Logo « La Boîte à Outils » cliquable (retour Hub) — sur mobile on ne garde que l'icône 🧰 */
 .hdr-home{transition:color .15s;white-space:nowrap}
 .hdr-home:hover{color:#fff}
-@media(max-width:560px){ .hdr-home .hdr-home-txt{display:none} }
+@media(max-width:560px){ .hdr-home{font-size:17px} .hdr,.mj-hdr{padding:10px 12px} .hdr-char{font-size:15px} }
 @media(min-width:900px){.nav-avatar{width:44px;height:44px;font-size:24px}}
 /* Surbrillance brève du résultat de jet */
 @keyframes rollFlash{0%{background:rgba(200,168,75,.55);box-shadow:0 0 0 2px var(--cp)}100%{background:var(--surface2);box-shadow:none}}
