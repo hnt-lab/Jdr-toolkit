@@ -149,6 +149,20 @@ function openUserSettings(){
         </div>
       </div>
     </details>
+    <details class="acc">
+      <summary>⚖️ Crédits & licences</summary>
+      <div class="acc-body">
+        <div style="font-size:17px;color:var(--text2);line-height:1.5">
+          <p style="margin:0 0 8px">Le contenu de jeu (sorts, objets, monstres…) provient du <strong>Document de Référence du Système 5.1 (« SRD 5.1 »)</strong>, publié par <strong>Wizards of the Coast LLC</strong>.</p>
+          <p style="margin:0 0 8px">Il est utilisé sous licence <strong>Creative Commons Attribution 4.0 International (CC BY 4.0)</strong>.</p>
+          <div style="font-size:15px;color:var(--text3);font-style:italic;border-left:2px solid var(--border);padding-left:10px;margin:8px 0">This work includes material taken from the System Reference Document 5.1 (« SRD 5.1 ») by Wizards of the Coast LLC, available under the Creative Commons Attribution 4.0 International License.</div>
+          <div style="display:flex;flex-direction:column;gap:4px;margin-top:8px">
+            <a href="https://dnd.wizards.com/resources/systems-reference-document" target="_blank" rel="noopener" style="color:var(--cp);font-size:16px">↗ SRD 5.1 (Wizards of the Coast)</a>
+            <a href="https://creativecommons.org/licenses/by/4.0/legalcode.fr" target="_blank" rel="noopener" style="color:var(--cp);font-size:16px">↗ Licence CC BY 4.0</a>
+          </div>
+        </div>
+      </div>
+    </details>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:8px">
       <button class="btn bsm" style="color:#e53935;border-color:rgba(229,57,53,.3)" onclick="closeModal();doLogout()">🚪 Déconnexion</button>
       <button class="btn bsm" style="border-color:rgba(200,168,75,.4);color:var(--cp)" onclick="openFeedbackModal()">💬 Avis / Bug</button>

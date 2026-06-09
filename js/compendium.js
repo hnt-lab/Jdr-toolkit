@@ -14,7 +14,7 @@ const COMP = (() => {
   // Paquets intégrés (builtin). `path(type)` = URL du fichier de ce type.
   const BUILTIN = {
     'base-srd': {
-      id:'base-srd', name:'Base officielle (SRD 5.1)', builtin:true, lang:'en',
+      id:'base-srd', name:'Base officielle SRD 5.1 (FR)', builtin:true, lang:'fr',
       types:TYPES.slice(), path:t=>'data/base-srd/'+t+'.json'
     },
     'legacy': {
@@ -28,13 +28,21 @@ const COMP = (() => {
   Object.values(BUILTIN).forEach(p => { packs[p.id] = Object.assign({}, p, { _data:{} }); });
 
   // État d'activation : { [packId]: { [type]: bool } }. Persisté en localStorage.
-  // Défaut (1er lancement) : contenu actuel ACTIF, base-srd ÉTEINTE → aucun doublon, aucune perte.
+  // Depuis la traduction FR officielle (v2) : base-srd (FR) ACTIVE par défaut, legacy ÉTEINT.
+  // legacy reste activable en un clic dans l'écran Contenus (rien n'est perdu).
+  // `comp_state_v` : bump quand les données base-srd changent → ré-applique le défaut ET purge
+  // les caches builtin (sinon l'ancienne version anglaise mise en cache masquerait la FR).
+  const COMP_STATE_V = 2;
   let active = {};
   try { active = JSON.parse(localStorage.getItem('comp_active')) || {}; } catch(e) {}
-  if(!active || !Object.keys(active).length){
+  let _sv = null; try { _sv = +localStorage.getItem('comp_state_v'); } catch(e){}
+  if(!active || !Object.keys(active).length || _sv !== COMP_STATE_V){
     active = { legacy:{}, 'base-srd':{} };
-    TYPES.forEach(t => { active.legacy[t] = true; active['base-srd'][t] = false; });
+    TYPES.forEach(t => { active['base-srd'][t] = true; active.legacy[t] = false; });
     _saveActive();
+    try { localStorage.setItem('comp_state_v', String(COMP_STATE_V)); } catch(e){}
+    // purge des caches builtin pour forcer le rechargement des fichiers FR à jour
+    try { ['base-srd','legacy'].forEach(pid => TYPES.forEach(t => localStorage.removeItem('comp_'+pid+'_'+t))); } catch(e){}
   }
   function _saveActive(){ try { localStorage.setItem('comp_active', JSON.stringify(active)); } catch(e){} }
 

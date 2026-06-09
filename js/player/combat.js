@@ -127,6 +127,9 @@ function tabCombat(p){
   if(_activeAura)_buffBanners.push(`<div style="background:rgba(255,213,79,.08);border:2px solid #ffd54f;border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span style="font-size:20px">🛡</span><div style="flex:1"><div style="font-size:18px;font-weight:700;color:#ffd54f">Aura de protection — +${_activeAura.value||0} à TOUS tes JS</div><div style="font-size:15px;color:var(--text3)">de ${esc(_activeAura.sourceName||'Paladin')} • appliqué automatiquement (tant que tu es dans l'aura)</div></div><button class="btn bsm" onclick="removeSupportBuff('AuraProtection')" style="color:var(--text3)">✕ Quitter</button></div>`);
   return`<div id="combatContainer" data-csgroup="combat">
   ${_buffBanners.join('')}
+  ${typeof renderVeille==='function'?renderVeille(p):''}
+  ${typeof renderActionEco==='function'?renderActionEco(p):''}
+  ${typeof renderBaseActions==='function'?renderBaseActions(p):''}
   ${cs('cs-armes',wsC?.active?`<div class="panel mb10" style="border-color:rgba(76,175,80,.4)"><div class="pt" style="display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span><span style="color:#4caf50">${wsC.beast.icon} ${esc(wsC.beast.name)} — Attaques</span></div><span style="font-size:15px;color:#4caf50;border:1px solid rgba(76,175,80,.4);border-radius:10px;padding:2px 8px">🐺 Forme sauvage</span></div>
       ${wsC.beast.attacks.map(a=>`<div style="background:rgba(76,175,80,.06);border:1px solid rgba(76,175,80,.25);border-radius:6px;padding:10px;margin-bottom:6px">
         <div style="display:flex;justify-content:space-between;align-items:center">
@@ -297,6 +300,94 @@ function tabCombat(p){
   </div>`;
 }
 
+// ── Tracker d'économie d'action (style BG3) — 3 jauges : Action / Action bonus / Réaction ──
+// Visible EN COMBAT UNIQUEMENT. Se réinitialise au début du tour du joueur (firebase.js).
+function renderActionEco(p){
+  if(!(typeof _activeCombatState!=='undefined'&&_activeCombatState&&_activeCombatState.active))return ''; // en combat seulement
+  const ae=p.actionEco||{a:false,b:false,r:false};
+  const g=(key,icon,label,used)=>`<div class="ae-gauge${used?' used':''}" onclick="_toggleActionEco('${key}')" title="${label} — clique pour ${used?'récupérer':'consommer'}"><div class="ae-ico">${icon}</div><div class="ae-lbl">${label}</div><div class="ae-state">${used?'utilisée':'dispo'}</div></div>`;
+  return cs('cs-actioneco',`<div class="panel mb10"><div class="pt" style="display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>⚡ Économie d'action</div><button class="btn bsm" onclick="_resetActionEco(true)" title="Réinitialiser (début de tour)">↺ Mon tour</button></div>
+    <div class="ae-row">${g('a','●','Action',ae.a)}${g('b','◆','Action bonus',ae.b)}${g('r','↪','Réaction',ae.r)}</div>
+    <div style="font-size:14px;color:var(--text3);margin-top:6px">Se réinitialise au début de ton tour. Clique une jauge pour la consommer / récupérer.</div>
+  </div>`);
+}
+function _toggleActionEco(k){const p=P();if(!p)return;if(!p.actionEco)p.actionEco={a:false,b:false,r:false};p.actionEco[k]=!p.actionEco[k];if(typeof _markUnsaved==='function')_markUnsaved();render();}
+function _resetActionEco(rerender){const p=(typeof P==='function')?P():null;if(!p)return;p.actionEco={a:false,b:false,r:false};if(rerender&&typeof render==='function')render();}
+
+// ── MOTEUR DE VEILLE — rappels dorés contextuels (cf. feedback_veille_pattern) ──
+// S'affiche UNIQUEMENT sur momentum : isMyTurn / tour ennemi / round 1 / condition active.
+// Display-only + IRL : rappelle au bon moment, le joueur juge. JAMAIS de tracking d'état ennemi
+// (la traçabilité réelle l'interdit : l'app ne connaît pas CA/touche/statuts ennemis côté joueur).
+function _veilleMyTurn(){const c=(typeof _activeCombatState!=='undefined')?_activeCombatState:null;return !!(c&&c.active&&c.currentTurnUid===(typeof currentUser!=='undefined'&&currentUser?currentUser.uid:null));}
+function _veilleRound(){const c=(typeof _activeCombatState!=='undefined')?_activeCombatState:null;return (c&&c.round)||1;}
+function _veilleClsLvl(p,cls){return ((p.classes||[]).find(c=>c.name===cls)||{}).level||0;}
+function _veilleHasArch(p,cls,arch){return ((p.archetype||{})[cls]===arch)||((p.features||[]).some(f=>f.name===arch));}
+function _veilleHasFeat(p,re){return (p.features||[]).some(f=>re.test(f.name||''));}
+// Cas validés (table feedback_veille_pattern). when : 'myturn' | 'enemyturn' | 'round1'.
+const _VEILLE_CASES=[
+  {cls:'Rôdeur',lvl:14,when:'myturn',icon:'👻',title:'Disparition',text:"Action bonus : te cacher. Tu ne peux pas être pisté par des moyens non magiques."},
+  {cls:'Ensorceleur',lvl:14,arch:'Origine draconique',when:'myturn',icon:'🦋',title:'Ailes draconiques',text:"Action bonus : déployer tes ailes → vitesse de vol = ton déplacement."},
+  {cls:'Moine',lvl:2,when:'myturn',icon:'🥋',title:'Défense patiente',text:"Action bonus (1 ki) : Esquive — les attaques contre toi ont le désavantage ce tour."},
+  {cls:'Roublard',lvl:3,arch:'Assassin',when:'round1',icon:'🗡',title:'Assassinat',text:"1er tour : avantage contre toute créature n'ayant pas encore agi · critique auto si la cible est surprise."},
+  {cls:'Paladin',lvl:7,arch:'Serment de vengeance',when:'enemyturn',icon:'↪',title:'Vengeur implacable',text:"Si ton attaque d'opportunité touche → réaction : déplacement de ½ vitesse."},
+  {cls:'Paladin',lvl:15,arch:'Serment de vengeance',when:'enemyturn',icon:'↪',title:'Âme vengeresse',text:"Réaction : si la cible de ton Vœu d'hostilité attaque une autre créature, attaque-la."},
+  {cls:'Artificier',lvl:7,when:'enemyturn',icon:'↪',title:'Éclair de génie',text:"Réaction : +mod INT à un jet de carac/sauvegarde de toi ou d'un allié visible à 9 m (si charge dispo)."},
+  {cls:'Artificier',lvl:15,arch:'Maître armurier',when:'round1',icon:'🎯',title:'Armure de chasse',cond:p=>(p.combatCharges||{})['ArmorModel']==='Infiltrateur',text:"1er tour : +1d6 aux dégâts de ton Lance-lumière contre une créature."},
+];
+function _veilleBanner(icon,title,text){return `<div class="veille-banner"><span class="veille-ico">${icon}</span><div class="veille-body"><div class="veille-title">${esc(title)}</div><div class="veille-text">${esc(text)}</div></div></div>`;}
+function renderVeille(p){
+  if(!(typeof _activeCombatState!=='undefined'&&_activeCombatState&&_activeCombatState.active))return ''; // en combat seulement
+  const myTurn=_veilleMyTurn(),round=_veilleRound();
+  const out=[];
+  for(const c of _VEILLE_CASES){
+    if(_veilleClsLvl(p,c.cls)<c.lvl)continue;
+    if(c.arch&&!_veilleHasArch(p,c.cls,c.arch))continue;
+    if(c.cond&&!c.cond(p))continue;
+    let show=false;
+    if(c.when==='myturn')show=myTurn;
+    else if(c.when==='round1')show=myTurn&&round<=1;
+    else if(c.when==='enemyturn')show=!myTurn;
+    if(show)out.push(_veilleBanner(c.icon,c.title,c.text));
+  }
+  // Représailles (Barbare niv.14) — rage active + tour ennemi
+  if(_veilleClsLvl(p,'Barbare')>=14&&(p.combatCharges||{})['RageActive']&&!myTurn&&_veilleHasFeat(p,/repr[ée]sailles/i)){
+    out.push(_veilleBanner('↪','Représailles',"En rage : si une créature à 1,50 m te touche, réaction → attaque de mêlée gratuite contre elle."));
+  }
+  return out.length?`<div class="veille-wrap">${out.join('')}</div>`:'';
+}
+
+// ── Panneau d'actions de base (style BG3) — rappel des actions génériques, combat seulement ──
+const _BG3_ACTIONS=[
+  {ic:'🏃',n:'Foncer',d:"Double ton déplacement pour ce tour."},
+  {ic:'💨',n:'Se désengager',d:"Tes déplacements ne provoquent pas d'attaque d'opportunité ce tour."},
+  {ic:'🛡',n:'Esquiver',d:"Les attaques contre toi ont le désavantage ; avantage à tes JS DEX."},
+  {ic:'🤝',n:'Aider',d:"Un allié obtient l'avantage à sa prochaine attaque ou un test que tu assistes."},
+  {ic:'👁',n:'Se cacher',d:"Test de Discrétion pour devenir non vu."},
+  {ic:'🔎',n:'Chercher',d:"Test de Perception ou d'Investigation pour repérer quelque chose."},
+  {ic:'🎯',n:'Se préparer',d:"Prépare une action déclenchée par une condition (utilise ta réaction)."},
+  {ic:'🎒',n:"Utiliser un objet",d:"Interagir avec ou activer un second objet pendant ton tour."},
+];
+function renderBaseActions(p){
+  if(!(typeof _activeCombatState!=='undefined'&&_activeCombatState&&_activeCombatState.active))return ''; // en combat seulement
+  return cs('cs-baseactions',`<div class="panel mb10"><div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>🎬 Actions de base</div>
+    <div style="font-size:14px;color:var(--text3);margin:2px 0 8px">Rappel des actions génériques. Clique → consomme ta jauge Action.</div>
+    <div class="ba-grid">${_BG3_ACTIONS.map(a=>`<button class="ba-btn" onclick="_useBaseAction('${jsq(a.n)}','${jsq(a.d)}')" title="${esc(a.d)}"><span class="ba-ic">${a.ic}</span><span class="ba-n">${esc(a.n)}</span></button>`).join('')}</div>
+  </div>`);
+}
+function _useBaseAction(name,desc){const p=P();if(!p)return;if(!p.actionEco)p.actionEco={a:false,b:false,r:false};p.actionEco.a=true;if(typeof showBanner==='function')showBanner('🎬',name,desc,{variant:'info'});if(typeof _markUnsaved==='function')_markUnsaved();render();}
+
+// ── Journal d'actions joueur→MJ (principe 25) ──
+// Pousse une action récente dans le doc Firestore du joueur ; le MJ la lit via son listener (firebase.js).
+// 3ᵉ personne : le MJ verra « {nom du perso} {texte} ». Cap à 25 entrées (ring buffer). Campagne seulement.
+function _logMJAction(text){
+  if(typeof currentCampaignId==='undefined'||!currentCampaignId||currentCampaignId==='__solo__')return;
+  const p=(typeof P==='function')?P():null;if(!p||!text)return;
+  if(!p.actionLog)p.actionLog=[];
+  p.actionLog.push({id:Date.now()+'-'+Math.floor(Math.random()*1000),t:Date.now(),name:p.charName||'',text:text});
+  if(p.actionLog.length>25)p.actionLog=p.actionLog.slice(-25);
+  if(typeof _markUnsaved==='function')_markUnsaved();
+}
+
 function rollCustomDmg(dice,name){
   if(_isIRLMode()){showIRLRoll(`<strong style="font-size:20px;color:var(--cp)">${name}</strong><br>Lance <strong style="font-size:26px">${dice}</strong>`);return;}
   const m=dice.match(/(\d+)d(\d+)([+-]\d+)?/);
@@ -318,6 +409,7 @@ function rollAttack(name,bonus,dmg,slot,dmgBonus=0,rerollLow=false,advantageMode
   // Épuisement niv.3+ → désavantage aux jets d'attaque (avantage+désavantage = normal per D&D rules)
   const _exh=P().exhaustion||0;
   if(_exh>=3){if(advantageMode>0)advantageMode=0;else if(advantageMode===0)advantageMode=-1;}
+  if(typeof _logMJAction==='function')_logMJAction('⚔ attaque — '+name);
   if(_isIRLMode()){
     const advNote=advantageMode>0?'<div style="color:#4caf50;font-size:19px;margin-top:4px">🟢 AVANTAGE — 2d20, garde le plus haut</div>':advantageMode<0?'<div style="color:#e53935;font-size:19px;margin-top:4px">🔴 DÉSAVANTAGE — 2d20, garde le plus bas</div>':'';
     const dmgFull=dmg+(dmgBonus?fmt(dmgBonus):'');
@@ -426,11 +518,31 @@ function rollSave(ab,m,advantageMode=0){
     const altTag=alt!==null?(advantageMode>0?` <span style="color:#4caf50;font-size:15px">AVT(${r},~~${alt}~~)</span>`:`<span style="color:#e53935;font-size:15px">DES(${r},~~${alt}~~)</span>`):'';
     let piTag='';
     if(_p){const _bLvl=((_p.classes||[]).find(c=>c.name==='Barbare')||{}).level||0;if(_bLvl>=18&&ab.includes('FOR')&&total<(_p.abilities[0]||10)){piTag=` <span style="font-size:15px;color:#ff9800">💪 →${_p.abilities[0]} (Puissance indomptable)</span>`;total=_p.abilities[0];}}
-    showToast(`JS ${ab}: d20(${r})${altTag}${fmt(m)}${auraTag} = <strong>${total}</strong>${piTag}${r===20?' 🎉':r===1?' 💀':''}`);
+    let diamondBtn='',evasionNote='';
+    if(_p){
+      const _mLvl=((_p.classes||[]).find(c=>c.name==='Moine')||{}).level||0;
+      const _rLvl=((_p.classes||[]).find(c=>c.name==='Rôdeur')||{}).level||0;
+      if(_mLvl>=14){const _ki=(_p.combatCharges&&_p.combatCharges['Ki']!==undefined)?_p.combatCharges['Ki']:0;
+        diamondBtn=` <button onclick="_diamondSoulReroll('${ab}',${m},${advantageMode})" style="margin-left:8px;padding:3px 10px;border:1px solid var(--cp);border-radius:6px;background:transparent;color:var(--cp);cursor:pointer;font-size:16px"${_ki<=0?' disabled':''}>🥋 Raté ? Relancer (1 ki${_ki<=0?' — épuisé':''})</button>`;}
+      if((''+ab).includes('DEX')&&(_mLvl>=7||_rLvl>=7))evasionNote=`<div style="font-size:14px;color:#7fd1c4;margin-top:3px">🐈 Évasion : réussite = aucun dégât · échec = ½ dégâts</div>`;
+    }
+    if(typeof _logMJAction==='function')_logMJAction('🛡 JS '+ab+' : '+total);
+    showToast(`JS ${ab}: d20(${r})${altTag}${fmt(m)}${auraTag} = <strong>${total}</strong>${piTag}${r===20?' 🎉':r===1?' 💀':''}${diamondBtn}${evasionNote}`,(diamondBtn||evasionNote)?6000:3000);
   }
   const rawRolls=rb!==null?[ra,rb]:[ra];
   if(_isHalfling(_p))_luckyCheckRolls(rawRolls,0,_finishSave);
   else _finishSave(rawRolls);
+}
+// Âme de diamant (Moine niv.14) — relancer un JS raté contre 1 ki (le joueur juge l'échec)
+function _diamondSoulReroll(ab,m,advantageMode){
+  const p=P();if(!p)return;
+  const ki=(p.combatCharges&&p.combatCharges['Ki']!==undefined)?p.combatCharges['Ki']:0;
+  if(ki<=0){showToast('❌ Plus de ki pour Âme de diamant !');return;}
+  if(!p.combatCharges)p.combatCharges={};
+  p.combatCharges['Ki']=ki-1;if(typeof _markUnsaved==='function')_markUnsaved();
+  if(typeof render==='function')render();
+  showToast('🥋 Âme de diamant — relance (−1 ki)',1500);
+  setTimeout(()=>rollSave(ab,m,advantageMode||0),350);
 }
 
 function rollSpellPlayer(name,dmgStr,saveStat){

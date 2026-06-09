@@ -203,6 +203,8 @@ function _hubTableDetailHTML(t){
   const memberBadges=players.map(uid=>`<span class="member-badge">${memberAvatars[uid]||'⚔'} ${esc(memberNames[uid]||'Joueur')}</span>`).join('');
   const campList=(t.campaigns||[]).length?t.campaigns.map(c=>_hubCampCardHTML(t,c,isMJ)).join(''):`<div style="font-size:18px;color:var(--text3);font-style:italic;padding:6px 0">Aucune campagne pour l'instant.</div>`;
   const art=(t.campaigns||[]).map(c=>c.imageUrl).find(Boolean);
+  // Étape D — paquets requis par la table que CE joueur ne possède pas encore
+  const _missing=(!isMJ&&typeof COMP!=='undefined'&&typeof compTableRequiredPacks==='function')?(COMP.missingPacks(compTableRequiredPacks(t))||[]):[];
   return`
     <div class="hub-detail-hdr">
       ${art?`<img class="hub-detail-art" src="${esc(art)}" onerror="this.style.display='none'">`:`<div class="hub-detail-ic">${isMJ?'👑':'⚔'}</div>`}
@@ -213,6 +215,11 @@ function _hubTableDetailHTML(t){
       </div>
       ${isMJ?`<button class="btn bsm hub-gear" title="Réglages de la table" onclick="openTableSettings('${t.id}','${esc(t.name)}','${t.inviteCode}')">⚙</button>`:''}
     </div>
+    ${_missing.length?`<div style="margin:12px 0 0;padding:10px 12px;background:rgba(229,57,53,.1);border:1px solid rgba(229,57,53,.4);border-radius:10px">
+      <div style="font-size:17px;color:#e53935;font-weight:600">⚠ Compendium(s) requis manquant(s)</div>
+      <div style="font-size:15px;color:var(--text2);margin-top:4px">Cette table utilise des paquets que tu n'as pas encore importés : ${_missing.map(id=>`<strong>${esc(id)}</strong>`).join(', ')}. Demande le fichier à ton MJ, puis importe-le.</div>
+      <button class="btn bsm bprimary" style="margin-top:8px" onclick="importCompPack()">📥 Importer un paquet</button>
+    </div>`:''}
     <div class="hub-detail-sec">
       <div class="hub-sec-title"><span>📜 Campagnes</span>${isMJ?`<button class="btn bsm bprimary" onclick="openCreateCampaign('${t.id}')">+ Nouvelle campagne</button>`:''}</div>
       ${campList}

@@ -320,6 +320,22 @@ function defPlayer(name='Nouveau'){return{
   pendingLevelUp:false,created:false
 };}
 
+// Principe #4 — « texte générique = bug » : remplace les capacités d'archétype génériques
+// (« Capacité de la voie », etc.) par les VRAIES capacités de l'archétype choisi, sinon supprime l'entrée.
+const _GENERIC_FEAT_NAMES=['Capacité de la voie','Capacité de la voie primitive',"Capacité de l'archétype","Capacité de l'archétype martial","Capacité de l'archétype de rôdeur",'Amélioration archétype',"Amélioration de l'archétype",'Capacité du domaine','Capacité du serment','Capacité du serment sacré','Capacité du cercle','Capacité du collège','Capacité monastique','Capacité de la tradition monastique','Capacité du spécialiste'];
+function _migrateGenericFeats(p){
+  if(!p||!Array.isArray(p.features))return;
+  if(!p.features.some(f=>_GENERIC_FEAT_NAMES.includes(f.name)))return; // aucun générique → rien à faire
+  p.features=p.features.filter(f=>!_GENERIC_FEAT_NAMES.includes(f.name)); // retire les placeholders
+  if(typeof _ARCHETYPE_LEVEL_FEATS==='undefined')return;
+  (p.classes||[]).forEach(c=>{
+    const arch=(p.archetype||{})[c.name];if(!arch)return;
+    const byLevel=(_ARCHETYPE_LEVEL_FEATS[c.name]||{})[arch];if(!byLevel)return;
+    Object.keys(byLevel).forEach(lvl=>{
+      if(+lvl<=(c.level||0)){const af=byLevel[lvl];if(af&&af.name&&!p.features.find(x=>x.name===af.name))p.features.push({name:af.name,desc:af.desc||'',classe:c.name});}
+    });
+  });
+}
 function migratePlayer(p){
   if(p.classe!==undefined&&!p.classes){p.classes=p.classe?[{name:p.classe,level:p.level||1}]:[];delete p.classe;delete p.level;}
   if(!p.classes)p.classes=[];
@@ -340,6 +356,7 @@ function migratePlayer(p){
     Object.values(CLASS_LEVEL_DATA).forEach(cd=>(cd.archetypes||[]).forEach(a=>allArchNames.add(a.name)));
     p.features.forEach(f=>{if(f.name&&f.classe&&allArchNames.has(f.name))p.archetype[f.classe]=f.name;});
   }
+  _migrateGenericFeats(p); // principe #4 : résout les capacités d'archétype génériques
   // Correction maîtrises "non-métal" → valeurs propres
   p.weaponProfs=p.weaponProfs.map(pr=>pr.replace(' non-métal','').trim()).filter(Boolean);
   p.armorProfs=p.armorProfs.map(pr=>pr.replace(' non-métal','').trim()).filter(Boolean);

@@ -156,8 +156,8 @@ function renderClerc(p) {
           <span style="font-size:15px;color:var(--text3)">${pgCur}/${pgMax}</span>
         </div>
       </div>`;
-      if (clercLvl>=2) dc += _clercPanel('🎯 Frappe guidée','Conduit divin','',`Quand tu fais un jet d'attaque : dépenser 1 conduit pour ajouter <strong>+10</strong> au jet (après avoir vu le résultat, avant l'annonce du MJ).`);
-      if (clercLvl>=6) dc += _clercPanel('🛡 Bénédiction du dieu de la guerre','Conduit divin • niv.6','',`Réaction : quand une créature à 9m fait un jet d'attaque — dépenser 1 conduit pour lui donner <strong>+10</strong> (après avoir vu le résultat, avant l'annonce).`);
+      if (clercLvl>=2) dc += `<div style="padding:7px 10px;background:var(--surface2);border-radius:6px;margin-bottom:6px"><div style="font-size:18px;font-weight:600;margin-bottom:2px">🎯 Frappe guidée <span style="font-size:15px;color:var(--text3);margin-left:4px">Conduit divin</span></div><div style="font-size:17px;color:var(--text3);margin-bottom:6px">Après ton jet d’attaque (avant l’annonce du MJ) : +<strong>10</strong>. Coût : 1 conduit.</div><button class="btn bsm bac" onclick="_clercGuidedStrike('Frappe guidée','+10 à ton jet d’attaque')">🎯 +10 (−1 conduit)</button></div>`;
+      if (clercLvl>=6) dc += `<div style="padding:7px 10px;background:var(--surface2);border-radius:6px;margin-bottom:6px"><div style="font-size:18px;font-weight:600;margin-bottom:2px">🛡 Bénédiction du dieu de la guerre <span style="font-size:15px;color:var(--cp);margin-left:4px">↪ Réaction</span> <span style="font-size:15px;color:var(--text3);margin-left:4px">niv.6</span></div><div style="font-size:17px;color:var(--text3);margin-bottom:6px">Réaction : une créature à 9 m fait un jet d’attaque → +<strong>10</strong>. Coût : 1 conduit.</div><button class="btn bsm bac" onclick="_clercGuidedStrike('Bénédiction du dieu de la guerre','+10 au jet d’attaque d’un allié à 9 m')">🛡 +10 allié (−1 conduit)</button></div>`;
       if (clercLvl>=8) dc += _clercPanel(`⚡ Frappe divine`,'niv.8','',`1×/tour, quand tu touches avec une arme : <strong>+${clercLvl>=14?'2d8':'1d8'} du même type que l'arme</strong>. <button class="btn bsm" style="font-size:15px;margin-top:4px" onclick="rollCustomDmg('${clercLvl>=14?'2d8':'1d8'}','Frappe divine')">🎲 ${clercLvl>=14?'2d8':'1d8'}</button>`);
       if (clercLvl>=17) dc += _clercPanel('👑 Avatar de bataille','niv.17','',`Résistance aux dégâts contondants, perforants et tranchants provenant d'attaques non magiques.`);
     }
@@ -201,6 +201,17 @@ function renderClerc(p) {
   </div>`);
 }
 
+// Frappe guidée / Bénédiction du dieu de la guerre — dépense 1 Conduit divin, +10 au jet (le joueur applique après avoir vu le résultat — principes 16 & 24)
+function _clercGuidedStrike(title,detail){
+  const p=P();if(!p)return;
+  const clercLvl=((p.classes||[]).find(c=>c.name==='Clerc')||{}).level||0;
+  const cdMax=clercLvl>=18?3:clercLvl>=6?2:1;
+  const cur=(p.combatCharges||{})['ConduitDivin'];const c=cur!==undefined?cur:cdMax;
+  if(c<=0){if(typeof showBanner==='function')showBanner('❌','Conduit divin épuisé','Repos court requis',{variant:'danger'});return;}
+  if(!p.combatCharges)p.combatCharges={};p.combatCharges['ConduitDivin']=c-1;
+  if(typeof _markUnsaved==='function')_markUnsaved();render();
+  if(typeof showBanner==='function')showBanner('🎯',title,detail,{variant:'gold'});
+}
 function _clercPanel(title, tag, extra, desc) {
   return `<div style="padding:7px 10px;background:var(--surface2);border-radius:6px;margin-bottom:6px">
     <div style="font-size:18px;font-weight:600;margin-bottom:2px">${title}${tag?` <span style="font-size:15px;color:var(--text3);margin-left:4px">${tag}</span>`:''}${extra}</div>

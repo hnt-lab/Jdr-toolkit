@@ -86,6 +86,29 @@
 /* MJ — onglet Joueurs : cartes en grille (remplit la largeur sur desktop, 1 colonne sur mobile) */
 .mj-players-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(600px,1fr));gap:12px;align-items:start}
 @media(max-width:640px){ .mj-players-grid{grid-template-columns:1fr} }
+/* Veille — rappels dorés contextuels (apparaissent au bon momentum) */
+.veille-wrap{margin-bottom:4px}
+.veille-banner{display:flex;align-items:flex-start;gap:10px;background:linear-gradient(90deg,rgba(200,168,75,.14),rgba(200,168,75,.04));border:1px solid var(--cp);border-left:4px solid var(--cp);border-radius:8px;padding:9px 12px;margin-bottom:8px;animation:veillePulse 2.6s ease-in-out infinite}
+.veille-banner .veille-ico{font-size:22px;line-height:1.1}
+.veille-banner .veille-title{font-size:17px;font-weight:700;color:var(--cp)}
+.veille-banner .veille-text{font-size:14px;color:var(--text2);line-height:1.35;margin-top:2px}
+@keyframes veillePulse{0%,100%{box-shadow:0 0 0 0 rgba(200,168,75,0)}50%{box-shadow:0 0 11px 1px rgba(200,168,75,.22)}}
+/* Tracker d'économie d'action (3 jauges BG3) */
+.ae-row{display:flex;gap:10px;flex-wrap:wrap}
+.ae-gauge{flex:1;min-width:90px;cursor:pointer;text-align:center;padding:10px 8px;border:1px solid var(--border);border-radius:10px;background:var(--surface2);transition:all .12s}
+.ae-gauge:hover{border-color:rgba(200,168,75,.55)}
+.ae-gauge .ae-ico{font-size:24px;line-height:1}
+.ae-gauge .ae-lbl{font-size:15px;color:var(--text);font-weight:600;margin-top:3px}
+.ae-gauge .ae-state{font-size:13px;color:#4caf50;margin-top:2px;text-transform:uppercase;letter-spacing:.05em}
+.ae-gauge.used{opacity:.5;background:var(--surface);border-style:dashed}
+.ae-gauge.used .ae-ico{filter:grayscale(1)}
+.ae-gauge.used .ae-state{color:var(--text3)}
+/* Actions de base (style BG3) */
+.ba-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:6px}
+.ba-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 6px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);cursor:pointer;font:inherit;transition:all .12s}
+.ba-btn:hover{border-color:var(--cp);background:var(--surface)}
+.ba-btn .ba-ic{font-size:21px;line-height:1}
+.ba-btn .ba-n{font-size:13px;text-align:center;line-height:1.2}
 /* MJ — listes de cartes en grille (objets, etc.) */
 .mj-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:10px;align-items:start}
 @media(max-width:560px){ .mj-grid{grid-template-columns:1fr} }

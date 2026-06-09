@@ -391,14 +391,42 @@ function applyHp(sign){
       if((p.statuses||[]).some(s=>s.name==='Concentration')&&dmg>0)setTimeout(()=>promptConcSave(dmg),300); // veille : pop-up JS CON
       // Fix 18 — Rage implacable automatique
       if(p.hp<=0&&typeof checkRageImplacable==='function')setTimeout(()=>checkRageImplacable(),200);
+      // Veille HP→0 — effets "tomber à 1 PV au lieu de 0" (Sentinelle immortelle, Âme de l'artifice)
+      if(p.hp<=0)setTimeout(()=>_checkHpZeroVeille(),250);
     } else {
       const _effMax=(p.exhaustion||0)>=4?Math.floor(p.hpMax/2):p.hpMax;
       p.hp=Math.max(0,Math.min(_effMax+(p.hpTemp||0),p.hp+delta));
     }
   }
+  if(typeof _logMJAction==='function')_logMJAction(sign<0?('💥 subit '+delta+' PV ('+p.hp+'/'+p.hpMax+')'):('💚 regagne '+delta+' PV ('+p.hp+'/'+p.hpMax+')'));
   _markUnsaved();render();
 }
 function applyShieldHp(amount){const p=P();if(!amount||amount<=0)return;p.shieldHp=(p.shieldHp||0)+amount;if(!p.shieldHpMax||p.shieldHp>p.shieldHpMax)p.shieldHpMax=p.shieldHp;_markUnsaved();render();showToast(`🔵 Bouclier magique : +${amount} PV (total ${p.shieldHp})`,2500);}
+
+// Veille HP→0 — prompts dorés "rester à 1 PV au lieu de 0" (cf. feedback_veille_pattern)
+function _checkHpZeroVeille(){
+  const p=P();if(!p||p.hp>0)return;
+  const cc=p.combatCharges||{};
+  const palLvl=((p.classes||[]).find(c=>c.name==='Paladin')||{}).level||0;
+  const isAnciens=((p.archetype||{})['Paladin']==='Serment des anciens')||(p.features||[]).some(f=>f.name==='Serment des anciens');
+  const artLvl=((p.classes||[]).find(c=>c.name==='Artificier')||{}).level||0;
+  if(palLvl>=15&&isAnciens&&!cc['SentinelleImmortelleUsed']){
+    openModal('<div style="text-align:center;padding:20px 16px"><div style="font-size:36px;margin-bottom:8px">🌿</div><div class="pt" style="margin-bottom:6px">Sentinelle immortelle</div><div style="font-size:19px;color:var(--text2);margin-bottom:20px">Tu tombes à 0 PV !<br>Rester à <strong style="color:#4caf50">1 PV</strong> à la place ?<br><span style="font-size:17px;color:var(--text3)">(1 utilisation par repos long)</span></div><div style="display:flex;gap:8px;justify-content:center"><button class="btn bprimary" style="min-width:80px" onclick="_applyDropTo1HP(\'SentinelleImmortelleUsed\')">✅ Oui</button><button class="btn" style="min-width:80px" onclick="closeModal()">❌ Non</button></div></div>');
+    return;
+  }
+  if(artLvl>=20){
+    openModal('<div style="text-align:center;padding:20px 16px"><div style="font-size:36px;margin-bottom:8px">⚙</div><div class="pt" style="margin-bottom:6px">Âme de l\'artifice</div><div style="font-size:19px;color:var(--text2);margin-bottom:20px">Tu tombes à 0 PV !<br>Mettre fin à une <strong>infusion</strong> (réaction) pour rester à <strong style="color:#4caf50">1 PV</strong> ?<br><span style="font-size:17px;color:var(--text3)">(retire l\'infusion dans ton panneau)</span></div><div style="display:flex;gap:8px;justify-content:center"><button class="btn bprimary" style="min-width:80px" onclick="_applyDropTo1HP(null)">✅ Oui</button><button class="btn" style="min-width:80px" onclick="closeModal()">❌ Non</button></div></div>');
+    return;
+  }
+}
+function _applyDropTo1HP(chargeKey){
+  const p=P();if(!p)return;
+  p.hp=1;
+  if(chargeKey){if(!p.combatCharges)p.combatCharges={};p.combatCharges[chargeKey]=true;}
+  if(typeof closeModal==='function')closeModal();
+  _markUnsaved();render();
+  if(typeof showBanner==='function')showBanner('💗','Tu restes à 1 PV','Effet de classe déclenché',{variant:'gold'});
+}
 function removeShieldHp(){const p=P();delete p.shieldHp;delete p.shieldHpMax;_markUnsaved();render();showToast('🔵 Bouclier magique dissipé.',2000);}
 function useRelentlessEndurance(){const p=P();p.hp=1;p.relentlessEnduranceUsed=true;closeModal();showToast('🧟 Endurance implacable — tombé à 1 PV !');_markUnsaved();render();}
 function cycleDS(type,idx){const p=P();p.deathSaves[type]=p.deathSaves[type]>idx?idx:idx+1;_markUnsaved();render();}

@@ -1,8 +1,17 @@
+// Catégorisation PNJ narratif vs Monstre de combat (le champ `type` existe déjà)
+var _mjNPCFilter=(typeof _mjNPCFilter!=='undefined')?_mjNPCFilter:'all';
+function _npcIsMonster(n){return ['Monstre','Boss'].includes(n&&n.type);}
+function mjSetNPCFilter(f){_mjNPCFilter=f;renderMJContent();}
 function mjTabPNJ(){
   const sel=_mjSelectedNPC;
   const detail=sel!=null&&_mjNPCs[sel]?mjNPCDetail(_mjNPCs[sel],sel):'<div style="color:var(--text3);font-size:18px;font-style:italic;text-align:center;padding:20px">Sélectionnez un PNJ ou créez-en un nouveau.</div>';
-  const sortedNPCs=_mjNPCs.map((n,i)=>({n,i})).sort((a,b)=>(a.n.name||'').localeCompare(b.n.name||''));
-  const list=_mjNPCs.length?sortedNPCs.map(({n,i})=>`<div class="pnj-card${i===sel?' pnj-selected':''}" onclick="mjSelectNPC(${i})">
+  const nbMonstres=_mjNPCs.filter(_npcIsMonster).length;
+  const nbPNJ=_mjNPCs.length-nbMonstres;
+  const _matchFilter=n=>_mjNPCFilter==='all'||(_mjNPCFilter==='monster'?_npcIsMonster(n):!_npcIsMonster(n));
+  const sortedNPCs=_mjNPCs.map((n,i)=>({n,i})).filter(({n})=>_matchFilter(n)).sort((a,b)=>(a.n.name||'').localeCompare(b.n.name||''));
+  const _fbtn=(f,label)=>`<button class="btn bsm${_mjNPCFilter===f?' bprimary':''}" onclick="mjSetNPCFilter('${f}')">${label}</button>`;
+  const filterBar=`<div style="display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap">${_fbtn('all','Tous ('+_mjNPCs.length+')')}${_fbtn('monster','🐉 Monstres ('+nbMonstres+')')}${_fbtn('pnj','🧑 PNJ ('+nbPNJ+')')}</div>`;
+  const list=sortedNPCs.length?sortedNPCs.map(({n,i})=>`<div class="pnj-card${i===sel?' pnj-selected':''}" onclick="mjSelectNPC(${i})">
     <div style="display:flex;align-items:center;justify-content:space-between">
       <div>
         <div style="font-size:18px;font-weight:600;color:var(--text)">${esc(n.name||'?')}</div>
@@ -13,7 +22,7 @@ function mjTabPNJ(){
         <button class="btn bsm" style="color:#e53935;border-color:#e53935" onclick="event.stopPropagation();mjDeleteNPC(${i})">✕</button>
       </div>
     </div>
-  </div>`).join(''):`<div style="color:var(--text3);font-size:18px;font-style:italic;padding:8px 0">Aucun PNJ sauvegardé.</div>`;
+  </div>`).join(''):`<div style="color:var(--text3);font-size:18px;font-style:italic;padding:8px 0">${_mjNPCs.length?'Aucune entrée dans cette catégorie.':'Aucun PNJ sauvegardé.'}</div>`;
 
   return`<div class="md-2col">
     <div class="md-list">
@@ -24,6 +33,7 @@ function mjTabPNJ(){
           <button class="btn bsm" style="color:#9c27b0;border-color:rgba(156,39,176,.5)" onclick="mjOpenSidekickForm()">🤝 Comparse</button>
         </div>
       </div>
+      ${filterBar}
       ${list}
     </div>
     <div class="md-detail">${detail}</div>

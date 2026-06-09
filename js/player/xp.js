@@ -1257,14 +1257,18 @@ function luStepRecap(p,newLvl){
   const druideCircle=mc&&mc.name==='Druide'&&p.archetype?p.archetype['Druide']:null;
   const _PREPARED_RECAP=['Clerc','Druide','Paladin','Artificier'];
   const isPrepared=mc&&_PREPARED_RECAP.includes(mc.name);
-  const feats=(cd?((cd.levelFeatures||{})[newCLvl]||[]):[]).filter(f=>f&&!f.includes('Amélioration de caractéristiques')&&!f.startsWith('Sorts du cercle')&&!f.includes('(choix)')).map(f=>{
+  const _archRecap=(p.archetype||{})[mc?mc.name:'']||LU.archetypeChoice||null;
+  // Récap : résout les capacités d'archétype génériques en VRAIES capacités (principe #4), sinon retire l'entrée.
+  const explainFeats=(cd?((cd.levelFeatures||{})[newCLvl]||[]):[]).filter(f=>f&&!f.includes('Amélioration de caractéristiques')&&!f.startsWith('Sorts du cercle')&&!f.includes('(choix)')).map(f=>{
     const resolved=_resolveDruidCircleFeat(f,druideCircle,newCLvl);
-    return resolved?resolved.name:f;
-  });
+    if(resolved)return{name:resolved.name,desc:resolved.desc};
+    if(typeof _GENERIC_FEAT_NAMES!=='undefined'&&_GENERIC_FEAT_NAMES.includes(f)){
+      const af=(_archRecap&&typeof _ARCHETYPE_LEVEL_FEATS!=='undefined')?((_ARCHETYPE_LEVEL_FEATS[mc.name]||{})[_archRecap]||{})[newCLvl]:null;
+      return af&&af.name?{name:af.name,desc:af.desc||''}:null; // principe #4 : pas de placeholder
+    }
+    return{name:f,desc:getFeatDesc(f)};
+  }).filter(Boolean);
   const isMulti=LU.choice==='multiclass';
-
-  // Texte explicatif des nouvelles capacités (depuis FEAT_DESCS)
-  const explainFeats=feats.map(f=>{const desc=getFeatDesc(f);return{name:f,desc};});
 
   return`<div>
     <p style="font-size:18px;color:var(--text2);margin-bottom:14px">Récapitulatif — niveau <strong style="color:var(--cp)">${newLvl}</strong>. Confirme pour appliquer.</p>

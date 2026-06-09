@@ -155,7 +155,15 @@ function startMJPlayersListener(campaignId){
           if(!change.doc.metadata.hasPendingWrites){
             const idx=_mjPlayersData.findIndex(p=>p.docId===change.doc.id);
             if(idx>=0){
+              const _oldLog=(_mjPlayersData[idx].charData&&_mjPlayersData[idx].charData.actionLog)||[];
               _mjPlayersData[idx].charData=data.characterData||{};
+              // Journal d'actions joueur→MJ (principe 25) — pousse les nouvelles entrées dans le journal de combat (3ᵉ personne)
+              const _newLog=(data.characterData&&data.characterData.actionLog)||[];
+              if(_newLog.length){
+                const _seen=new Set(_oldLog.map(e=>e&&e.id));
+                _newLog.forEach(e=>{if(e&&e.id&&!_seen.has(e.id)){_mjCombatLog.push('📩 '+esc(e.name||info.playerName||'Joueur')+' '+esc(e.text||''));changed=true;}});
+                if(_mjCombatLog.length>80)_mjCombatLog=_mjCombatLog.slice(-80);
+              }
               // Sync HP dans le tracker de combat si ce joueur est en combat
               const newHp=data.characterData?.hp;
               const newHpMax=data.characterData?.hpMax;
@@ -422,10 +430,12 @@ function _updateCombatNotification(combatState){
     const isMyTurn=isNowActive&&newTurnUid===currentUser?.uid;
     const wasMyTurn=wasActive&&prevTurnUid===currentUser?.uid;
     if(!wasActive&&isNowActive){
+      if(typeof _resetActionEco==='function')_resetActionEco();
       _showInitiativePopup();
     } else if(wasActive&&!isNowActive){
       _showCombatPopup('🏆','Combat terminé !','');
     } else if(isMyTurn&&!wasMyTurn){
+      if(typeof _resetActionEco==='function')_resetActionEco(true); // jauges Action/Bonus/Réaction neuves au début de mon tour
       _showCombatPopup('⚡',"C'est ton tour !",'Prépare tes actions !',2800);
       // Fix 14 — Popup "action hostile?" si barbare en rage
       setTimeout(()=>_checkRageHostilePrompt(),500);

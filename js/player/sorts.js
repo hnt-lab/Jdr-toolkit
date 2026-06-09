@@ -524,6 +524,7 @@ function _spendAndCast(name,minLevel,slot,d,isConc){
 }
 function _finalizeCast(name,d,upcastLvl,isConc){
   const p=P();const dmg=d?d.damage||'':'';const save=d?d.savingThrow||'':'';
+  if(typeof _logMJAction==='function')_logMJAction('✦ lance '+name+(upcastLvl?(' (niv.'+upcastLvl+')'):''));
   const mc=mainClass(p);const cd=mc?SRD.classes.find(c=>c.name===mc.name):null;
   const sagM=mod(p.abilities[4]||10),intM=mod(p.abilities[3]||10),chaM=mod(p.abilities[5]||10);
   const spellMod=cd?({CHA:chaM,SAG:sagM,INT:intM}[cd.saves&&cd.saves[1]]||intM):intM;
