@@ -94,8 +94,10 @@ self.addEventListener('fetch', e => {
   if (BYPASS.some(d => url.hostname.includes(d))) return;
 
   // CACHE D'ABORD (rapide, pas de course au chargement des scripts) → réseau si absent.
-  // La fraîcheur est garantie par le CHANGEMENT DE VERSION : un nouveau APP_VERSION = nouveau nom de
-  // cache → ancien cache supprimé (activate) → précache FRAIS rechargé → fichiers à jour servis.
+  // ⚠️ NE PAS passer le CODE en network-first : essayé en v0.9.78 → COURSE (auth Firebase résout
+  // avant que les scripts séquentiels soient chargés → « loadMJCompLib is not defined » → page blanche).
+  // Cache-first charge vite = pas de course. La fraîcheur vient du BUMP de version.js (nouveau nom de
+  // cache → ancien supprimé à l'activate → précache frais) + overlay SW_UPDATED. Voir feedback-sw-version.
   e.respondWith(
     caches.match(e.request).then(hit => hit || fetch(e.request).then(r => {
       if (r && r.ok) { const clone = r.clone(); caches.open(CACHE).then(c => c.put(e.request, clone)); }

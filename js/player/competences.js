@@ -9,7 +9,7 @@ function tabCompetences(p){
   const percProf=(p.skillProf||{})['Perception']||0;
   const passive=10+mod(p.abilities[4])+(percProf===2?pb(lvl)*2:percProf===1?pb(lvl):hasToucheATout?halfPb:0);
   // Nombre max de compétences autorisées
-  const maxSkills=(()=>{let tot=0;(p.classes||[]).forEach(c=>{const d=SRD.classes.find(cl=>cl.name===c.name);if(d)tot+=d.skillCount;});const bg=BACKGROUNDS.find(b=>b.name===p.background);if(bg)tot+=bg.skills.length;return tot;})();
+  const maxSkills=(()=>{let tot=0;(p.classes||[]).forEach(c=>{const d=SRD.classes.find(cl=>cl.name===c.name);if(d)tot+=d.skillCount;});const bg=BACKGROUNDS.find(b=>b.name===p.background);if(bg)tot+=bg.skills.length;if(typeof racialSkillProfs==='function')tot+=racialSkillProfs(p.race).length;return tot;})();
   const currentCount=Object.values(p.skillProf||{}).filter(v=>v>0).length;
   return`<div class="g2" style="gap:10px">
   <div><div class="panel mb10">

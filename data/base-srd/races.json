@@ -1,65 +1,65 @@
 [
   {
-    "spd": "30 ft.",
-    "sz": "**_Size._** Dragonborn are taller and heavier than humans, standing well over 6 feet tall and averaging almost 250 pounds. Your size is Medium.",
-    "tx": "Dragonborn Traits\nYour draconic heritage manifests in a variety of traits you share with other dragonborn.",
-    "ab": "**_Ability Score Increase._** Your Strength score increases by 2, and your Charisma score increases by 1.",
-    "n": "Dragonborn"
+    "spd": "9 m",
+    "sz": "**_Taille._** Les drakéides sont plus grands et plus lourds que les humains : ils dépassent allègrement 1,80 mètre et pèsent en moyenne près de 115 kg. Votre taille est Moyenne.",
+    "tx": "Traits de drakéide\nVotre héritage draconique se manifeste par divers traits que vous partagez avec les autres drakéides.",
+    "ab": "**_Augmentation de caractéristique._** Votre valeur de Force augmente de 2 et votre valeur de Charisme augmente de 1.",
+    "n": "Drakéide"
   },
   {
-    "spd": "25 ft.",
-    "sz": "**_Size._** Dwarves stand between 4 and 5 feet tall and average about 150 pounds. Your size is Medium.",
-    "tx": "Dwarf Traits\nYour dwarf character has an assortment of inborn abilities, part and parcel of dwarven nature.",
-    "ab": "**_Ability Score Increase._** Your Constitution score increases by 2.",
-    "n": "Dwarf"
+    "spd": "7,50 m",
+    "sz": "**_Taille._** Les nains mesurent entre 1,20 et 1,50 mètre et pèsent environ 70 kg. Votre taille est Moyenne.",
+    "tx": "Traits de nain\nVotre personnage nain dispose d'un ensemble d'aptitudes innées, partie intégrante de la nature naine.",
+    "ab": "**_Augmentation de caractéristique._** Votre valeur de Constitution augmente de 2.",
+    "n": "Nain"
   },
   {
-    "spd": "30 ft.",
-    "sz": "**_Size._** Elves range from under 5 to over 6 feet tall and have slender builds. Your size is Medium.",
-    "tx": "Elf Traits\nYour elf character has a variety of natural abilities, the result of thousands of years of elven refinement.",
-    "ab": "**_Ability Score Increase._** Your Dexterity score increases by 2.",
-    "n": "Elf"
+    "spd": "9 m",
+    "sz": "**_Taille._** Les elfes mesurent de moins de 1,50 mètre à plus de 1,80 mètre et ont une carrure svelte. Votre taille est Moyenne.",
+    "tx": "Traits d'elfe\nVotre personnage elfe possède diverses aptitudes naturelles, fruit de milliers d'années de raffinement elfique.",
+    "ab": "**_Augmentation de caractéristique._** Votre valeur de Dextérité augmente de 2.",
+    "n": "Elfe"
   },
   {
-    "spd": "25 ft.",
-    "sz": "**_Size._** Gnomes are between 3 and 4 feet tall and average about 40 pounds. Your size is Small.",
-    "tx": "Gnome Traits\nYour gnome character has certain characteristics in common with all other gnomes.",
-    "ab": "**_Ability Score Increase._** Your Intelligence score increases by 2.",
+    "spd": "7,50 m",
+    "sz": "**_Taille._** Les gnomes mesurent entre 90 centimètres et 1,20 mètre et pèsent environ 18 kg. Votre taille est Petite.",
+    "tx": "Traits de gnome\nVotre personnage gnome a certaines caractéristiques en commun avec tous les autres gnomes.",
+    "ab": "**_Augmentation de caractéristique._** Votre valeur d'Intelligence augmente de 2.",
     "n": "Gnome"
   },
   {
-    "spd": "30 ft.",
-    "sz": "**_Size._** Half-elves are about the same size as humans, ranging from 5 to 6 feet tall. Your size is Medium.",
-    "tx": "Half-Elf Traits\nYour half-elf character has some qualities in common with elves and some that are unique to half-elves.",
-    "ab": "**_Ability Score Increase._** Your Charisma score increases by 2, and two other ability scores of your choice increase by 1.",
-    "n": "Half-Elf"
+    "spd": "9 m",
+    "sz": "**_Taille._** Les demi-elfes ont à peu près la même taille que les humains, de 1,50 à 1,80 mètre. Votre taille est Moyenne.",
+    "tx": "Traits de demi-elfe\nVotre personnage demi-elfe partage certaines qualités avec les elfes et d'autres qui lui sont propres.",
+    "ab": "**_Augmentation de caractéristique._** Votre valeur de Charisme augmente de 2, et deux autres valeurs de caractéristique de votre choix augmentent de 1.",
+    "n": "Demi-elfe"
   },
   {
-    "spd": "30 ft.",
-    "sz": "**_Size._** Half-orcs are somewhat larger and bulkier than humans, and they range from 5 to well over 6 feet tall. Your size is Medium.",
-    "tx": "Half-Orc Traits\nYour half-orc character has certain traits deriving from your orc ancestry.",
-    "ab": "**_Ability Score Increase._** Your Strength score increases by 2, and your Constitution score increases by 1.",
-    "n": "Half-Orc"
+    "spd": "9 m",
+    "sz": "**_Taille._** Les demi-orcs sont un peu plus grands et plus massifs que les humains : ils mesurent de 1,50 mètre à bien plus de 1,80 mètre. Votre taille est Moyenne.",
+    "tx": "Traits de demi-orc\nVotre personnage demi-orc possède certains traits hérités de votre ascendance orque.",
+    "ab": "**_Augmentation de caractéristique._** Votre valeur de Force augmente de 2 et votre valeur de Constitution augmente de 1.",
+    "n": "Demi-orc"
   },
   {
-    "spd": "25 ft.",
-    "sz": "**_Size._** Halflings average about 3 feet tall and weigh about 40 pounds. Your size is Small.",
-    "tx": "Halfling Traits\nYour halfling character has a number of traits in common with all other halflings.",
-    "ab": "**_Ability Score Increase._** Your Dexterity score increases by 2.",
-    "n": "Halfling"
+    "spd": "7,50 m",
+    "sz": "**_Taille._** Les halfelins mesurent environ 90 centimètres et pèsent environ 18 kg. Votre taille est Petite.",
+    "tx": "Traits de halfelin\nVotre personnage halfelin a plusieurs traits en commun avec tous les autres halfelins.",
+    "ab": "**_Augmentation de caractéristique._** Votre valeur de Dextérité augmente de 2.",
+    "n": "Halfelin"
   },
   {
-    "spd": "30 ft.",
-    "sz": "**_Size._** Humans vary widely in height and build, from barely 5 feet to well over 6 feet tall. Regardless of your position in that range, your size is Medium.",
-    "tx": "Human Traits\nIt's hard to make generalizations about humans, but your human character has these traits.",
-    "ab": "**_Ability Score Increase._** Your ability scores each increase by 1.",
-    "n": "Human"
+    "spd": "9 m",
+    "sz": "**_Taille._** La taille et la carrure des humains varient énormément, d'à peine 1,50 mètre à bien plus de 1,80 mètre. Quelle que soit votre position dans cet intervalle, votre taille est Moyenne.",
+    "tx": "Traits d'humain\nIl est difficile de généraliser à propos des humains, mais votre personnage humain possède ces traits.",
+    "ab": "**_Augmentation de caractéristique._** Chacune de vos valeurs de caractéristique augmente de 1.",
+    "n": "Humain"
   },
   {
-    "spd": "30 ft.",
-    "sz": "**_Size._** Tieflings are about the same size and build as humans. Your size is Medium.",
-    "tx": "Tiefling Traits\nTieflings share certain racial traits as a result of their infernal descent.",
-    "ab": "**_Ability Score Increase._** Your Intelligence score increases by 1, and your Charisma score increases by 2.",
-    "n": "Tiefling"
+    "spd": "9 m",
+    "sz": "**_Taille._** Les tieffelins ont à peu près la même taille et la même carrure que les humains. Votre taille est Moyenne.",
+    "tx": "Traits de tieffelin\nLes tieffelins partagent certains traits raciaux du fait de leur descendance infernale.",
+    "ab": "**_Augmentation de caractéristique._** Votre valeur d'Intelligence augmente de 1 et votre valeur de Charisme augmente de 2.",
+    "n": "Tieffelin"
   }
 ]

@@ -27,8 +27,8 @@ Ces systèmes sont partagés ; s'ils marchent, les classes qui les appellent en 
 | Dés `diceRoll` | ✅ | index.js:556 — respecte IRL (560), avantage/désav.→2d20, chanceux halfelin, Puissance indomptable |
 | Mode IRL (saisie manuelle) | ✅ | `_isIRLMode()` + `_irlToggleHtml()` + `showIRLRoll()` (index.js:134-259, 560) |
 | Avantage/Désavantage moteur | ✅ | `getStatusEffects()` injecte hasAdv/hasDisadv dans diceRoll |
-| Concentration | ⚠️ | Panneau partagé + statut + conflit géré (sorts.js:6,495-521). **À confirmer : badge 🔵 visible sur chaque sort de la liste** |
-| Attaque `rollAttack` | ⬜ | combat.js:332 — à auditer (touche+dégâts, crit, avantage, types) |
+| Concentration | ✅ | Mécanique : panneau `renderConcPanel` + conflit au lancer (`castSpell`). **Badge 🔵 par-sort AJOUTÉ 2026-06-09** (combat.js : `isConc` via regex sur `duration` → pastille 🔵 dans l'en-tête + badge « 🔵 Concentration » dans le corps de chaque sort). |
+| Attaque `rollAttack` | ✅ | combat.js:408 (audité 2026-06-09). 4D OK : touche d20+bonus, dégâts (dés+bonus), **crit** (dés doublés + Critique brutal Barbare + Attaques sauvages Demi-Orc + crit 19-20/18-20 Champion), **avantage/désav.** 2d20, chance halfelin, épuisement≥3→désav., munitions décrémentées, type de dégâts affiché, IRL, log MJ. |
 | **« Veille » (rappels dorés isMyTurn / NOT-isMyTurn)** | ⚠️ | **Moteur créé v0.9.98** (`renderVeille` combat.js, data-driven `_VEILLE_CASES`, CSS `.veille-banner`). Cas câblés : Disparition, Ailes draconiques, Défense patiente, Assassinat, Vengeur implacable, Âme vengeresse, Représailles. HP→0 : Sentinelle immortelle + Âme de l'artifice (`_checkHpZeroVeille` perso.js). **RESTE** : cas Chasseur niv.7 (option choisie), Âme de diamant (Moine JS raté), Esquive totale, Nimbe sacré niv.20, Trait de génie Artificier — à câbler |
 | **Tracker éco d'action** | ⚠️ | v0.9.98 : jauges Action/Bonus/Réaction + reset auto début de tour/combat + **panneau Actions de base BG3** (`renderBaseActions`, clic → consomme la jauge Action). **RESTE** : grisage automatique des vrais boutons d'attaque (invasif, différé), AO explicite sur la jauge Réaction |
 | **Panneau d'actions de base BG3** | ✅ | v0.9.98 `renderBaseActions` (Foncer/Désengager/Esquiver/Aider/Cacher/Chercher/Préparer/Utiliser objet), combat seulement |
@@ -129,7 +129,7 @@ Flag « pré-théorisation » **caduc**. 4 patrons (Archifée/Fiélon/Grand Anci
 | Level-up : sorts ET capacités fonctionnels (jamais display-only) | ⚠️ | Texte générique corrigé v0.9.95 ; reste à auditer le « jamais display-only » par capacité |
 | Barde Touche-à-tout (½ maîtrise au moteur) | ✅ | competences.js:21 — bonus inclut `halfPb` sur compét. non maîtrisées + perception passive (gap backlog caduc). Edge mineur : jets de carac bruts du panneau dé n'incluent pas le ½ (à voir) |
 | Dépliants partout (F1) : panneau description par sort/capacité au choix | ⬜ | `_featDesc` existe — couverture à vérifier |
-| Capacités de RACE rendues fonctionnelles (pas que stats+vitesse) | ❌ | Audit 2026-06-02 : reste display-only (traits texte). Non traité depuis |
+| Capacités de RACE rendues fonctionnelles (pas que stats+vitesse) | ⚠️ | **Re-audit 2026-06-09 : verdict ❌ caduc.** Races de création = `config.js SRD.races` (pas `data/base-srd/races.json` qui n'est que la fiche compendium). Mécaniques CÂBLÉES : chance halfelin (`_isHalfling`), Demi-Orc Attaques sauvages (crit +1 dé) + Endurance implacable (HP→1, perso.js:385), Tieffelin résist Feu (perso.js:257), Dragonide souffle (combat.js:259) + résist élément (perso.js:262), Nain PV (state.js:901/xp.js) + poison (perso.js:259 `_RR`), Aasimar/Goliath résist. **RESTE display-only** : avantages aux JS (Nain poison, Elfe charme/sommeil, Halfelin brave-peur, Gnome ruse), maîtrises de compétence raciales (Demi-Orc Intimidation), vision dans le noir (cosmétique). → ⚠️ partiel, pas ❌. |
 | Sorts : upcasting (modal emplacement, filtre amplifiables, IRL) | ⬜ | À auditer |
 | Sorts : badges préparé/connu/rituel/🔵 | ⚠️ | À confirmer (cf. Section A concentration) |
 | Inventaire : encombrement par paliers | ❌ | Bloqué compendium (poids par objet absent — Option B) |
@@ -166,13 +166,42 @@ Flag « pré-théorisation » **caduc**. 4 patrons (Archifée/Fiélon/Grand Anci
 5. **Passifs ½ maîtrise sur jets de carac bruts** (Athlète accompli — edge mineur).
 
 **Hors classes (cahier des charges, toujours valides) :**
-- ❌ Capacités de RACE display-only (audit 2026-06-02 jamais soldé — stats+vitesse seuls appliqués).
+- ⚠️ Capacités de RACE : **verdict ❌ révisé le 2026-06-09** → la plupart sont câblées (résistances, PV nain, crit/endurance Demi-Orc, souffle Dragonide, chance halfelin). RESTE display-only : avantages aux JS raciaux, maîtrises de compétence raciales, vision dans le noir. Petit lot, codable (`config.js SRD.races`).
 - ❌ Encombrement par paliers — bloqué compendium (poids/objet absent).
 - 🧪 **Déclenche/Interagit de TOUTES les classes** = à confirmer en **runtime** (test utilisateur) — incompressible.
 
 ---
 
+# SECTION E — CHARTE TECHNIQUE (auditée 2026-06-09)
+| Item | Statut | Preuve |
+|---|---|---|
+| Pas d'ES Modules, scripts séquentiels, découpage player/mj/ui/css | ✅ | conforme |
+| Version unifiée `version.js` (page + SW) | ✅ | version.js + sw.js `importScripts` (v0.9.102) |
+| Overlay de MAJ (`_showUpdateOverlay`/`SW_UPDATED`) | ✅ | firebase.js |
+| Responsive 640/480/380 | ✅ | css : 640px, 480px, 380px tous présents |
+| SW cache-first + bump version (PAS network-first) | ✅ (volontaire) | **Le « fix A network-first » de la charte est CADUC** : essayé en v0.9.78 → page blanche (course auth Firebase / scripts séquentiels, `loadMJCompLib is not defined`) → rétabli cache-first en v0.9.79. Tenté de nouveau le 2026-06-09 puis **reverté** (même risque). ⇒ cache-first conservé ; **bumper `version.js` à chaque déploiement reste obligatoire** pour la fraîcheur (prix assumé). Voir feedback-sw-version. |
+| Compat Windows 10 — emoji 🪄 (charte : utiliser ✏) | ⚠️ | 🪄 utilisé dans l'UI mode IRL (index.js:109/121/210) + icône bâton (equipement.js:64). User SOUS Win10 → risque de glyphe « tofu ». À remplacer par ✏ dans l'UI IRL. |
+| Persistance/sync Firestore (perso/combat/conditions/buffs) | 🧪 | structurellement présent ; survie refresh + multi-clients = runtime. |
+
+# SECTION F — CHARTE DA (auditée 2026-06-09)
+| Item | Statut | Preuve |
+|---|---|---|
+| Ancre « boîte à outils steampunk/arcanepunk » + tokens (laiton/cuivre/teal) | ✅ | appliqués écran connexion + chargement + popup MAJ (charte, fait 2026-06-02) |
+| Engrenages réservés au chargement | ⬜ | règle ; pas re-vérifiée exhaustivement |
+| **#3 États + résistances regroupés près de la barre de vie** | ✅ | **2026-06-09** : la section « États & résistances » remontée dans le rail **juste sous la barre de vie** (avant les caracs) — perso.js. |
+| **#4 Barre de vie retravaillée (plus grosse + laiton/lueur arcane)** | ✅ | **2026-06-09** : classe dédiée `.hp-bar-hero` (16px, bordure laiton #6b5527, lueur arcane teal, fill gloss) appliquée à la barre PV principale du rail (perso.js + components.css). `.hp-bar` partagée inchangée (tracker MJ/compagnons). |
+| Animations (sort/attaque traversant l'écran, transformation, invocation) | ⬜ | à auditer (certaines existent : Halo divin, etc.) |
+
+# SECTION G — 28 PRINCIPES UI (état 2026-06-09)
+✅ Satisfaits/câblés : 1,2,3,4 (structure) · 5,6,7,12 (ressources/dés/PV) · 8,13,15 (buffs — socle ; 15 result-not-formula respecté) · 9,10,11 (calcul/filtrage) · 16 (un bouton — vérifié Attaque précise/Frappe guidée) · 17 (sélecteur cible — pattern présent) · 18 (prépa repos long `_openLongRestPrep`) · 21/28 (familiers→tracker socle `_mjSyncFamiliars`) · 23 (sorts au LU, 3 mécanismes) · 24 (armer-puis-déclencher = métamagie) · 26 (variante d'attaque BG3) · 27 (capacité narrative à coût).
+⚠️ Partiels : **14** (🔸/↪ incomplets ; 🔵 fait 2026-06-09) · **19** (badges sorts préparé/📖/rituel — partiel) · **20** (toasts→bannières : clés faites, sweep complet non) · **25** (notif MJ 3ᵉ pers. : socle `_logMJAction`, capacités via boutons non encore loggées, runtime 2 clients).
+🧪 Runtime/bloqués : @OPTION_B (manifestations/pacte/infusions/upcasting — compendium) · Déclenche/Interagit de toutes les classes (test en jeu).
+
 # JOURNAL D'AUDIT
+- **2026-06-09 (4)** — Correctifs post-peigne-fin (sauf emojis, à la demande de l'user) : ✅ **#4 barre de vie DA** (`.hp-bar-hero` 16px laiton+arcane, perso.js+components.css) ; ✅ **#3 États & résistances** remontés sous la barre de vie (perso.js). ❌ **#1 network-first ANNULÉ** : codé puis **reverté** — la lecture de [[feedback-sw-version]] a rappelé que c'était la cause de la page blanche v0.9.78 (course auth Firebase / scripts séquentiels). Cache-first conservé ; charte Technique corrigée (fix-A marqué caduc). `node --check` OK. Tout dans v0.9.102.
+- **2026-06-09 (3)** — **Peigne fin demandé : confrontation au RÉFÉRENTIEL COMPLET** (lecture intégrale charte UX + Technique + DA + 28 principes + méthodo, pas l'index). Ajout **Sections E (Technique), F (DA), G (28 principes)** au registre — elles manquaient. Trouvailles concrètes nouvelles : ❌ SW reste **cache-first** (fix-A network-first de la charte jamais codé → bump version obligatoire à chaque déploiement) ; ❌ **barre de vie** non retravaillée DA (6px plat) ; ⚠️ emoji **🪄** dans l'UI IRL (Win10 → ✏ recommandé) ; ⚠️ états/résistances regroupés en « rail » (partiel). Responsive 640/480/380 ✅, version unifiée ✅.
+- **2026-06-09 (2)** — Codé le « petit lot racial » + badge concentration : (1) **rappels d'avantage racial aux JS** — `_racialSaveAdvText(p,ab)` + affichage dans `rollSave` (virtuel + IRL) : Elfe→charme/sommeil, Halfelin→peur, Nain/Halfelin robuste→poison (CON), Gnome→magie (INT/SAG/CHA). Mis dans rollSave (pas la Veille) car les JS arrivent hors combat. (2) **Maîtrises de compétence raciales** auto+verrouillées (`racialSkillProfs` state.js : Elfe→Perception, Demi-Orc→Intimidation, Goliath→Athlétisme ; quota competences.js ajusté). (3) **Badge 🔵 Concentration** par-sort (combat.js). `node --check` OK sur les 3 fichiers. 🧪 runtime à confirmer. RESTE polish : 🔸/↪ par capacité (sweep par-classe, non bloquant) ; Demi-Elfe 2 compét. au choix (picker, non fait).
+- **2026-06-09** — Passe « bugs puis audit » (v0.9.102). **Bugs** : les 3 régressions « 🔴 » du backlog (panneau de dé fermé au lancer/toggle, fiche→HUD quitte le groupe, swipe onglets) re-vérifiées dans le code = **toutes déjà corrigées** (notes 2026-06-03 caduques) ; backlog de bugs concrets vide. **Audit Section A clôturée** : `rollAttack` (combat.js:408) audité = ✅ 4D solide ; Concentration = mécanique ✅ mais badge 🔵 par-sort ❌ absent (polish). **Capacités de RACE** : verdict ❌ « display-only » du 2026-06-02 **révisé en ⚠️** — la plupart sont câblées (config.js SRD.races : résistances, PV nain, crit/endurance Demi-Orc, souffle Dragonide, chance halfelin) ; reste display-only = avantages aux JS raciaux + maîtrises compétence raciales + vision dans le noir (petit lot codable). NB : `data/base-srd/races.json` (traduit ce jour) = fiche compendium, distinct des races de création.
 - **2026-06-08 (1)** — Création du registre. Audit Section A (systèmes centraux) + Section C (cahier des charges UX) au niveau structurel. Section B (deep audit 13 classes) NON commencée. 5 ❌ confirmés (Section D). Version app : 0.9.97.
 - **2026-06-08 (5)** — Codé v0.9.101 : **socle notifs MJ (journal d'actions joueur→MJ)** — helper `_logMJAction` + hooks (attaque/JS/sort/PV) + diff côté listener MJ → `_mjCombatLog`. `node --check` OK ; **nécessite test 2 clients** (sync temps réel).
 - **2026-06-08 (4)** — **Audit des 13 classes terminé** (Clerc+Occultiste lus en entier, 11 autres vérifiés par grep ciblé sur résidus documentés). Verdict : aucune capacité de base manquante ; tous les flags « pré-théorisation » caducs. Reste = 5 thèmes transversaux (Section D), majoritairement bloqués compendium / couplés inventaire / runtime-bound. Codé v0.9.100 : Clerc Frappe guidée + Bénédiction du dieu de la guerre (boutons +10 / −1 conduit).

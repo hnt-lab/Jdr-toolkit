@@ -28,13 +28,13 @@ function renderCharRail(p){
   let hpBlock;
   if(ws?.active){
     hpBlock=`<div class="rail-hp-top"><span style="color:#4caf50">🐺 PV bête</span><span>${ws.beast.hpCur}/${ws.beast.hpMax}</span></div>
-      <div class="hp-bar"><div class="hp-fill" style="width:${pct}%;background:#4caf50"></div></div>
+      <div class="hp-bar hp-bar-hero"><div class="hp-fill" style="width:${pct}%;background:#4caf50"></div></div>
       <button class="btn bsm" style="width:100%;margin-top:6px;background:#b71c1c;color:#fff;border-color:#b71c1c" onclick="openHpModal()">💥 Dégâts / 💚 Soins</button>
       <button class="btn bsm" style="width:100%;margin-top:6px;border-color:rgba(76,175,80,.5);color:#4caf50" onclick="revertWildshape()">↩ Reprendre forme</button>`;
   } else {
     hpBlock=`${p.hp<=0?`<div class="rail-down">💀 À TERRE — 0 PV${p.deathSaves?.fail>=3?' ☠':''}</div>`:''}
       <div class="rail-hp-top"><span>❤ PV</span><span>${p.hp}${hpBonus?`<span style="color:#4caf50"> +${hpBonus}</span>`:''}/${effectiveHpMax}${_exhLvl>=4?' ½':''}${(p.hpTemp||0)>0?`<span style="color:#4caf50"> (+${p.hpTemp})</span>`:''}</span></div>
-      <div class="hp-bar"><div class="hp-fill" style="width:${pct}%;background:${hpColor}"></div></div>
+      <div class="hp-bar hp-bar-hero"><div class="hp-fill" style="width:${pct}%;background:${hpColor}"></div></div>
       ${(p.shieldHp||0)>0?`<div class="rail-shield">🔵 Bouclier ${p.shieldHp}/${p.shieldHpMax||p.shieldHp}</div>`:''}
       <button class="btn bsm" style="width:100%;margin-top:6px;background:#b71c1c;color:#fff;border-color:#b71c1c" onclick="openHpModal()">💥 Dégâts / 💚 Soins</button>
       ${mj?`<div class="rail-mjhp"><label>PV max <input type="number" min="1" value="${p.hpMax}" oninput="P().hpMax=Math.max(1,parseInt(this.value)||1);render()"></label><label>Temp <input type="number" min="0" value="${p.hpTemp||0}" oninput="P().hpTemp=Math.max(0,parseInt(this.value)||0)"></label></div>`:''}
@@ -70,8 +70,8 @@ function renderCharRail(p){
         <div class="rail-stat"><div class="rail-stat-l">👣</div><div class="rail-stat-v" style="font-size:19px">${spdVal}</div></div>
       </div>
     </div>
-    <div class="rail-caracs">${caracs}</div>
-    ${chips?`<div class="rail-sec"><div class="rail-sec-t">États & résistances</div><div class="rail-chips">${chips}</div></div>`:''}`;
+    ${chips?`<div class="rail-sec"><div class="rail-sec-t">États & résistances</div><div class="rail-chips">${chips}</div></div>`:''}
+    <div class="rail-caracs">${caracs}</div>`;
 }
 
 // ═══════════════════════════════════════

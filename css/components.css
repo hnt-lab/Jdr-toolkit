@@ -8,6 +8,9 @@
 .sm{font-size:18px;font-weight:500;color:var(--cp);margin-top:2px}
 .hp-bar{height:6px;background:var(--surface3);border-radius:3px;overflow:hidden;margin:4px 0}
 .hp-fill{height:100%;border-radius:3px;transition:width .3s}
+/* Barre de vie PRINCIPALE (tableau de bord Perso) — pièce maîtresse, habillage DA laiton/arcane */
+.hp-bar-hero{height:16px;border:1px solid #6b5527;border-radius:8px;background:#1d1609;overflow:hidden;margin:5px 0;box-shadow:inset 0 1px 3px rgba(0,0,0,.55),0 0 0 1px rgba(127,209,196,.10),0 0 9px rgba(127,209,196,.16)}
+.hp-bar-hero .hp-fill{height:100%;border-radius:7px 0 0 7px;box-shadow:inset 0 1px 0 rgba(255,255,255,.28),inset 0 -3px 6px rgba(0,0,0,.25);transition:width .35s}
 .btn{padding:6px 14px;border:1px solid var(--border);border-radius:6px;font-size:17px;cursor:pointer;background:var(--surface);color:var(--text2);font-family:var(--B);transition:all .15s}
 .btn:hover{border-color:var(--cp);color:var(--cp)}.btn:disabled{opacity:.4;cursor:not-allowed}
 .bac{background:var(--cp)!important;color:#1a1400!important;border-color:var(--cp)!important;font-weight:600}

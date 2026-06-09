@@ -494,14 +494,26 @@ function linkRangedAmmo(itemName){
 function unlinkRangedAmmo(){
   const p=P();if(p.equip&&p.equip.ranged)delete p.equip.ranged.ammoLink;render();
 }
+// Rappels d'avantage racial aux JS (contextuels — l'appli ne connaît pas la source du JS, donc on rappelle).
+function _racialSaveAdvText(p,ab){
+  if(!p)return[];
+  const race=p.race||'',A=(''+ab).toUpperCase(),out=[];
+  if(/elfe/i.test(race))out.push('contre le charme (ascendance féerique ; immunité au sommeil magique)');
+  if(/halfelin/i.test(race))out.push('contre la peur (Brave)');
+  if(A.includes('CON')&&(/nain/i.test(race)||/halfelin robuste/i.test(race)))out.push('contre le poison');
+  if((A.includes('INT')||A.includes('SAG')||A.includes('CHA'))&&/gnome/i.test(race))out.push('contre un effet magique (Ruse gnome)');
+  return out;
+}
 function rollSave(ab,m,advantageMode=0){
   // Épuisement niv.3+ → désavantage (avantage + désavantage = normal per D&D rules)
   const _p=P();const _exh=_p?(_p.exhaustion||0):0;
   if(_exh>=3){if(advantageMode>0)advantageMode=0;else if(advantageMode===0)advantageMode=-1;}
+  const _racAdv=_racialSaveAdvText(_p,ab);
+  const _racNote=_racAdv.length?`<div style="margin-top:6px;font-size:16px;color:#a98bdb">🧬 Avantage si ce JS est ${_racAdv.join(' ou ')}.</div>`:'';
   if(_isIRLMode()){
     const advNote=advantageMode>0?'<div style="color:#4caf50;font-size:19px;margin-top:8px">🟢 AVANTAGE — 2d20, garde le plus haut</div>':advantageMode<0?'<div style="color:#e53935;font-size:19px;margin-top:8px">🔴 DÉSAVANTAGE — 2d20, garde le plus bas</div>':'';
     const luckyNote=_isHalfling(_p)?'<div style="margin-top:6px;font-size:18px;color:#8d6e63">🍀 Si résultat = 1, vous pouvez relancer</div>':'';
-    showIRLRoll(`<strong style="font-size:20px;color:var(--cp)">Jet de sauvegarde ${ab}</strong><br><span style="font-size:26px">d20 <span style="color:var(--text3)">${fmt(m)}</span></span>${advNote}${luckyNote}`);
+    showIRLRoll(`<strong style="font-size:20px;color:var(--cp)">Jet de sauvegarde ${ab}</strong><br><span style="font-size:26px">d20 <span style="color:var(--text3)">${fmt(m)}</span></span>${advNote}${luckyNote}${_racNote}`);
     return;
   }
   let ra,rb=null;
@@ -527,7 +539,7 @@ function rollSave(ab,m,advantageMode=0){
       if((''+ab).includes('DEX')&&(_mLvl>=7||_rLvl>=7))evasionNote=`<div style="font-size:14px;color:#7fd1c4;margin-top:3px">🐈 Évasion : réussite = aucun dégât · échec = ½ dégâts</div>`;
     }
     if(typeof _logMJAction==='function')_logMJAction('🛡 JS '+ab+' : '+total);
-    showToast(`JS ${ab}: d20(${r})${altTag}${fmt(m)}${auraTag} = <strong>${total}</strong>${piTag}${r===20?' 🎉':r===1?' 💀':''}${diamondBtn}${evasionNote}`,(diamondBtn||evasionNote)?6000:3000);
+    showToast(`JS ${ab}: d20(${r})${altTag}${fmt(m)}${auraTag} = <strong>${total}</strong>${piTag}${r===20?' 🎉':r===1?' 💀':''}${diamondBtn}${evasionNote}${_racNote}`,(diamondBtn||evasionNote||_racNote)?6000:3000);
   }
   const rawRolls=rb!==null?[ra,rb]:[ra];
   if(_isHalfling(_p))_luckyCheckRolls(rawRolls,0,_finishSave);
@@ -652,6 +664,7 @@ function renderSpellList(p, combatOnly){
         const desc=d?d.desc:'';
         const damage=d?d.damage:'';
         const ritual=d&&d.ritual;
+        const isConc=!!(d&&d.duration&&/concentration/i.test(d.duration));
         const rolls=d&&d.rolls?d.rolls:[];
         const lvi=parseInt(lv);
         const isPrepared=s.prepared||lvi===0||!prepCaster;
@@ -660,7 +673,7 @@ function renderSpellList(p, combatOnly){
         <div class="sort-row"${hasMComponent?' style="opacity:0.4"':''}>
           <div class="sort-head" onclick="document.getElementById('${s.stableId}').classList.toggle('open')">
             <div style="flex:1">
-              <div style="font-size:18px;font-weight:600;${!isPrepared?'color:var(--text3)':''}">${s.isCircle?'<span style="font-size:15px;color:var(--cp);margin-right:4px">⭐</span>':''}${esc(s.name)}${ritual?' <span style="font-size:15px;color:var(--cp)">(R)</span>':''}${s.isCircle?'  <span style="font-size:13px;background:rgba(200,168,75,.15);color:var(--cp);border-radius:8px;padding:1px 5px">Cercle</span>':isPrepared&&lvi>0&&prepCaster?'  <span style="font-size:13px;background:rgba(76,175,80,.15);color:#4caf50;border-radius:8px;padding:1px 5px">Préparé</span>':''}</div>
+              <div style="font-size:18px;font-weight:600;${!isPrepared?'color:var(--text3)':''}">${s.isCircle?'<span style="font-size:15px;color:var(--cp);margin-right:4px">⭐</span>':''}${esc(s.name)}${ritual?' <span style="font-size:15px;color:var(--cp)">(R)</span>':''}${isConc?' <span title="Concentration" style="font-size:14px">🔵</span>':''}${s.isCircle?'  <span style="font-size:13px;background:rgba(200,168,75,.15);color:var(--cp);border-radius:8px;padding:1px 5px">Cercle</span>':isPrepared&&lvi>0&&prepCaster?'  <span style="font-size:13px;background:rgba(76,175,80,.15);color:#4caf50;border-radius:8px;padding:1px 5px">Préparé</span>':''}</div>
               ${d?`<div style="font-size:17px;color:var(--text3)">${esc(school)}${castTime?' • '+esc(castTime):''}${range?' • '+esc(range):''}</div>`:''}
             </div>
             ${damage?`<span style="font-size:17px;color:var(--cp);margin-right:6px">${esc(damage)}</span>`:''}
@@ -673,6 +686,7 @@ function renderSpellList(p, combatOnly){
               <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
                 ${components?`<span style="font-size:15px;background:var(--surface2);padding:2px 7px;border-radius:10px;color:var(--text2)">${esc(components)}</span>`:''}
                 ${duration?`<span style="font-size:15px;background:var(--surface2);padding:2px 7px;border-radius:10px;color:var(--text2)">⏱ ${esc(duration)}</span>`:''}
+                ${isConc?`<span style="font-size:15px;background:rgba(255,213,79,.14);padding:2px 7px;border-radius:10px;color:#ffd54f">🔵 Concentration</span>`:''}
                 ${ritual?`<span style="font-size:15px;background:var(--cg,rgba(200,168,75,.15));padding:2px 7px;border-radius:10px;color:var(--cp)">Rituel</span>`:''}
               </div>
               <p style="font-size:18px;color:var(--text2);line-height:1.6">${esc(desc)}</p>

@@ -890,6 +890,11 @@ function creStep8(){
   </div>`;
 }
 
+// Maîtrises de compétence accordées par la race (auto, verrouillées). Toutes les variantes elfiques → Perception (Sens aiguisés).
+function racialSkillProfs(race){
+  const M={'Elfe (Haut-Elfe)':['Perception'],'Elfe des bois':['Perception'],'Elfe noir (Drow)':['Perception'],'Demi-Orc':['Intimidation'],'Goliath':['Athlétisme']};
+  return M[race]||[];
+}
 function confirmCreation(){
   const p=P();const rd=SRD.races.find(r=>r.name===CS.race);const cd=SRD.classes.find(c=>c.name===CS.classe);const bg=BACKGROUNDS.find(b=>b.name===CS.background);
   if(!CS.charName.trim()||!CS.race||!CS.classe)return;
@@ -904,6 +909,8 @@ function confirmCreation(){
   p.skillProf={};p.skillsLocked={};
   const bgSk=bg?bg.skills:[];
   [...new Set([...bgSk,...CS.selectedSkills])].forEach(sk=>{p.skillProf[sk]=1;p.skillsLocked[sk]=true;});
+  // Maîtrises de compétence RACIALES (auto + verrouillées) — additionnelles au quota classe/historique
+  racialSkillProfs(CS.race).forEach(sk=>{p.skillProf[sk]=1;p.skillsLocked[sk]=true;});
   p.languages=rd?rd.languages:'Commun';
   p.proficiencies=cd?`Armures: ${cd.armor}\nArmes: ${cd.weapons}\nSauvegardes: ${cd.saves.join(', ')}${bg&&bg.tools?'\nOutils: '+bg.tools:''}`:'' ;
   // Maîtrises armes/armures
