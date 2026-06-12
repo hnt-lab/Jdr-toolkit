@@ -214,7 +214,7 @@ function tabCombat(p){
             ${w.ammoLink?`<button class="btn bsm" style="font-size:15px" onclick="unlinkRangedAmmo()">↩ Délier ${esc(w.ammoLink)}</button>`:
             `<button class="btn bsm" style="font-size:15px" onclick="openLinkAmmoModal()">🏹 Lier des munitions</button>`}
           </div>`:''}
-          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">${isOffhand?`<button class="btn bsm${temActive?' bac':''}" onclick="rollAttack('${jsq(w.name)}',${atkBonus},'${esc(dmgStr)}','${w.slot}',${dmgBonus},false,${temActive&&!isRanged?1:0})">🎲${temActive?' ⚡':''} Att. bonus</button>`:Array.from({length:attackCount},(_,ai)=>`<button class="btn bsm${temActive&&!isRanged?' bac':''}" onclick="rollAttack('${jsq(w.name)}',${atkBonus},'${esc(dmgStr)}','${w.slot}',${dmgBonus},${isTwoHandedStyle},${temActive&&!isRanged?1:0})">🎲${temActive&&!isRanged?' ⚡':''}${attackCount>1?' Att.'+(ai+1):'  Attaque'}</button>`).join('')}</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">${isOffhand?`<button class="btn bsm${temActive?' bac':''}" onclick="rollAttack('${jsq(w.name)}',${atkBonus},'${esc(dmgStr)}','${w.slot}',${dmgBonus},false,${temActive&&!isRanged?1:0})">🎲${temActive?' ⚡':''} Att. bonus</button>`:Array.from({length:attackCount},(_,ai)=>`<button class="btn bsm${temActive&&!isRanged?' bac':''}" onclick="rollAttack('${jsq(w.name)}',${atkBonus},'${esc(dmgStr)}','${w.slot}',${dmgBonus},${isTwoHandedStyle},${temActive&&!isRanged?1:0})">🎲${temActive&&!isRanged?' ⚡':''}${attackCount>1?' Att.'+(ai+1):'  Attaque'}</button>`).join('')}${!isOffhand&&!isRanged&&(typeof _activeCombatState!=='undefined'&&_activeCombatState&&_activeCombatState.active)?`<button class="btn bsm" style="border-color:#9c27b0;color:#9c27b0${(p.actionEco&&p.actionEco.r)?';opacity:.45':''}" ${(p.actionEco&&p.actionEco.r)?'disabled':''} onclick="rollOpportunityAttack('${jsq(w.name)}',${atkBonus},'${esc(dmgStr)}','${w.slot}',${dmgBonus},${isTwoHandedStyle})" title="Attaque d'opportunité — consomme ta réaction (de nouveau dispo au tour suivant)">↪ AO</button>`:''}</div>
           ${frenActive&&!isRanged&&!isOffhand?`<div style="margin-top:4px"><button class="btn bsm" style="border-color:#b71c1c;color:#b71c1c;background:rgba(183,28,28,.12)" onclick="rollAttack('${jsq(w.name)}',${atkBonus},'${esc(dmgStr)}','${w.slot}',${dmgBonus},false,${temActive?1:0})">💢 Frénésie (bonus)</button></div>`:''}
         </div>`;
       }).join(''):`<div style="font-size:18px;color:var(--text3);font-style:italic">Aucune arme équipée.</div>`}
@@ -474,6 +474,18 @@ function rollAttack(name,bonus,dmg,slot,dmgBonus=0,rerollLow=false,advantageMode
   const rawRolls=rb!==null?[ra,rb]:[ra];
   if(_isHalfling(P()))_luckyCheckRolls(rawRolls,0,_finishAttack);
   else _finishAttack(rawRolls);
+}
+// Attaque d'opportunité (charte combat) : variante d'attaque qui consomme la jauge Réaction.
+// Grisée tant que la réaction est utilisée ; la jauge se réarme au début du tour (reset éco d'action).
+function rollOpportunityAttack(name,bonus,dmg,slot,dmgBonus=0,rerollLow=false){
+  const p=P();if(!p)return;
+  if(!p.actionEco)p.actionEco={a:false,b:false,r:false};
+  if(p.actionEco.r){showToast('↪ Réaction déjà utilisée ce tour.');return;}
+  p.actionEco.r=true;
+  rollAttack("↪ AO — "+name,bonus,dmg,slot,dmgBonus,rerollLow,0); // rollAttack notifie déjà le MJ avec ce nom
+
+  if(typeof _markUnsaved==='function')_markUnsaved();
+  render();
 }
 function rollDie(d){const n=parseInt(d.replace('d',''));const r=Math.ceil(Math.random()*n);_lastRollResultHtml=`${d}: <strong>${r}</strong>`;const el=document.getElementById('rollResult');if(el){el.style.display='block';el.innerHTML=_lastRollResultHtml;el.classList.remove('roll-flash');void el.offsetWidth;el.classList.add('roll-flash');}}
 function openLinkAmmoModal(){

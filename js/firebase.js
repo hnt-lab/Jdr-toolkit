@@ -12,6 +12,27 @@ const firebaseConfig={
 firebase.initializeApp(firebaseConfig);
 const fbAuth=firebase.auth();
 const fbDb=firebase.firestore();
+// Persistance HORS-LIGNE (IndexedDB) : lectures servies par le cache + écritures mises en file
+// qui SURVIVENT à un refresh (wifi instable en pleine partie). À appeler avant tout autre accès Firestore.
+// synchronizeTabs : évite l'échec « failed-precondition » quand plusieurs onglets sont ouverts.
+try{fbDb.enablePersistence({synchronizeTabs:true}).catch(()=>{});}catch(e){}
+
+// ─── CAPTEUR D'ERREURS GLOBAL (bêta) : les erreurs JS ne restent plus silencieuses ───
+// Ring buffer des 15 dernières erreurs (window._errLog) joint automatiquement au formulaire Avis/Bug.
+window._errLog=window._errLog||[];
+function _captureErr(msg){
+  try{
+    window._errLog.push('['+new Date().toLocaleTimeString('fr-FR')+'] '+String(msg).slice(0,300));
+    if(window._errLog.length>15)window._errLog=window._errLog.slice(-15);
+    const now=Date.now();
+    if(!window._errBannerTs||now-window._errBannerTs>60000){ // 1 bannière/minute max
+      window._errBannerTs=now;
+      if(typeof showBanner==='function')showBanner('🐞','Une erreur technique est survenue',"L'app continue de fonctionner, mais pense à le signaler : Profil → 💬 Avis / Bug (le rapport d'erreur y sera joint automatiquement).",{variant:'warn'});
+    }
+  }catch(e){}
+}
+window.addEventListener('error',e=>_captureErr((e.message||'Erreur')+' — '+String(e.filename||'').split('/').pop()+':'+(e.lineno||'?')));
+window.addEventListener('unhandledrejection',e=>_captureErr('Promesse rejetée : '+(e.reason&&e.reason.message?e.reason.message:e.reason)));
 
 // ─── SPLASH + MISE À JOUR AUTO ───
 function hideSplash(){

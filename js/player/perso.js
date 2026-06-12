@@ -45,13 +45,14 @@ function renderCharRail(p){
   const _chestSrd=((p.equip||{}).chest?.name)?SRD.armors.find(a=>a.name===((p.equip||{}).chest?.name)):null;
   const _isHeavy=!!(_chestSrd&&_chestSrd.type!=='Bouclier'&&_chestSrd.type!=='Légère'&&_chestSrd.type!=='Intermédiaire');
   const _fastMove=_barbLvl>=5&&!_isHeavy;
-  const _spdBase=(p.speed||9)+(_fastMove?3:0);
+  const _encum=(typeof getEncumbrance==='function')?getEncumbrance(p):null; // malus d'encombrement (sac.js)
+  const _spdBase=Math.max(0,(p.speed||9)+(_fastMove?3:0)-(_encum?_encum.speedMalus:0));
   const _spd=_exhLvl>=5?0:(_exhLvl>=2?Math.floor(_spdBase/2):_spdBase);
   const spdVal=ws?.active?ws.beast.speed:(_spd+' m');
   const caVal=ws?.active?ws.beast.ac:caDisplay;
   const initVal=ws?.active?fmt(Math.floor((ws.beast.ab[1]-10)/2)):fmt(dexM);
   const resist=(typeof getEffectiveResistances==='function')?getEffectiveResistances(p):[];
-  const chips=(p.statuses||[]).slice(0,8).map(s=>`<span class="rail-chip">${esc(s.icon||'•')} ${esc(s.name||s.stat||'')}</span>`).join('')+resist.map(t=>`<span class="rail-chip rail-resist">🛡 ${esc(t)}</span>`).join('');
+  const chips=(p.statuses||[]).slice(0,8).map(s=>`<span class="rail-chip">${esc(s.icon||'•')} ${esc(s.name||s.stat||'')}</span>`).join('')+resist.map(t=>`<span class="rail-chip rail-resist">🛡 ${esc(t)}</span>`).join('')+(_encum&&_encum.level?`<span class="rail-chip" style="color:${_encum.level===2?'#e53935':'#ff9800'};border-color:${_encum.level===2?'rgba(229,57,53,.4)':'rgba(255,152,0,.4)'}">🎒 ${_encum.label} (−${_encum.speedMalus} m)</span>`:'');
   return `
     <div class="rail-id">
       ${p.portrait?`<img class="rail-portrait" src="${p.portrait}" onclick="document.getElementById('portInput')?.click()">`:`<div class="rail-portrait rail-portrait-ph" onclick="document.getElementById('portInput')?.click()">🧑</div>`}

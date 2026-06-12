@@ -5,9 +5,9 @@
 const SK='dnd5e_v5';
 let state={players:[],activeIdx:0,activeTab:'perso'};
 const START_GOLD={Barbare:{dice:2,mult:10},Barde:{dice:5,mult:10},Clerc:{dice:5,mult:10},Druide:{dice:2,mult:10},Ensorceleur:{dice:3,mult:10},Guerrier:{dice:5,mult:10},Magicien:{dice:4,mult:10},Moine:{dice:5,mult:1},Occultiste:{dice:4,mult:10},Paladin:{dice:5,mult:10},Rôdeur:{dice:5,mult:10},Roublard:{dice:4,mult:10},Artificier:{dice:5,mult:10}};
-function rollStartGold(){const sg=START_GOLD[CS.classe];if(!sg)return;let t=0;for(let i=0;i<sg.dice;i++)t+=Math.ceil(Math.random()*4);CS.rolledGold=t*sg.mult;renderTab();}
-let CS={step:1,race:null,classe:null,archetype:null,combatStyle:null,statMethod:'pointbuy',baseStats:[8,8,8,8,8,8],background:null,selectedSkills:[],selectedSpells:[],equipChoice:0,goldMode:false,rolledGold:0,charName:'',alignment:'',diceRolls:null,draconicAncestry:null};
-function resetCS(){CS={step:1,race:null,classe:null,archetype:null,combatStyle:null,statMethod:'pointbuy',baseStats:[8,8,8,8,8,8],background:null,selectedSkills:[],selectedSpells:[],equipChoice:0,goldMode:false,rolledGold:0,charName:'',alignment:'',diceRolls:null,draconicAncestry:null};}
+function rollStartGold(){const sg=START_GOLD[CS.classe];if(!sg)return;let t=0;for(let i=0;i<sg.dice;i++)t+=Math.ceil(Math.random()*4);CS.rolledGold=t*sg.mult;CS.bought=[];renderTab();}
+let CS={step:1,race:null,classe:null,archetype:null,combatStyle:null,statMethod:'pointbuy',baseStats:[8,8,8,8,8,8],background:null,selectedSkills:[],selectedSpells:[],equipChoice:0,goldMode:false,rolledGold:0,charName:'',alignment:'',diceRolls:null,draconicAncestry:null,flexSet:0,flexChoices:[],bought:[]};
+function resetCS(){CS={step:1,race:null,classe:null,archetype:null,combatStyle:null,statMethod:'pointbuy',baseStats:[8,8,8,8,8,8],background:null,selectedSkills:[],selectedSpells:[],equipChoice:0,goldMode:false,rolledGold:0,charName:'',alignment:'',diceRolls:null,draconicAncestry:null,flexSet:0,flexChoices:[],bought:[]};}
 
 // Descriptions des capacités par nom (source SRD aidedd)
 const FEAT_DESCS={
@@ -409,7 +409,16 @@ function getWarlockSlots(p){
   return WARLOCK_SLOT_TABLE[Math.min(wc.level-1,19)]; // [nb, niveau]
 }
 function checkMcReq(p,cn){const r=SRD.mcReqs[cn];if(!r)return{ok:true,msg:''};const s=p.abilities||[10,10,10,10,10,10];if(r.length===1){const ok=s[r[0][0]]>=r[0][1];return{ok,msg:ok?'':`${ABILITIES_SH[r[0][0]]} ≥ ${r[0][1]} requis (actuel: ${s[r[0][0]]})`};}if(r[2]==='or'){const ok=s[r[0][0]]>=r[0][1]||s[r[1][0]]>=r[1][1];return{ok,msg:ok?'':`${ABILITIES_SH[r[0][0]]} ≥ ${r[0][1]} OU ${ABILITIES_SH[r[1][0]]} ≥ ${r[1][1]}`};}const o1=s[r[0][0]]>=r[0][1],o2=s[r[1][0]]>=r[1][1];return{ok:o1&&o2,msg:[!o1?`${ABILITIES_SH[r[0][0]]} ≥ ${r[0][1]}`:'',!o2?`${ABILITIES_SH[r[1][0]]} ≥ ${r[1][1]}`:''].filter(Boolean).join(', ')};}
-function getFinalStats(base,raceName){const rd=SRD.races.find(r=>r.name===raceName);return base.map((v,i)=>{if(!rd)return v;let b=0;if(rd.allBonus)b=rd.allBonus;else if(rd.bonuses&&rd.bonuses[i])b=rd.bonuses[i];return v+b;});}
+function getFinalStats(base,raceName,flexChoices,flexSetIdx){
+  const rd=SRD.races.find(r=>r.name===raceName);
+  const out=base.map((v,i)=>{if(!rd)return v;let b=0;if(rd.allBonus)b=rd.allBonus;else if(rd.bonuses&&rd.bonuses[i])b=rd.bonuses[i];return v+b;});
+  // Bonus raciaux FLEXIBLES (Demi-Elfe +1/+1, Dragonide métallique +2/+1 ou +1/+1/+1) choisis à la création
+  if(rd&&rd.flexOptions&&Array.isArray(flexChoices)){
+    const set=rd.flexOptions[flexSetIdx||0]||rd.flexOptions[0];
+    set.forEach((val,k)=>{const ai=flexChoices[k];if(ai!=null&&ai>=0&&ai<6)out[ai]+=val;});
+  }
+  return out;
+}
 function pointsSpent(s){return s.reduce((a,v)=>a+(POINT_BUY_COST[v]||0),0);}
 // Calcul charges d'une capacité
 function getChargesMax(feat,p){
@@ -464,7 +473,16 @@ async function saveAll(silent=false){
       };
       await fbDb.collection('users').doc(currentUser.uid).update({['charLib.'+currentCampaignId]:charMeta});
       if(currentUserData){if(!currentUserData.charLib)currentUserData.charLib={};currentUserData.charLib[currentCampaignId]=charMeta;}
-    }catch(e){console.error('Firestore save error',e);}
+      window._saveFailNotified=false; // écriture serveur OK → réarme l'alerte d'échec
+    }catch(e){
+      console.error('Firestore save error',e);
+      // Échec d'écriture en ligne : ne PAS laisser croire que c'est sauvegardé — le point de sync revient.
+      _unsaved=true;const _sb=document.getElementById('saveBtn');if(_sb)_sb.classList.add('save-pending');
+      if(!window._saveFailNotified){window._saveFailNotified=true;
+        if(typeof showBanner==='function')showBanner('⚠️','Sauvegarde en ligne échouée',"Tes derniers changements ne sont pas enregistrés sur le serveur. Vérifie ta connexion — nouvel essai à la prochaine modification.",{variant:'danger'});
+        else showToast('⚠️ Sauvegarde en ligne échouée — vérifie ta connexion');
+      }
+    }
   }
   try{localStorage.setItem(getUserSK(),JSON.stringify(state));}catch(e){}
   // Toast sauvegarde supprimé — le sync dot suffit comme indicateur
@@ -710,7 +728,7 @@ function creStep1(){
   const isDragonide = CS.race==='Dragonide';
   const canContinue = CS.race && (!isDragonide || CS.draconicAncestry);
   return`<div><p style="font-size:18px;color:var(--text2);margin-bottom:12px">Choisis la race de ton personnage.</p>
-    <div class="crd-grid">${SRD.races.map(r=>{const b=r.allBonus?`+${r.allBonus} à tout`:r.bonuses.map((v,i)=>v?`+${v} ${ABILITIES_SH[i]}`:'').filter(Boolean).join(', ');return`<div class="crd${CS.race===r.name?' selected':''}" onclick="CS.race='${esc(r.name)}';CS.draconicAncestry=null;renderTab()"><h3>${esc(r.name)}</h3><p>${esc(r.traits.slice(0,65))}…</p><span class="tag">🏃 ${r.speed}m</span><span class="tag" style="color:#4caf50">${b}</span></div>`;}).join('')}</div>
+    <div class="crd-grid">${SRD.races.map(r=>{const b=r.allBonus?`+${r.allBonus} à tout`:r.bonuses.map((v,i)=>v?`+${v} ${ABILITIES_SH[i]}`:'').filter(Boolean).join(', ');return`<div class="crd${CS.race===r.name?' selected':''}" onclick="CS.race='${esc(r.name)}';CS.draconicAncestry=null;CS.flexSet=0;CS.flexChoices=[];renderTab()"><h3>${esc(r.name)}</h3><p>${esc(r.traits.slice(0,65))}…</p><span class="tag">🏃 ${r.speed}m</span><span class="tag" style="color:#4caf50">${b}</span></div>`;}).join('')}</div>
     ${CS.race?`<div style="margin-top:12px;padding:10px;background:var(--surface2);border-radius:8px"><div style="font-size:18px;font-weight:600;color:var(--cp)">${esc(CS.race)}</div><div style="font-size:18px;color:var(--text2);margin-top:4px">${esc((SRD.races.find(r=>r.name===CS.race)||{}).traits||'')}</div></div>`:''}
     ${isDragonide?`<div style="margin-top:12px">
       <div style="font-size:18px;font-weight:600;color:var(--cp);margin-bottom:8px">🐉 Choisis ton ascendance draconique <span style="color:#e53935">*</span></div>
@@ -748,7 +766,12 @@ function creStep2(){
 function creStep3(){
   const rd=SRD.races.find(r=>r.name===CS.race);const cd=SRD.classes.find(c=>c.name===CS.classe);
   let base=[...CS.baseStats];if(CS.statMethod==='dice'&&CS.diceRolls)base=[...CS.diceRolls];
-  const finals=getFinalStats(base,CS.race);
+  // Bonus raciaux flexibles : normaliser le tableau de choix sur le set actif
+  const flexSets=rd&&rd.flexOptions?rd.flexOptions:null;
+  const flexSet=flexSets?(flexSets[CS.flexSet||0]||flexSets[0]):null;
+  if(flexSet&&(!Array.isArray(CS.flexChoices)||CS.flexChoices.length!==flexSet.length))CS.flexChoices=flexSet.map(()=>null);
+  const flexIncomplete=!!flexSet&&CS.flexChoices.some(c=>c==null);
+  const finals=getFinalStats(base,CS.race,CS.flexChoices,CS.flexSet);
   const spent=pointsSpent(CS.statMethod==='pointbuy'?CS.baseStats:[8,8,8,8,8,8]);
   const rem=27-spent;
   const hpTotal=(cd?cd.hdVal:8)+mod(finals[2]);
@@ -756,10 +779,21 @@ function creStep3(){
     <div style="display:flex;gap:8px;margin-bottom:14px"><button class="smb${CS.statMethod==='pointbuy'?' on':''}" onclick="CS.statMethod='pointbuy';renderTab()">🪙 Achat de points</button><button class="smb${CS.statMethod==='dice'?' on':''}" onclick="CS.statMethod='dice';renderTab()">🎲 Lancer les dés</button></div>
     ${CS.statMethod==='pointbuy'?`<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:8px;background:var(--surface2);border-radius:8px"><span style="font-size:18px;color:var(--text2)">Points restants :</span><span style="font-size:20px;font-weight:700;color:${rem<0?'#e53935':'var(--cp)'}">${rem}</span><span style="font-size:17px;color:var(--text3)">/ 27 • valeurs 8–15</span></div>`:''}
     ${CS.statMethod==='dice'?`<div style="margin-bottom:12px"><button class="btn bac" onclick="CS.diceRolls=ABILITIES.map(()=>{const d=[1,2,3,4].map(()=>Math.ceil(Math.random()*6));d.sort((a,b)=>b-a);return d[0]+d[1]+d[2];});renderTab()">🎲 Lancer les 6 dés (4d6 garde 3)</button>${CS.diceRolls?`<span style="margin-left:10px;font-size:18px;color:var(--cp)">${CS.diceRolls.join(' — ')}</span>`:''}</div>`:''}
-    ${ABILITIES.map((ab,i)=>{const v=CS.statMethod==='dice'&&CS.diceRolls?CS.diceRolls[i]:CS.baseStats[i];const rb=rd?(rd.allBonus||rd.bonuses[i]||0):0;const final=v+rb;const canInc=CS.statMethod==='pointbuy'&&v<15&&rem>=(POINT_BUY_COST[v+1]||99)-POINT_BUY_COST[v];const canDec=CS.statMethod==='pointbuy'&&v>8;const isPrio=cd&&cd.primaryStats&&cd.primaryStats.includes(ABILITIES_SH[i]);
+    ${ABILITIES.map((ab,i)=>{const v=CS.statMethod==='dice'&&CS.diceRolls?CS.diceRolls[i]:CS.baseStats[i];const fx=flexSet?flexSet.reduce((a,val,k)=>a+(CS.flexChoices[k]===i?val:0),0):0;const rb=(rd?(rd.allBonus||rd.bonuses[i]||0):0)+fx;const final=v+rb;const canInc=CS.statMethod==='pointbuy'&&v<15&&rem>=(POINT_BUY_COST[v+1]||99)-POINT_BUY_COST[v];const canDec=CS.statMethod==='pointbuy'&&v>8;const isPrio=cd&&cd.primaryStats&&cd.primaryStats.includes(ABILITIES_SH[i]);
     return`<div class="stat-row"><span class="stat-row-name">${ab}${isPrio?` <span style="color:#ffd54f;font-size:15px">★</span>`:''}</span>${CS.statMethod==='pointbuy'?`<div class="stat-ctrl"><button onclick="creStatDec(${i})" ${canDec?'':'disabled'}>−</button><span class="stat-val">${v}</span><button onclick="creStatInc(${i})" ${canInc?'':'disabled'}>+</button></div>`:`<span class="stat-val" style="margin:0 8px">${v}</span>`}<span style="font-size:18px;color:var(--cp);width:28px">${fmt(mod(v))}</span>${rb?`<span style="font-size:17px;color:#4caf50;width:50px">+${rb} race</span>`:`<span style="width:50px"></span>`}<span style="font-size:17px;color:var(--text3)">→</span><span style="font-size:22px;font-weight:700;color:var(--cp);width:28px;text-align:center">${final}</span><span style="font-size:18px;color:var(--text2)">${fmt(mod(final))}</span></div>`;}).join('')}
+    ${flexSet?`<div style="margin-top:12px;padding:10px;background:var(--surface2);border:1px solid var(--cp);border-radius:8px">
+      <div style="font-size:18px;font-weight:600;color:var(--cp);margin-bottom:6px">🧬 Bonus raciaux au choix</div>
+      ${flexSets.length>1?`<div style="display:flex;gap:6px;margin-bottom:8px">${flexSets.map((s,k)=>`<button class="smb${k===(CS.flexSet||0)?' on':''}" onclick="CS.flexSet=${k};CS.flexChoices=[];renderTab()">${s.map(v=>'+'+v).join(' / ')}</button>`).join('')}</div>`:''}
+      ${flexSet.map((val,k)=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span style="font-size:19px;font-weight:700;color:#4caf50;width:34px">+${val}</span>
+        <select class="fi" style="flex:1;margin:0" onchange="CS.flexChoices[${k}]=this.value===''?null:parseInt(this.value);renderTab()">
+          <option value="">— choisir une caractéristique —</option>
+          ${ABILITIES.map((ab,i)=>{const fixed=!!(rd&&(rd.allBonus||(rd.bonuses&&rd.bonuses[i]>0)));const taken=CS.flexChoices.some((c,kk)=>kk!==k&&c===i);if(fixed||taken)return'';return`<option value="${i}"${CS.flexChoices[k]===i?' selected':''}>${ab}</option>`;}).join('')}
+        </select></div>`).join('')}
+      ${flexIncomplete?`<div style="font-size:16px;color:#ff9800">⚠ Choisis ${flexSet.length>1?'toutes tes caractéristiques bonus':'ta caractéristique bonus'} pour continuer.</div>`:''}
+    </div>`:''}
     <div style="margin-top:10px;padding:8px;background:var(--surface2);border-radius:8px;font-size:18px;color:var(--text2)">PV de départ estimés : <strong style="color:var(--cp)">${hpTotal}</strong></div>
-    <div style="display:flex;gap:8px;margin-top:12px"><button class="btn" style="flex:1" onclick="CS.step=2;renderTab()">← Retour</button><button class="btn bac" style="flex:2" onclick="CS.step=4;renderTab()" ${CS.statMethod==='dice'&&!CS.diceRolls?'disabled':''}>Continuer → Historique</button></div>
+    <div style="display:flex;gap:8px;margin-top:12px"><button class="btn" style="flex:1" onclick="CS.step=2;renderTab()">← Retour</button><button class="btn bac" style="flex:2" onclick="CS.step=4;renderTab()" ${(CS.statMethod==='dice'&&!CS.diceRolls)||flexIncomplete?'disabled':''}>Continuer → Historique</button></div>
   </div>`;
 }
 function creStatInc(i){const v=CS.baseStats[i];if(v>=15)return;const cost=(POINT_BUY_COST[v+1]||99)-POINT_BUY_COST[v];if(27-pointsSpent(CS.baseStats)<cost)return;CS.baseStats[i]++;renderTab();}
@@ -843,6 +877,36 @@ function creStep6Sorts(){
 }
 function creToggleSpell(name){const idx=CS.selectedSpells.indexOf(name);if(idx>=0)CS.selectedSpells.splice(idx,1);else CS.selectedSpells.push(name);renderTab();}
 
+// ─── Boutique de création (mode pièces d'or) — charte UX : « or → liste + prix » ───
+function _crePriceVal(pr){const m=String(pr||'').match(/([\d.]+)\s*(po|pa|pc)/i);if(!m)return null;const v=parseFloat(m[1]);const u=m[2].toLowerCase();return u==='po'?v:u==='pa'?v/10:v/100;}
+const CRE_GEAR=[
+  {name:"Flèche",qty:20,desc:"Munitions",price:"1 po"},
+  {name:"Carreau",qty:20,desc:"Munitions",price:"1 po"},
+  {name:"Pack du donjon",qty:1,desc:"Pied de biche, torches, rations, corde",price:"12 po"},
+  {name:"Pack d'explorateur",qty:1,desc:"Sac de couchage, rations, gourde, corde",price:"10 po"},
+  {name:"Sac d'érudit",qty:1,desc:"Livre, plume, encre, parchemins",price:"40 po"},
+  {name:"Sac d'ecclésiastique",qty:1,desc:"Bougies, rations, encens",price:"19 po"},
+  {name:"Sac de cambrioleur",qty:1,desc:"Pied de biche, outils, cordes",price:"16 po"},
+  {name:"Outils de voleur",qty:1,desc:"Maîtrise requise",price:"25 po"},
+  {name:"Symbole sacré",qty:1,desc:"Focaliseur divin",price:"5 po"},
+  {name:"Focaliseur arcanique",qty:1,desc:"Cristal ou baguette",price:"10 po"},
+  {name:"Focaliseur druidique",qty:1,desc:"Branche de gui, bâton",price:"10 po"},
+  {name:"Potion de soins",qty:1,desc:"Récupère 2d4+2 PV",price:"50 po"},
+  {name:"Corde de chanvre (15 m)",qty:1,desc:"",price:"1 po"},
+  {name:"Lanterne sourde",qty:1,desc:"Lumière 18 m",price:"5 po"},
+  {name:"Rations (10 jours)",qty:1,desc:"",price:"5 po"},
+];
+function _creCatalog(){
+  const out=[];
+  (SRD.weapons||[]).forEach(w=>{const v=_crePriceVal(w.price);if(v!=null)out.push({name:w.name,qty:1,desc:w.damage+(w.properties?', '+w.properties:''),price:w.price,v,cat:'⚔ Armes'});});
+  (SRD.armors||[]).forEach(a=>{const v=_crePriceVal(a.price);if(v!=null)out.push({name:a.name,qty:1,desc:'CA '+a.ca,price:a.price,v,cat:'🛡 Armures'});});
+  CRE_GEAR.forEach(g=>{const v=_crePriceVal(g.price);out.push(Object.assign({},g,{v,cat:'🎒 Équipement'}));});
+  return out;
+}
+function _creGoldLeft(){const spent=(CS.bought||[]).reduce((a,b)=>a+(b.v||0),0);return Math.max(0,Math.round((CS.rolledGold-spent)*100)/100);}
+function creBuy(ci){const c=_creCatalog()[ci];if(!c)return;if(_creGoldLeft()<c.v){showToast("❌ Pas assez de pièces d'or.");return;}if(!CS.bought)CS.bought=[];CS.bought.push(c);renderTab();}
+function creUnbuy(i){if(CS.bought)CS.bought.splice(i,1);renderTab();}
+
 function creStep7(){
   const cd=SRD.classes.find(c=>c.name===CS.classe);if(!cd||!cd.equipment)return'';
   const sg=START_GOLD[CS.classe];
@@ -863,6 +927,14 @@ function creStep7(){
         <button class="btn bac" onclick="rollStartGold()" style="margin-bottom:10px">🎲 Lancer les dés</button>
         ${CS.rolledGold>0?`<div style="font-size:25px;font-weight:700;color:#ffd700">Résultat : ${CS.rolledGold} po</div>`:'<div style="font-size:18px;color:var(--text3)">Lance les dés pour obtenir tes pièces d\'or de départ.</div>'}
       </div>
+      ${CS.rolledGold>0?(()=>{const cat=_creCatalog();const left=_creGoldLeft();const groups={};cat.forEach((c,i)=>{(groups[c.cat]=groups[c.cat]||[]).push({c,i});});
+        return`<div style="text-align:left;margin-top:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-size:18px;font-weight:600;color:var(--cp)">🛒 Boutique (facultatif)</div><div style="font-size:20px;font-weight:700;color:#ffd700">Reste : ${left} po</div></div>
+          ${(CS.bought&&CS.bought.length)?`<div style="margin-bottom:8px;padding:8px;background:var(--surface3);border-radius:8px"><div style="font-size:16px;color:var(--text3);margin-bottom:4px">Panier :</div>${CS.bought.map((b,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;font-size:17px;margin-bottom:2px"><span>${esc(b.name)}${b.qty>1?' ×'+b.qty:''} <span style="color:var(--text3)">(${esc(b.price)})</span></span><button class="btn bsm" style="color:#e53935" onclick="creUnbuy(${i})">✕</button></div>`).join('')}</div>`:''}
+          <div style="max-height:260px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:6px">
+            ${Object.keys(groups).map(g=>`<div style="font-size:16px;color:var(--cp);margin:6px 0 4px">${g}</div>`+groups[g].map(({c,i})=>`<div style="display:flex;justify-content:space-between;align-items:center;font-size:17px;padding:3px 4px;border-bottom:1px solid var(--surface3)"><span style="flex:1;min-width:0">${esc(c.name)}${c.qty>1?' ×'+c.qty:''} <span style="color:var(--text3);font-size:15px">${esc((c.desc||'').slice(0,42))}</span></span><span style="color:#ffd700;white-space:nowrap;margin:0 8px">${esc(c.price)}</span><button class="btn bsm" onclick="creBuy(${i})" ${left<c.v?'disabled':''}>＋</button></div>`).join('')).join('')}
+          </div>
+        </div>`;})():''}
     `}
     <div style="display:flex;gap:8px;margin-top:12px"><button class="btn" style="flex:1" onclick="CS.step=${prevStep};renderTab()">← Retour</button><button class="btn bac" style="flex:2" onclick="CS.step=8;renderTab()" ${CS.goldMode&&CS.rolledGold<=0?'disabled':''}>Continuer → Confirmation</button></div>
   </div>`;
@@ -871,7 +943,7 @@ function creStep7(){
 function creStep8(){
   const rd=SRD.races.find(r=>r.name===CS.race);const cd=SRD.classes.find(c=>c.name===CS.classe);const bg=BACKGROUNDS.find(b=>b.name===CS.background);
   let base=[...CS.baseStats];if(CS.statMethod==='dice'&&CS.diceRolls)base=[...CS.diceRolls];
-  const finals=getFinalStats(base,CS.race);const hpMax=(cd?cd.hdVal:8)+mod(finals[2]);
+  const finals=getFinalStats(base,CS.race,CS.flexChoices,CS.flexSet);const hpMax=(cd?cd.hdVal:8)+mod(finals[2]);
   const allSk=[...new Set([...(bg?bg.skills:[]),...CS.selectedSkills])];
   return`<div>
     <p style="font-size:18px;color:var(--text2);margin-bottom:14px">Finalise ton personnage. <strong style="color:var(--cp)">Les stats seront verrouillées.</strong></p>
@@ -899,7 +971,7 @@ function confirmCreation(){
   const p=P();const rd=SRD.races.find(r=>r.name===CS.race);const cd=SRD.classes.find(c=>c.name===CS.classe);const bg=BACKGROUNDS.find(b=>b.name===CS.background);
   if(!CS.charName.trim()||!CS.race||!CS.classe)return;
   let base=[...CS.baseStats];if(CS.statMethod==='dice'&&CS.diceRolls)base=[...CS.diceRolls];
-  const finals=getFinalStats(base,CS.race);
+  const finals=getFinalStats(base,CS.race,CS.flexChoices,CS.flexSet);
   p.charName=CS.charName.trim();p.race=CS.race;p.draconicAncestry=CS.draconicAncestry||null;p.background=CS.background||'';p.alignment=CS.alignment;
   p.classes=[{name:CS.classe,level:1}];p.abilities=[...finals];p.abilitiesLocked=true;
   const hpBase=cd?cd.hdVal:8;p.hpMax=Math.max(1,hpBase+mod(finals[2]));
@@ -918,7 +990,19 @@ function confirmCreation(){
   p.armorProfs=cd?cd.armorTypes||[]:[];
   p.inventory=[];p.equip={};
   if(!p.currency)p.currency={pc:0,pa:0,pe:0,po:0,pp:0};
-  if(CS.goldMode&&CS.rolledGold>0){p.currency.po=(p.currency.po||0)+CS.rolledGold;}
+  if(CS.goldMode&&CS.rolledGold>0){
+    // Boutique de création : achats → inventaire ; le reste → bourse (po entiers + appoint en pa)
+    (CS.bought||[]).forEach(b=>{
+      const _arm=SRD.armors.find(a=>a.name===b.name);
+      const _wpn=SRD.weapons.find(w=>w.name===b.name);
+      const itemType=_arm?(_arm.type==='Bouclier'?'S':_arm.type==='Légère'?'LA':_arm.type==='Intermédiaire'?'MA':'HA'):(_wpn?(_wpn.subtype&&_wpn.subtype.includes('distance')?'R':'M'):'G');
+      p.inventory.push({name:b.name,qty:b.qty||1,desc:b.desc||'',itemType});
+    });
+    const _left=_creGoldLeft();
+    p.currency.po=(p.currency.po||0)+Math.floor(_left);
+    const _paRest=Math.round((_left-Math.floor(_left))*10);
+    if(_paRest>0)p.currency.pa=(p.currency.pa||0)+_paRest;
+  }
   else if(!CS.goldMode&&cd&&cd.equipment&&cd.equipment[CS.equipChoice]){
     cd.equipment[CS.equipChoice].forEach(item=>{
       const _arm=SRD.armors.find(a=>a.name===item.name);

@@ -278,8 +278,10 @@ function openFeedbackModal(){
 }
 async function sendFeedback(){
   const type=document.getElementById('fbType')?.value;
-  const msg=document.getElementById('fbMsg')?.value.trim();
+  let msg=document.getElementById('fbMsg')?.value.trim();
   if(!msg){showToast('❌ Le message ne peut pas être vide.');return;}
+  // Joindre automatiquement le rapport d'erreurs techniques (capteur global) + version — précieux pour diagnostiquer
+  if(window._errLog&&window._errLog.length)msg+='\n\n— Rapport technique auto (v'+(typeof APP_VERSION!=='undefined'?APP_VERSION:'?')+') —\n'+window._errLog.join('\n');
   try{
     await userService.sendFeedback(currentUser?.uid,currentUser?.email,type,msg);
     closeModal();

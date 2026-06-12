@@ -92,7 +92,7 @@ function renderClerc(p) {
       const ipMax = Math.max(1, sagM);
       const ipCur = cc['IlluminationProtectrice']!==undefined ? cc['IlluminationProtectrice'] : ipMax;
       dc += `<div style="padding:7px 10px;background:var(--surface2);border-radius:6px;margin-bottom:6px">
-        <div style="font-size:18px;font-weight:600;margin-bottom:4px">🔆 Illumination protectrice <span style="font-size:15px;color:var(--cp);margin-left:4px">Réaction</span> <span style="font-size:15px;color:var(--text3);margin-left:4px">niv.1</span></div>
+        <div style="font-size:18px;font-weight:600;margin-bottom:4px">🔆 Illumination protectrice <span style="font-size:15px;color:var(--cp);margin-left:4px">↪ Réaction</span> <span style="font-size:15px;color:var(--text3);margin-left:4px">niv.1</span></div>
         <div style="font-size:17px;color:var(--text3);margin-bottom:6px">${clercLvl>=6?'Quand toi ou un allié à 9m est attaqué par une créature visible':'Quand tu es attaqué par une créature à 9m'} : imposer désavantage au jet d'attaque. Immunisé si l'attaquant ne peut pas être aveuglé.</div>
         <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px">${Array.from({length:ipMax},(_,i)=>`<span class="slot-bubble${i<ipCur?'':' used'}" onclick="useCombatCharge('IlluminationProtectrice',${ipMax})"></span>`).join('')}</div>
         <div style="display:flex;gap:6px;align-items:center">
@@ -119,7 +119,7 @@ function renderClerc(p) {
       const foMax = Math.max(1, sagM);
       const foCur = cc['FureurOuragan']!==undefined ? cc['FureurOuragan'] : foMax;
       dc += `<div style="padding:7px 10px;background:var(--surface2);border-radius:6px;margin-bottom:6px">
-        <div style="font-size:18px;font-weight:600;margin-bottom:4px">⚡ Fureur de l'ouragan <span style="font-size:15px;color:var(--cp);margin-left:4px">Réaction</span> <span style="font-size:15px;color:var(--text3);margin-left:4px">niv.1</span></div>
+        <div style="font-size:18px;font-weight:600;margin-bottom:4px">⚡ Fureur de l'ouragan <span style="font-size:15px;color:var(--cp);margin-left:4px">↪ Réaction</span> <span style="font-size:15px;color:var(--text3);margin-left:4px">niv.1</span></div>
         <div style="font-size:17px;color:var(--text3);margin-bottom:6px">Quand une créature à 1,5m te touche : JS DEX DD ${ddSorts} ou <strong>2d8 foudre ou tonnerre</strong> (moitié si réussi). Récup. repos long.</div>
         <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px">${Array.from({length:foMax},(_,i)=>`<span class="slot-bubble${i<foCur?'':' used'}" onclick="useCombatCharge('FureurOuragan',${foMax})"></span>`).join('')}</div>
         <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">

@@ -1,5 +1,37 @@
 // TAB: SAC
 // ═══════════════════════════════════════
+// ─── ENCOMBREMENT (règle variante, métrique FR : lb→kg ÷2) ───
+// Poids des objets STANDARD (kg). Couverture partielle assumée : un objet inconnu compte 0
+// et est signalé « sans poids connu » (poids structuré par objet du compendium = @OPTION_B).
+const ITEM_WEIGHTS_KG={
+  'Dague':0.5,'Gourdin':1,'Massue':5,'Bâton':2,'Hachette':1,'Javeline':1,'Marteau léger':1,"Masse d'armes":2,'Serpe':1,'Lance':1.5,
+  'Arbalète légère':2.5,'Fléchette':0.125,'Arc court':1,'Fronde':0,
+  'Épée courte':1,'Épée longue':1.5,'Épée à deux mains':3,'Rapière':1,'Cimeterre':1.5,'Hache de guerre':2,'Hache à deux mains':3.5,
+  'Marteau de guerre':1,'Maillet':5,'Morgenstern':2,"Fléau d'armes":1,'Coutille':3,'Hallebarde':3,'Pique':9,"Lance d'arçon":3,
+  'Trident':2,'Pic de guerre':1,'Fouet':1.5,'Arc long':1,'Arbalète lourde':9,'Arbalète de poing':1.5,'Sarbacane':0.5,'Filet':1.5,
+  'Flèche':0.05,'Carreau':0.075,
+  'Armure matelassée':4,'Armure de cuir':5,'Cuir clouté':6.5,'Armure de peau':6,'Chemise de mailles':10,"Armure d'écailles":22.5,
+  'Cuirasse':10,'Demi-plate':20,'Broigne':20,'Cotte de mailles':27.5,'Clibanion':30,'Harnois':32.5,'Bouclier':3,
+  'Pack du donjon':30,"Pack d'explorateur":29,"Sac d'érudit":5,"Sac d'ecclésiastique":12,'Sac de cambrioleur':22,
+  'Outils de voleur':0.5,'Symbole sacré':0.5,'Focaliseur arcanique':0.5,'Focaliseur druidique':0.5,'Grimoire':1.5,
+  'Potion de soins':0.25,'Corde de chanvre (15 m)':5,'Lanterne sourde':1,'Rations (10 jours)':10,
+};
+function getCarriedWeight(p){
+  let kg=0,unknown=0;
+  (p.inventory||[]).forEach(it=>{const w=ITEM_WEIGHTS_KG[it.name];const q=it.qty||0;if(w!=null)kg+=w*q;else if(q>0)unknown++;});
+  return{kg:Math.round(kg*10)/10,unknown};
+}
+// Paliers (variante D&D 5e en kg) : encombré > FOR×2,5 (−3 m) · lourdement > FOR×5 (−6 m + désavantage FOR/DEX/CON) · max FOR×7,5.
+function getEncumbrance(p){
+  const FOR=(p.abilities||[])[0]||10;
+  const cw=getCarriedWeight(p);
+  const t1=FOR*2.5,t2=FOR*5,max=FOR*7.5;
+  let level=0,label='',speedMalus=0;
+  if(cw.kg>t2){level=2;label='Lourdement encombré';speedMalus=6;}
+  else if(cw.kg>t1){level=1;label='Encombré';speedMalus=3;}
+  return{kg:cw.kg,unknown:cw.unknown,t1,t2,max,level,label,speedMalus,FOR};
+}
+
 function tabSac(p){
   const inv=p.inventory||[];const cur=p.currency||{pc:0,pa:0,pe:0,po:0,pp:0};
   const attunedCount=inv.filter(it=>it.attuned).length;
@@ -24,6 +56,14 @@ function tabSac(p){
     ${item.attunement?`<div style="margin-top:4px"><button class="btn bsm" onclick="toggleAttunement(${i})" style="color:${item.attuned?'#e53935':'#9c27b0'};border-color:${item.attuned?'rgba(229,57,53,.4)':'rgba(156,39,176,.4)'}">${item.attuned?'🔓 Rompre le lien':'🔗 Se lier'}</button>${item.attuned?`<span style="font-size:15px;color:#9c27b0;margin-left:6px">Lié ✓</span>`:''}</div>`:''}
   </div>`;}).join(''):`<div style="font-size:18px;color:var(--text3);font-style:italic">Inventaire vide.</div>`;
   return`<div>
+  ${(()=>{const enc=getEncumbrance(p);const pct=Math.min(100,Math.round(enc.kg/enc.max*100));const col=enc.level===2?'#e53935':enc.level===1?'#ff9800':'#4caf50';
+    return`<div class="panel mb10">
+      <div class="pt" style="display:flex;align-items:center;justify-content:space-between"><span>🎒 Encombrement</span><span style="font-size:17px;font-weight:600;color:${col}">${enc.kg} kg <span style="color:var(--text3);font-weight:400">/ ${enc.max} kg</span></span></div>
+      <div class="hp-bar" style="height:10px"><div class="hp-fill" style="width:${pct}%;background:${col}"></div></div>
+      <div style="display:flex;justify-content:space-between;gap:8px;font-size:14px;color:var(--text3);margin-top:3px;flex-wrap:wrap"><span>Encombré &gt; ${enc.t1} kg (−3 m)</span><span>Lourdement &gt; ${enc.t2} kg (−6 m + désavantage FOR/DEX/CON)</span></div>
+      ${enc.level?`<div style="margin-top:6px;padding:6px 8px;border-radius:6px;background:rgba(${enc.level===2?'229,57,53':'255,152,0'},.12);border:1px solid ${col};font-size:16px;color:${col}">⚠ ${enc.label} — vitesse réduite de ${enc.speedMalus} m (appliqué automatiquement)${enc.level===2?' · désavantage aux jets de FOR/DEX/CON (à appliquer à tes jets)':''}.</div>`:''}
+      ${enc.unknown?`<div style="font-size:14px;color:var(--text3);margin-top:4px">${enc.unknown} objet(s) sans poids connu — non comptés.</div>`:''}
+    </div>`;})()}
   <div class="panel mb10">
     <div class="pt" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
       <span>🪙 Bourse</span>
