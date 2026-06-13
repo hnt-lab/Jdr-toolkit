@@ -288,6 +288,8 @@ function showBanner(icon,title,detail,opts){
 // Compat : ancienne signature des notifications de buff
 function _showBuffNotification(icon,title,detail,sourceName){showBanner(icon,title,detail,{source:sourceName});}
 function _checkIncomingBuffs(oldCD,newCD,isSelf){
+  // Invitation de repos de groupe (2026-06-12) : un allié vient de se reposer → proposer de le suivre
+  try{const _ri=newCD&&newCD.restInvite;if(!isSelf&&_ri&&_ri.t&&(!oldCD||!oldCD.restInvite||oldCD.restInvite.t!==_ri.t)&&Date.now()-_ri.t<120000)_showRestInvite(_ri);}catch(e){}
   // Chant reposant : écrit sur le doc du BARDE → notifie les AUTRES alliés (pas le barde)
   if(!isSelf){
     const oldChant=oldCD?.combatCharges?.ChantReposantResult;
@@ -734,3 +736,25 @@ async function sendWhisperMsg(toUid,toName,message){
   }catch(e){if(typeof showToast==='function')showToast('❌ Erreur envoi : '+e.message);}
 }
 
+
+// ─── Invitation de repos de groupe (réception) — 2026-06-12 ───
+function _showRestInvite(ri){
+  const old=document.getElementById('restInvitePop');if(old)old.remove();
+  const lbl=ri.type==='long'?'long':'court';
+  const div=document.createElement('div');div.id='restInvitePop';
+  div.style.cssText='position:fixed;bottom:90px;left:50%;transform:translateX(-50%);z-index:950;background:var(--surface);border:1px solid var(--cp);border-radius:12px;padding:12px 14px;box-shadow:0 8px 32px rgba(0,0,0,.6);max-width:92vw;width:340px';
+  div.innerHTML='<div style="font-size:18px;font-weight:600;color:var(--cp);margin-bottom:4px">'+(ri.type==='long'?'🌙':'☕')+' Repos '+lbl+' proposé</div>'+
+    '<div style="font-size:17px;color:var(--text2);margin-bottom:10px">'+esc(ri.name||'Un allié')+' se repose. Veux-tu te reposer aussi (repos '+lbl+') ?</div>'+
+    '<div style="display:flex;gap:8px">'+
+    '<button class="btn bsm" style="flex:1" onclick="document.getElementById(\'restInvitePop\').remove()">Non</button>'+
+    '<button class="btn bsm bac" style="flex:2" onclick="_acceptRestInvite(\''+lbl+'\')">'+(ri.type==='long'?'🌙':'☕')+' Oui, je me repose</button></div>';
+  document.body.appendChild(div);
+  setTimeout(()=>{const d=document.getElementById('restInvitePop');if(d)d.remove();},60000);
+}
+function _acceptRestInvite(type){
+  const el=document.getElementById('restInvitePop');if(el)el.remove();
+  if(typeof P!=='function'||!P()){showToast('Ouvre ta fiche pour pouvoir te reposer.');return;}
+  window._restNoPropagate=true;
+  try{if(type==='long'){if(typeof doLongRest==='function')doLongRest();}else{if(typeof doShortRest==='function')doShortRest();}}
+  finally{window._restNoPropagate=false;}
+}

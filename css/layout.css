@@ -174,3 +174,10 @@
   .hdr-title{font-size:19px}
   .g6{grid-template-columns:repeat(2,1fr)}
 }
+
+/* ── Lisibilité mobile (2026-06-12) : descriptions plus grandes sur petit écran ── */
+@media (max-width:640px){
+  .sort-body p,.sort-body div,.acc-body,.crd p,.aci .ais,.sk-choice span,.lu-choice p,.eq-opt span{font-size:17px !important;line-height:1.5 !important}
+  .crd h3,.lu-choice h3{font-size:18px !important}
+  .sk-choice .sk-dot{font-size:inherit !important}
+}

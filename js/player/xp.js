@@ -372,6 +372,12 @@ const CLASS_LEVEL_DATA={
     asiLevels:[4,8,12,16,19],
     archetypeLevel:3,
     styleLevel:2,
+    combatStyles:[
+      {name:"Défense",desc:"+1 CA si tu portes une armure."},
+      {name:"Duel",desc:"+2 aux dégâts avec une arme tenue en une main."},
+      {name:"Arme à deux mains",desc:"Relancer les 1 et 2 sur les dés de dégâts avec armes à deux mains."},
+      {name:"Protection",desc:"Utiliser ta réaction pour donner désavantage à une attaque contre un allié à 1,5m."},
+    ],
     spellsPerLevel:{2:1,3:1,5:1,7:1,9:1},
   },
   Rôdeur:{
@@ -405,6 +411,12 @@ const CLASS_LEVEL_DATA={
     asiLevels:[4,8,12,16,19],
     archetypeLevel:3,
     styleLevel:2,
+    combatStyles:[
+      {name:"Archerie",desc:"+2 aux jets d'attaque avec armes à distance."},
+      {name:"Défense",desc:"+1 CA si tu portes une armure."},
+      {name:"Duel",desc:"+2 aux dégâts avec une arme tenue en une main."},
+      {name:"Combat à deux armes",desc:"Ajouter le modificateur de carac. aux dégâts de la seconde attaque."},
+    ],
     spellsPerLevel:{2:1,3:1,5:1,7:1,9:1},
   },
   Roublard:{
@@ -824,7 +836,7 @@ function luStepDirection(p,newLvl,mc){
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">${SRD.classes.map(c=>{
       const alr=(p.classes||[]).find(cl=>cl.name===c.name);
       const req=checkMcReq(p,c.name);
-      return`<div style="background:var(--surface2);border:2px solid ${LU.mcTarget===c.name?'var(--cp)':req.ok?'var(--border)':'var(--border)'};border-radius:8px;padding:10px;cursor:${req.ok?'pointer':'not-allowed'};opacity:${req.ok?1:.4};text-align:center;transition:all .2s" onclick="${req.ok?`LU.mcTarget='${esc(c.name)}';renderTab()`:''}">
+      return`<div style="background:var(--surface2);border:2px solid ${LU.mcTarget===c.name?'var(--cp)':req.ok?'var(--border)':'var(--border)'};border-radius:8px;padding:10px;cursor:${req.ok?'pointer':'not-allowed'};opacity:${req.ok?1:.4};text-align:center;transition:all .2s" onclick="${req.ok?`LU.mcTarget='${jsq(c.name)}';renderTab()`:''}">
         <div style="font-family:var(--F);font-size:18px;color:var(--cp)">${esc(c.name)}</div>
         <div style="font-size:15px;color:var(--text3)">${c.hd}${c.spellcaster?' ✦':''}</div>
         ${alr?`<div style="font-size:15px;color:#4caf50">Niv.${alr.level}</div>`:''}
@@ -856,7 +868,7 @@ function luStepStyle(p){
   const styles=cd&&cd.combatStyles?cd.combatStyles:[];
   return`<div>
     <p style="font-size:18px;color:var(--text2);margin-bottom:12px">Choisis ton style de combat. Ce choix est permanent.</p>
-    ${styles.map(s=>`<div class="lu-choice${LU.styleChoice===s.name?' selected':''}" onclick="LU.styleChoice='${esc(s.name)}';renderTab()">
+    ${styles.map(s=>`<div class="lu-choice${LU.styleChoice===s.name?' selected':''}" onclick="LU.styleChoice='${jsq(s.name)}';renderTab()">
       <h3>${esc(s.name)}</h3><p>${esc(s.desc)}</p>
     </div>`).join('')}
     <div style="display:flex;gap:8px;margin-top:12px">
@@ -979,7 +991,7 @@ function luFilterFeats(q){
     const grantBadge=grants.length?` <span style="font-size:15px;color:#4caf50;font-weight:400;background:rgba(76,175,80,.12);border-radius:3px;padding:1px 5px">+1 ${grants.map(i=>ABILITIES_SH[i]).join('/')}</span>`:'';
     const prereqFail=prereq&&!prereq.ok;
     const prereqRow=prereq?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">${prereq.reasons.map(r=>`<span style="font-size:15px;color:${r.ok?'#4caf50':'#e53935'};background:${r.ok?'rgba(76,175,80,.1)':'rgba(229,57,53,.1)'};border-radius:3px;padding:1px 5px">${r.ok?'✅':'❌'} ${esc(r.label)}</span>`).join('')}</div>`:'';
-    return`<div class="lu-choice" style="margin-bottom:6px;padding:8px 10px;cursor:pointer;opacity:${prereqFail?.55:1}" onclick="LU.asiChoice.featName='${esc(f.n)}';LU.asiChoice.stats=[];renderTab()">
+    return`<div class="lu-choice" style="margin-bottom:6px;padding:8px 10px;cursor:pointer;opacity:${prereqFail?.55:1}" onclick="LU.asiChoice.featName='${jsq(f.n)}';LU.asiChoice.stats=[];renderTab()">
       <h3 style="font-size:18px;margin-bottom:4px">${esc(f.n)}${grantBadge}</h3>
       <p style="font-size:17px;color:var(--text2);line-height:1.4">${esc(f.tx||'')}</p>
       ${prereqRow}
@@ -1269,6 +1281,24 @@ function luStepRecap(p,newLvl){
     return{name:f,desc:getFeatDesc(f)};
   }).filter(Boolean);
   const isMulti=LU.choice==='multiclass';
+  // Déblocage d'un NOUVEAU niveau de sorts (préparateurs) : le dire + lister les sorts, sinon les joueurs
+  // restent avec des sorts bas niveau sans savoir que leur liste s'est élargie (retour user 2026-06-12).
+  let _luUnlock=null;
+  if(!isMulti&&isPrepared&&mc){
+    const _slotMax=(cls)=>{const sl=calcSpellSlots(Object.assign({},p,{classes:cls}))||[];let m=0;sl.forEach((n,i)=>{if(n>0)m=i+1;});return m;};
+    const _bCls=p.classes.map(c=>({name:c.name,level:c.name===mc.name?Math.max(0,newCLvl-1):c.level}));
+    const _aCls=p.classes.map(c=>({name:c.name,level:c.name===mc.name?newCLvl:c.level}));
+    const _a=_slotMax(_aCls);
+    if(_a>_slotMax(_bCls)){
+      let list=null;
+      if(typeof SPELLS_DB!=='undefined'&&SPELLS_DB){
+        const _en=(typeof _CLASS_NAME_EN!=='undefined'?_CLASS_NAME_EN[mc.name]:'')||mc.name;
+        list=getSpellsDB().filter(s=>s.level===_a&&(s.classes||[]).length&&(s.classes.includes(mc.name)||s.classes.includes(_en)));
+        list.sort((x,y)=>(x.name||'').localeCompare(y.name||''));
+      }
+      _luUnlock={lvl:_a,list};
+    }
+  }
 
   return`<div>
     <p style="font-size:18px;color:var(--text2);margin-bottom:14px">Récapitulatif — niveau <strong style="color:var(--cp)">${newLvl}</strong>. Confirme pour appliquer.</p>
@@ -1320,6 +1350,12 @@ function luStepRecap(p,newLvl){
         </div>`;
       })()}
     </div>
+    ${_luUnlock?`<div style="padding:10px 12px;background:rgba(127,209,196,.08);border:1px solid rgba(127,209,196,.45);border-radius:8px;margin-bottom:8px">
+      <div style="font-size:18px;font-weight:700;color:#7fd1c4;margin-bottom:4px">🔓 Sorts de niveau ${_luUnlock.lvl} débloqués !</div>
+      <div style="font-size:17px;color:var(--text2);margin-bottom:6px">Ta liste de ${esc(mc.name)} s'élargit : ${_luUnlock.list?`<strong>${_luUnlock.list.length} sorts de niveau ${_luUnlock.lvl}</strong> sont désormais disponibles à la préparation (au repos long).`:`de nouveaux sorts sont désormais disponibles à la préparation (au repos long).`}</div>
+      ${_luUnlock.list?`<button class="btn bsm" onclick="const d=document.getElementById('luNewSpells');if(d)d.style.display=d.style.display==='none'?'block':'none'">📜 Voir les ${_luUnlock.list.length} sorts</button>
+      <div id="luNewSpells" style="display:none;margin-top:6px;max-height:240px;overflow-y:auto">${_luUnlock.list.map(s=>`<div class="sk-choice" style="cursor:default"><span style="flex:1;font-size:17px">${esc(s.name)}</span><span style="font-size:15px;color:var(--text3)">${esc(s.school||'')}${s.castTime?' • '+esc(s.castTime):''}</span><span onclick="creToggleSpellDesc('lu_${jsq(s.name)}')" style="cursor:pointer;color:var(--cp);font-size:18px;padding:0 6px" title="Voir la description">ⓘ</span></div><div id="cresp_${('lu_'+s.name).replace(/[^a-zA-Z0-9]/g,'_')}" style="display:none;font-size:16px;color:var(--text2);background:var(--surface2);border-radius:6px;padding:6px 8px;margin:2px 0 6px;line-height:1.5">${esc(s.desc||'—')}</div>`).join('')}</div>`:`<button class="btn bsm" onclick="loadSpellsDB(()=>renderTab())">📜 Voir les nouveaux sorts</button>`}
+    </div>`:''}
     ${!isMulti&&isPrepared?`<div style="padding:8px 12px;background:rgba(0,150,136,.08);border:1px solid rgba(0,150,136,.3);border-radius:8px;margin-bottom:8px;font-size:18px;color:var(--text2)">💡 <strong>Sorts :</strong> Tu peux préparer n'importe quel sort de ta liste de classe lors d'un repos long. Accède à <strong>Sorts → 📚 Parcourir</strong> pour ajouter de nouveaux sorts.</div>`:''}
 
     <div style="display:flex;gap:8px">
@@ -1627,8 +1663,8 @@ function applyLevelUp(){
 // ═══════════════════════════════════════
 // AUTOCOMPLETE
 // ═══════════════════════════════════════
-function searchClasse(q){const drop=document.getElementById('classeDrop');if(!drop)return;if(!q){drop.style.display='none';return;}const res=SRD.classes.filter(c=>c.name.toLowerCase().includes(q.toLowerCase())).slice(0,8);if(!res.length){drop.style.display='none';return;}drop.style.display='block';drop.innerHTML=res.map(c=>`<div class="aci" onmousedown="event.preventDefault();addClassEntry('${esc(c.name)}')"><div class="ain">${esc(c.name)}</div><div class="ais">${c.hd} — JS: ${c.saves.join(', ')}</div></div>`).join('');}
+function searchClasse(q){const drop=document.getElementById('classeDrop');if(!drop)return;if(!q){drop.style.display='none';return;}const res=SRD.classes.filter(c=>c.name.toLowerCase().includes(q.toLowerCase())).slice(0,8);if(!res.length){drop.style.display='none';return;}drop.style.display='block';drop.innerHTML=res.map(c=>`<div class="aci" onmousedown="event.preventDefault();addClassEntry('${jsq(c.name)}')"><div class="ain">${esc(c.name)}</div><div class="ais">${c.hd} — JS: ${c.saves.join(', ')}</div></div>`).join('');}
 function addClassEntry(name){const p=P();if(!p.classes)p.classes=[];if(!p.classes.find(c=>c.name===name))p.classes.push({name,level:1});const inp=document.getElementById('classeInput');if(inp)inp.value='';const drop=document.getElementById('classeDrop');if(drop)drop.style.display='none';render();}
-function searchBgPerso(q){const drop=document.getElementById('bgDropPerso');if(!drop)return;upd('background',q);if(!q){drop.style.display='none';return;}const res=BACKGROUNDS.filter(b=>b.name.toLowerCase().includes(q.toLowerCase()));if(!res.length){drop.style.display='none';return;}drop.style.display='block';drop.innerHTML=res.map(b=>`<div class="aci" onmousedown="event.preventDefault();selectBgPerso('${esc(b.name)}')"><div class="ain">${esc(b.name)}</div><div class="ais">${esc(b.skills.join(', '))} — ${esc(b.desc)}</div></div>`).join('');}
+function searchBgPerso(q){const drop=document.getElementById('bgDropPerso');if(!drop)return;upd('background',q);if(!q){drop.style.display='none';return;}const res=BACKGROUNDS.filter(b=>b.name.toLowerCase().includes(q.toLowerCase()));if(!res.length){drop.style.display='none';return;}drop.style.display='block';drop.innerHTML=res.map(b=>`<div class="aci" onmousedown="event.preventDefault();selectBgPerso('${jsq(b.name)}')"><div class="ain">${esc(b.name)}</div><div class="ais">${esc(b.skills.join(', '))} — ${esc(b.desc)}</div></div>`).join('');}
 function selectBgPerso(name){upd('background',name);const inp=document.getElementById('bgInputPerso');if(inp)inp.value=name;const drop=document.getElementById('bgDropPerso');if(drop)drop.style.display='none';}
 

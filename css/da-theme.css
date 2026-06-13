@@ -38,3 +38,45 @@
 
 /* ── 6. Titres de section : léger halo doré ── */
 .acc summary, .mj-hdr-title, .journal-session, .chronicle-session-title{text-shadow:0 0 10px rgba(200,168,75,.18)}
+
+/* ═══════════════════════════════════════════════════════════════
+   KIT ARCANEPUNK — déclinaison de l'ancre DA sur l'UI du QUOTIDIEN
+   (veille DA/UI 2026-06, lot A). 100 % additif : enrichit des classes
+   existantes, aucune refonte. Leçons : Persona (identité sur TOUS les
+   composants, pas que les écrans d'entrée) + Hades (retour d'interaction).
+   ROLLBACK : supprimer ce bloc.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Énergie arcanique (teal) — variable réutilisable (kit + futur « moment signature » du dé) */
+:root{--arc:#7fd1c4;--arc-glow:rgba(127,209,196,.30)}
+
+/* A1 — Titre de panneau : accent laiton gravé sous le titre (le métal qui souligne) */
+.pt{position:relative}
+.pt::after{content:"";position:absolute;left:0;bottom:-1px;height:2px;width:46px;background:linear-gradient(90deg,var(--cp),transparent);border-radius:2px;box-shadow:0 0 6px var(--cglow)}
+
+/* A3 — Retour de PRESSION : chaque bouton s'enfonce au tap (feedback Hades, sensible au pouce) */
+.btn:active{transform:translateY(1px) scale(.985)}
+.bac:active{transform:translateY(1px) scale(.985);box-shadow:0 0 0 1px var(--cp),0 0 16px var(--cglow),inset 0 1px 0 rgba(255,255,255,.22)!important}
+
+/* A3 — État SÉLECTIONNÉ unifié (race/classe/style/sort/équipement) :
+   liseré laiton net + halo arcane → « ce choix est actif » se lit pareil partout */
+.crd,.lu-choice{position:relative}
+.crd.selected,.lu-choice.selected,.eq-opt.selected,.sk-choice.selected{box-shadow:inset 0 0 0 1px var(--cp),0 0 12px var(--cglow)}
+.crd.selected::before,.lu-choice.selected::before{content:"";position:absolute;top:7px;right:9px;width:7px;height:7px;border-radius:50%;background:var(--arc);box-shadow:0 0 8px var(--arc-glow)}
+
+/* A4 — Carte de sort/capacité dépliée : fine barre latérale laiton (lisibilité de structure) */
+.sort-body.open,.feat-card .feat-body.open{box-shadow:inset 3px 0 0 var(--cp)}
+
+/* ── LOT B — « MOMENT SIGNATURE » du jet de dé : éclat de runes arcaniques ──
+   Bref (≈0,95 s), centré, NON bloquant (pointer-events:none). Pas d'engrenage
+   (réservés au chargement, charte DA) : énergie arcanique teal + Cinzel. */
+#_diceFx{position:fixed;top:38%;left:50%;transform:translate(-50%,-50%);z-index:9990;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;animation:dicefxOut .95s ease-out forwards}
+#_diceFx .dicefx-num{font-family:var(--F);font-weight:700;font-size:88px;line-height:1;animation:dicefxPop .5s cubic-bezier(.34,1.56,.64,1)}
+#_diceFx .dicefx-lbl{font-family:var(--F);font-size:17px;color:var(--text2);margin-top:8px;letter-spacing:.1em;text-transform:uppercase;opacity:.9}
+#_diceFx .dicefx-tag{font-family:var(--F);font-size:20px;font-weight:700;letter-spacing:.14em;margin-top:4px;animation:dicefxPop .5s cubic-bezier(.34,1.56,.64,1)}
+#_diceFx .dicefx-ring{position:absolute;width:120px;height:120px;border:2px solid var(--arc);border-radius:50%;opacity:0;animation:dicefxRing .85s ease-out forwards}
+#_diceFx .dicefx-ring.r2{border-style:dashed;animation-delay:.12s}
+@keyframes dicefxPop{0%{transform:scale(.3);opacity:0}60%{transform:scale(1.12);opacity:1}100%{transform:scale(1);opacity:1}}
+@keyframes dicefxRing{0%{transform:scale(.4);opacity:.85}100%{transform:scale(1.9);opacity:0}}
+@keyframes dicefxOut{0%,68%{opacity:1}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){#_diceFx{display:none}}

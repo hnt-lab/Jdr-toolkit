@@ -38,9 +38,8 @@ function renderFamilier(p) {
   if (!magLvl && !occLvl) return '';
   const fam = p.familiar;
   if (!fam || !fam.active) {
-    return cs('cs-familiar',`<div class="panel mb10"><div class="pt" style="display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span><span>🦉 Familier</span></div><button class="btn bsm" onclick="openFamiliarModal()">⚙ Configurer</button></div>
-        ${fam&&!fam.active?`<div style="font-size:18px;color:var(--text3);margin-bottom:8px">🦉 <em>${fam.name}</em> est actuellement dissipé dans le plan éthéré.</div><button class="btn bsm bac" onclick="recallFamiliar()">🦉 Reconvoquer</button>`:`<div style="font-size:18px;color:var(--text3)">Aucun familier actif. Configurez-en un pour le suivre ici.</div>`}
-      </div>`);
+    // Pas de familier actif → pas de panneau entier (demande 2026-06-12) : une ligne discrète suffit.
+    return cs('cs-familiar',`<div style="margin-bottom:10px">${fam&&!fam.active?`<button class="btn bsm bac" onclick="recallFamiliar()">🦉 Reconvoquer ${esc(fam.name)}</button>`:`<button class="btn bsm" style="color:var(--text3)" onclick="openFamiliarModal()">🦉 Configurer un familier</button>`}</div>`);
   }
   const fpct = Math.round(fam.hpCur/Math.max(1,fam.hpMax)*100);
   const fhpColor = fpct>50?'#4caf50':fpct>25?'#ff9800':'#e53935';

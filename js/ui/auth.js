@@ -65,7 +65,7 @@ function openUserSettings(){
       ?`${esc(c.charClass||'Classe inconnue')} • Bibliothèque personnelle`
       :`${esc(c.charClass||'')} • ${esc(c.campaignName||'')} (${esc(c.tableName||'')})`;
     const actionLabel=isSolo?'Éditer →':'Jouer →';
-    return`<div class="charlib-item" onclick="enterCampaignFromLib('${campId}','${esc(c.tableName||'')}','${esc(c.campaignName||'')}')">
+    return`<div class="charlib-item" onclick="enterCampaignFromLib('${campId}','${jsq(c.tableName||'')}','${jsq(c.campaignName||'')}')">
       <span style="font-size:20px">${currentUserData.avatar||'⚔'}</span>
       <div style="flex:1;min-width:0">
         <div style="font-size:18px;font-weight:600;color:var(--text)">${esc(c.charName||'?')}</div>
@@ -125,6 +125,19 @@ function openUserSettings(){
           ${typeof _pendingSwUpdate!=='undefined'&&_pendingSwUpdate?`<span style="font-size:15px;padding:2px 8px;border-radius:10px;background:rgba(200,168,75,.15);border:1px solid var(--cp);color:var(--cp)">Mise à jour disponible</span>`:'<span style="font-size:17px;color:var(--text3)">✓ À jour</span>'}
         </div>
         ${typeof _pendingSwUpdate!=='undefined'&&_pendingSwUpdate?`<button class="btn bac" style="width:100%" onclick="closeModal();_showUpdateOverlay()">✨ Installer la mise à jour</button>`:`<div style="font-size:17px;color:var(--text3);font-style:italic">Aucune mise à jour en attente. Le site vérifie automatiquement au chargement.</div>`}
+      </div>
+    </details>
+    <details class="acc">
+      <summary>🎲 Effets de dé</summary>
+      <div class="acc-body">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px">
+          <div><div style="font-size:18px;color:var(--text2)">Animation de jet</div><div style="font-size:15px;color:var(--text3)">Le résultat surgit en grand à chaque jet (runes arcaniques).</div></div>
+          <button class="btn bsm${typeof _diceFxOn==='function'&&_diceFxOn()?' bac':''}" onclick="_setDicePref('fx')">${typeof _diceFxOn==='function'&&_diceFxOn()?'✓ Activée':'Désactivée'}</button>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+          <div><div style="font-size:18px;color:var(--text2)">Son de dé</div><div style="font-size:15px;color:var(--text3)">Bruit de dé synthétisé (aucun fichier). Désactivé par défaut.</div></div>
+          <button class="btn bsm${typeof _diceSoundIsOn==='function'&&_diceSoundIsOn()?' bac':''}" onclick="_setDicePref('sound')">${typeof _diceSoundIsOn==='function'&&_diceSoundIsOn()?'✓ Activé':'Désactivé'}</button>
+        </div>
       </div>
     </details>
     <details class="acc">

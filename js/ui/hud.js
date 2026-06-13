@@ -93,6 +93,7 @@ function _updatePartyHUD(){
             <span style="font-size:13px;color:${down?'#e53935':hpColor};flex-shrink:0;font-weight:700">${dead?'💀':down?'⚠ À terre':hp+'/'+hpMax}</span>
           </div>
           ${conds.length?`<div class="pm-sub" style="margin-top:1px">${conds.slice(0,3).join(' ')}${conds.length>3?` <span style="opacity:.55">+${conds.length-3}</span>`:''}</div>`:''}
+          ${(p.statuses||[]).length?`<div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:2px;font-size:13px;line-height:1">${(p.statuses||[]).slice(0,8).map(s=>`<span title="${esc(s.name||'')}${s.desc?' — '+esc(s.desc):''}">${s.icon||'•'}</span>`).join('')}${(p.statuses||[]).length>8?`<span style="opacity:.55">+${(p.statuses||[]).length-8}</span>`:''}</div>`:''}
           ${_buildChargeChips(p)}
         </div>
       </div>`;

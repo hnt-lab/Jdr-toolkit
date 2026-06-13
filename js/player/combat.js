@@ -137,7 +137,7 @@ function tabCombat(p){
           <span style="color:#4caf50;font-weight:600">+${a.bonus} / ${esc(a.dmg)} ${esc(a.type||'')}</span>
         </div>
         ${a.special?`<div style="font-size:17px;color:var(--text3);margin-top:3px">${esc(a.special)}</div>`:''}
-        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px"><button class="btn bsm" style="border-color:rgba(76,175,80,.4);color:#4caf50" onclick="rollAttack('${jsq(a.name)}',${a.bonus},'${esc(a.dmg)}')" title="Jet d'attaque + dégâts">🎲 Attaque</button></div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px"><button class="btn bsm" style="border-color:rgba(76,175,80,.4);color:#4caf50" onclick="rollAttack('${jsq(a.name)}',${a.bonus},'${jsq(a.dmg)}')" title="Jet d'attaque + dégâts">🎲 Attaque</button></div>
       </div>`).join('')}
       <div style="margin-top:10px;display:flex;gap:5px;flex-wrap:wrap">${['d4','d6','d8','d10','d12','d20'].map(d=>`<button class="dice-btn" onclick="rollDie('${d}')">🎲 ${d}</button>`).join('')}</div>
       <div id="rollResult" style="margin-top:8px;padding:8px;background:var(--surface2);border-radius:6px;display:${_lastRollResultHtml?'block':'none'};font-size:19px;font-weight:600;color:var(--cp);text-align:center">${_lastRollResultHtml}</div>
@@ -158,7 +158,7 @@ function tabCombat(p){
             </div>
             <div style="font-size:17px;color:var(--text3);margin-top:3px">Main nue — ${moineLvl>=1?'Arts martiaux ('+ABILITIES_SH[forM>=dexM?0:1]+')':'Force'}</div>
             <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">
-              ${Array.from({length:attackCount},(_,ai)=>`<button class="btn bsm${temActive?' bac':''}" onclick="rollAttack('Poing',${unarmedAtk},'${esc(unarmedDmgRaw)} contondant','mainhand',${rageActive?rageBonus:0},false,${temActive?1:0})">🎲${attackCount>1?' Att.'+(ai+1):'  Attaque'}</button>`).join('')}
+              ${Array.from({length:attackCount},(_,ai)=>`<button class="btn bsm${temActive?' bac':''}" onclick="rollAttack('Poing',${unarmedAtk},'${jsq(unarmedDmgRaw)} contondant','mainhand',${rageActive?rageBonus:0},false,${temActive?1:0})">🎲${attackCount>1?' Att.'+(ai+1):'  Attaque'}</button>`).join('')}
             </div>
           </div>`;
         }
@@ -214,8 +214,8 @@ function tabCombat(p){
             ${w.ammoLink?`<button class="btn bsm" style="font-size:15px" onclick="unlinkRangedAmmo()">↩ Délier ${esc(w.ammoLink)}</button>`:
             `<button class="btn bsm" style="font-size:15px" onclick="openLinkAmmoModal()">🏹 Lier des munitions</button>`}
           </div>`:''}
-          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">${isOffhand?`<button class="btn bsm${temActive?' bac':''}" onclick="rollAttack('${jsq(w.name)}',${atkBonus},'${esc(dmgStr)}','${w.slot}',${dmgBonus},false,${temActive&&!isRanged?1:0})">🎲${temActive?' ⚡':''} Att. bonus</button>`:Array.from({length:attackCount},(_,ai)=>`<button class="btn bsm${temActive&&!isRanged?' bac':''}" onclick="rollAttack('${jsq(w.name)}',${atkBonus},'${esc(dmgStr)}','${w.slot}',${dmgBonus},${isTwoHandedStyle},${temActive&&!isRanged?1:0})">🎲${temActive&&!isRanged?' ⚡':''}${attackCount>1?' Att.'+(ai+1):'  Attaque'}</button>`).join('')}${!isOffhand&&!isRanged&&(typeof _activeCombatState!=='undefined'&&_activeCombatState&&_activeCombatState.active)?`<button class="btn bsm" style="border-color:#9c27b0;color:#9c27b0${(p.actionEco&&p.actionEco.r)?';opacity:.45':''}" ${(p.actionEco&&p.actionEco.r)?'disabled':''} onclick="rollOpportunityAttack('${jsq(w.name)}',${atkBonus},'${esc(dmgStr)}','${w.slot}',${dmgBonus},${isTwoHandedStyle})" title="Attaque d'opportunité — consomme ta réaction (de nouveau dispo au tour suivant)">↪ AO</button>`:''}</div>
-          ${frenActive&&!isRanged&&!isOffhand?`<div style="margin-top:4px"><button class="btn bsm" style="border-color:#b71c1c;color:#b71c1c;background:rgba(183,28,28,.12)" onclick="rollAttack('${jsq(w.name)}',${atkBonus},'${esc(dmgStr)}','${w.slot}',${dmgBonus},false,${temActive?1:0})">💢 Frénésie (bonus)</button></div>`:''}
+          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">${isOffhand?`<button class="btn bsm${temActive?' bac':''}" onclick="rollAttack('${jsq(w.name)}',${atkBonus},'${jsq(dmgStr)}','${w.slot}',${dmgBonus},false,${temActive&&!isRanged?1:0})">🎲${temActive?' ⚡':''} Att. bonus</button>`:Array.from({length:attackCount},(_,ai)=>`<button class="btn bsm${temActive&&!isRanged?' bac':''}" onclick="rollAttack('${jsq(w.name)}',${atkBonus},'${jsq(dmgStr)}','${w.slot}',${dmgBonus},${isTwoHandedStyle},${temActive&&!isRanged?1:0})">🎲${temActive&&!isRanged?' ⚡':''}${attackCount>1?' Att.'+(ai+1):'  Attaque'}</button>`).join('')}${!isOffhand&&!isRanged&&(typeof _activeCombatState!=='undefined'&&_activeCombatState&&_activeCombatState.active)&&!(typeof _veilleMyTurn==='function'&&_veilleMyTurn())?`<button class="btn bsm" style="border-color:#9c27b0;color:#9c27b0${(p.actionEco&&p.actionEco.r)?';opacity:.45':''}" ${(p.actionEco&&p.actionEco.r)?'disabled':''} onclick="rollOpportunityAttack('${jsq(w.name)}',${atkBonus},'${jsq(dmgStr)}','${w.slot}',${dmgBonus},${isTwoHandedStyle})" title="Attaque d'opportunité (tour ennemi) — consomme ta réaction">↪ AO</button>`:''}</div>
+          ${frenActive&&!isRanged&&!isOffhand?`<div style="margin-top:4px"><button class="btn bsm" style="border-color:#b71c1c;color:#b71c1c;background:rgba(183,28,28,.12)" onclick="rollAttack('${jsq(w.name)}',${atkBonus},'${jsq(dmgStr)}','${w.slot}',${dmgBonus},false,${temActive?1:0})">💢 Frénésie (bonus)</button></div>`:''}
         </div>`;
       }).join(''):`<div style="font-size:18px;color:var(--text3);font-style:italic">Aucune arme équipée.</div>`}
       <div style="margin-top:10px;display:flex;gap:5px;flex-wrap:wrap">${['d4','d6','d8','d10','d12','d20'].map(d=>`<button class="dice-btn" onclick="rollDie('${d}')">🎲 ${d}</button>`).join('')}</div>
@@ -239,7 +239,7 @@ function tabCombat(p){
           </div>
           <div class="feat-body" id="${fid}">
             <p>${esc(f.desc)}</p>
-            ${f.dice?`<button class="btn bsm" style="margin-top:6px" onclick="rollCustomDmg('${esc(f.dice)}','${jsq(f.name)}')">🎲 ${esc(f.dice)}</button>`:''}
+            ${f.dice?`<button class="btn bsm" style="margin-top:6px" onclick="rollCustomDmg('${jsq(f.dice)}','${jsq(f.name)}')">🎲 ${esc(f.dice)}</button>`:''}
             ${!isPassive&&maxCharges>0?`<button class="btn bsm" style="margin-top:6px" onclick="recoverCombatCharge('${jsq(f.name)}',${maxCharges})">↺ Récupérer</button>`:''}
           </div>
         </div>`;
@@ -256,7 +256,7 @@ function tabCombat(p){
   ${renderArtificier(p)}
   ${renderDruide(p)}
   ${renderEnsorceleur(p)}
-  ${(()=>{if(p.race!=='Dragonide'||!p.draconicAncestry)return'';const anc=SRD.draconicAncestries.find(a=>a.name===p.draconicAncestry);if(!anc)return'';const conM=p.abilities?Math.floor((p.abilities[2]-10)/2):0;const dc=8+pb(lvl)+conM;const diceCnt=lvl>=16?5:lvl>=11?4:lvl>=6?3:2;const dmg=`${diceCnt}d6 ${anc.damage}`;const used=(p.combatCharges||{})['SouffleDraconique']===true;return cs('cs-dragon',`<div class="panel mb10">
+  ${(()=>{if(!(p.race||'').startsWith('Dragonide')||!p.draconicAncestry)return'';const anc=SRD.draconicAncestries.find(a=>a.name===p.draconicAncestry);if(!anc)return'';const conM=p.abilities?Math.floor((p.abilities[2]-10)/2):0;const dc=8+pb(lvl)+conM;const diceCnt=lvl>=16?5:lvl>=11?4:lvl>=6?3:2;const dmg=`${diceCnt}d6 ${anc.damage}`;const used=(p.combatCharges||{})['SouffleDraconique']===true;return cs('cs-dragon',`<div class="panel mb10">
         <div class="pt" style="display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span><span>${anc.icon} Souffle draconique — ${esc(anc.name)}</span></div>
           <span style="font-size:15px;color:var(--cp);border:1px solid var(--cp);border-radius:10px;padding:2px 8px">1×/Repos</span>
         </div>
@@ -467,6 +467,7 @@ function rollAttack(name,bonus,dmg,slot,dmgBonus=0,rerollLow=false,advantageMode
     const el=document.getElementById('rollResult');
     if(el){el.style.display='block';el.innerHTML=_lastRollResultHtml;el.classList.remove('roll-flash');void el.offsetWidth;el.classList.add('roll-flash');}
     if(slot==='ranged'){const p=P();const eq=(p.equip||{})[slot];if(eq&&eq.ammoLink){const ai=(p.inventory||[]).findIndex(i=>i.name===eq.ammoLink);if(ai>=0){p.inventory[ai].qty=Math.max(0,p.inventory[ai].qty-1);if(p.inventory[ai].qty===0)showToast('⚠️ Plus de '+eq.ammoLink+' !');saveAll();}}}
+    if(typeof _diceFX==='function')_diceFX(atk,{crit:isCrit,fail:isFumble,label:name});
     diceHistory.push({die:'d20',label:name,roll:atk,bonus,result:total});
     if(diceHistory.length>10)diceHistory.shift();
     if(diceOpen)renderDicePanel();
@@ -551,6 +552,7 @@ function rollSave(ab,m,advantageMode=0){
       if((''+ab).includes('DEX')&&(_mLvl>=7||_rLvl>=7))evasionNote=`<div style="font-size:14px;color:#7fd1c4;margin-top:3px">🐈 Évasion : réussite = aucun dégât · échec = ½ dégâts</div>`;
     }
     if(typeof _logMJAction==='function')_logMJAction('🛡 JS '+ab+' : '+total);
+    if(typeof _diceFX==='function')_diceFX(r,{crit:r===20,fail:r===1,label:'JS '+ab});
     showToast(`JS ${ab}: d20(${r})${altTag}${fmt(m)}${auraTag} = <strong>${total}</strong>${piTag}${r===20?' 🎉':r===1?' 💀':''}${diamondBtn}${evasionNote}${_racNote}`,(diamondBtn||evasionNote||_racNote)?6000:3000);
   }
   const rawRolls=rb!==null?[ra,rb]:[ra];
@@ -689,8 +691,8 @@ function renderSpellList(p, combatOnly){
               ${d?`<div style="font-size:17px;color:var(--text3)">${esc(school)}${castTime?' • '+esc(castTime):''}${range?' • '+esc(range):''}</div>`:''}
             </div>
             ${damage?`<span style="font-size:17px;color:var(--cp);margin-right:6px">${esc(damage)}</span>`:''}
-            ${isPrepared&&!hasMComponent?`<button class="btn bac bsm" style="flex-shrink:0;margin-right:6px" onclick="event.stopPropagation();castSpell('${esc(s.name)}',${lvi})">⚡ Lancer</button>`:''}
-            ${!combatOnly&&prepCaster&&lvi>0&&!s.isCircle?`<button class="btn bsm" style="margin-right:6px;${isPrepared?'background:rgba(76,175,80,.15);color:#4caf50;border-color:#4caf50':''}" onclick="event.stopPropagation();togglePrepareSpell('${esc(s.name)}')">${isPrepared?'✓ Prêt':'Préparer'}</button>`:''}
+            ${isPrepared&&!hasMComponent?`<button class="btn bac bsm" style="flex-shrink:0;margin-right:6px" onclick="event.stopPropagation();castSpell('${jsq(s.name)}',${lvi})">⚡ Lancer</button>`:''}
+            ${!combatOnly&&prepCaster&&lvi>0&&!s.isCircle?`<button class="btn bsm" style="margin-right:6px;${isPrepared?'background:rgba(76,175,80,.15);color:#4caf50;border-color:#4caf50':''}" onclick="event.stopPropagation();togglePrepareSpell('${jsq(s.name)}')">${isPrepared?'✓ Prêt':'Préparer'}</button>`:''}
             <span style="color:var(--text3)">▾</span>
           </div>
           <div class="sort-body" id="${s.stableId}">
@@ -705,7 +707,7 @@ function renderSpellList(p, combatOnly){
               ${rolls.length>1?`<div style="margin-top:6px;font-size:17px;color:var(--text3)">Progression: ${rolls.filter(r=>r[1]).map(r=>`Niv.${r[1]}: ${r[0]}`).join(' → ')}</div>`:''}
               ${damage||d&&d.savingThrow?`<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px">
                 ${d&&d.savingThrow?`<span style="font-size:17px;padding:2px 8px;background:rgba(200,168,75,.12);border-radius:8px;color:var(--cp)">JS ${esc(d.savingThrow)} DD ${spellDC}</span>`:''}
-                ${damage?`<button class="btn bsm" onclick="rollSpellPlayer('${jsq(s.name)}','${esc(damage)}','${esc(d&&d.savingThrow||'')}')">🎲 Lancer ${esc(damage)}</button>`:''}
+                ${damage?`<button class="btn bsm" onclick="rollSpellPlayer('${jsq(s.name)}','${jsq(damage)}','${jsq(d&&d.savingThrow||'')}')">🎲 Lancer ${esc(damage)}</button>`:''}
               </div>`:''}
             `:`<p style="font-size:18px;color:var(--text3);display:flex;align-items:center;gap:8px">Données non disponibles. <button class="btn bsm" style="font-size:15px;padding:2px 8px" onclick="loadSpellsDB(()=>render())">Charger le compendium</button></p>`}
           </div>

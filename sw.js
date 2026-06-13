@@ -12,6 +12,7 @@ const PRECACHE = [
   './css/base.css',
   './css/layout.css',
   './css/components.css',
+  './css/da-theme.css',
   './css/redesign.css',
   './js/firebase.js',
   './js/services/auth-service.js',

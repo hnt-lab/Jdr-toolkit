@@ -97,6 +97,13 @@ async function joinGroupOnly(tableId,campaignId){
   }
   startGroupListener(campaignId);
   if(currentTableMjId)startCombatListener(campaignId,currentTableMjId);
+  // Chuchotements aussi en mode groupe (sinon : historique vide côté joueur — bug 2026-06-12)
+  if(typeof startWhisperListener==='function'&&currentUser)startWhisperListener(tableId,currentUser.uid);
+  // Charge SA fiche pour que le lanceur de dé propose les jets du personnage (pas le panneau générique)
+  try{
+    const _cdoc=await fbDb.collection('characters').doc(currentUser.uid+'_'+campaignId).get();
+    if(_cdoc.exists&&_cdoc.data().characterData){state.players=[migratePlayer(_cdoc.data().characterData)];state.activeIdx=0;}
+  }catch(e){}
   // Animation éclair sur le bouton HUD
   const hudBtn=document.getElementById('partyHudBtn');
   if(hudBtn){hudBtn.style.transition='box-shadow .3s';hudBtn.style.boxShadow='0 0 0 5px rgba(200,168,75,.5)';setTimeout(()=>{hudBtn.style.boxShadow='';},1200);}
@@ -107,7 +114,7 @@ function showHub(){
   const vEl=document.getElementById('hubVersion');if(vEl&&typeof APP_VERSION!=='undefined')vEl.textContent='v'+APP_VERSION;
   // Dé flottant + groupe PERSISTANTS au Hub quand une campagne est active (on « jette un œil » sans quitter le groupe)
   // Groupe vivant au Hub : relancer le listener (stopAllListeners l'a coupé) si campagne JOUEUR active
-  if(currentCampaignId&&!window._currentCampIsMJ){const _pp=document.getElementById('partyHudPanel');if(_pp)_pp.style.display='none';startGroupListener(currentCampaignId);if(currentTableMjId)startCombatListener(currentCampaignId,currentTableMjId);}
+  if(currentCampaignId&&!window._currentCampIsMJ){const _pp=document.getElementById('partyHudPanel');if(_pp)_pp.style.display='none';startGroupListener(currentCampaignId);if(currentTableMjId)startCombatListener(currentCampaignId,currentTableMjId);if(typeof startWhisperListener==='function'&&currentUser&&currentTableId)startWhisperListener(currentTableId,currentUser.uid);}
   const banner=document.getElementById('combatTurnBanner');if(banner)banner.style.display='none';
   const mjBadge=document.getElementById('hubMJBadge');if(mjBadge)mjBadge.style.display='none';
   document.getElementById('authScreen').style.display='none';

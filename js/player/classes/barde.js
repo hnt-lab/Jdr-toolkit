@@ -15,11 +15,7 @@ function renderBarde(p) {
   const panels = [];
 
   // ── Dé d'inspiration + stats sorts ───────────────────────
-  panels.push(`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-    <div class="sb hi" style="flex:1;min-width:70px"><div class="sn">Dé inspiration</div><div style="font-size:25px;font-weight:700;color:var(--cp)">${bardDie}</div></div>
-    <div class="sb hi" style="flex:1;min-width:70px"><div class="sn">DD sorts</div><div style="font-size:25px;font-weight:700;color:var(--cp)">${8+pb(lvl)+chaM}</div></div>
-    <div class="sb hi" style="flex:1;min-width:70px"><div class="sn">Atk sorts</div><div style="font-size:25px;font-weight:700;color:var(--cp)">${pb(lvl)+chaM>=0?'+':''}${pb(lvl)+chaM}</div></div>
-  </div>`);
+  // (Ligne de stats retirée — redondante avec l onglet Sorts ; le dé est rappelé près des jetons d inspiration.)
 
   // ── Inspiration bardique ──────────────────────────────────
   const biUsed = cc['InspBardique']!==undefined ? cc['InspBardique'] : bardInspiMax;
@@ -27,7 +23,7 @@ function renderBarde(p) {
   panels.push(`<div style="margin-bottom:10px;padding:8px;background:var(--surface2);border-radius:6px">
     <div style="font-size:18px;font-weight:600;color:var(--cp);margin-bottom:6px">🎵 Inspiration bardique <span style="font-size:15px;color:var(--cp)">🔸</span></div>
     <div style="font-size:17px;color:var(--text3);margin-bottom:4px">Utilisations (mod CHA = ${Math.max(1,chaM)}) • Récup. repos ${bardeLvl>=5?'court':'long'}</div>
-    <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">${Array.from({length:bardInspiMax},(_,i)=>`<span class="slot-bubble${i<biUsed?'':' used'}" onclick="useCombatCharge('InspBardique',${bardInspiMax})" title="Dépenser une inspiration"></span>`).join('')}</div>
+    <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">${Array.from({length:bardInspiMax},(_,i)=>`<span class="slot-bubble${i<biUsed?'':' used'}" onclick="useCombatCharge('InspBardique',${bardInspiMax})" title="Dépenser une inspiration"></span>`).join('')}<span style="font-size:16px;color:var(--cp);font-weight:600;align-self:center;margin-left:4px">+1${bardDie} par jeton</span></div>
     <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
       <button class="btn bsm" onclick="recoverCombatCharge('InspBardique',${bardInspiMax})">↺ Récupérer</button>
       ${hasAllies&&biUsed>0?`<button class="btn bsm bac" onclick="openGiveInspirationModal('${bardDie}',${bardInspiMax})">🎵 Donner à un allié</button>`:''}
@@ -159,7 +155,7 @@ function openGiveInspirationModal(die, maxCharges) {
   const listHtml = allies.map((gp,i) => {
     const cd = gp.charData || {};
     const already = (cd.activeBuffs||[]).some(b=>b.name==='InspirationBardique');
-    return `<div style="display:flex;align-items:center;gap:10px;padding:8px;background:${already?'rgba(200,168,75,.06)':'var(--surface2)'};border:1px solid ${already?'var(--cp)':'var(--border)'};border-radius:8px;margin-bottom:6px;cursor:${already?'default':'pointer'}" ${already?'':`onclick="_confirmGiveInspiration('${gp.docId}','${esc(gp.playerName||'')}','${die}',${maxCharges})"`}>
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px;background:${already?'rgba(200,168,75,.06)':'var(--surface2)'};border:1px solid ${already?'var(--cp)':'var(--border)'};border-radius:8px;margin-bottom:6px;cursor:${already?'default':'pointer'}" ${already?'':`onclick="_confirmGiveInspiration('${gp.docId}','${jsq(gp.playerName||'')}','${die}',${maxCharges})"`}>
       <span style="font-size:25px">${gp.avatar||'⚔'}</span>
       <div style="flex:1"><div style="font-size:18px;font-weight:600">${esc(cd.charName||gp.playerName||'Joueur')}</div><div style="font-size:15px;color:var(--text3)">${esc(gp.playerName||'')}</div></div>
       ${already?`<span style="font-size:15px;color:var(--cp);border:1px solid var(--cp);border-radius:8px;padding:2px 8px">🎵 Déjà inspiré</span>`:`<span style="font-size:17px;color:var(--cp)">+1${die} →</span>`}

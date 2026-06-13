@@ -106,7 +106,7 @@ function tabPerso(p){
           <span style="color:var(--text2);font-size:18px">+${a.bonus} / <strong>${esc(a.dmg)}</strong> ${esc(a.type||'')}</span>
         </div>
         ${a.special?`<div style="font-size:17px;color:var(--text3);margin-top:3px">${esc(a.special)}</div>`:''}
-        <button class="btn bsm" style="margin-top:6px;border-color:rgba(76,175,80,.4);color:#4caf50" onclick="rollAttack('${jsq(a.name)}',${a.bonus},'${esc(a.dmg)}')" title="Jet d'attaque + dégâts">🎲 Attaque</button>
+        <button class="btn bsm" style="margin-top:6px;border-color:rgba(76,175,80,.4);color:#4caf50" onclick="rollAttack('${jsq(a.name)}',${a.bonus},'${jsq(a.dmg)}')" title="Jet d'attaque + dégâts">🎲 Attaque</button>
       </div>`).join('')}
       ${ws.beast.traits.map(t=>`<div style="font-size:17px;color:var(--text2);padding:5px 0;border-bottom:1px solid rgba(76,175,80,.15)">🐾 ${esc(t)}</div>`).join('')}
     </div>`:''}
@@ -190,17 +190,18 @@ function tabPerso(p){
       const _chantG=(typeof _groupData!=='undefined'?_groupData:[]).find(gp=>gp.uid!==(typeof currentUser!=='undefined'?currentUser?.uid:null)&&gp.charData?.combatCharges?.ChantReposantResult!==undefined);
       const _chantB=_chantG?.charData.combatCharges.ChantReposantResult;
       const _chantSrc=_chantG?.charData.charName||'Barde';
+      const _restLocked=(typeof _activeCombatState!=='undefined'&&_activeCombatState&&_activeCombatState.active);
       return`<div class="panel mb10">
         <div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>Repos</div>
         <div style="display:flex;gap:8px;${_chantB?'padding:6px;border:2px solid var(--cp);border-radius:10px;background:rgba(200,168,75,.04)':''}">
-          <div class="rest-btn short" onclick="doShortRest()">
+          <div class="rest-btn short"${_restLocked?' style="opacity:.45;pointer-events:none" title="Pas de repos en combat"':''} onclick="doShortRest()">
             <div style="font-size:22px">☕</div>
             <div style="font-weight:600">Repos court</div>
             <div style="font-size:15px;color:var(--text3);margin-top:1px">≥ 1 heure</div>
             <div style="font-size:15px;margin-top:2px">Lance le dé de vie + CON</div>
             ${_chantB?`<div style="font-size:15px;color:var(--cp);font-weight:600;margin-top:4px;border-top:1px solid rgba(200,168,75,.3);padding-top:3px">🎶 +${_chantB} PV (${esc(_chantSrc)})</div>`:''}
           </div>
-          <div class="rest-btn long" onclick="doLongRest()">
+          <div class="rest-btn long"${_restLocked?' style="opacity:.45;pointer-events:none" title="Pas de repos en combat"':''} onclick="doLongRest()">
             <div style="font-size:22px">🌙</div>
             <div style="font-weight:600">Repos long</div>
             <div style="font-size:15px;color:var(--text3);margin-top:1px">≥ 8 heures</div>
@@ -260,7 +261,7 @@ function getPassiveResistances(p){
   const _RR={'Nain des montagnes':['Poison'],'Nain des collines':['Poison'],'Halfelin robuste':['Poison'],'Aasimar':['Nécrotique','Radiant'],'Goliath':['Froid']};
   if(_RR[p.race])r.push(..._RR[p.race]);
   // Dragonide — résistance au type de dégâts de son ascendance draconique
-  if(p.race==='Dragonide'&&p.draconicAncestry&&typeof SRD!=='undefined'&&SRD.draconicAncestries){const anc=SRD.draconicAncestries.find(a=>a.name===p.draconicAncestry);if(anc&&anc.damage)r.push(anc.damage);}
+  if((p.race||'').startsWith('Dragonide')&&p.draconicAncestry&&typeof SRD!=='undefined'&&SRD.draconicAncestries){const anc=SRD.draconicAncestries.find(a=>a.name===p.draconicAncestry);if(anc&&anc.damage)r.push(anc.damage);}
   if(Array.isArray(p.autoResist))r.push(...p.autoResist);
   r.push(..._classPassiveResist(p));
   return [...new Set(r)];
@@ -576,11 +577,11 @@ function openResistModal(){
   openModal(`<div>
     <div class="pt" style="margin-bottom:12px">+ Résistances & Immunités</div>
     <div style="font-size:17px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Résistances aux dégâts</div>
-    <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px">${_DMG_TYPES.map(t=>`<span class="status-badge bonus" style="cursor:pointer" onclick="addResist('dmgResistances','${esc(t)}');closeModal()">🛡 ${esc(t)}</span>`).join('')}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px">${_DMG_TYPES.map(t=>`<span class="status-badge bonus" style="cursor:pointer" onclick="addResist('dmgResistances','${jsq(t)}');closeModal()">🛡 ${esc(t)}</span>`).join('')}</div>
     <div style="font-size:17px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Immunités aux dégâts</div>
-    <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px">${_DMG_TYPES.map(t=>`<span class="status-badge" style="background:#2e1b00;border-color:#ff9800;color:#ff9800;cursor:pointer" onclick="addResist('dmgImmunities','${esc(t)}');closeModal()">✦ ${esc(t)}</span>`).join('')}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px">${_DMG_TYPES.map(t=>`<span class="status-badge" style="background:#2e1b00;border-color:#ff9800;color:#ff9800;cursor:pointer" onclick="addResist('dmgImmunities','${jsq(t)}');closeModal()">✦ ${esc(t)}</span>`).join('')}</div>
     <div style="font-size:17px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Immunités aux conditions</div>
-    <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px">${_COND_TYPES.map(t=>`<span class="status-badge malus" style="cursor:pointer" onclick="addResist('condImmunities','${esc(t)}');closeModal()">🚫 ${esc(t)}</span>`).join('')}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px">${_COND_TYPES.map(t=>`<span class="status-badge malus" style="cursor:pointer" onclick="addResist('condImmunities','${jsq(t)}');closeModal()">🚫 ${esc(t)}</span>`).join('')}</div>
     <div style="font-size:17px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Personnalisé</div>
     <div style="display:flex;gap:6px">
       <input class="fi" id="resistCustom" placeholder="Type de dégât ou condition..." style="flex:1">
@@ -598,6 +599,7 @@ function toggleInspiration(){const p=P();p.inspiration=!p.inspiration;_markUnsav
 
 // ── REPOS ──
 function doShortRest(){
+  if(typeof _activeCombatState!=='undefined'&&_activeCombatState&&_activeCombatState.active){showToast('⛔ Pas de repos pendant un combat !');return;}
   const p=P();const mc=mainClass(p);const cd=mc?SRD.classes.find(c=>c.name===mc.name):null;if(!cd)return;
   const _chantGiver=(typeof _groupData!=='undefined'?_groupData:[]).find(gp=>gp.uid!==(typeof currentUser!=='undefined'?currentUser?.uid:null)&&gp.charData?.combatCharges?.ChantReposantResult!==undefined);
   const _chantBonus=_chantGiver?.charData.combatCharges.ChantReposantResult||0;
@@ -643,9 +645,10 @@ function _applyIRLShortRest(){
   const _moineIRLLvl=((p.classes||[]).find(c=>c.name==='Moine')||{}).level||0;
   if(_moineIRLLvl>0)p.combatCharges['Ki']=_moineIRLLvl;
   delete p.combatCharges['ChantReposantResult'];
-  closeModal();render();saveAll();showToast(`☕ Repos court — <strong>+${healed}</strong>${_rlChantB?` + 🎶 <strong>+${_rlChantB}</strong>`:''} PV`);
+  _proposeGroupRest('court');closeModal();render();saveAll();showToast(`☕ Repos court — <strong>+${healed}</strong>${_rlChantB?` + 🎶 <strong>+${_rlChantB}</strong>`:''} PV`);
 }
 function doLongRest(){
+  if(typeof _activeCombatState!=='undefined'&&_activeCombatState&&_activeCombatState.active){showToast('⛔ Pas de repos pendant un combat !');return;}
   const p=P();
   const _effMaxLR=(p.exhaustion||0)>=4?Math.floor(p.hpMax/2):p.hpMax;
   p.hp=_effMaxLR;p.spellSlotsUsed=[];
@@ -657,9 +660,23 @@ function doLongRest(){
   delete p.relentlessEnduranceUsed;
   delete p.combatCharges['ChantReposantResult'];
   delete p.combatCharges['SortsInfernaux_Niv3'];delete p.combatCharges['SortsInfernaux_Niv5'];
-  render();saveAll();showBanner('🌙','Repos long','PV, sorts, charges et conditions récupérés',{variant:'info'});
+  _proposeGroupRest('long');render();saveAll();showBanner('🌙','Repos long','PV, sorts, charges et conditions récupérés',{variant:'info'});
   // Principe 18 — prompt de (re)préparation des sorts pour les préparateurs
   if(typeof isPrepCaster==='function'&&isPrepCaster(p)&&typeof _openLongRestPrep==='function')_openLongRestPrep(p);
 }
 
 // ═══════════════════════════════════════
+
+// ─── Repos de groupe (2026-06-12) : après MON repos, proposer aux alliés de se reposer aussi ───
+// Écrit restInvite dans mon doc ; le listener de groupe des alliés (firebase.js) leur montre la proposition.
+function _proposeGroupRest(type){
+  try{
+    if(typeof currentCampaignId==='undefined'||!currentCampaignId||currentCampaignId==='__solo__')return;
+    if(window._restNoPropagate)return; // repos déclenché PAR une invitation → ne pas re-proposer en boucle
+    const hasAllies=(typeof _groupData!=='undefined')&&_groupData.some(gp=>gp.uid!==(typeof currentUser!=='undefined'?currentUser?.uid:null));
+    if(!hasAllies)return;
+    const p=P();if(!p)return;
+    p.restInvite={t:Date.now(),type:type,name:p.charName||'Un aventurier'};
+    if(typeof _markUnsaved==='function')_markUnsaved();
+  }catch(e){}
+}

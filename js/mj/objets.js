@@ -73,7 +73,7 @@ function mjFilterItems(q){
   }
   if(rarF)items=items.filter(({it})=>_mjGetRarity(it)===rarF);
   items.sort((a,b)=>(a.it.n||'').localeCompare(b.it.n||''));
-  items=items.slice(0,30);
+  // liste complète (scrollable) — demande 2026-06-12
   el.innerHTML=items.length?items.map(({i,it})=>{
     const rar=_mjGetRarity(it);
     const ri=rar?RARITY_INFO[rar]:null;

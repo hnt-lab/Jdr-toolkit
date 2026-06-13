@@ -141,7 +141,7 @@ function tabSorts(p){
 
 // ═══════════════════════════════════════════════════════════
 //  PRÉPARATION DES SORTS AU REPOS LONG (principe 18 / mécanisme C)
-//  Préparateurs liste complète : Clerc, Druide, Paladin, Artificier, Magicien.
+//  Liste complète : Clerc, Druide, Paladin, Artificier. MAGICIEN = depuis son GRIMOIRE uniquement.
 // ═══════════════════════════════════════════════════════════
 let _lrPrep=null;
 function _prepMaxForClass(p,className){
@@ -160,6 +160,14 @@ function _prepMaxSpellLevel(p){
 }
 function _lrPrepClassList(p,className){
   const db=getSpellsDB()||[];const en=(typeof _CLASS_NAME_EN!=='undefined'?_CLASS_NAME_EN[className]:'')||className;const maxLvl=_prepMaxSpellLevel(p);
+  // MAGICIEN : prépare depuis son GRIMOIRE uniquement (p.spells), PAS toute la liste de classe (RAW + principe 18).
+  // Sinon il pourrait préparer des sorts jamais appris — et la copie au grimoire (50 po/niveau) ne servirait à rien.
+  if(className==='Magicien'){
+    const seen=new Set();const out=[];
+    (p.spells||[]).forEach(sp=>{const d=findSpellData(sp.name);if(d&&d.level>=1&&d.level<=maxLvl&&!seen.has(d.name)){seen.add(d.name);out.push(d);}});
+    out.sort((a,b)=>(a.level-b.level)||(a.name||'').localeCompare(b.name||''));
+    return out;
+  }
   return db.filter(s=>s.level>=1&&s.level<=maxLvl&&(!s.classes||!s.classes.length||s.classes.includes(className)||s.classes.includes(en)));
 }
 function _lrAlwaysPrepared(p,className){
@@ -489,12 +497,21 @@ function _clearGroupConcentrationBuff(spellName,casterName){
 
 // ─── LANCER UN SORT ───
 let _castPendingSlots=null;
-function castSpell(name,level){
+function castSpell(name,level,_forceConc){
   const p=P();const d=findSpellData(name);
   if(!level){_finalizeCast(name,d,0,false);return;}
   const isConc=!!(d&&d.duration&&/concentration/i.test(d.duration));
   if(isConc&&(p.statuses||[]).some(s=>s.name==='Concentration')){
-    if(!confirm(`Concentration active sur "${p.concentrationSpell||'?'}". Briser pour lancer ${name} ?`))return;
+    if(!_forceConc){
+      openModal(`<div class="pt">🔵 Concentration déjà active</div>
+        <p style="font-size:18px;color:var(--text2);line-height:1.5;margin-bottom:6px">Tu te concentres déjà sur <strong style="color:#ffd54f">${esc(p.concentrationSpell||'un sort')}</strong>.</p>
+        <p style="font-size:18px;color:var(--text2);line-height:1.5;margin-bottom:14px">On ne maintient qu'<strong>une seule concentration</strong> à la fois : lancer <strong style="color:var(--cp)">${esc(name)}</strong> mettra fin à l'effet précédent (et retirera ses bonus aux alliés concernés).</p>
+        <div style="display:flex;gap:8px">
+          <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
+          <button class="btn bac" style="flex:2" onclick="closeModal();castSpell('${jsq(name)}',${level},true)">🔵 Briser et lancer</button>
+        </div>`);
+      return;
+    }
     const _prevConc=p.concentrationSpell,_prevName=p.charName||'';
     p.statuses=(p.statuses||[]).filter(s=>s.name!=='Concentration');p.concentrationSpell='';
     if(_prevConc)_clearGroupConcentrationBuff(_prevConc,_prevName);

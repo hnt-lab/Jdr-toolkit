@@ -38,7 +38,7 @@ function mjTabJoueurs(){
           <button class="btn bsm" style="color:#ff9800;border-color:rgba(255,152,0,.3)" onclick="mjRespecPlayer(${i})" title="Réinitialiser les niveaux">↩ Respec</button>
           <button class="btn bsm" style="color:#9c27b0;border-color:rgba(156,39,176,.3)" onclick="mjWhisperPlayer(${i})" title="Chuchoter à ce joueur">🤫</button>
           ${(p.features||[]).some(f=>f.name==='Magie sauvage')?`<button class="btn bsm" style="color:#ce93d8;border-color:rgba(206,147,216,.3)" onclick="mjTriggerSurtension(${i})" title="Déclencher une surtension de magie sauvage">🌀 Surtension</button>`:''}
-          ${p.familiar?.active?`<button class="btn bsm" style="border-color:rgba(200,168,75,.5);color:var(--cp)" onclick="mjAddFamiliarToCombat(${i})" title="Ajouter le familier au combat">🦉 ${esc(p.familiar.name)}</button>`:''}
+          ${p.familiar?.active?`<button class="btn bsm" style="border-color:rgba(200,168,75,.5);color:var(--cp)" onclick="mjAddFamiliarToCombat(${i})" title="Ajouter le familier au combat">${p.familiar.icon||'🦉'} ${esc(p.familiar.name)}</button>`:''}
           <button class="btn bsm" style="color:#e53935;border-color:rgba(229,57,53,.3)" onclick="mjModerationModal(${i})" title="Modérer ce joueur">🗑</button>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:8px">

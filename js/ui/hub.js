@@ -127,7 +127,7 @@ function _hubCampCardHTML(t,c,isMJ){
                 <div style="font-size:15px;color:var(--text3)">${esc(pp.charClass||'')}</div>
               </div>
               ${isMJ
-                ?`<button class="btn bsm" style="color:#e53935;border-color:rgba(229,57,53,.35);flex-shrink:0;font-size:15px;padding:2px 6px" onclick="hubKickConfirm('${t.id}','${pp.uid}','${esc(pp.playerName||'ce joueur')}')">✕</button>`
+                ?`<button class="btn bsm" style="color:#e53935;border-color:rgba(229,57,53,.35);flex-shrink:0;font-size:15px;padding:2px 6px" onclick="hubKickConfirm('${t.id}','${pp.uid}','${jsq(pp.playerName||'ce joueur')}')">✕</button>`
                 :`<button class="btn bsm" style="flex-shrink:0;font-size:18px;padding:2px 7px;border-color:rgba(200,168,75,.3)" title="${isMe?'Ouvrir ma fiche':'Voir la fiche'}" onclick="${isMe?`enterCampaign('${t.id}','${c.id}')`:`openHubPlayerSheet('${pp.uid}','${c.id}')`}">📋</button>`}
             </div>`;
           }).join('')}
@@ -190,7 +190,7 @@ function _hubTableRailItemHTML(t,selected){
       <div class="hub-table-item-name">${esc(t.name)}</div>
       <div class="hub-table-item-sub">${isMJ?'Maître de Jeu':'Joueur'} · ${n} campagne${n>1?'s':''}</div>
     </div>
-    ${isMJ?`<button class="btn bsm" title="Réglages de la table" onclick="event.stopPropagation();openTableSettings('${t.id}','${esc(t.name)}','${t.inviteCode}')">⚙</button>`:''}
+    ${isMJ?`<button class="btn bsm" title="Réglages de la table" onclick="event.stopPropagation();openTableSettings('${t.id}','${jsq(t.name)}','${t.inviteCode}')">⚙</button>`:''}
   </div>`;
 }
 
@@ -213,7 +213,7 @@ function _hubTableDetailHTML(t){
         <div class="hub-detail-sub">MJ : ${t.mjAvatar||'🎲'} ${esc(t.mjName||'MJ')}${players.length?` · ${players.length} joueur${players.length>1?'s':''}`:''}</div>
         ${memberBadges?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:8px"><span style="font-size:15px;color:var(--text3);align-self:center">Joueurs :</span>${memberBadges}</div>`:''}
       </div>
-      ${isMJ?`<button class="btn bsm hub-gear" title="Réglages de la table" onclick="openTableSettings('${t.id}','${esc(t.name)}','${t.inviteCode}')">⚙</button>`:''}
+      ${isMJ?`<button class="btn bsm hub-gear" title="Réglages de la table" onclick="openTableSettings('${t.id}','${jsq(t.name)}','${t.inviteCode}')">⚙</button>`:''}
     </div>
     ${_missing.length?`<div style="margin:12px 0 0;padding:10px 12px;background:rgba(229,57,53,.1);border:1px solid rgba(229,57,53,.4);border-radius:10px">
       <div style="font-size:17px;color:#e53935;font-weight:600">⚠ Compendium(s) requis manquant(s)</div>
@@ -456,7 +456,7 @@ async function promptJoinTable(code){
     <div style="font-size:18px;color:var(--text2);margin-bottom:16px">Vous avez été invité à rejoindre une table. Code : <strong style="color:var(--cp)">${esc(code)}</strong></div>
     <div style="display:flex;gap:8px">
       <button class="btn" style="flex:1" onclick="closeModal()">Ignorer</button>
-      <button class="btn bac" style="flex:2" onclick="doJoinTable('${esc(code)}')">Rejoindre →</button>
+      <button class="btn bac" style="flex:2" onclick="doJoinTable('${jsq(code)}')">Rejoindre →</button>
     </div>`);
 }
 async function confirmJoinTable(){
@@ -605,8 +605,8 @@ function copyCode(code){
   navigator.clipboard.writeText(code).then(()=>showToast('📋 Code copié : '+code));
 }
 function copyInviteLink(code){
-  const url=`${window.location.origin}${window.location.pathname}?join=${code}`;
-  navigator.clipboard.writeText(url).then(()=>showToast('🔗 Lien copié dans le presse-papiers !'));
+  // Demande utilisateur 2026-06-12 : copier le CODE lui-même (pas un lien) — c'est le code qu'on partage.
+  navigator.clipboard.writeText(code).then(()=>showToast('📋 Code copié : '+code));
 }
 
 // ─── ENTRER DANS UNE CAMPAGNE ───

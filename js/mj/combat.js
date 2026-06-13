@@ -289,7 +289,7 @@ function mjOpenAddMonster(){
 function mjFilterMonsters(q){
   const el=document.getElementById('monResults');if(!el||!MONSTERS_DB)return;
   if(!q.trim()){
-    const sorted=MONSTERS_DB.map((m,i)=>({i,m})).sort((a,b)=>(a.m.n||'').localeCompare(b.m.n||'')).slice(0,15);
+    const sorted=MONSTERS_DB.map((m,i)=>({i,m})).sort((a,b)=>(a.m.n||'').localeCompare(b.m.n||''));
     el.innerHTML=sorted.map(({i,m})=>`<div class="charlib-item" style="padding:5px 8px;cursor:pointer" onclick="mjFillMonster(${i})"><div style="flex:1"><div style="font-size:18px;font-weight:600">${esc(m.n)}</div><div style="font-size:17px;color:var(--text3)">CR ${m.cr||'?'} — CA ${m.ac||'?'} — ${m.hp||'?'} PV — ${m.t||''}</div></div><span style="color:var(--cp);font-size:17px">↑ Remplir</span></div>`).join('');return;}
   const low=q.toLowerCase();
   const res=[];
@@ -297,7 +297,7 @@ function mjFilterMonsters(q){
     if(MONSTERS_DB[i].n&&MONSTERS_DB[i].n.toLowerCase().includes(low))res.push({i,m:MONSTERS_DB[i]});
   }
   res.sort((a,b)=>(a.m.n||'').localeCompare(b.m.n||''));
-  const res20=res.slice(0,20);
+  const res20=res; // voir TOUS les résultats (liste scrollable)
   el.innerHTML=res20.length?res20.map(({i,m})=>`<div class="charlib-item" style="padding:5px 8px;cursor:pointer" onclick="mjFillMonster(${i})">
     <div style="flex:1">
       <div style="font-size:18px;font-weight:600">${esc(m.n)}</div>
@@ -755,7 +755,7 @@ function mjOpenCombatDice(idx){
         ${t.desc?`<div style="font-size:18px;color:var(--text2);margin-bottom:6px">${esc(t.desc)}</div>`:''}
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
           ${t.dice?`<button class="btn bsm bac" onclick="mjRollTrait(${idx},${ti})">🎲 ${esc(t.dice)}</button>`:''}
-          ${hasUses?`<div style="display:flex;gap:3px">${Array.from({length:maxUses},(_,bi)=>`<span class="slot-bubble${bi<remaining?'':' used'}" onclick="mjUseTraitCharge(${idx},'${esc(t.name)}',${maxUses})"></span>`).join('')}</div><span style="font-size:15px;color:var(--text3)">${remaining}/${maxUses}${recovLabel?' · '+recovLabel:''}</span><button class="btn bsm" style="padding:1px 6px" onclick="mjRecoverTraitCharge(${idx},'${esc(t.name)}',${maxUses})">↺</button>`:''}
+          ${hasUses?`<div style="display:flex;gap:3px">${Array.from({length:maxUses},(_,bi)=>`<span class="slot-bubble${bi<remaining?'':' used'}" onclick="mjUseTraitCharge(${idx},'${jsq(t.name)}',${maxUses})"></span>`).join('')}</div><span style="font-size:15px;color:var(--text3)">${remaining}/${maxUses}${recovLabel?' · '+recovLabel:''}</span><button class="btn bsm" style="padding:1px 6px" onclick="mjRecoverTraitCharge(${idx},'${jsq(t.name)}',${maxUses})">↺</button>`:''}
         </div>
       </div>`;
     }).join('')
@@ -1076,6 +1076,7 @@ const MJ_CONDITIONS=[
   {n:'À terre',d:'Se relever coûte la moitié de la vitesse. Attaques au corps à corps contre lui : avantage. À distance : désavantage.'},
   {n:'Entravé',d:'Vitesse = 0. Attaques contre lui : avantage. Ses attaques : désavantage. JS DEX : désavantage.'},
   {n:'Étourdi',d:'Neutralisé, ne peut bouger. Attaques contre lui : avantage. Échoue automatiquement JS FOR/DEX.'},
+  {n:'Endormi',d:'Inconscient par sommeil (souvent magique) : se réveille s il subit des dégâts ou si on le secoue (action).'},
   {n:'Inconscient',d:'Neutralisé, tombe à terre, lâche tout. Attaques contre lui : avantage. Coup critique au corps à corps < 1,5m.'},
   {n:'Épuisé',d:'Malus selon le niveau (1→désavantage jets compétences, 3→vitesse divisée par 2, 5→vitesse 0, 6→mort).'},
   {n:'Concentration',d:'Le lanceur est en concentration. Un coup peut rompre la concentration (JS CON DD 10 ou moitié des dégâts).'},

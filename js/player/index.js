@@ -424,7 +424,7 @@ async function _openPlayerWhisperModal(){
       const cd=data.characterData||{};
       recips.push({uid:data.userId,name:cd.charName||data.playerName||'Joueur',sub:data.playerName||'',isMJ:false});
     });
-    window._whisperRecipients=recips;
+    recips.forEach(r=>{if(!r.isMJ&&r.name==='Joueur'){const gd=(typeof _groupData!=='undefined'?_groupData:[]).find(g=>g.uid===r.uid);if(gd)r.name=gd.charData?.charName||gd.playerName||r.name;}});window._whisperRecipients=recips;
     const el=document.getElementById('whisperRecipList');
     if(!el)return;
     el.innerHTML=recips.length?recips.map((r,i)=>`<button class="btn bsm" id="wrecip_${i}" style="padding:5px 10px" onclick="_selectWhisperRecip(${i})" title="${esc(r.sub||'')}">${r.isMJ?'🎲 ':''}${esc(r.name)}</button>`).join(''):'<div style="font-size:18px;color:var(--text3)">Aucun participant.</div>';
@@ -553,6 +553,51 @@ function _luckyCheckRolls(rolls,idx,onDone){
 function _luckyReroll(){if(!_luckyPendingRoll)return;const{rolls,idx,onDone}=_luckyPendingRoll;_luckyPendingRoll=null;closeModal();rolls[idx]=Math.ceil(Math.random()*20);_luckyCheckRolls(rolls,idx,onDone);}
 function _luckySkip(){if(!_luckyPendingRoll)return;const{rolls,idx,onDone}=_luckyPendingRoll;_luckyPendingRoll=null;closeModal();_luckyCheckRolls(rolls,idx+1,onDone);}
 
+// Préférences d'effets de dé (profil) : animation (ON par défaut) + son (OFF par défaut).
+function _diceFxOn(){return localStorage.getItem('diceFxOff')!=='1';}
+function _diceSoundIsOn(){return localStorage.getItem('diceSoundOn')==='1';}
+function _setDicePref(which){
+  try{
+    if(which==='fx'){localStorage.setItem('diceFxOff',_diceFxOn()?'1':'0');}
+    else{const turningOn=!_diceSoundIsOn();localStorage.setItem('diceSoundOn',turningOn?'1':'0');if(turningOn)_diceSound({});}
+  }catch(e){}
+  if(typeof openUserSettings==='function')openUserSettings(); // rafraîchit l'état des boutons
+}
+// ── « Moment signature » du jet de dé (veille DA/UI 2026-06, lot B) ──
+// Bref éclat de runes arcaniques teal + le résultat qui surgit, puis disparaît. Non bloquant
+// (pointer-events:none, auto-retrait), mode VIRTUEL seulement (en IRL le joueur lance son vrai dé),
+// totalement défensif (ne jette jamais → ne casse aucun jet). Réutilisé : carac/JS/attaque.
+// Son de dé optionnel (WebAudio, aucun fichier) — OFF par défaut, opt-in dans le profil. Défensif.
+function _diceSound(opts){
+  try{
+    if(localStorage.getItem('diceSoundOn')!=='1')return;
+    const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+    const ctx=window._audioCtx||(window._audioCtx=new AC());
+    const t=ctx.currentTime;
+    // bruit de roulement bref (3 clics) + tintement arcanique à l'atterrissage
+    for(let i=0;i<3;i++){const o=ctx.createOscillator(),g=ctx.createGain();o.type='triangle';o.frequency.value=180+i*40;g.gain.setValueAtTime(.0001,t+i*.06);g.gain.exponentialRampToValueAtTime(.12,t+i*.06+.01);g.gain.exponentialRampToValueAtTime(.0001,t+i*.06+.05);o.connect(g);g.connect(ctx.destination);o.start(t+i*.06);o.stop(t+i*.06+.06);}
+    const freq=(opts&&opts.crit)?880:(opts&&opts.fail)?160:520;
+    const o2=ctx.createOscillator(),g2=ctx.createGain();o2.type='sine';o2.frequency.value=freq;g2.gain.setValueAtTime(.0001,t+.2);g2.gain.exponentialRampToValueAtTime(.16,t+.23);g2.gain.exponentialRampToValueAtTime(.0001,t+.7);o2.connect(g2);g2.connect(ctx.destination);o2.start(t+.2);o2.stop(t+.75);
+  }catch(e){}
+}
+function _diceFX(face,opts){
+  try{
+    if(typeof _isIRLMode==='function'&&_isIRLMode())return;
+    _diceSound(opts);
+    if(localStorage.getItem('diceFxOff')==='1')return; // animation désactivable (profil)
+    opts=opts||{};
+    const col=opts.crit?'#ffd54f':opts.fail?'#e53935':'var(--arc)';
+    const glow=opts.crit?'rgba(255,213,79,.55)':opts.fail?'rgba(229,57,53,.5)':'var(--arc-glow)';
+    const ex=document.getElementById('_diceFx');if(ex)ex.remove();
+    const d=document.createElement('div');d.id='_diceFx';
+    d.innerHTML='<div class="dicefx-ring"></div><div class="dicefx-ring r2"></div>'+
+      '<div class="dicefx-num" style="color:'+col+';text-shadow:0 0 22px '+glow+'">'+(face!=null?face:'')+'</div>'+
+      (opts.label?'<div class="dicefx-lbl">'+esc(opts.label)+'</div>':'')+
+      (opts.crit?'<div class="dicefx-tag" style="color:#ffd54f">CRITIQUE</div>':opts.fail?'<div class="dicefx-tag" style="color:#e53935">ÉCHEC</div>':'');
+    document.body.appendChild(d);
+    setTimeout(()=>{if(d.parentNode)d.remove();},950);
+  }catch(e){}
+}
 function diceRoll(die,label,bonus=0,rollType=''){
   const p=P();
   const n=parseInt(die.replace('d',''));
@@ -596,6 +641,7 @@ function diceRoll(die,label,bonus=0,rollType=''){
     msg+=` = <strong style="font-size:22px;color:${isCrit?'#ffd54f':isFumble?'#e53935':'var(--cp)'}">${total}</strong>${puissanceTag}`;
     if(isCrit)msg+=` 🎉 CRITIQUE !`;
     if(isFumble)msg+=` 💀 FUMBLE !`;
+    _diceFX(usedRoll,{crit:isCrit,fail:isFumble,label:label});
     showToast(msg);
     if(diceOpen)renderDicePanel();
   }
