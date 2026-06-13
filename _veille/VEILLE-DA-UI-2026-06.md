@@ -82,9 +82,11 @@
 
 ### ⏸️ NON CODÉ À L'AVEUGLE — décision / Phase 2
 - **C1 — audit des parcours (taps)** : estimation par lecture du code (sur la fiche déjà ouverte) — Attaquer ≈ 2 (onglet Combat → bouton arme) · Lancer un sort ≈ 2-3 (Combat → ⚡ → picker si plusieurs emplacements) · Subir des dégâts ≈ 3-4 (Perso → 💥 → saisie → ✓) · JS ≈ 2. **Verdict : les actions elles-mêmes sont courtes ; la friction réelle = la navigation entre onglets via la barre EN HAUT** (zone difficile au pouce). → renforce C2.
-- **C2 — barre d'onglets en bas sur mobile** : faisable en CSS (`@media ≤640px` : `#tabBar`/`#mjTabBar` en `position:fixed;bottom:0` + padding-bas du contenu), MAIS **gros changement d'habitude + collision potentielle avec le dé flottant (bas-droite) + risque de masquer du contenu**. NON codé à l'aveugle : à voir ensemble (idéalement en option activable). **Décision utilisateur requise.**
-- **D1 — mode Zen / immersion** : dépend du système de scènes MJ (Cartes/Visuels) = **Phase 2 « La table partagée »**. Prématuré tant que la scène partagée n'existe pas.
-- **D2 — ambiances sonores par scène** : Phase 2+, asset/poids à cadrer, opt-in.
+- **D1 — mode Zen / immersion** : reporté (user 2026-06-12, « pas nécessaire pour le moment ») ; dépend du système de scènes MJ = Phase 2.
+- **D2 — ambiances sonores par scène** : Phase 2+ acté (user « Ok ») ; dépend des scènes MJ.
+
+### ✅ FAIT (suite — v0.9.106)
+- **C2 — navigation en bas sur mobile** (validé user 2026-06-12 avec sa solution anti-collision). `@media ≤640px` (layout.css) : `#tabBar`/`#mjTabBar` en `position:fixed;bottom:0`, liseré laiton en haut (DA), scroll horizontal conservé. **Collision résolue** : la barre réserve **64px de gouttière de CHAQUE côté** → le bouton 👥 groupe (bas-gauche) et le 🎲 dé (bas-droite) flottent par-dessus sans qu'aucun onglet passe dessous (z-index barre 840 < boutons 850/888). `#app`/`#mjTabContent` : padding-bas 78px ; panneaux du dé ouverts au-dessus de la barre. 🧪 **À tester sur vrai téléphone** (alignement dé/barre, contenu non masqué, en mode joueur ET MJ).
 
 ## 4. SOURCES
 - [GamesRadar — comment Atlus (Persona/Metaphor) fait la meilleure UI du JRPG](https://www.gamesradar.com/games/rpg/how-did-persona-5-persona-3-and-now-metaphor-refantazio-achieve-some-of-the-best-ui-in-jrpg-history-its-veteran-atlus-director-stresses-unity-and-support-for-dev-teams/)

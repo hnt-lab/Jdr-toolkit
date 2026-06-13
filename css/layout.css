@@ -181,3 +181,27 @@
   .crd h3,.lu-choice h3{font-size:18px !important}
   .sk-choice .sk-dot{font-size:inherit !important}
 }
+
+/* ── C2 — NAVIGATION EN BAS sur mobile (thumb zone, veille DA/UI 2026-06) ──
+   Les barres d'onglets se collent en bas de l'écran (zone du pouce). Les DEUX boutons
+   flottants existants — 👥 groupe (bas-GAUCHE) et 🎲 dé (bas-DROITE) — flottent par-dessus :
+   la barre réserve une gouttière de chaque côté pour qu'aucun onglet ne passe dessous.
+   Liseré laiton en haut (cohérence DA). z-index barre < boutons (840 < 850/888). */
+@media (max-width:640px){
+  #tabBar,#mjTabBar{
+    position:fixed;left:0;right:0;bottom:0;z-index:840;margin:0;max-width:none;
+    background:rgba(13,10,6,.96);border-top:1px solid var(--cp);
+    box-shadow:0 -4px 18px rgba(0,0,0,.5);
+    padding:7px 64px;                /* 64px à gauche (groupe) + à droite (dé) */
+    -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);
+  }
+  /* libère la hauteur de la barre pour ne rien masquer en bas */
+  #app{padding-bottom:78px}
+  #mjTabContent{padding-bottom:78px}
+  /* le dé et le bouton groupe se calent au niveau de la barre et flottent par-dessus */
+  #diceFloat{bottom:8px!important;right:8px!important}
+  #partyHud{bottom:8px!important;left:8px!important}
+  /* panneaux du dé : s'ouvrent au-dessus de la barre (et non derrière) */
+  #dicePanel{bottom:64px!important}
+  #diceShortcuts{bottom:64px!important}
+}
