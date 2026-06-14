@@ -234,18 +234,25 @@
   .mode-btn .mode-ico{font-size:17px}
   .mode-btn .mode-lbl{font-size:9px;letter-spacing:.02em}
 
-  /* 2. La barre d'onglets de la fiche, posée juste AU-DESSUS du bandeau.
-        Bord laiton net en haut ET en bas → elle se lit comme un VRAI bandeau. */
-  #tabBar,#mjTabBar{
+  /* 2. La barre d'onglets : le CONTENEUR .tab-scroller (créé en JS) devient le
+        bandeau fixe, posé juste AU-DESSUS du bandeau de modes. Bord laiton net en
+        haut + noir en bas → vrai bandeau. La barre interne scrolle ; les flèches
+        latérales (absolues dans ce conteneur fixe) s'alignent dessus. */
+  .tab-scroller{
     position:fixed;left:0;right:0;top:auto;
     bottom:calc(66px + env(safe-area-inset-bottom));
-    z-index:844;margin:0;max-width:none;border-radius:0;
+    z-index:844;margin:0;max-width:none;
     background:rgba(11,8,4,.97);
     border-top:1px solid var(--cp);border-bottom:1px solid #000;
     box-shadow:0 -2px 10px rgba(0,0,0,.45);
-    padding:7px 8px;
     -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);
   }
+  #tabBar,#mjTabBar{
+    position:static!important;left:auto;right:auto;bottom:auto;
+    margin:0;max-width:none;border:none;box-shadow:none;border-radius:0;
+    background:transparent;padding:7px 42px;       /* 42px = place pour les flèches */
+  }
+  .tab-arrow{width:42px}
 
   /* 3. Marge basse du contenu pour que rien ne soit masqué par le bloc de nav */
   #app,#mjTabContent{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
