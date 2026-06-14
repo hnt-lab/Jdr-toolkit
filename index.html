@@ -211,6 +211,16 @@
 </div>
 
 <script src="version.js"></script>
+<script>
+// Cache-bust du favicon + apple-touch-icon : Chrome garde les favicons très longtemps en cache.
+// On ré-pointe les liens avec ?v=<version> à chaque chargement → le navigateur récupère la nouvelle image.
+(function(){try{
+  var v=(typeof APP_VERSION!=='undefined'?APP_VERSION:Date.now());
+  document.querySelectorAll('link[rel="icon"],link[rel="apple-touch-icon"]').forEach(function(l){
+    l.href=l.getAttribute('href').split('?')[0]+'?v='+v;
+  });
+}catch(e){}})();
+</script>
 <script src="js/firebase.js"></script>
 <script src="js/services/auth-service.js"></script>
 <script src="js/services/user-service.js"></script>
