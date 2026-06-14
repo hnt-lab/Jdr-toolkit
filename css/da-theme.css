@@ -91,18 +91,18 @@
    ROLLBACK : supprimer ce bloc.
    ═══════════════════════════════════════════════════════════════ */
 
-/* BR1 — DÉ-ARRONDI : conteneurs / boutons / champs / pastilles → arête nette (2px) */
-.fi,.sb,.btn,.save-btn,.eq-slot,.eq-portrait,.inv-item,.coin,.xp-reward,.sort-row,
-.feat-card,.fc,.modal-box,.dice-btn,.ai-panel,.status-badge,.prof-row,.cp-step,.crd,
-.smb,.stat-row,.sk-choice,.eq-opt,.rest-btn,.magic-badge,.journal-entry,
-.journal-subtab button,.chronicle-session-title,.invite-box,.lu-choice,.avatar-opt,
-.member-badge,.hub-user-btn,.camp-expanded,.charlib-item,.mj-hdr,.mj-tab,.mj-player-card,
-.combat-row,.pnj-card,.regles-section,.cond-pill,.mj-log,.acc,.hp-bar-hero,
-.phud-panel,.pm-combat-badge,#combatTurnBanner,.combat-popup-box,
-.hub-table-item,.hub-table-item-ic,.hub-detail-hdr,.hub-detail-ic,.hub-role,
-.hub-detail-sec,.hub-table-thumb,.hub-detail-art,.camp-thumb,
-#modeNav,.mode-btn,
-input,select,textarea{border-radius:2px!important}
+/* BR1 v2 — ANGULAIRE PARTOUT (user 2026-06-14 : « plus de bords arrondis partout ») :
+   AUCUN coin arrondi sur les conteneurs/boutons/champs, SAUF les éléments volontairement
+   CIRCULAIRES (cadrans FAB, avatar, spinner, pastilles d'état, anneaux d'effet de dé)
+   qu'on RE-cercle juste après. Les <img> sont laissés tels quels (pour ne pas casser
+   les avatars ronds détourés). */
+:where(div,section,article,header,nav,aside,main,button,a,span,p,ul,ol,li,
+details,summary,input,select,textarea,fieldset,label,table,td,th,blockquote){
+  border-radius:0!important;
+}
+#diceFloat,#partyHudBtn,.nav-avatar,.auth-spinner,.sync-dot,.status-dot,
+#_diceFx .dicefx-ring,
+[style*="border-radius:50%"],[style*="border-radius: 50%"]{border-radius:50%!important}
 
 /* BR2 — TEXTURE USÉE sur le fond : vignette + fines stries brossées (sans image, offline-safe).
    Posée sur le background du body → toujours DERRIÈRE le contenu, zéro risque de masquage. */

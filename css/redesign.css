@@ -229,10 +229,10 @@
     border:none;border-top:2px solid var(--cp);border-radius:0;
     box-shadow:0 -3px 0 #000,0 -9px 24px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.05);
   }
-  /* Boutons Hub / Personnage RÉDUITS et compacts (la place va aux FABs) */
-  .mode-btn{flex:0 0 auto;flex-direction:column;justify-content:center;gap:1px;padding:4px 12px;font-size:10px}
-  .mode-btn .mode-ico{font-size:17px}
-  .mode-btn .mode-lbl{font-size:9px;letter-spacing:.02em}
+  /* Boutons Hub / Personnage : chacun prend la MOITIÉ du bandeau (flex:1) */
+  .mode-btn{flex:1;flex-direction:column;justify-content:center;gap:2px;padding:5px 6px;font-size:13px}
+  .mode-btn .mode-ico{font-size:22px}
+  .mode-btn .mode-lbl{font-size:12px;letter-spacing:.03em}
 
   /* 2. La barre d'onglets : le CONTENEUR .tab-scroller (créé en JS) devient le
         bandeau fixe, posé juste AU-DESSUS du bandeau de modes. Bord laiton net en
