@@ -80,3 +80,44 @@
 @keyframes dicefxRing{0%{transform:scale(.4);opacity:.85}100%{transform:scale(1.9);opacity:0}}
 @keyframes dicefxOut{0%,68%{opacity:1}100%{opacity:0}}
 @media (prefers-reduced-motion:reduce){#_diceFx{display:none}}
+
+/* ═══════════════════════════════════════════════════════════════
+   PASSE « BRUT / USÉ » (demande user 2026-06-14) — DA plus rude :
+   1) angles quasi nuls (métal estampé, pas de plastique arrondi)
+   2) texture usée (stries brossées + grain + vignette sur le fond)
+   3) biseau gravé sur les plaques (lumière en haut, ombre en bas)
+   Les éléments CIRCULAIRES (FAB-cadrans, portraits ronds, pastilles
+   d'état, jauges) restent ronds = vocabulaire « cadran/rivet » assumé.
+   ROLLBACK : supprimer ce bloc.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* BR1 — DÉ-ARRONDI : conteneurs / boutons / champs / pastilles → arête nette (2px) */
+.fi,.sb,.btn,.save-btn,.eq-slot,.eq-portrait,.inv-item,.coin,.xp-reward,.sort-row,
+.feat-card,.fc,.modal-box,.dice-btn,.ai-panel,.status-badge,.prof-row,.cp-step,.crd,
+.smb,.stat-row,.sk-choice,.eq-opt,.rest-btn,.magic-badge,.journal-entry,
+.journal-subtab button,.chronicle-session-title,.invite-box,.lu-choice,.avatar-opt,
+.member-badge,.hub-user-btn,.camp-expanded,.charlib-item,.mj-hdr,.mj-tab,.mj-player-card,
+.combat-row,.pnj-card,.regles-section,.cond-pill,.mj-log,.acc,.hp-bar-hero,
+.phud-panel,.pm-combat-badge,#combatTurnBanner,.combat-popup-box,
+.hub-table-item,.hub-table-item-ic,.hub-detail-hdr,.hub-detail-ic,.hub-role,
+.hub-detail-sec,.hub-table-thumb,.hub-detail-art,.camp-thumb,
+#modeNav,.mode-btn,
+input,select,textarea{border-radius:2px!important}
+
+/* BR2 — TEXTURE USÉE sur le fond : vignette + fines stries brossées (sans image, offline-safe).
+   Posée sur le background du body → toujours DERRIÈRE le contenu, zéro risque de masquage. */
+body{
+  background-image:
+    radial-gradient(130% 105% at 50% -12%,transparent 48%,rgba(0,0,0,.55) 100%),
+    repeating-linear-gradient(112deg,rgba(255,255,255,.014) 0 1px,transparent 1px 4px),
+    repeating-linear-gradient(24deg,rgba(0,0,0,.06) 0 2px,transparent 2px 6px);
+  background-attachment:fixed;
+}
+
+/* BR3 — PLAQUES MÉTAL ESTAMPÉ : biseau gravé (filet clair en haut, ombre en bas)
+   + léger dégradé de surface. Garde les bords existants ; remplace l'élévation générique. */
+.crd,.feat-card,.ai-panel,.mj-player-card,.pnj-card,.regles-section,.invite-box,
+.camp-expanded,.hub-detail-sec,.combat-row,.cp-step{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.045),inset 0 -1px 0 rgba(0,0,0,.5),0 1px 2px rgba(0,0,0,.45);
+  background-image:linear-gradient(180deg,rgba(255,255,255,.018),rgba(0,0,0,.10));
+}

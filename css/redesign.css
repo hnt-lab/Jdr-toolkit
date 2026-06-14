@@ -203,3 +203,62 @@
   .hub-detail-ic{width:54px;height:54px;font-size:26px}
   .hub-detail-name{font-size:19px}
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   C2 v2 — BANDEAU DUR de navigation en bas sur mobile (thumb zone)
+   Refonte 2026-06-14 (retour user). Placé en FIN de redesign.css (dernier
+   @import) pour gagner sur les définitions de #modeNav ci-dessus (pilule).
+   La nav par MODES (#modeNav : Hub / Personnage|MJ) devient un GROS BANDEAU
+   plein-largeur ancré en bas. Les 2 boutons flottants existants — 👥 groupe
+   (extrémité GAUCHE) et 🎲 dé (extrémité DROITE) — sont ENCASTRÉS dans des
+   creux du bandeau (halo couleur-bandeau + arête sombre = bouton serti dans
+   une plaque). La barre d'onglets de la fiche se pose JUSTE AU-DESSUS du
+   bandeau. Respecte la safe-area (encoche / barre gestuelle).
+   z-index : onglets 844 < bandeau 845 < FABs 870/888 (flottent par-dessus).
+   ROLLBACK : supprimer ce bloc → retour à la pilule flottante centrée.
+   ═══════════════════════════════════════════════════════════════ */
+@media (max-width:640px){
+
+  /* 1. Le bandeau de modes : plein-largeur, plaque métal sombre, liseré laiton */
+  #modeNav{
+    left:0;right:0;bottom:0;top:auto;transform:none;width:100%;max-width:none;
+    z-index:845;gap:6px;justify-content:space-around;
+    padding:6px 70px calc(6px + env(safe-area-inset-bottom)) 70px; /* 70px de creux à G (groupe) et D (dé) */
+    background:linear-gradient(180deg,#16100a,#0b0805);
+    border:none;border-top:2px solid var(--cp);border-radius:0;
+    box-shadow:0 -3px 0 #000,0 -9px 24px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.05);
+  }
+  .mode-btn{flex:1;flex-direction:column;justify-content:center;gap:2px;padding:6px 4px;font-size:11px}
+  .mode-btn .mode-ico{font-size:21px}
+  .mode-btn .mode-lbl{font-size:10px;letter-spacing:.03em}
+
+  /* 2. La barre d'onglets de la fiche, posée juste AU-DESSUS du bandeau */
+  #tabBar,#mjTabBar{
+    position:fixed;left:0;right:0;top:auto;
+    bottom:calc(58px + env(safe-area-inset-bottom));
+    z-index:844;margin:0;max-width:none;border-radius:0;
+    background:rgba(11,8,4,.97);border-top:1px solid var(--border);
+    box-shadow:0 -2px 10px rgba(0,0,0,.45);
+    padding:6px 8px;
+    -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);
+  }
+
+  /* 3. Marge basse du contenu pour que rien ne soit masqué par le bloc de nav */
+  #app,#mjTabContent{padding-bottom:calc(120px + env(safe-area-inset-bottom))}
+  #hubScreen{padding-bottom:calc(72px + env(safe-area-inset-bottom))}
+
+  /* 4. FABs ENCASTRÉS dans les creux du bandeau (centrés verticalement sur ses ~58px).
+        Halo couleur-bandeau (le bouton « perce » la plaque) + arête sombre = serti. */
+  #diceFloat{
+    bottom:calc(env(safe-area-inset-bottom) + 4px)!important;right:11px!important;z-index:888;
+    box-shadow:0 0 0 5px #0b0805,0 0 0 6px #000,inset 0 -2px 5px rgba(0,0,0,.5),inset 0 2px 3px rgba(255,255,255,.18)!important;
+  }
+  #partyHud{bottom:calc(env(safe-area-inset-bottom) + 4px)!important;left:11px!important;z-index:870}
+  #partyHudBtn{
+    box-shadow:0 0 0 5px #0b0805,0 0 0 6px #000,inset 0 -2px 5px rgba(0,0,0,.5),inset 0 2px 3px rgba(255,255,255,.12)!important;
+  }
+
+  /* 5. Panneaux du dé / groupe : s'ouvrent AU-DESSUS de tout le bloc de nav */
+  #dicePanel,#diceShortcuts{bottom:calc(122px + env(safe-area-inset-bottom))!important;right:11px!important}
+  .phud-panel{bottom:calc(120px + env(safe-area-inset-bottom))!important}
+}
