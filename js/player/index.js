@@ -170,11 +170,9 @@ function _openDiceShortcuts(){
     ${currentTableId?`<div style="display:flex;align-items:center;gap:8px">
       <span style="font-size:18px;color:var(--cp);background:var(--surface);padding:4px 10px;border-radius:20px;border:1px solid var(--border);white-space:nowrap">Chuchoter</span>
       <button style="width:44px;height:44px;border-radius:50%;background:var(--surface);border:2px solid var(--cp);color:var(--cp);font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4)" onclick="_closeDiceShortcuts();openWhisperModal()">🤫</button>
-    </div>`:''}
-    <div style="display:flex;align-items:center;gap:8px">
-      <span style="font-size:18px;color:var(--cp);background:var(--surface);padding:4px 10px;border-radius:20px;border:1px solid var(--border);white-space:nowrap">Personnage</span>
-      <button style="width:44px;height:44px;border-radius:50%;overflow:hidden;background:var(--surface);border:2px solid var(--cp);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4);padding:0" onclick="_diceNav('perso')">${avatarEl}</button>
-    </div>`;
+    </div>`:''}`;
+    // (Raccourci « Personnage » retiré du menu dé : le bandeau de nav [Hub / Personnage]
+    //  joue désormais ce rôle, visible dès qu'on rejoint le groupe ou ouvre sa fiche.)
   sp.style.display='flex';
   setTimeout(()=>document.addEventListener('click',_closeDiceShortcutsOutside,{once:true}),50);
 }

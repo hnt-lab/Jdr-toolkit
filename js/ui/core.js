@@ -107,6 +107,9 @@ async function joinGroupOnly(tableId,campaignId){
   // Animation éclair sur le bouton HUD
   const hudBtn=document.getElementById('partyHudBtn');
   if(hudBtn){hudBtn.style.transition='box-shadow .3s';hudBtn.style.boxShadow='0 0 0 5px rgba(200,168,75,.5)';setTimeout(()=>{hudBtn.style.boxShadow='';},1200);}
+  // Afficher le bandeau de nav [Hub / Personnage] dès qu'on rejoint le groupe
+  // (le bouton « Personnage » du bandeau remplace l'ancien raccourci fiche du menu dé)
+  if(typeof _refreshModeNav==='function')_refreshModeNav();
 }
 function showHub(){
   stopAllListeners();
