@@ -272,9 +272,11 @@
     box-shadow:0 0 0 4px #0b0805,0 0 0 7px var(--cp),0 0 0 9px rgba(0,0,0,.75),inset 0 -3px 7px rgba(0,0,0,.55),inset 0 2px 4px rgba(255,255,255,.2)!important;
   }
 
-  /* 5. Panneaux du dé / groupe : s'ouvrent AU-DESSUS de tout le bloc de nav */
-  #dicePanel,#diceShortcuts{bottom:calc(134px + env(safe-area-inset-bottom))!important;right:13px!important}
-  .phud-panel{bottom:calc(132px + env(safe-area-inset-bottom))!important}
+  /* 5. Panneaux du dé / groupe : s'ouvrent JUSTE au-dessus de la bande de modes
+        (~76px), au plus près de leurs boutons (avant : 134px → trop loin, surtout au Hub
+        sans barre d'onglets). Ils peuvent recouvrir la barre d'onglets = popups (z>barre). */
+  #dicePanel,#diceShortcuts{bottom:calc(80px + env(safe-area-inset-bottom))!important;right:13px!important}
+  .phud-panel{bottom:calc(80px + env(safe-area-inset-bottom))!important}
 }
 
 /* ═══════════════════════════════════════════════════════════════
