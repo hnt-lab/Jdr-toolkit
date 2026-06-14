@@ -114,10 +114,22 @@ body{
   background-attachment:fixed;
 }
 
-/* BR3 — PLAQUES MÉTAL ESTAMPÉ : biseau gravé (filet clair en haut, ombre en bas)
-   + léger dégradé de surface. Garde les bords existants ; remplace l'élévation générique. */
+/* BR3 — PLAQUES MÉTAL ESTAMPÉ : BORD ACCENTUÉ (laiton vieilli net) + biseau gravé
+   (filet clair en haut, ombre en bas) + léger dégradé de surface. Desktop ET mobile.
+   (demande user 2026-06-14 : « accentuer les bordures des div ».) */
 .crd,.feat-card,.ai-panel,.mj-player-card,.pnj-card,.regles-section,.invite-box,
-.camp-expanded,.hub-detail-sec,.combat-row,.cp-step{
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.045),inset 0 -1px 0 rgba(0,0,0,.5),0 1px 2px rgba(0,0,0,.45);
-  background-image:linear-gradient(180deg,rgba(255,255,255,.018),rgba(0,0,0,.10));
+.camp-expanded,.hub-detail-sec,.combat-row,.cp-step,.acc{
+  border:1px solid #5e4d2a!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05),inset 0 -1px 0 rgba(0,0,0,.55),0 1px 3px rgba(0,0,0,.5);
+  background-image:linear-gradient(180deg,rgba(255,255,255,.02),rgba(0,0,0,.12));
 }
+/* BR3b — bords renforcés aussi sur sections / en-têtes / choix / champs */
+.mj-hdr,.stat-row,.sk-choice,.eq-opt,.lu-choice,.eq-slot,.inv-item,.sort-row,
+.journal-entry,.prof-row,.smb,.fc,.fi,input,select,textarea{
+  border:1px solid #4f4023!important;
+}
+/* BR3c — ONGLETS (Perso/Combat/… + onglets MJ) : bord inactif bien visible
+   (sinon var(--border) sombre = invisible sur fond noir → « bordure manquante »).
+   L'onglet ACTIF garde son liseré laiton vif. Sans !important = ordre d'import suffit. */
+.tab,.mj-tab{border:1px solid #5e4d2a}
+.tab.on,.mj-tab.on{border-color:var(--cp)}

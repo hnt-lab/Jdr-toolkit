@@ -124,7 +124,12 @@ function openUserSettings(){
           <div><div style="font-size:18px;color:var(--text2)">Version installée</div><div style="font-size:22px;font-weight:700;color:var(--cp);font-family:monospace">v${typeof APP_VERSION!=='undefined'?APP_VERSION:'—'}</div></div>
           ${typeof _pendingSwUpdate!=='undefined'&&_pendingSwUpdate?`<span style="font-size:15px;padding:2px 8px;border-radius:10px;background:rgba(200,168,75,.15);border:1px solid var(--cp);color:var(--cp)">Mise à jour disponible</span>`:'<span style="font-size:17px;color:var(--text3)">✓ À jour</span>'}
         </div>
-        ${typeof _pendingSwUpdate!=='undefined'&&_pendingSwUpdate?`<button class="btn bac" style="width:100%" onclick="closeModal();_showUpdateOverlay()">✨ Installer la mise à jour</button>`:`<div style="font-size:17px;color:var(--text3);font-style:italic">Aucune mise à jour en attente. Le site vérifie automatiquement au chargement.</div>`}
+        ${typeof _pendingSwUpdate!=='undefined'&&_pendingSwUpdate?`<button class="btn bac" style="width:100%;margin-bottom:8px" onclick="closeModal();_showUpdateOverlay()">✨ Installer la mise à jour en attente</button>`:''}
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button class="btn bac" style="width:100%" onclick="closeModal();_manualCheckUpdate()">🔄 Vérifier les mises à jour</button>
+          <button class="btn bsm" style="width:100%" onclick="closeModal();_forceHardReload()">🧹 Forcer le rechargement (vide le cache)</button>
+        </div>
+        <div style="font-size:15px;color:var(--text3);font-style:italic;margin-top:8px">Le site vérifie aussi automatiquement à chaque chargement. « Forcer le rechargement » sert si une nouvelle version semble bloquée.</div>
       </div>
     </details>
     <details class="acc">

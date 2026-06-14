@@ -219,46 +219,53 @@
    ═══════════════════════════════════════════════════════════════ */
 @media (max-width:640px){
 
-  /* 1. Le bandeau de modes : plein-largeur, plaque métal sombre, liseré laiton */
+  /* 1. Le bandeau de modes : plein-largeur, plaque métal sombre, liseré laiton.
+        Larges CREUX (90px) à G/D pour loger les GROS FABs + leur rebord laiton. */
   #modeNav{
-    left:0;right:0;bottom:0;top:auto;transform:none;width:100%;max-width:none;
-    z-index:845;gap:6px;justify-content:space-around;
-    padding:6px 70px calc(6px + env(safe-area-inset-bottom)) 70px; /* 70px de creux à G (groupe) et D (dé) */
+    left:0;right:0;bottom:0;top:auto;transform:none;width:100%;max-width:none;min-height:66px;
+    z-index:845;gap:10px;justify-content:center;align-items:center;
+    padding:5px 90px calc(5px + env(safe-area-inset-bottom)) 90px;
     background:linear-gradient(180deg,#16100a,#0b0805);
     border:none;border-top:2px solid var(--cp);border-radius:0;
     box-shadow:0 -3px 0 #000,0 -9px 24px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.05);
   }
-  .mode-btn{flex:1;flex-direction:column;justify-content:center;gap:2px;padding:6px 4px;font-size:11px}
-  .mode-btn .mode-ico{font-size:21px}
-  .mode-btn .mode-lbl{font-size:10px;letter-spacing:.03em}
+  /* Boutons Hub / Personnage RÉDUITS et compacts (la place va aux FABs) */
+  .mode-btn{flex:0 0 auto;flex-direction:column;justify-content:center;gap:1px;padding:4px 12px;font-size:10px}
+  .mode-btn .mode-ico{font-size:17px}
+  .mode-btn .mode-lbl{font-size:9px;letter-spacing:.02em}
 
-  /* 2. La barre d'onglets de la fiche, posée juste AU-DESSUS du bandeau */
+  /* 2. La barre d'onglets de la fiche, posée juste AU-DESSUS du bandeau.
+        Bord laiton net en haut ET en bas → elle se lit comme un VRAI bandeau. */
   #tabBar,#mjTabBar{
     position:fixed;left:0;right:0;top:auto;
-    bottom:calc(58px + env(safe-area-inset-bottom));
+    bottom:calc(66px + env(safe-area-inset-bottom));
     z-index:844;margin:0;max-width:none;border-radius:0;
-    background:rgba(11,8,4,.97);border-top:1px solid var(--border);
+    background:rgba(11,8,4,.97);
+    border-top:1px solid var(--cp);border-bottom:1px solid #000;
     box-shadow:0 -2px 10px rgba(0,0,0,.45);
-    padding:6px 8px;
+    padding:7px 8px;
     -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);
   }
 
   /* 3. Marge basse du contenu pour que rien ne soit masqué par le bloc de nav */
-  #app,#mjTabContent{padding-bottom:calc(120px + env(safe-area-inset-bottom))}
-  #hubScreen{padding-bottom:calc(72px + env(safe-area-inset-bottom))}
+  #app,#mjTabContent{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
+  #hubScreen{padding-bottom:calc(82px + env(safe-area-inset-bottom))}
 
-  /* 4. FABs ENCASTRÉS dans les creux du bandeau (centrés verticalement sur ses ~58px).
-        Halo couleur-bandeau (le bouton « perce » la plaque) + arête sombre = serti. */
+  /* 4. GROS FABs ENCASTRÉS dans les creux (64px, centrés sur le bandeau ~66px).
+        Socket = halo couleur-bandeau (le bouton perce la plaque) → LISERÉ laiton ÉPAIS
+        (rebord du trou) → arête sombre (profondeur) ; insets = dôme serti. */
   #diceFloat{
-    bottom:calc(env(safe-area-inset-bottom) + 4px)!important;right:11px!important;z-index:888;
-    box-shadow:0 0 0 5px #0b0805,0 0 0 6px #000,inset 0 -2px 5px rgba(0,0,0,.5),inset 0 2px 3px rgba(255,255,255,.18)!important;
+    bottom:calc(env(safe-area-inset-bottom) + 1px)!important;right:13px!important;z-index:888;
+    width:64px!important;height:64px!important;font-size:29px!important;
+    box-shadow:0 0 0 4px #0b0805,0 0 0 7px var(--cp),0 0 0 9px rgba(0,0,0,.75),inset 0 -3px 7px rgba(0,0,0,.55),inset 0 2px 4px rgba(255,255,255,.22)!important;
   }
-  #partyHud{bottom:calc(env(safe-area-inset-bottom) + 4px)!important;left:11px!important;z-index:870}
+  #partyHud{bottom:calc(env(safe-area-inset-bottom) + 1px)!important;left:13px!important;z-index:870}
   #partyHudBtn{
-    box-shadow:0 0 0 5px #0b0805,0 0 0 6px #000,inset 0 -2px 5px rgba(0,0,0,.5),inset 0 2px 3px rgba(255,255,255,.12)!important;
+    width:64px!important;height:64px!important;font-size:28px!important;
+    box-shadow:0 0 0 4px #0b0805,0 0 0 7px var(--cp),0 0 0 9px rgba(0,0,0,.75),inset 0 -3px 7px rgba(0,0,0,.55),inset 0 2px 4px rgba(255,255,255,.2)!important;
   }
 
   /* 5. Panneaux du dé / groupe : s'ouvrent AU-DESSUS de tout le bloc de nav */
-  #dicePanel,#diceShortcuts{bottom:calc(122px + env(safe-area-inset-bottom))!important;right:11px!important}
-  .phud-panel{bottom:calc(120px + env(safe-area-inset-bottom))!important}
+  #dicePanel,#diceShortcuts{bottom:calc(134px + env(safe-area-inset-bottom))!important;right:13px!important}
+  .phud-panel{bottom:calc(132px + env(safe-area-inset-bottom))!important}
 }

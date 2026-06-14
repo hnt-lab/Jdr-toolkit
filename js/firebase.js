@@ -93,6 +93,35 @@ function _skipUpdate(){
   const ov=document.getElementById('_updateOverlay');if(ov)ov.remove();
   if(typeof showToast==='function')showToast('💡 Mise à jour disponible dans ton profil.',3000);
 }
+// ── MAJ MANUELLE (bouton du profil) ──────────────────────────────
+// Vérifie activement s'il existe une nouvelle version sur le serveur.
+// reg.update() → si un nouveau SW existe : install → skipWaiting → activate
+// → message SW_UPDATED → l'overlay s'affiche tout seul. Sinon : « déjà à jour ».
+async function _manualCheckUpdate(){
+  if(typeof showToast==='function')showToast('🔄 Recherche d\'une mise à jour…',1600);
+  if(!('serviceWorker' in navigator)){_forceHardReload();return;}
+  try{
+    const reg=await navigator.serviceWorker.getRegistration();
+    if(!reg){_forceHardReload();return;}
+    await reg.update();
+    setTimeout(()=>{
+      if(document.getElementById('_updateOverlay'))return;            // overlay déjà déclenché (MAJ trouvée)
+      if(reg.waiting||reg.installing){_showUpdateOverlay();return;}    // MAJ en cours d'installation
+      if(typeof showToast==='function')showToast('✓ Tu as déjà la dernière version.',2800);
+    },1500);
+  }catch(e){
+    if(typeof showToast==='function')showToast('Vérification impossible — essaie « Forcer le rechargement ».',3500);
+  }
+}
+// Rechargement FORCÉ : vide tous les caches + désinscrit le SW puis recharge.
+// Garantit la dernière version même si le cache est « coincé ». Aucune donnée perdue
+// (les persos/campagnes sont dans Firestore/localStorage, pas dans le cache des fichiers).
+async function _forceHardReload(){
+  if(typeof showToast==='function')showToast('🧹 Vidage du cache…',1500);
+  try{ if('caches' in window){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)));} }catch(e){}
+  try{ const reg=await navigator.serviceWorker.getRegistration(); if(reg)await reg.unregister(); }catch(e){}
+  setTimeout(()=>location.reload(true),400);
+}
 if('serviceWorker' in navigator){
   navigator.serviceWorker.addEventListener('message',e=>{
     if(e.data?.type!=='SW_UPDATED')return;
