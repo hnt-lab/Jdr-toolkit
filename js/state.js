@@ -609,6 +609,7 @@ function renderTabBar(){
   bar.innerHTML=TABS.map(t=>`<button class="tab${state.activeTab===t.id?' on':''}${t.cls?' '+t.cls:''}" onclick="setTab('${t.id}')">${t.label}</button>`).join('')
     +`<button class="tab" onclick="openPrivacySettings()" title="Confidentialité" style="margin-left:auto;opacity:.7;font-size:18px">🔒</button>`
     +`<button class="tab" onclick="openTabOrderSettings()" title="Réorganiser les onglets" style="opacity:.7;font-size:18px">↕</button>`;
+  if(typeof _initTabScrollers==='function')setTimeout(_initTabScrollers,0);
 }
 
 function openTabOrderSettings(){
@@ -649,6 +650,7 @@ function setTab(id){
   const el=document.getElementById('tabContent');if(!el)return;
   const map={perso:tabPerso,competences:tabCompetences,combat:tabCombat,equipement:tabEquipement,sac:tabSac,historique:tabHistorique,xp:tabXP,sorts:tabSorts,levelup:tabLevelUp,journal:tabJournal};
   el.innerHTML=(map[id]||tabPerso)(P());
+  el.classList.remove('tab-switch-anim');void el.offsetWidth;el.classList.add('tab-switch-anim'); // animation de changement d'onglet
   _enableTabDrag();applyAllSectionOrders(); // FIX : enveloppe + ordre AUSSI au changement d'onglet (sinon le drag « saute »)
   setTimeout(autoGrowAll,0);
 }

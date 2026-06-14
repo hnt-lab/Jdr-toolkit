@@ -247,3 +247,33 @@ fbAuth.onAuthStateChanged(async user=>{
     _go(dx<0?1:-1);                          // gauche → onglet suivant, droite → précédent
   },{passive:true});
 })();
+
+// ── Onglets scrollables : conteneur .tab-scroller + flèches latérales ──
+// Enveloppe #tabBar / #mjTabBar dans un conteneur (créé une seule fois, persiste car
+// renderTabBar/renderMJTabs ne touchent que l'innerHTML de la barre, pas le parent),
+// y pose 2 flèches « ‹ › » et bascule .more-l/.more-r selon la position de défilement.
+function _updTabScroller(wrap){
+  const bar=wrap.querySelector('.tabs,.mj-tabs'); if(!bar) return;
+  const max=bar.scrollWidth-bar.clientWidth;
+  wrap.classList.toggle('more-l',bar.scrollLeft>4);
+  wrap.classList.toggle('more-r',max>2 && bar.scrollLeft<max-3);
+}
+function _initTabScrollers(){
+  ['tabBar','mjTabBar'].forEach(id=>{
+    const bar=document.getElementById(id); if(!bar) return;
+    let wrap=bar.parentElement;
+    if(!wrap || !wrap.classList.contains('tab-scroller')){
+      wrap=document.createElement('div'); wrap.className='tab-scroller';
+      bar.parentNode.insertBefore(wrap,bar); wrap.appendChild(bar);
+      const mk=(cls,glyph)=>{const b=document.createElement('button');b.type='button';b.className='tab-arrow '+cls;b.textContent=glyph;b.tabIndex=-1;b.setAttribute('aria-hidden','true');return b;};
+      const la=mk('tab-arrow-l','‹'), ra=mk('tab-arrow-r','›');
+      const step=()=>Math.max(120,Math.round(bar.clientWidth*0.6));
+      la.addEventListener('click',()=>bar.scrollBy({left:-step(),behavior:'smooth'}));
+      ra.addEventListener('click',()=>bar.scrollBy({left:step(),behavior:'smooth'}));
+      wrap.appendChild(la); wrap.appendChild(ra);
+      bar.addEventListener('scroll',()=>_updTabScroller(wrap),{passive:true});
+    }
+    _updTabScroller(wrap);
+  });
+}
+window.addEventListener('resize',()=>{if(typeof _initTabScrollers==='function')_initTabScrollers();});

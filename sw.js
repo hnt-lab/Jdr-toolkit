@@ -60,6 +60,8 @@ const PRECACHE = [
   './js/mj/regles.js',
   './manifest.json',
   './icon.svg',
+  './icon-512.png',
+  './logo.png',
   './bg-login.png'
 ];
 

@@ -276,3 +276,41 @@
   #dicePanel,#diceShortcuts{bottom:calc(134px + env(safe-area-inset-bottom))!important;right:13px!important}
   .phud-panel{bottom:calc(132px + env(safe-area-inset-bottom))!important}
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   ONGLETS — animation de changement + flèches latérales « scroll »
+   (demande user 2026-06-14). Le conteneur .tab-scroller est créé en JS
+   (core.js _initTabScrollers) autour de #tabBar et #mjTabBar. Desktop ET mobile.
+   ROLLBACK : supprimer ce bloc + l'appel à _initTabScrollers.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Logo du header (remplace l'emoji 🧰) — version alpha de l'icône de l'app */
+.hdr-logo{height:1.45em;width:auto;vertical-align:-0.32em;filter:drop-shadow(0 0 5px rgba(127,209,196,.22))}
+
+/* Conteneur scrollable : la barre interne défile horizontalement (sans ascenseur visible) */
+.tab-scroller{position:relative;min-width:0}
+.tab-scroller>.tabs,.tab-scroller>.mj-tabs{overflow-x:auto;overflow-y:hidden;flex-wrap:nowrap;scrollbar-width:none;-ms-overflow-style:none}
+.tab-scroller>.tabs::-webkit-scrollbar,.tab-scroller>.mj-tabs::-webkit-scrollbar{height:0;width:0;display:none}
+.tab-scroller .tab,.tab-scroller .mj-tab{flex:0 0 auto;white-space:nowrap}
+
+/* Flèches latérales : repère « il y a encore des onglets de ce côté ».
+   Affichées seulement quand c'est réellement scrollable dans cette direction. */
+.tab-arrow{position:absolute;top:0;bottom:0;width:38px;border:none;cursor:pointer;z-index:6;
+  display:none;align-items:center;justify-content:center;
+  font:700 27px/1 var(--B,sans-serif);color:var(--cp);text-shadow:0 0 8px var(--cglow);
+  padding:0;-webkit-tap-highlight-color:transparent}
+.tab-arrow-l{left:0;background:linear-gradient(to right,rgba(8,6,3,.97) 42%,transparent)}
+.tab-arrow-r{right:0;background:linear-gradient(to left,rgba(8,6,3,.97) 42%,transparent)}
+.tab-scroller.more-l .tab-arrow-l{display:flex;animation:tabArrowGlow 1.7s ease-in-out infinite}
+.tab-scroller.more-r .tab-arrow-r{display:flex;animation:tabArrowGlow 1.7s ease-in-out infinite}
+.tab-arrow:hover{color:#fff;text-shadow:0 0 12px var(--cp)}
+.tab-arrow:active{transform:scale(.9)}
+@keyframes tabArrowGlow{0%,100%{opacity:.62}50%{opacity:1}}
+
+/* Animation au CHANGEMENT d'onglet (déclenchée par setTab / setMJTab via une classe) */
+#tabContent.tab-switch-anim,#mjTabContent.tab-switch-anim{animation:tabSwitchIn .22s ease}
+@keyframes tabSwitchIn{from{opacity:.2;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){
+  .tab-arrow{animation:none!important}
+  #tabContent.tab-switch-anim,#mjTabContent.tab-switch-anim{animation:none}
+}

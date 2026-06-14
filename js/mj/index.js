@@ -22,6 +22,8 @@ function setMJTab(tab){
   _mjTab=tab;
   renderMJTabs();
   renderMJContent();
+  const el=document.getElementById('mjTabContent');
+  if(el){el.classList.remove('tab-switch-anim');void el.offsetWidth;el.classList.add('tab-switch-anim');} // animation de changement d'onglet MJ
 }
 
 function renderMJTabs(){
@@ -38,6 +40,7 @@ function renderMJTabs(){
     const combatExtra=t.id==='combat'?(_mjCombatStarted?' mj-tab-combat-active':' mj-tab-combat-idle'):'';
     return`<button class="mj-tab${_mjTab===t.id?' on':''}${combatExtra}" onclick="setMJTab('${t.id}')">${t.label}</button>`;
   }).join('');
+  if(typeof _initTabScrollers==='function')setTimeout(_initTabScrollers,0);
   renderMJContent();
 }
 
