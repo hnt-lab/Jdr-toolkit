@@ -59,6 +59,7 @@ function _refreshModeNav(){
   const hb=nav.querySelector('.mode-hub'),ch=nav.querySelector('.mode-char');
   if(hb)hb.classList.toggle('on',!!onHub);
   if(ch)ch.classList.toggle('on',!!onChar);
+  if(typeof _placeModeNavDesktop==='function')_placeModeNavDesktop(); // desktop : nav dans l'en-tête ; mobile : bandeau bas
 }
 // SOURCE UNIQUE de la visibilité des boutons flottants (dé + groupe). À appeler depuis TOUS les écrans.
 // ⚠️ RÉGRESSION RÉCURRENTE : ne JAMAIS re-cacher le dé/groupe ailleurs (showHub/showApp/showMJScreen).
@@ -279,4 +280,37 @@ function _initTabScrollers(){
     _updTabScroller(wrap);
   });
 }
-window.addEventListener('resize',()=>{if(typeof _initTabScrollers==='function')_initTabScrollers();});
+window.addEventListener('resize',()=>{
+  if(typeof _initTabScrollers==='function')_initTabScrollers();
+  if(typeof _placeModeNavDesktop==='function')_placeModeNavDesktop();
+});
+// DESKTOP : place la nav [Hub/Personnage] DANS l'en-tête actif (contrôle segmenté inline).
+// MOBILE : la remet en bandeau fixe en bas (dans le body). Appelé par _refreshModeNav + au resize.
+function _placeModeNavDesktop(){
+  const nav=document.getElementById('modeNav'); if(!nav) return;
+  const desktop=window.innerWidth>640;
+  const vis=el=>el&&el.offsetParent!==null;
+  let hdr=null;
+  if(vis(document.getElementById('app'))) hdr=document.querySelector('#app .hdr');
+  else if(vis(document.getElementById('mjScreen'))) hdr=document.querySelector('#mjScreen .mj-hdr');
+  else if(vis(document.getElementById('hubScreen'))) hdr=document.querySelector('#hubScreen .hub-hdr');
+  if(desktop && hdr){
+    nav.classList.add('modeNav-inHeader');
+    const logo=hdr.querySelector('.hdr-home');
+    if(logo){ if(nav.parentElement!==hdr || nav.previousElementSibling!==logo) logo.insertAdjacentElement('afterend',nav); }
+    else if(nav.parentElement!==hdr){ hdr.appendChild(nav); }
+  } else {
+    nav.classList.remove('modeNav-inHeader');
+    if(nav.parentElement!==document.body) document.body.appendChild(nav);
+  }
+}
+// Centre l'onglet ACTIF dans la barre scrollable (appelé au changement d'onglet).
+function _centerActiveTab(){
+  ['tabBar','mjTabBar'].forEach(id=>{
+    const bar=document.getElementById(id); if(!bar) return;
+    const active=bar.querySelector('.tab.on,.mj-tab.on'); if(!active) return;
+    const barRect=bar.getBoundingClientRect(), aRect=active.getBoundingClientRect();
+    const delta=(aRect.left-barRect.left)+aRect.width/2 - bar.clientWidth/2;
+    if(Math.abs(delta)>2)bar.scrollBy({left:delta,behavior:'smooth'});
+  });
+}

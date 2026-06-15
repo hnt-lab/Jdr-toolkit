@@ -112,13 +112,13 @@
 /* MJ — listes de cartes en grille (objets, etc.) */
 .mj-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:10px;align-items:start}
 @media(max-width:560px){ .mj-grid{grid-template-columns:1fr} }
-/* Boutons FLOTTANTS un peu plus gros sur desktop (≈0.8× de la version précédente) — mobile inchangé */
+/* Boutons FLOTTANTS plus GROS sur desktop (demande user 2026-06-15) — mobile inchangé */
 @media(min-width:900px){
-  #diceFloat{width:64px!important;height:64px!important;font-size:29px!important;bottom:28px!important;right:28px!important}
-  #partyHudBtn{width:64px!important;height:64px!important;font-size:27px!important}
-  #dicePanel,#diceShortcuts{bottom:102px!important}
-  #diceShortcuts button{width:56px!important;height:56px!important;font-size:25px!important}
-  #diceShortcuts span{font-size:20px!important}
+  #diceFloat{width:80px!important;height:80px!important;font-size:36px!important;bottom:30px!important;right:30px!important}
+  #partyHudBtn{width:80px!important;height:80px!important;font-size:34px!important}
+  #dicePanel,#diceShortcuts{bottom:122px!important}
+  #diceShortcuts button{width:64px!important;height:64px!important;font-size:28px!important}
+  #diceShortcuts span{font-size:21px!important}
   /* Panneau Groupe : un peu plus grand et décalé pour ne pas être collé au bord */
   #partyHudPanel{min-width:300px!important;font-size:17px!important}
 }
@@ -130,6 +130,21 @@
 .mode-btn:not(.on):hover{background:var(--surface2);color:var(--text)}
 .mode-btn.disabled{opacity:.4;cursor:not-allowed}
 @media(max-width:560px){ #modeNav{bottom:14px} .mode-btn{padding:8px 13px;font-size:14px} .mode-btn .mode-ico{font-size:18px} }
+
+/* ── DESKTOP : nav [Hub / Personnage] INTÉGRÉE dans l'en-tête (choix user 2026-06-15) ──
+   #modeNav est déplacé en JS dans l'en-tête actif (_placeModeNavDesktop) et reçoit
+   .modeNav-inHeader → contrôle segmenté inline (fini la pilule flottante au milieu du contenu). */
+@media(min-width:641px){
+  #modeNav.modeNav-inHeader{
+    position:static!important;left:auto!important;right:auto!important;bottom:auto!important;top:auto!important;
+    transform:none!important;width:auto!important;max-width:none;min-height:0;
+    flex:0 0 auto;display:flex;gap:4px;margin:0 10px;padding:3px;z-index:auto!important;
+    background:rgba(0,0,0,.28);border:1px solid var(--cp);box-shadow:inset 0 0 12px rgba(0,0,0,.4);
+  }
+  #modeNav.modeNav-inHeader .mode-btn{flex:0 0 auto;flex-direction:row;gap:7px;padding:8px 18px;font-size:15px}
+  #modeNav.modeNav-inHeader .mode-btn .mode-ico{font-size:19px}
+  #modeNav.modeNav-inHeader .mode-btn .mode-lbl{font-size:15px}
+}
 /* Avatar de navigation (remplace le bouton « Profil ») */
 .nav-avatar{width:38px;height:38px;border-radius:50%;border:1.5px solid var(--cp);background:var(--surface2);color:var(--text);font-size:20px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0;transition:all .15s}
 .nav-avatar:hover{background:rgba(200,168,75,.18);box-shadow:0 0 0 2px rgba(200,168,75,.3)}
@@ -316,7 +331,16 @@
 /* Animation au CHANGEMENT d'onglet (déclenchée par setTab / setMJTab via une classe) */
 #tabContent.tab-switch-anim,#mjTabContent.tab-switch-anim{animation:tabSwitchIn .22s ease}
 @keyframes tabSwitchIn{from{opacity:.2;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* Onglet SÉLECTIONNÉ : contour + texte qui brillent doucement (demande user) */
+.tab.on,.mj-tab.on{text-shadow:0 0 9px var(--cglow);animation:tabActiveGlow 2.3s ease-in-out infinite}
+@keyframes tabActiveGlow{
+  0%,100%{box-shadow:0 0 7px var(--cglow),inset 0 0 7px rgba(200,168,75,.07);text-shadow:0 0 6px var(--cglow)}
+  50%{box-shadow:0 0 15px var(--cglow),inset 0 0 13px rgba(200,168,75,.16);text-shadow:0 0 12px var(--cglow)}
+}
+
 @media(prefers-reduced-motion:reduce){
   .tab-arrow{animation:none!important}
   #tabContent.tab-switch-anim,#mjTabContent.tab-switch-anim{animation:none}
+  .tab.on,.mj-tab.on{animation:none;box-shadow:0 0 10px var(--cglow)}
 }

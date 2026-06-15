@@ -653,6 +653,7 @@ function setTab(id){
   el.classList.remove('tab-switch-anim');void el.offsetWidth;el.classList.add('tab-switch-anim'); // animation de changement d'onglet
   _enableTabDrag();applyAllSectionOrders(); // FIX : enveloppe + ordre AUSSI au changement d'onglet (sinon le drag « saute »)
   setTimeout(autoGrowAll,0);
+  if(typeof _centerActiveTab==='function')setTimeout(_centerActiveTab,40); // centre l'onglet actif dans la barre
 }
 
 function renderTab(){

@@ -24,6 +24,7 @@ function setMJTab(tab){
   renderMJContent();
   const el=document.getElementById('mjTabContent');
   if(el){el.classList.remove('tab-switch-anim');void el.offsetWidth;el.classList.add('tab-switch-anim');} // animation de changement d'onglet MJ
+  if(typeof _centerActiveTab==='function')setTimeout(_centerActiveTab,40); // centre l'onglet actif dans la barre
 }
 
 function renderMJTabs(){
