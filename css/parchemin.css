@@ -1,0 +1,47 @@
+/* ═══════════════════════════════════════════════════════════════
+   ESSAI PARCHEMIN — Fiche perso « parchemin clair, texte foncé » (user 2026-06-23)
+   ⚠️ EXPÉRIMENTAL + 100 % RÉVERSIBLE : retirer l'@import './parchemin.css' dans
+   main.css = annulation TOTALE. Les autres CSS ne sont PAS modifiés.
+   Sauvegarde de la version sombre : _tools/_css_backup_2026-06-23/.
+   Portée : contenu de la FICHE seulement (#tabContent + #charRail).
+   → En-tête, barre d'onglets, bandeau de nav et FABs restent SOMBRES (chrome).
+   Technique : on redéfinit les variables de palette SUR le conteneur de la fiche
+   (texte/accents/bordures passent en foncé-sur-clair par héritage) + fond parchemin.
+   ═══════════════════════════════════════════════════════════════ */
+
+#tabContent, #charRail{
+  /* palette inversée (foncé sur clair) — héritée par tous les descendants */
+  --text:#2c2113;
+  --text2:#5c4a2e;
+  --text3:#7e6a45;
+  --border:#a9863f;
+  --surface:rgba(247,239,217,.62);
+  --surface2:rgba(238,226,196,.70);
+  --surface3:rgba(230,216,182,.78);
+  --cp:#7a571a;                 /* laiton assombri pour rester lisible sur clair */
+  --cglow:rgba(122,87,26,.28);
+  color:#2c2113;
+  background:url('../parchemin.png') center/cover, #e7d8b2;
+}
+
+/* Cartes / panneaux : voile clair posé sur le parchemin → texte foncé lisible + bord brun.
+   (!important + sélecteur id>classe pour battre la couche « brut » de da-theme.) */
+#tabContent .crd,#tabContent .feat-card,#tabContent .ai-panel,#tabContent .sort-row,
+#tabContent .stat-row,#tabContent .eq-slot,#tabContent .inv-item,#tabContent .lu-choice,
+#tabContent .sk-choice,#tabContent .eq-opt,#tabContent .fc,#tabContent .smb,
+#tabContent .prof-row,#tabContent .coin,#tabContent .xp-reward,#tabContent .magic-badge,
+#charRail .crd,#charRail .stat-row,#charRail .hp-bar-hero{
+  background:rgba(248,240,219,.80)!important;
+  border:1px solid #a9863f!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.45), 0 1px 3px rgba(70,50,15,.25)!important;
+  background-image:none!important;   /* retire le dégradé/bevel sombre de da-theme */
+}
+
+/* Titres de section : brun foncé chaud (au lieu du doré clair) */
+#tabContent .pt, #charRail .pt{color:#5a3d12}
+#tabContent .pt::after{background:linear-gradient(90deg,#7a571a,transparent)}
+
+/* Champs de saisie lisibles sur clair */
+#tabContent input,#tabContent select,#tabContent textarea,#tabContent .fi{
+  background:rgba(255,252,244,.85)!important;color:#2c2113!important;border-color:#a9863f!important;
+}

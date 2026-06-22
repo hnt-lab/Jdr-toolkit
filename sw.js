@@ -14,6 +14,8 @@ const PRECACHE = [
   './css/components.css',
   './css/da-theme.css',
   './css/redesign.css',
+  './css/parchemin.css',
+  './parchemin.png',
   './js/firebase.js',
   './js/services/auth-service.js',
   './js/services/user-service.js',
