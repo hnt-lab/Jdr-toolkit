@@ -255,28 +255,33 @@
   .mode-btn .mode-ico{font-size:22px}
   .mode-btn .mode-lbl{font-size:12px;letter-spacing:.03em}
 
-  /* 2. La barre d'onglets : le CONTENEUR .tab-scroller (créé en JS) devient le
-        bandeau fixe, posé juste AU-DESSUS du bandeau de modes. Bord laiton net en
-        haut + noir en bas → vrai bandeau. La barre interne scrolle ; les flèches
-        latérales (absolues dans ce conteneur fixe) s'alignent dessus. */
+  /* 2. EN-TÊTE fixé en haut + barre d'onglets fixée JUSTE EN DESSOUS
+        (user 2026-06-15 : onglets de la fiche en HAUT sur mobile, plus en bas).
+        On fixe aussi l'en-tête, sinon la barre d'onglets recouvrirait le logo. */
+  .hdr,.mj-hdr{
+    position:fixed;top:0;left:0;right:0;z-index:846;height:56px;min-height:0;margin:0;
+    padding-top:6px!important;padding-bottom:6px!important;align-items:center;
+    border-radius:0;border-top:0;border-bottom:1px solid rgba(200,168,75,.25);
+  }
   .tab-scroller{
-    position:fixed;left:0;right:0;top:auto;
-    bottom:calc(66px + env(safe-area-inset-bottom));
-    z-index:844;margin:0;max-width:none;
+    position:fixed;top:56px;left:0;right:0;bottom:auto;
+    z-index:845;margin:0;max-width:none;
     background:rgba(11,8,4,.97);
     border-top:1px solid var(--cp);border-bottom:1px solid #000;
-    box-shadow:0 -2px 10px rgba(0,0,0,.45);
+    box-shadow:0 3px 10px rgba(0,0,0,.45);
     -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);
   }
   #tabBar,#mjTabBar{
-    position:static!important;left:auto;right:auto;bottom:auto;
+    position:static!important;left:auto;right:auto;bottom:auto;top:auto;
     margin:0;max-width:none;border:none;box-shadow:none;border-radius:0;
     background:transparent;padding:7px 42px;       /* 42px = place pour les flèches */
   }
   .tab-arrow{width:42px}
 
-  /* 3. Marge basse du contenu pour que rien ne soit masqué par le bloc de nav */
-  #app,#mjTabContent{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
+  /* 3. Marges : HAUT = en-tête (56px) + barre d'onglets (~46px) fixes ;
+        BAS = bandeau de modes (les onglets ne sont plus en bas). */
+  #app,#mjScreen{padding-top:102px}
+  #app,#mjTabContent{padding-bottom:calc(80px + env(safe-area-inset-bottom))}
   #hubScreen{padding-bottom:calc(82px + env(safe-area-inset-bottom))}
 
   /* 4. GROS FABs ENCASTRÉS dans les creux (64px, centrés sur le bandeau ~66px).
