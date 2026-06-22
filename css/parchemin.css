@@ -45,3 +45,48 @@
 #tabContent input,#tabContent select,#tabContent textarea,#tabContent .fi{
   background:rgba(255,252,244,.85)!important;color:#2c2113!important;border-color:#a9863f!important;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   COHÉRENCE DA « VIEUX GRIMOIRE » — le reste de la page = RELIURE cuir + laiton
+   (autour des pages parchemin). Tout est ici → toujours annulable via l'@import.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Fond de page : cuir/bois chaud (au lieu du noir froid). On garde la texture BR2
+   (on ne change QUE la couleur, pas le background-image). */
+body{background-color:#17100a !important}
+
+/* En-têtes (fiche / MJ / Hub) : plaque cuir + liseré laiton net */
+.hdr,.mj-hdr,.hub-hdr{
+  background:linear-gradient(180deg,#241a0d,#180f08)!important;
+  border-bottom:2px solid #9a7a32 !important;
+  box-shadow:0 2px 0 #0c0805, 0 4px 14px rgba(0,0,0,.45) !important;
+}
+
+/* Barre d'onglets (bandeau mobile en haut / barre desktop) : cuir + double liseré */
+.tab-scroller{
+  background:linear-gradient(180deg,#241a0d,#160f08)!important;
+  border-top:1px solid #b8902f !important;border-bottom:1px solid #4a3718 !important;
+}
+
+/* Bandeau de modes (mobile, en bas) : cuir + laiton épais */
+#modeNav{
+  background:linear-gradient(180deg,#2a1f10,#160f06)!important;
+  border-top:2px solid #b8902f !important;
+}
+/* Nav intégrée à l'en-tête (desktop) : contrôle segmenté réchauffé */
+#modeNav.modeNav-inHeader{background:rgba(40,28,12,.55)!important;border-color:#9a7a32 !important}
+
+/* ── BORDURES RETRAVAILLÉES ──
+   Cartes parchemin : filet laiton + FIN liseré crème intérieur (double-cadre) + ombre douce. */
+#tabContent .crd,#tabContent .feat-card,#tabContent .ai-panel,#tabContent .sort-row,
+#tabContent .stat-row,#tabContent .eq-slot,#tabContent .inv-item,#tabContent .lu-choice,
+#tabContent .sk-choice,#tabContent .eq-opt,#tabContent .fc,#tabContent .smb,
+#tabContent .prof-row,#tabContent .coin,#tabContent .xp-reward,#tabContent .magic-badge,
+#charRail .crd,#charRail .stat-row,#charRail .hp-bar-hero{
+  border:1px solid #9a7a32 !important;
+  box-shadow:inset 0 0 0 1px rgba(255,250,235,.55), 0 1px 4px rgba(50,32,8,.3) !important;
+}
+/* Chrome (en-tête/onglets/nav) : bordure laiton un peu plus présente déjà posée ci-dessus.
+   Onglet inactif sur le cuir : texte chaud lisible (l'actif garde son doré qui pulse). */
+.tab:not(.on),.mj-tab:not(.on){color:#c9b487 !important;border-color:#6a5326 !important}
+
