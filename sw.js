@@ -60,10 +60,10 @@ const PRECACHE = [
   './js/mj/journal.js',
   './js/mj/regles.js',
   './manifest.json',
-  './icon.svg',
-  './icon-512.png',
-  './logo.png',
-  './bg-login.jpg'
+  './img/icon.svg',
+  './img/icon-512.png',
+  './img/logo.png',
+  './img/bg-login.jpg'
 ];
 
 // Domaines Firebase/Google : jamais interceptés
