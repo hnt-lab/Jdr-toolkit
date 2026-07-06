@@ -354,7 +354,7 @@ function mjFillMonster(idx){
   if(m.sen&&m.sen.trim())_mjNewMonsterTraits.push({name:'Sens',desc:_feetToM(m.sen)});
   if(m.sv&&m.sv.trim())_mjNewMonsterTraits.push({name:'Jets de sauvegarde',desc:m.sv});
   if(m.sk&&m.sk.trim())_mjNewMonsterTraits.push({name:'Compétences',desc:m.sk});
-  if(m.spd&&m.spd.trim()&&m.spd!=='walk 30 ft.')_mjNewMonsterTraits.push({name:'Vitesse',desc:_feetToM(m.spd)});
+  if(m.spd&&m.spd.trim()&&m.spd!=='9 m'&&m.spd!=='walk 30 ft.')_mjNewMonsterTraits.push({name:'Vitesse',desc:_feetToM(m.spd)});
   // Actions spéciales (actes sans jet d'attaque) → traits
   _specialActions.forEach(n=>{
     const lc=n.toLowerCase();

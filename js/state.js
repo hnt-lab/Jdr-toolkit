@@ -659,9 +659,10 @@ function setTab(id){
 function renderTab(){
   const el=document.getElementById('tabContent');if(!el)return;
   const p=P();
-  if(!p.created){el.innerHTML=tabCreation(p);return;}
+  if(!p.created){el.innerHTML=tabCreation(p);if(typeof _ctaScrollGlow==='function')setTimeout(_ctaScrollGlow,40);return;}
   const map={perso:tabPerso,competences:tabCompetences,combat:tabCombat,equipement:tabEquipement,sac:tabSac,historique:tabHistorique,xp:tabXP,sorts:tabSorts,levelup:tabLevelUp,journal:tabJournal};
   el.innerHTML=(map[state.activeTab]||tabPerso)(p);
+  if(state.activeTab==='levelup'&&typeof _ctaScrollGlow==='function')setTimeout(_ctaScrollGlow,40); // scroll+glow bouton continuer au LU
   _enableTabDrag();applyAllSectionOrders(); // synchrone : pas de fenêtre où les attributs de drag manquent
   setTimeout(autoGrowAll,0);
   setTimeout(()=>{_enableTabDrag();applyAllSectionOrders();},10); // filet de sécurité

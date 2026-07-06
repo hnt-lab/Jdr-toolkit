@@ -100,7 +100,8 @@
 details,summary,input,select,textarea,fieldset,label,table,td,th,blockquote){
   border-radius:0!important;
 }
-#diceFloat,#partyHudBtn,.nav-avatar,.auth-spinner,.sync-dot,.status-dot,
+#diceFloat,#partyHudBtn,#partyHudBadge,#partyHudTurnBadge,.nav-avatar,.pm-portrait,
+.auth-spinner,.sync-dot,.status-dot,.prof-dot,.save-dot,.sk-dot,.ds-circle,.slot-bubble,
 #_diceFx .dicefx-ring,
 [style*="border-radius:50%"],[style*="border-radius: 50%"]{border-radius:50%!important}
 

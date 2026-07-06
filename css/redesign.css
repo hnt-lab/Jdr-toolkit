@@ -315,6 +315,26 @@
 /* Logo du header (remplace l'emoji 🧰) — version alpha de l'icône de l'app */
 .hdr-logo{height:1.45em;width:auto;vertical-align:-0.32em;filter:drop-shadow(0 0 5px rgba(127,209,196,.22))}
 
+/* A11y : anneau de focus CLAVIER visible sur tout élément interactif (navigation au clavier).
+   :focus-visible ne s'affiche qu'au clavier (pas au clic souris) → non intrusif. */
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,
+textarea:focus-visible,[role="button"]:focus-visible,[tabindex]:focus-visible,summary:focus-visible{
+  outline:2px solid var(--cp); outline-offset:2px; border-radius:1px;
+}
+
+/* Onglets de fiche PLUS GROS (mobile + desktop) — retour user 2026-07-05.
+   (Le look « intercalaire » sans barre au-dessus = à retravailler proprement depuis une maquette.) */
+.tab,.mj-tab{padding:10px 17px !important;font-size:18px !important}
+
+/* Bouton d'action « prêt » (création / level-up) : brille + pulse quand les choix sont faits.
+   Appliqué par _ctaScrollGlow() (core.js), qui scrolle aussi jusqu'au bouton. */
+.cta-ready{animation:ctaReadyPulse 1.3s ease-in-out infinite}
+@keyframes ctaReadyPulse{
+  0%,100%{box-shadow:0 0 0 1px var(--cp), 0 2px 6px rgba(0,0,0,.4)}
+  50%{box-shadow:0 0 0 1px var(--cp), 0 0 20px var(--cglow), 0 2px 6px rgba(0,0,0,.4)}
+}
+@media(prefers-reduced-motion:reduce){.cta-ready{animation:none;box-shadow:0 0 16px var(--cglow)}}
+
 /* Conteneur scrollable : la barre interne défile horizontalement (sans ascenseur visible) */
 .tab-scroller{min-width:0}
 /* Desktop SEULEMENT : position:relative (ancre des flèches absolues). Sur mobile (≤640px)

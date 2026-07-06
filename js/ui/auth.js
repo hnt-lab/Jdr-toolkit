@@ -304,7 +304,7 @@ async function sendFeedback(){
     await userService.sendFeedback(currentUser?.uid,currentUser?.email,type,msg);
     closeModal();
     showToast('✅ Merci pour ton retour !');
-  }catch(e){showToast('❌ Erreur : '+e.message);}
+  }catch(e){showToast('❌ Une erreur est survenue, réessaie.');}
 }
 
 async function saveUserSettings(){
@@ -318,7 +318,7 @@ async function saveUserSettings(){
     const btn=document.getElementById('hubUserBtn');
     if(btn) btn.innerHTML=`👤 ${esc(name)}`;
     closeModal();showToast('✅ Profil mis à jour !');
-  }catch(e){showToast('❌ Erreur : '+e.message);}
+  }catch(e){showToast('❌ Une erreur est survenue, réessaie.');}
 }
 async function enterCampaignFromLib(campaignId, tableName, campaignName){
   closeModal();
@@ -411,7 +411,7 @@ async function useExistingCharForCampaign(sourceCampId,tableId,campId){
     state.players=[typeof migratePlayer==='function'?migratePlayer(data):data];
     render();
     await saveAll(true);
-  }catch(e){showToast('❌ Erreur : '+e.message);}
+  }catch(e){showToast('❌ Une erreur est survenue, réessaie.');}
 }
 
 function importCharForCampaign(tableId,campId){

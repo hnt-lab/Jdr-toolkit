@@ -179,6 +179,15 @@ fbAuth.onAuthStateChanged(async user=>{
       const doc=await fbDb.collection('users').doc(user.uid).get();
       currentUserData=doc.exists?doc.data():{displayName:user.displayName||'Utilisateur',role:'Joueur'};
     }catch(e){currentUserData={displayName:user.displayName||'Utilisateur',role:'Joueur'};}
+    // Listener TEMPS RÉEL sur le doc user → « Mes personnages » (charLib), avatar et pseudo
+    // restent à jour ENTRE APPAREILS. Avant : figé à la connexion → un perso créé sur PC
+    // n'apparaissait pas sur mobile (et inversement) tant qu'on ne se reconnectait pas.
+    try{
+      if(window._userDocUnsub)window._userDocUnsub();
+      window._userDocUnsub=fbDb.collection('users').doc(user.uid).onSnapshot(d=>{
+        if(d.exists){currentUserData=d.data();if(typeof _refreshNavAvatars==='function')_refreshNavAvatars();}
+      },()=>{});
+    }catch(e){}
     hideSplash();
     if(typeof _refreshNavAvatars==='function')_refreshNavAvatars();
     if(typeof loadMJCompLib==='function')loadMJCompLib();
@@ -186,6 +195,7 @@ fbAuth.onAuthStateChanged(async user=>{
     if(_authEl&&getComputedStyle(_authEl).display!=='none'&&typeof _mjtkEntrance==='function'){_mjtkEntrance(showHub);}
     else{showHub();}
   }else{
+    if(window._userDocUnsub){try{window._userDocUnsub();}catch(e){}window._userDocUnsub=null;}
     currentUser=null;currentUserData=null;
     hideSplash();
     showAuthScreen();
@@ -303,6 +313,19 @@ function _placeModeNavDesktop(){
     nav.classList.remove('modeNav-inHeader');
     if(nav.parentElement!==document.body) document.body.appendChild(nav);
   }
+}
+// Création / Level-up : quand les choix sont faits (bouton d'action « prêt » présent et actif),
+// scrolle jusqu'à lui et le fait pulser/briller. Appelé après chaque rendu de création/LU.
+function _ctaScrollGlow(){
+  const c=document.getElementById('tabContent'); if(!c) return;
+  const cand=[...c.querySelectorAll('.btn.bac,.btn.bprimary')].filter(b=>
+    !b.disabled && b.offsetParent!==null &&
+    /continuer|suivant|valider|cr[ée]er|terminer|confirmer|commencer|finaliser|valide/i.test(b.textContent||''));
+  const btn=cand[cand.length-1];
+  c.querySelectorAll('.cta-ready').forEach(b=>b.classList.remove('cta-ready'));
+  if(!btn) return;
+  btn.classList.add('cta-ready');
+  try{ btn.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){ try{btn.scrollIntoView();}catch(_){} }
 }
 // Centre l'onglet ACTIF dans la barre scrollable (appelé au changement d'onglet).
 function _centerActiveTab(){

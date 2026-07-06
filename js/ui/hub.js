@@ -294,7 +294,7 @@ async function confirmCreateTable(){
       createdAt:firebase.firestore.FieldValue.serverTimestamp()
     });
     closeModal();showToast('✅ Table "'+name+'" créée !');renderHub();
-  }catch(e){showToast('❌ Erreur : '+e.message);}
+  }catch(e){showToast('❌ Une erreur est survenue, réessaie.');}
 }
 
 // ─── CRÉER UNE CAMPAGNE (MJ) ───
@@ -320,7 +320,7 @@ async function confirmCreateCampaign(tableId){
       createdAt:firebase.firestore.FieldValue.serverTimestamp()
     });
     closeModal();showToast('✅ Campagne "'+name+'" créée !');renderHub();
-  }catch(e){showToast('❌ Erreur : '+e.message);}
+  }catch(e){showToast('❌ Une erreur est survenue, réessaie.');}
 }
 
 // ─── PARAMÈTRES TABLE (MJ) ───
@@ -351,7 +351,7 @@ async function saveTableCompendiums(tableId, auto){
     // si on est actuellement dans cette table, ré-applique tout de suite
     if(typeof currentTableId!=='undefined'&&currentTableId===tableId&&typeof COMP!=='undefined')COMP.applyTableSelection(requiredPacks);
     showToast(auto?'💾 Enregistré':'✅ Compendiums de la table enregistrés.');
-  }catch(e){showToast('❌ Erreur : '+e.message);}
+  }catch(e){showToast('❌ Une erreur est survenue, réessaie.');}
 }
 async function confirmDeleteTable(tableId){
   if(!confirm('Supprimer cette table et toutes ses campagnes ? Cette action est irréversible.'))return;
@@ -362,7 +362,7 @@ async function confirmDeleteTable(tableId){
     batch.delete(fbDb.collection('tables').doc(tableId));
     await batch.commit();
     closeModal();showToast('🗑 Table supprimée.');renderHub();
-  }catch(e){showToast('❌ Erreur : '+e.message);}
+  }catch(e){showToast('❌ Une erreur est survenue, réessaie.');}
 }
 
 // ─── MODIFIER UNE CAMPAGNE (MJ) ───
@@ -420,7 +420,7 @@ async function doDeleteCampaign(tableId,campId){
     if(_hubCache){const t=_hubCache.find(t=>t.id===tableId);if(t)t.campaigns=t.campaigns.filter(c=>c.id!==campId);}
     showToast('🗑 Campagne supprimée.');
     renderHub();
-  }catch(e){showToast('❌ Erreur : '+e.message);}
+  }catch(e){showToast('❌ Une erreur est survenue, réessaie.');}
 }
 
 async function saveEditCampaign(tableId,campId){
@@ -437,7 +437,7 @@ async function saveEditCampaign(tableId,campId){
     if(t){const c=t.campaigns.find(c=>c.id===campId);if(c){c.description=desc;c.detailedDesc=detailed;c.imageUrl=img;c.status=status;}}
     closeModal();showToast('✅ Campagne mise à jour !');
     document.getElementById('hubContent').innerHTML=renderHubHTML(_hubCache);
-  }catch(e){showToast('❌ Erreur : '+e.message);}
+  }catch(e){showToast('❌ Une erreur est survenue, réessaie.');}
 }
 
 // ─── REJOINDRE UNE TABLE (JOUEUR) ───
@@ -481,7 +481,7 @@ async function doJoinTable(code){
     // Nettoie le paramètre URL
     window.history.replaceState({},'',window.location.pathname);
     renderHub();
-  }catch(e){showToast('❌ Erreur : '+e.message);}
+  }catch(e){showToast('❌ Une erreur est survenue, réessaie.');}
 }
 
 // ─── QUITTER UNE CAMPAGNE (JOUEUR) ───
@@ -503,7 +503,7 @@ async function hubKickMember(tableId,uid){
     });
     showToast('✅ Joueur retiré de la table.');
     renderHub();
-  }catch(e){showToast('❌ Erreur : '+e.message);}
+  }catch(e){showToast('❌ Une erreur est survenue, réessaie.');}
 }
 function playerLeaveCharacter(campId){
   const c=currentUserData&&currentUserData.charLib&&currentUserData.charLib[campId];
@@ -526,7 +526,7 @@ async function confirmPlayerLeave(){
     if(currentUserData&&currentUserData.charLib&&currentUserData.charLib[campId])currentUserData.charLib[campId].leftCampaign=true;
     showToast('✅ Vous avez quitté la campagne. Votre personnage est conservé.');
     renderHub();
-  }catch(e){showToast('❌ Erreur : '+e.message);}
+  }catch(e){showToast('❌ Une erreur est survenue, réessaie.');}
 }
 async function playerRejoinCampaign(campId){
   if(!campId||!currentUser)return;
@@ -536,7 +536,7 @@ async function playerRejoinCampaign(campId){
     if(currentUserData&&currentUserData.charLib&&currentUserData.charLib[campId])delete currentUserData.charLib[campId].leftCampaign;
     showToast('✅ Bienvenue de retour ! Votre personnage est actif.');
     renderHub();
-  }catch(e){showToast('❌ Erreur : '+e.message);}
+  }catch(e){showToast('❌ Une erreur est survenue, réessaie.');}
 }
 
 // ─── SUPPRIMER DE LA BIBLIOTHÈQUE (JOUEUR) ───
@@ -561,7 +561,7 @@ async function confirmDeleteCharLib(){
     if(currentUserData&&currentUserData.charLib)delete currentUserData.charLib[campId];
     showToast('✅ Personnage supprimé.');
     openUserSettings();
-  }catch(e){showToast('❌ Erreur : '+e.message);}
+  }catch(e){showToast('❌ Une erreur est survenue, réessaie.');}
 }
 
 // ─── COPIER LE LIEN ───

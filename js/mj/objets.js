@@ -192,7 +192,7 @@ async function mjGiveItem(itemIdx,playerIdx){
     await charRef.update({'characterData.inventory':charData.inventory});
     closeModal();
     showToast(`✅ "${esc(item.name||'?')}" donné à ${esc(pp.charData&&pp.charData.charName||pp.playerName||'?')} !`);
-  }catch(e){showToast('❌ Erreur : '+e.message);}
+  }catch(e){showToast('❌ Une erreur est survenue, réessaie.');}
 }
 
 // ─────────────────────────────────────────

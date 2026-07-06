@@ -793,7 +793,7 @@ async function mjSavePlayerSheet(idx){
     closeModal();
     showToast('✅ Fiche de '+esc(pp.playerName||'joueur')+' mise à jour !');
     renderMJContent();
-  }catch(e){showToast('❌ Erreur : '+e.message);}
+  }catch(e){showToast('❌ Une erreur est survenue, réessaie.');}
 }
 
 function mjWhisperPlayer(idx){
@@ -872,7 +872,7 @@ async function mjRespecConfirm(idx){
     closeModal();
     showToast('↩ '+esc(p.charName||'Personnage')+' réinitialisé au niveau 1');
     renderMJContent();
-  }catch(e){showToast('❌ Erreur : '+e.message);}
+  }catch(e){showToast('❌ Une erreur est survenue, réessaie.');}
 }
 function mjQuickKickConfirm(idx){
   const pp=_mjPlayersData[idx];if(!pp)return;
@@ -913,7 +913,7 @@ async function mjKickCharacter(idx){
     await fbDb.collection('characters').doc(pp.docId).update({ejectedFromCampaign:true});
     showToast('✅ '+(pp.playerName||'Joueur')+' retiré de la campagne. Son personnage reste dans sa bibliothèque.');
     // Le listener onSnapshot va détecter ejectedFromCampaign et mettre à jour _mjPlayersData automatiquement
-  }catch(e){showToast('❌ Erreur : '+e.message);}
+  }catch(e){showToast('❌ Une erreur est survenue, réessaie.');}
 }
 
 async function mjKickFromTable(idx){
@@ -932,7 +932,7 @@ async function mjKickFromTable(idx){
     await batch.commit();
     showToast(`✅ ${playerName} exclu(e) de la table.`);
     // Les docs supprimés déclenchent le listener onSnapshot (type='removed') — pas besoin de loadMJPlayersData
-  }catch(e){showToast('❌ Erreur : '+e.message);}
+  }catch(e){showToast('❌ Une erreur est survenue, réessaie.');}
 }
 
 // ─────────────────────────────────────────

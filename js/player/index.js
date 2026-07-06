@@ -131,6 +131,7 @@ function createDiceButton(){
   const btn=document.createElement('div');
   btn.id='diceFloat';
   btn.innerHTML='🎲';
+  btn.setAttribute('role','button');btn.setAttribute('aria-label','Lanceur de dés');btn.setAttribute('tabindex','0'); /* a11y : bouton icône-seule annoncé + focusable */
   const _irlNow=_isIRLMode();
   btn.style.cssText=`position:fixed;bottom:24px;right:24px;z-index:888;width:52px;height:52px;border-radius:50%;background:${_irlNow?'#ff9800':'var(--cp)'};color:${_irlNow?'#000':'#1a1400'};font-size:22px;display:none;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px ${_irlNow?'rgba(255,152,0,.5)':'rgba(0,0,0,.5)'};transition:transform .15s;user-select:none;`;
   btn.onmouseenter=()=>btn.style.transform='scale(1.1)';
@@ -682,7 +683,7 @@ function createPartyHud(){
   const hud=document.createElement('div');
   hud.id='partyHud';
   hud.style.cssText='position:fixed;bottom:24px;left:24px;z-index:850;display:none';
-  hud.innerHTML=`<div id="partyHudPanel" class="phud-panel" style="display:none"></div><div id="partyHudBtn" onclick="_togglePartyHud()" title="Groupe">👥<div id="partyHudBadge"></div><div id="partyHudTurnBadge">⚡</div></div>`;
+  hud.innerHTML=`<div id="partyHudPanel" class="phud-panel" style="display:none"></div><div id="partyHudBtn" onclick="_togglePartyHud()" title="Groupe" role="button" aria-label="Groupe" tabindex="0">👥<div id="partyHudBadge"></div><div id="partyHudTurnBadge">⚡</div></div>`;
   document.body.appendChild(hud);
 }
 createPartyHud();

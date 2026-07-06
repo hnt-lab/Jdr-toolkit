@@ -176,7 +176,7 @@ function equipItem(slotId,name,desc,magic,linkedTo){
   let caStr=null;
   if(typeof ITEMS_DB!=='undefined'&&ITEMS_DB){const dbItem=ITEMS_DB.find(x=>x.n===name);if(dbItem&&dbItem.ac)caStr=String(dbItem.ac);}
   p.equip[slotId]={name,desc,magic:magic||false,linkedTo:linkedTo||'',...(caStr?{ca:caStr}:{})};
-  if(slotId==='chest'||slotId==='offhand'){const newCA=_calcArmorCA(p);if(p.ac!==newCA){p.ac=newCA;showToast('🛡 CA mise à jour : '+newCA);}}
+  if(slotId==='chest'||slotId==='offhand'){const newCA=_calcArmorCA(p);if(p.ac!==newCA){p.ac=newCA;}} /* CA recalculée (toast technique retiré) */
   closeModal();render();}
 function unequipSlot(slotId){
   const p=P();if(!p.equip)return;

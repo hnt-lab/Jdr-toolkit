@@ -15,7 +15,6 @@ const PRECACHE = [
   './css/da-theme.css',
   './css/redesign.css',
   './css/parchemin.css',
-  './parchemin.png',
   './js/firebase.js',
   './js/services/auth-service.js',
   './js/services/user-service.js',
@@ -64,7 +63,7 @@ const PRECACHE = [
   './icon.svg',
   './icon-512.png',
   './logo.png',
-  './bg-login.png'
+  './bg-login.jpg'
 ];
 
 // Domaines Firebase/Google : jamais interceptés

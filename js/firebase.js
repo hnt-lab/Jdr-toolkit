@@ -24,11 +24,9 @@ function _captureErr(msg){
   try{
     window._errLog.push('['+new Date().toLocaleTimeString('fr-FR')+'] '+String(msg).slice(0,300));
     if(window._errLog.length>15)window._errLog=window._errLog.slice(-15);
-    const now=Date.now();
-    if(!window._errBannerTs||now-window._errBannerTs>60000){ // 1 bannière/minute max
-      window._errBannerTs=now;
-      if(typeof showBanner==='function')showBanner('🐞','Une erreur technique est survenue',"L'app continue de fonctionner, mais pense à le signaler : Profil → 💬 Avis / Bug (le rapport d'erreur y sera joint automatiquement).",{variant:'warn'});
-    }
+    // Bannière technique visible RETIRÉE (demande user 2026-06-23 : pas de toast/bannière
+    // technique pendant le jeu). L'erreur reste journalisée dans window._errLog et jointe
+    // automatiquement au formulaire Profil → 💬 Avis / Bug pour le diagnostic.
   }catch(e){}
 }
 window.addEventListener('error',e=>_captureErr((e.message||'Erreur')+' — '+String(e.filename||'').split('/').pop()+':'+(e.lineno||'?')));
@@ -91,14 +89,14 @@ function _doUpdate(){
 function _skipUpdate(){
   _pendingSwUpdate=true;
   const ov=document.getElementById('_updateOverlay');if(ov)ov.remove();
-  if(typeof showToast==='function')showToast('💡 Mise à jour disponible dans ton profil.',3000);
+  /* toast retiré : le badge « Mise à jour disponible » reste visible dans Profil → Mise à jour */
 }
 // ── MAJ MANUELLE (bouton du profil) ──────────────────────────────
 // Vérifie activement s'il existe une nouvelle version sur le serveur.
 // reg.update() → si un nouveau SW existe : install → skipWaiting → activate
 // → message SW_UPDATED → l'overlay s'affiche tout seul. Sinon : « déjà à jour ».
 async function _manualCheckUpdate(){
-  if(typeof showToast==='function')showToast('🔄 Recherche d\'une mise à jour…',1600);
+  /* toast « Recherche… » retiré (le résultat s'affiche : overlay si MAJ, sinon « à jour ») */
   if(!('serviceWorker' in navigator)){_forceHardReload();return;}
   try{
     const reg=await navigator.serviceWorker.getRegistration();
@@ -117,7 +115,7 @@ async function _manualCheckUpdate(){
 // Garantit la dernière version même si le cache est « coincé ». Aucune donnée perdue
 // (les persos/campagnes sont dans Firestore/localStorage, pas dans le cache des fichiers).
 async function _forceHardReload(){
-  if(typeof showToast==='function')showToast('🧹 Vidage du cache…',1500);
+  /* toast « Vidage du cache… » retiré (la page se recharge = feedback visible) */
   try{ if('caches' in window){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)));} }catch(e){}
   try{ const reg=await navigator.serviceWorker.getRegistration(); if(reg)await reg.unregister(); }catch(e){}
   setTimeout(()=>location.reload(true),400);
@@ -282,8 +280,7 @@ function startPlayerListener(campaignId){
       const _barbLvl=((newData.classes||[]).find(c=>c.name==='Barbare')||{}).level||0;
       state.players[0]=newData;
       _suppressUnsavedMark=true;render();
-      _flashSyncDot('playerSyncDot');
-      showToast('🎲 Fiche mise à jour par le MJ');
+      _flashSyncDot('playerSyncDot'); /* la pastille de sync clignote — toast retiré */
       if(_barbLvl>=11&&_rageActive&&_oldHp>0&&_newHp<=0)_showRageImplacablePopup(newData);
     },err=>console.warn('Player sync error:',err));
   _unsubscribes.push(unsub);
@@ -510,7 +507,7 @@ async function playerEndTurn(){
     const banner=document.getElementById('combatTurnBanner');
     if(banner)banner.style.display='none';
     showToast('⏩ Fin de tour signalée. <button onclick="_undoEndTurn()" style="margin-left:8px;padding:3px 10px;border:1px solid var(--cp);border-radius:6px;background:transparent;color:var(--cp);cursor:pointer;font-size:18px">Annuler</button>',6000);
-  }catch(e){showToast('❌ Erreur : '+e.message);}
+  }catch(e){showToast('❌ Une erreur est survenue, réessaie.');}
 }
 async function _undoEndTurn(){
   if(!currentUser||!currentCampaignId)return;
