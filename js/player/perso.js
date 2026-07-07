@@ -283,7 +283,7 @@ function _classPassiveResist(p){
   // Barbare — Rage : résistance contondant/perforant/tranchant (totem de l'Ours = tout sauf psychique)
   const barbLvl=((p.classes||[]).find(c=>c.name==='Barbare')||{}).level||0;
   if(barbLvl>0&&cc['RageActive']===true){
-    if(feats.some(f=>f.name==='Voie du guerrier totem')&&barbLvl>=3&&cc['TotemSpirit']==='Ours')['Acide','Feu','Froid','Foudre','Nécrotique','Poison','Radiant','Tonnerre','Contondant','Perforant','Tranchant'].forEach(t=>r.push(t));
+    if(feats.some(f=>f.name==='Voie du guerrier totem')&&barbLvl>=3&&cc['TotemSpirit']==='Ours')['Acide','Feu','Force','Froid','Foudre','Nécrotique','Poison','Radiant','Tonnerre','Contondant','Perforant','Tranchant'].forEach(t=>r.push(t));
     else r.push('Contondant','Perforant','Tranchant');
   }
   // Magicien — Insensibilité à la non-vie (École de nécromancie niv.10) : résistance nécrotique
@@ -296,10 +296,10 @@ function _classPassiveImmun(p){
   const clercLvl=((p.classes||[]).find(c=>c.name==='Clerc')||{}).level||0;
   // Clerc — Saint de la forge et du feu (niv.17) : immunité au feu
   if(clercLvl>=17&&feats.some(f=>f.name==='Domaine de la forge'))r.push('Feu');
-  // Druide — Protégée de dame Nature (Cercle des terres niv.10) : immunité poison
+  // Druide — Protégé de dame Nature (Cercle de la terre niv.10) : immunité poison
   const druLvl=((p.classes||[]).find(c=>c.name==='Druide')||{}).level||0;
-  if(druLvl>=10&&((p.archetype||{})['Druide']||'').toLowerCase().includes('terres'))r.push('Poison');
-  // Moine — Pureté du corps (niv.10) : immunité poison
+  if(druLvl>=10&&((p.archetype||{})['Druide']||'').toLowerCase().includes('terre'))r.push('Poison');
+  // Moine — Pureté physique (niv.10) : immunité poison
   if((((p.classes||[]).find(c=>c.name==='Moine')||{}).level||0)>=10)r.push('Poison');
   return r;
 }

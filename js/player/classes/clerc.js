@@ -5,7 +5,7 @@ function renderClerc(p) {
   const clercLvl = ((p.classes||[]).find(c=>c.name==='Clerc')||{}).level||0;
   if (!clercLvl || p.wildshape?.active) return '';
   const sagM = mod(p.abilities[4]);
-  const clercPath = (p.features||[]).find(f=>['Domaine de la vie','Domaine de la lumière','Domaine de la nature','Domaine de la tempête','Domaine de la tromperie','Domaine de la guerre','Domaine du savoir','Domaine de la forge'].includes(f.name));
+  const clercPath = (p.features||[]).find(f=>['Domaine de la vie','Domaine de la lumière','Domaine de la nature','Domaine de la tempête','Domaine de la duperie','Domaine de la guerre','Domaine du savoir','Domaine de la forge'].includes(f.name));
   const dn = clercPath?.name || '';
   const cc = p.combatCharges || {};
   const ddSorts = 8 + pb(clercLvl) + sagM;
@@ -66,7 +66,7 @@ function renderClerc(p) {
       'Domaine de la lumière':{bg:'rgba(255,193,7,.07)',  border:'rgba(255,193,7,.4)',   col:'#ffc107', icon:'☀'},
       'Domaine de la nature': {bg:'rgba(76,175,80,.07)',  border:'rgba(76,175,80,.25)',  col:'#4caf50', icon:'🌿'},
       'Domaine de la tempête':{bg:'rgba(33,150,243,.07)', border:'rgba(33,150,243,.25)', col:'#2196f3', icon:'⚡'},
-      'Domaine de la tromperie':{bg:'rgba(156,39,176,.07)',border:'rgba(156,39,176,.25)',col:'#9c27b0', icon:'🎭'},
+      'Domaine de la duperie':{bg:'rgba(156,39,176,.07)',border:'rgba(156,39,176,.25)',col:'#9c27b0', icon:'🎭'},
       'Domaine de la guerre': {bg:'rgba(244,67,54,.07)',  border:'rgba(244,67,54,.25)',  col:'#f44336', icon:'⚔'},
       'Domaine du savoir':    {bg:'rgba(33,150,243,.07)', border:'rgba(33,150,243,.25)', col:'#2196f3', icon:'📚'},
       'Domaine de la forge':  {bg:'rgba(255,87,34,.07)',  border:'rgba(255,87,34,.25)',  col:'#ff5722', icon:'🔨'},
@@ -135,7 +135,7 @@ function renderClerc(p) {
     }
 
     // ─── TROMPERIE ────────────────────────────────────────────
-    else if (dn === 'Domaine de la tromperie') {
+    else if (dn === 'Domaine de la duperie') {
       dc += _clercPanel('🎭 Bénédiction de l\'escroc','Action • niv.1','',`Toucher une créature consentante (pas toi) : avantage aux jets de Discrétion (DEX) pendant 1h. Se remplace si réutilisé.`);
       if (clercLvl>=2) dc += _clercPanel('🪞 Invocation de réplique','Conduit divin','',`Action : illusion parfaite de toi dans un espace visible à 9m (conc. 1 min). Action bonus : déplacer l'illusion à 9m. Tu peux lancer des sorts depuis sa position. Avantage aux attaques contre créatures à 1,5m de l'illusion.`);
       if (clercLvl>=6) dc += _clercPanel('🌑 Linceul d\'ombre','Conduit divin • niv.6','',`Action : dépenser 1 conduit — devenir invisible jusqu'à la fin de ton prochain tour. Fin anticipée si tu attaques ou lances un sort.`);

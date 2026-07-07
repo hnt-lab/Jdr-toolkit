@@ -181,9 +181,9 @@ const CLASS_LEVEL_DATA={
   },
   Barbare:{
     archetypes:[
-      {name:"Voie du berserker",desc:"Frénésie niv.3 (attaque bonus en rage, +1 épuisement à la fin). Rage aveugle niv.6 (immunité charme/peur en rage). Présence intimidante niv.10 (action : effraie une créature, JS SAG). Représailles niv.14 (réaction : attaque de mêlée si touché).",icon:"🔥"},
-      {name:"Voie du guerrier totem",desc:"Esprit totem niv.3 (choix : ours — résistances en rage / aigle — pas d'attaque d'opportunité en rage / loup — avantage allié). Aspect de la bête niv.6. Marcheur spirituel niv.10 (Communion avec la nature rituel). Lien totémique niv.14.",icon:"🐺"},
-      {name:"Voie de la magie sauvage",desc:"Sursaut sauvage niv.3 (effet magique aléatoire d8 à chaque rage). Réserve de magie niv.6. Réaction instable niv.10. Sursaut contrôlé niv.14.",icon:"✨"},
+      {name:"Voie du berserker",desc:"Frénésie niv.3 (attaque bonus en rage, +1 épuisement à la fin). Rage aveugle niv.6 (ni charmé ni effrayé en rage). Présence intimidante niv.10 (action : effraie une créature à 9m, JS SAG DD 8+maîtrise+CHA). Représailles niv.14 (réaction : attaque de mêlée contre une créature à 1,5m qui t'a infligé des dégâts).",icon:"🔥"},
+      {name:"Voie du guerrier totem",desc:"Quêteur spirituel niv.3 (rituels : Communication avec les animaux, Sens animal) + Esprit totem niv.3 (choix : ours — résistance à tout sauf psychique en rage / aigle — désavantage aux attaques d'opportunité contre toi + Foncer en action bonus / loup — avantage des alliés au corps à corps à 1,5m de toi). Aspect de la bête niv.6. Marcheur spirituel niv.10 (Communion avec la nature en rituel). Lien totémique niv.14.",icon:"🐺"},
+      {name:"Voie de la magie sauvage",desc:"Sens de la magie niv.3 (détection 18m, maîtrise/repos long) + Sursaut sauvage niv.3 (effet magique aléatoire d8 à chaque rage). Réserve de magie niv.6 (action toucher : +1d3 aux jets 10 min OU regagner un emplacement de sort ≤ 1d3 ; maîtrise/repos long). Réaction instable niv.10 (réaction sur dégâts/JS raté en rage : nouveau sursaut). Sursaut contrôlé niv.14 (tire 2 résultats, choisis).",icon:"✨"},
     ],
     levelFeatures:{
       1:["Rage (2 utilisations, +2 dégâts)","Défense sans armure (CA = 10+DEX+CON)"],
@@ -212,8 +212,8 @@ const CLASS_LEVEL_DATA={
   },
   Barde:{
     archetypes:[
-      {name:"Collège du savoir",desc:"Maîtrises supplémentaires (3 compétences au choix). Mots cinglants niv.3 (réaction : dépense 1 inspiration bardique, la cible soustrait le dé à son jet). Secrets magiques supplémentaires niv.6 (2 sorts de n'importe quelle classe). Compétence hors-pair niv.14 (dépense 1 inspiration pour améliorer un jet raté).",icon:"📚"},
-      {name:"Collège de la vaillance",desc:"Maîtrises armures intermédiaires, boucliers et armes de guerre. Inspiration martiale niv.3 (allié utilise le dé sur dégâts ou CA). Attaque supplémentaire niv.6. Magie de combat niv.14 (sort bardique comme action bonus si tu attaques).",icon:"🛡"},
+      {name:"Collège du savoir",desc:"Maîtrises supplémentaires (3 compétences au choix). Mots cinglants niv.3 (réaction : dépense 1 inspiration bardique, la cible soustrait le dé de son jet d'attaque, de caractéristique ou de dégâts). Secrets magiques supplémentaires niv.6 (2 sorts de n'importe quelle classe, ne comptent pas dans les sorts connus). Compétence hors-pair niv.14 (dépense 1 inspiration : ajoute le dé à ton propre jet de caractéristique, après le jet mais avant le verdict).",icon:"📚"},
+      {name:"Collège de la vaillance",desc:"Maîtrises armures intermédiaires, boucliers et armes de guerre. Inspiration martiale niv.3 (l'allié peut utiliser le dé sur un jet de dégâts d'arme, ou en réaction l'ajouter à sa CA contre une attaque). Attaque supplémentaire niv.6. Magie de combat niv.14 (quand tu utilises ton action pour lancer un sort de barde, tu peux faire une attaque d'arme en action bonus).",icon:"🛡"},
     ],
     levelFeatures:{
       1:["Incantation","Inspiration bardique (1d6, CHA fois/repos long)"],
@@ -239,7 +239,7 @@ const CLASS_LEVEL_DATA={
     },
     asiLevels:[4,8,12,16,19],
     archetypeLevel:3,
-    spellsPerLevel:{3:1,4:2,5:1,7:1,8:1,9:1,10:2,11:1,13:1,14:1,15:1,16:1,17:1,19:1,20:1},
+    spellsPerLevel:{2:1,3:1,4:1,5:1,6:1,7:1,8:1,9:1,11:1,13:1,15:1,17:1},
     cantripAtLevels:[4,10],
   },
   Clerc:{
@@ -248,7 +248,7 @@ const CLASS_LEVEL_DATA={
       {name:"Domaine de la lumière",desc:"Sort mineur : Lumière. Illumination protectrice niv.1 (réaction, désavantage attaquant). Conduit : Radiance de l'aube niv.2. Illumination améliorée niv.6. Halo de lumière niv.17.",icon:"☀"},
       {name:"Domaine de la nature",desc:"Maîtrise armures lourdes + 1 compétence (Dressage/Nature/Survie). Sort mineur druide niv.1. Conduit : Charme des animaux et plantes niv.2. Atténuation des éléments niv.6. Maître de la nature niv.17.",icon:"🌿"},
       {name:"Domaine de la tempête",desc:"Maîtrises armures lourdes et armes de guerre. Fureur de l'ouragan niv.1 (réaction, 2d8 foudre/tonnerre). Conduit : Fureur destructrice niv.2. Frappe de l'éclair niv.6. Enfant de la tempête niv.17.",icon:"⚡"},
-      {name:"Domaine de la tromperie",desc:"Bénédiction de l'escroc niv.1 (avantage Discrétion). Conduit : Invocation de réplique (illusion) niv.2. Linceul d'ombre niv.6. Réplique améliorée niv.17.",icon:"🎭"},
+      {name:"Domaine de la duperie",desc:"Bénédiction de l'escroc niv.1 (avantage Discrétion 1h à une créature consentante). Conduit : Invocation de réplique (illusion) niv.2. Linceul d'ombre niv.6. Frappe divine (poison) niv.8. Réplique améliorée niv.17.",icon:"🎭"},
       {name:"Domaine de la guerre",desc:"Maîtrises armures lourdes et armes de guerre. Prêtre de guerre niv.1 (attaque bonus avec Sagesse). Conduit : Frappe guidée (+10 attaque) niv.2. Bénédiction du dieu de la guerre niv.6. Avatar de bataille niv.17.",icon:"⚔"},
       {name:"Domaine du savoir",desc:"Bénédictions du savoir niv.1 (2 langues + maîtrise doublée en 2 compétences parmi Arcanes/Histoire/Nature/Religion). Conduit : Savoir ancestral niv.2. Lecture des pensées niv.6. Visions du passé niv.17.",icon:"📚"},
       {name:"Domaine de la forge",desc:"Maîtrises armures lourdes et outils de forgeron. Bénédiction de la forge niv.1 (+1 arme/armure après repos long). Conduit : Bénédiction de l'artisan niv.2. Âme de la forge niv.6. Saint de la forge niv.17.",icon:"🔨"},
@@ -258,19 +258,19 @@ const CLASS_LEVEL_DATA={
       2:["Conduit divin (1 utilisation — dont Renvoi des morts-vivants)","Capacité du domaine"],
       3:["Sorts du domaine niv.2"],
       4:["Amélioration de caractéristiques"],
-      5:["Destruction des morts-vivants (IM 1/2)","Sorts du domaine niv.3"],
+      5:["Destruction des morts-vivants (FP 1/2)","Sorts du domaine niv.3"],
       6:["Conduit divin (2 utilisations)","Capacité du domaine"],
       7:["Sorts du domaine niv.4"],
-      8:["Amélioration de caractéristiques","Destruction des morts-vivants (IM 1)","Capacité du domaine"],
+      8:["Amélioration de caractéristiques","Destruction des morts-vivants (FP 1)","Capacité du domaine"],
       9:["Sorts du domaine niv.5"],
       10:["Intervention divine"],
-      11:["Destruction des morts-vivants (IM 2)"],
+      11:["Destruction des morts-vivants (FP 2)"],
       12:["Amélioration de caractéristiques"],
       13:[],
-      14:["Destruction des morts-vivants (IM 3)","Capacité du domaine"],
+      14:["Destruction des morts-vivants (FP 3)","Frappe divine améliorée (2d8) selon domaine"],
       15:[],
       16:["Amélioration de caractéristiques"],
-      17:["Destruction des morts-vivants (IM 4)","Capacité du domaine"],
+      17:["Destruction des morts-vivants (FP 4)","Capacité du domaine"],
       18:["Conduit divin (3 utilisations)"],
       19:["Amélioration de caractéristiques"],
       20:["Intervention divine améliorée (succès automatique)"],
@@ -281,18 +281,18 @@ const CLASS_LEVEL_DATA={
   },
   Druide:{
     archetypes:[
-      {name:"Cercle de la lune",desc:"Forme sauvage en action bonus niv.2 (CR=1). Frappe primitive niv.6 (attaques en forme animale = magiques). Forme élémentaire niv.10 (2 utilisations : devenir un élémentaire air/eau/terre/feu). Mille formes niv.14 (modifier son apparence à volonté).",icon:"🌙"},
-      {name:"Cercle des terres",desc:"Récupération naturelle niv.2 (repos court : récupérer emplacements ≤ ceil(niv/2), max niv.5). Foulée tellurique niv.6 (terrains difficiles non-magiques sans coût). Protégée de dame Nature niv.10 (immunité charme/peur élémentaires/fées + poison/maladie). Sanctuaire de dame Nature niv.14 (bêtes/plantes : JS SAG pour attaquer).",icon:"🗺"},
+      {name:"Cercle de la lune",desc:"Forme sauvage en action bonus niv.2 (CR 1) + en forme : action bonus pour dépenser un emplacement de sort et récupérer 1d8 PV/niveau. Frappe primitive niv.6 (attaques en forme animale = magiques, CR max = niv/3). Forme sauvage élémentaire niv.10 (dépenser 2 utilisations de Forme sauvage : devenir un élémentaire air/eau/terre/feu). Mille formes niv.14 (Modification d'apparence à volonté).",icon:"🌙"},
+      {name:"Cercle de la terre",desc:"Sort mineur de druide supplémentaire niv.2 + Récupération naturelle niv.2 (repos court : récupérer emplacements ≤ ceil(niv/2), max niv.5). Sorts de cercle liés à un terrain (niv.3/5/7/9, toujours préparés). Foulée tellurique niv.6 (terrains difficiles non-magiques sans coût). Protégé de dame Nature niv.10 (ni charmé ni effrayé par élémentaires/fées, immunité poison/maladie). Sanctuaire de dame Nature niv.14 (bêtes/plantes : JS SAG pour attaquer).",icon:"🗺"},
     ],
     levelFeatures:{
-      1:["Incantation"],
+      1:["Druidique","Incantation"],
       2:["Forme sauvage (CR 1/4, pas nage/vol)","Cercle druidique (choix)"],
       3:["Sorts du cercle niv.2"],
       4:["Forme sauvage améliorée (CR 1/2 nage)","Amélioration de caractéristiques"],
       5:["Sorts du cercle niv.3"],
-      6:["Capacité du cercle","Forme sauvage (CR = niv/3, ex. CR 2 à niv.6)"],
+      6:["Capacité du cercle"],
       7:["Sorts du cercle niv.4"],
-      8:["Amélioration de caractéristiques","Forme sauvage améliorée (vol autorisé)"],
+      8:["Amélioration de caractéristiques","Forme sauvage (CR 1, vol)"],
       9:["Sorts du cercle niv.5"],
       10:["Capacité du cercle"],
       11:["Accès aux emplacements de sorts de niveau 6"],
@@ -302,7 +302,7 @@ const CLASS_LEVEL_DATA={
       15:["Accès aux emplacements de sorts de niveau 8"],
       16:["Amélioration de caractéristiques"],
       17:["Accès aux emplacements de sorts de niveau 9"],
-      18:["Corps intemporel (vieillissement ×10)","Sorts de bête"],
+      18:["Jeunesse éternelle (vieillissement ×10)","Incantation animale"],
       19:["Amélioration de caractéristiques"],
       20:["Archidruide (Forme sauvage illimitée)"],
     },
@@ -417,17 +417,17 @@ const CLASS_LEVEL_DATA={
       {name:"Duel",desc:"+2 aux dégâts avec une arme tenue en une main."},
       {name:"Combat à deux armes",desc:"Ajouter le modificateur de carac. aux dégâts de la seconde attaque."},
     ],
-    spellsPerLevel:{2:1,3:1,5:1,7:1,9:1},
+    spellsPerLevel:{2:2,3:1,5:1,7:1,9:1,11:1,13:1,15:1,17:1,19:1},
   },
   Roublard:{
     archetypes:[
-      {name:"Voleur",desc:"Niv.3 : Mains lestes (utiliser Ruse pour objet, pickpocket, kit de crochetage), Monte-en-l'air (Foncer en action bonus = escalade vitesse normale, saut bonus, rester agile). Niv.9 : Discrétion suprême (se cacher si légèrement obscurci). Niv.13 : Utilisation d'objets magiques (utiliser objets magiques sans conditions de classe/race). Niv.17 : Réflexes de voleur (toujours agir au premier tour de surprise, deux actions au 1er tour si non surpris).",icon:"🎭"},
-      {name:"Escroc arcanique",desc:"Niv.3 : Incantation (INT, sorts d'enchantement et d'illusion), main de mage invisible (gratuite, invisible, action bonus). Niv.9 : Embuscade magique (cible du sort désavantagée au JS si caché). Niv.13 : Escroc polyvalent (main de mage : une action par tour supplémentaire). Niv.17 : Voleur de sort (réaction : contre-sort, utiliser le sort contre la cible ou le conserver).",icon:"🔮"},
-      {name:"Assassin",desc:"Niv.3 : Maîtrise kit de déguisement/empoisonneur, Assassinat (avantage sur créature n'ayant pas encore agi, coup critique si surprise). Niv.9 : Expert en infiltration (créer de fausses identités, faux papiers). Niv.13 : Imposteur (dupliquer apparence/voix d'une personne étudiée 3h). Niv.17 : Frappe meurtrière (si Attaque sournoise : cible doit réussir CON DD 8+maîtrise+DEX ou tomber à 0 PV).",icon:"🗡"},
-      {name:"Conspirateur",desc:"Niv.3 : Maître des intrigues (maîtrises kit déguisement, faussaire, jeu et deux langues), Maître des tactiques (action Aider en action bonus à portée 9m). Niv.9 : Manipulateur perspicace (Intuition/Tromperie doublement maîtrisées, lire les actions d'une cible). Niv.13 : Redirection (réaction : détourner une attaque contre toi vers une autre créature à 1,5m). Niv.17 : Âme de trompeur (résistance psychiques, avantage contre magie de charme/terreur).",icon:"🕵"},
+      {name:"Voleur",desc:"Niv.3 : Mains lestes (l'action bonus de Ruse permet aussi : Escamotage, outils de voleur, Utiliser un objet), Monte-en-l'air (escalade sans surcoût de mouvement, saut en longueur +DEX×30cm). Niv.9 : Discrétion suprême (avantage à Discrétion si tu te déplaces d'au plus la moitié de ta vitesse). Niv.13 : Utilisation d'objets magiques (ignore les conditions de classe/race/niveau des objets magiques). Niv.17 : Réflexes de voleur (deux tours au 1er round : initiative normale puis initiative −10 ; pas si surpris).",icon:"🎭"},
+      {name:"Escroc arcanique",desc:"Niv.3 : Incantation (INT, sorts de magicien enchantement/illusion) + Escamotage et main de mage (main invisible, vol/dépôt d'objets, crochetage à distance, contrôlée par l'action bonus de Ruse). Niv.9 : Embuscade magique (si tu es caché quand tu lances un sort, la cible a un désavantage au JS ce tour). Niv.13 : Escroc polyvalent (action bonus : la main de mage distrait une créature à 1,5m d'elle → avantage à tes attaques contre elle ce tour). Niv.17 : Voleur de sort (réaction contre un sort qui te cible : JS du lanceur ou le sort est annulé contre toi et tu le voles pendant 8h ; 1/repos long).",icon:"🔮"},
+      {name:"Assassin",desc:"Niv.3 : Maîtrise kit de déguisement/empoisonneur, Assassinat (avantage sur créature n'ayant pas encore agi, coup critique si la cible est surprise). Niv.9 : Expert en infiltration (créer de fausses identités : 1 semaine + 25 po). Niv.13 : Imposteur (dupliquer voix/écriture/manières d'une personne étudiée 3h). Niv.17 : Frappe meurtrière (touche sur une cible surprise : JS CON DD 8+maîtrise+DEX ou les dégâts de l'attaque sont DOUBLÉS).",icon:"🗡"},
+      {name:"Conspirateur",desc:"Niv.3 : Maître des intrigues (maîtrises kit déguisement, faussaire, jeu et deux langues), Maître des tactiques (action Aider en action bonus à portée 9m). Niv.9 : Manipulateur perspicace (Intuition/Tromperie doublement maîtrisées, lire les actions d'une cible). Niv.13 : Redirection (réaction : détourner une attaque contre toi vers une autre créature à 1,5m). Niv.17 : Âme de la duperie (pensées illisibles par télépathie — seules de fausses pensées sont lues ; la magie de vérité te voit toujours véridique et tu peux mentir dans les langues que tu connais).",icon:"🕵"},
     ],
     levelFeatures:{
-      1:["Attaque sournoise (1d6)","Expertise (2×maîtrise sur 2 comp.)","Jargon des voleurs"],
+      1:["Attaque sournoise (1d6)","Expertise (2×maîtrise sur 2 comp.)","Argot des voleurs"],
       2:["Ruse (action bonus: Foncer/Désengager/Se cacher)"],
       3:["Archétype (choix)","Attaque sournoise (2d6)"],
       4:["Amélioration de caractéristiques"],
@@ -437,7 +437,7 @@ const CLASS_LEVEL_DATA={
       8:["Amélioration de caractéristiques"],
       9:["Attaque sournoise (5d6)","Capacité de l'archétype"],
       10:["Amélioration de caractéristiques"],
-      11:["Attaque sournoise (6d6)","Savoir-faire (tout jet de compétence maîtrisé min 10)"],
+      11:["Attaque sournoise (6d6)","Talent fiable (tout jet de compétence maîtrisée : d20 min 10)"],
       12:["Amélioration de caractéristiques"],
       13:["Attaque sournoise (7d6)","Capacité de l'archétype"],
       14:["Perception aveugle (créatures cachées/invisibles à 3m)"],
@@ -453,7 +453,7 @@ const CLASS_LEVEL_DATA={
   },
   Ensorceleur:{
     archetypes:[
-      {name:"Origine draconique",desc:"Ancêtre dragon (type au choix). Niv.1 : CA 13+DEX, parle draconique, PV max +1/niveau (Résistance draconique). Niv.6 : Affinité élémentaire (bonus dégâts + résistance). Niv.14 : Ailes draconiques. Niv.18 : Présence draconique.",icon:"🐉"},
+      {name:"Lignée draconique",desc:"Ancêtre dragon (type au choix). Niv.1 : CA 13+DEX, parle draconique, PV max +1/niveau (Résistance draconique). Niv.6 : Affinité élémentaire (bonus dégâts + résistance). Niv.14 : Ailes draconiques. Niv.18 : Présence draconique.",icon:"🐉"},
       {name:"Magie sauvage",desc:"Surtension de magie sauvage (MJ lance 1d20 après un sort niv1+, sur 1: effet aléatoire). Niv.1 : Marée du chaos (avantage sur un jet, jusqu'à prochaine surtension). Niv.6 : Chance forcée (2 pts : impose désavantage/avantage sur le jet d'une cible). Niv.14 : Chaos contrôlé (choisir parmi 2 effets de surtension). Niv.18 : Bombardement de sort (relancer les 1 aux dégâts).",icon:"🌀"},
     ],
     levelFeatures:{
@@ -476,7 +476,7 @@ const CLASS_LEVEL_DATA={
       17:["Métamagie (4e option)"],
       18:["Capacité de l'origine (niv.18)"],
       19:["Amélioration de caractéristiques"],
-      20:["Restauration d'ensorceleur (1/repos court : récupère 4 pts de sorcellerie)"],
+      20:["Restauration ensorcelée (à chaque repos court : regagne 4 pts de sorcellerie)"],
     },
     asiLevels:[4,8,12,16,19],
     archetypeLevel:1,
@@ -506,7 +506,7 @@ const CLASS_LEVEL_DATA={
       3:["Faveur de pacte (choix: Chaîne / Lame / Grimoire)","Emplacements de sorts niv.2"],
       4:["Amélioration de caractéristiques"],
       5:["Manifestations occultes (3 total)","Emplacements niv.3"],
-      6:["Capacité du patron d'Outremonde","Manifestations occultes (3 total)"],
+      6:["Capacité du patron d'Outremonde"],
       7:["Manifestations occultes (4 total)","Emplacements niv.4"],
       8:["Amélioration de caractéristiques"],
       9:["Manifestations occultes (5 total)","Emplacements niv.5"],
@@ -566,32 +566,32 @@ const CLASS_LEVEL_DATA={
   },
   Artificier:{
     archetypes:[
-      {name:"Alchimiste",desc:"Extraits alchimiques au niv.3 (soins, acide, feu, vapeur). Formules améliorées au niv.5 et 9.",icon:"⚗"},
-      {name:"Artilleur",desc:"Canon arcanique au niv.3 (choc, feu ou protection). Canon amélioré au niv.9.",icon:"💥"},
-      {name:"Forgeron de bataille",desc:"Compagnon d'acier (CA=13+maîtrise). Arme de pacte niv.3. Magie défensive niv.9.",icon:"🤖"},
-      {name:"Maître armurier",desc:"Armure de gardien ou d'infiltrateur. Améliorations aux niveaux 9 et 15.",icon:"🛡"},
+      {name:"Alchimiste",desc:"Niv.3 : maîtrise du matériel d'alchimiste + sorts d'alchimiste toujours préparés + Élixir expérimental (1/repos long, effet au d6 ; 2 au niv.6, 3 au niv.15 ; élixirs en plus via emplacements de sorts, effet au choix). Niv.5 : Érudit alchimique (+INT à un jet de soins ou de dégâts acide/feu/nécrotique/poison des sorts lancés via le matériel d'alchimiste). Niv.9 : Ingrédients revigorants (élixirs : +2d6+INT PV temporaires ; Restauration partielle gratuite INT/repos long). Niv.15 : Maîtrise chimique (résistance acide/poison, immunité à l'état empoisonné ; Restauration supérieure et Guérison 1×/repos long chacune).",icon:"⚗"},
+      {name:"Artilleur",desc:"Niv.3 : maîtrise outils de menuisier + sorts d'artilleur toujours préparés + Canon occulte (action : canon TP/P, CA 18, PV 5×niv ; action bonus pour l'activer : Lance-flammes cône 4,5m 2d8 feu / Baliste de choc 2d8 force + repoussée 1,5m / Protecteur 1d8+INT PV temp à 3m ; 1/repos long ou via emplacement). Niv.5 : Arme à feu arcanique (baguette/bâton/sceptre gravé : +1d8 à un jet de dégâts du sort). Niv.9 : Canon explosif (+1d8 aux dégâts du canon ; action : détonation 6m, 3d8 force JS DEX). Niv.15 : Position fortifiée (abri partiel pour les alliés à 3m des canons ; 2 canons à la fois, activés par la même action bonus).",icon:"💥"},
+      {name:"Forgeron de guerre",desc:"Niv.3 : maîtrise outils de forgeron + armes de guerre + sorts toujours préparés + Apte au combat (INT à la place de FOR/DEX pour attaque et dégâts des armes MAGIQUES) + Défenseur d'acier (compagnon : CA 15, PV 2+INT+5×niv, Morsure de force, Réparation 3/j, réaction Parade d'attaque). Niv.5 : Attaque supplémentaire. Niv.9 : Décharge arcanique (sur touche d'arme magique — toi ou le défenseur : +2d6 force OU soigner 2d6 à une créature à 9m ; INT/repos long, 1/tour). Niv.15 : Défenseur amélioré (décharge 4d6, défenseur +2 CA, sa Parade inflige 1d4+INT force).",icon:"🤖"},
+      {name:"Maître armurier",desc:"Niv.3 : Armure d'arcanes + modèle Gardien (Poings de tonnerre 1d8 tonnerre, la cible a un désavantage contre les autres que toi ; Champ défensif : action bonus, PV temp = niveau) ou Infiltrateur (Lance-foudre 1d6 foudre à distance, +1d6 1×/tour ; +1,5m vitesse, avantage Discrétion). Niv.5 : Attaque supplémentaire. Niv.9 : Modifications d'armure (l'armure compte comme plusieurs objets pour tes imprégnations, +2 imprégnations max sur elle). Niv.15 : Armure parfaite (améliore ton modèle — cf. TCE).",icon:"🛡"},
     ],
     levelFeatures:{
       1:["Bricolage magique","Incantation (INT)"],
-      2:["Infuser un objet (4 formules, 2 actives)"],
-      3:["Spécialité d'artificier (choix)","Le bon outil pour le travail"],
+      2:["Imprégnation d'objet (4 imprégnations connues, 2 objets)"],
+      3:["Spécialité d'artificier (choix)","Outil de circonstance"],
       4:["Amélioration de caractéristiques"],
-      5:["Attaque supplémentaire","Sorts du spécialiste niv.3"],
-      6:["Expertise en outils"],
-      7:["Éclair de génie (réaction : +INT à un jet raté)"],
-      8:["Amélioration de caractéristiques","Infusions (6 formules, 4 actives)"],
-      9:["Capacité du spécialiste","Sorts niv.5"],
-      10:["Expert en objets magiques (3 attuned supplémentaires)","Infusions (8 formules, 4 actives)"],
-      11:["Objet stocke-sort"],
-      12:["Amélioration de caractéristiques","Infusions (10 formules, 5 actives)"],
-      13:["Sorts niv.7"],
-      14:["Savant en objets magiques (4 attuned)","Infusions (10 formules, 6 actives)"],
-      15:["Capacité du spécialiste","Sorts niv.9"],
-      16:["Amélioration de caractéristiques","Infusions (12 formules, 6 actives)"],
-      17:[],
-      18:["Maître des objets magiques (5 attuned)"],
+      5:["Capacité de la spécialité","Sorts de spécialité supplémentaires"],
+      6:["Expertise de l'outillage (maîtrise doublée avec les outils)","Imprégnations (6 connues, 3 objets)"],
+      7:["Éclair de génie (réaction : +INT à un jet de carac./JS, toi ou allié à 9m)"],
+      8:["Amélioration de caractéristiques"],
+      9:["Capacité de la spécialité","Sorts de spécialité supplémentaires"],
+      10:["Adepte des objets magiques (4 liens ; fabrication commun/peu commun ¼ temps, ½ or)","Imprégnations (8 connues, 4 objets)"],
+      11:["Objet de stockage de sort (sort niv.1-2 stocké, 2×INT utilisations)"],
+      12:["Amélioration de caractéristiques"],
+      13:["Sorts de spécialité supplémentaires"],
+      14:["Érudit des objets magiques (5 liens ; ignore les exigences des objets magiques)","Imprégnations (10 connues, 5 objets)"],
+      15:["Capacité de la spécialité"],
+      16:["Amélioration de caractéristiques"],
+      17:["Sorts de spécialité supplémentaires"],
+      18:["Maître des objets magiques (6 liens)","Imprégnations (12 connues, 6 objets)"],
       19:["Amélioration de caractéristiques"],
-      20:["Âme d'artifice (+1 à tous JS, 5 infusions simultanées)"],
+      20:["Âme de l'artifice (+1 aux JS par objet magique lié ; réaction à 0 PV : sacrifier une imprégnation → 1 PV)"],
     },
     asiLevels:[4,8,12,16,19],
     archetypeLevel:3,
@@ -681,14 +681,14 @@ function _checkFeatPrereqs(f,p){
 
 const DRUID_CIRCLE_FEATS={
   'Cercle de la lune':{
-    6:{name:'Frappe primitive',desc:'Tes attaques en forme animale sont considérées comme magiques et ignorent les résistances aux dégâts non magiques.'},
-    10:{name:'Forme élémentaire',desc:'Tu peux dépenser 2 utilisations de Forme sauvage pour te transformer en un élémentaire de CR 5 ou moins (air, eau, terre, feu).'},
-    14:{name:'Mille formes',desc:"Tu peux utiliser Modification d'apparence à volonté (action bonus)."}
+    6:{name:'Frappe primitive',desc:'Tes attaques en forme animale sont considérées comme magiques et ignorent les résistances aux dégâts non magiques. Ta Forme sauvage atteint un CR max = ton niveau de druide ÷ 3 (arrondi à l\'inférieur).'},
+    10:{name:'Forme sauvage élémentaire',desc:'Tu peux dépenser 2 utilisations de Forme sauvage en même temps pour te transformer en élémentaire de l\'air, de l\'eau, de la terre ou du feu.'},
+    14:{name:'Mille formes',desc:"Tu peux lancer Modification d'apparence à volonté."}
   },
-  'Cercle des terres':{
-    6:{name:'Foulée tellurique',desc:'Les terrains difficiles non-magiques ne te coûtent pas de déplacement supplémentaire.'},
-    10:{name:'Protégée de dame Nature',desc:'Immunité aux poisons et maladies. Résistance aux types élémentaires. Insensible au charme et à la peur des fées et élémentaires.'},
-    14:{name:'Sanctuaire de dame Nature',desc:"Les bêtes et plantes doivent réussir un JS Sagesse DD 8+maîtrise+SAG pour t'attaquer, sinon elles choisissent une autre cible."}
+  'Cercle de la terre':{
+    6:{name:'Foulée tellurique',desc:'Les terrains difficiles non-magiques ne te coûtent pas de déplacement supplémentaire, et tu traverses les plantes non magiques (épines incluses) sans dégâts. Avantage aux JS contre les plantes magiques qui gênent le mouvement.'},
+    10:{name:'Protégé de dame Nature',desc:'Tu ne peux être ni charmé ni effrayé par les élémentaires et les fées, et tu es immunisé contre le poison et les maladies.'},
+    14:{name:'Sanctuaire de dame Nature',desc:"Les bêtes et plantes doivent réussir un JS Sagesse contre ton DD de sort de druide pour t'attaquer, sinon elles choisissent une autre cible (réussite = immunisée 24 h)."}
   }
 };
 function _resolveDruidCircleFeat(featName,circleArchetype,level){
@@ -699,26 +699,26 @@ function _resolveDruidCircleFeat(featName,circleArchetype,level){
 
 const DRUID_CIRCLE_SPELLS={
   'Arctique':[
-    {name:'Immobilisation de personne',level:2},{name:'Spike Growth',level:2},
-    {name:'Tempête de grésil',level:3},{name:'Lenteur',level:3},
-    {name:'Liberté de mouvement',level:4},{name:'Tempête de glace',level:4},
+    {name:"Croissance d'épines",level:2},{name:'Immobilisation de personne',level:2},
+    {name:'Lenteur',level:3},{name:'Tempête de neige',level:3},
+    {name:'Liberté de mouvement',level:4},{name:'Tempête de grêle',level:4},
     {name:'Communion avec la nature',level:5},{name:'Cône de froid',level:5}
   ],
   'Désert':[
     {name:'Flou',level:2},{name:'Silence',level:2},
     {name:"Création de nourriture et d'eau",level:3},{name:"Protection contre l'énergie",level:3},
     {name:'Flétrissement',level:4},{name:'Terrain hallucinatoire',level:4},
-    {name:"Nuée d'insectes",level:5},{name:'Mur de pierre',level:5}
+    {name:"Fléau d'insectes",level:5},{name:'Mur de pierre',level:5}
   ],
   'Forêt':[
-    {name:"Peau d'écorce",level:2},{name:'Escalade',level:2},
+    {name:"Pattes d'araignée",level:2},{name:"Peau d'écorce",level:2},
     {name:'Appel de la foudre',level:3},{name:'Croissance végétale',level:3},
-    {name:'Localisation de créature',level:4},{name:'Métamorphose',level:4},
-    {name:'Communion avec la nature',level:5},{name:'Déplacement sylvestre',level:5}
+    {name:'Divination',level:4},{name:'Liberté de mouvement',level:4},
+    {name:'Communion avec la nature',level:5},{name:'Passage par les arbres',level:5}
   ],
   'Littoral':[
-    {name:'Image miroir',level:2},{name:'Foulée brumeuse',level:2},
-    {name:'Respiration aquatique',level:3},{name:"Marche sur l'eau",level:3},
+    {name:'Foulée brumeuse',level:2},{name:'Image miroir',level:2},
+    {name:"Marche sur l'eau",level:3},{name:'Respiration aquatique',level:3},
     {name:"Contrôle de l'eau",level:4},{name:'Liberté de mouvement',level:4},
     {name:"Invocation d'élémentaire",level:5},{name:'Scrutation',level:5}
   ],
@@ -726,25 +726,25 @@ const DRUID_CIRCLE_SPELLS={
     {name:'Flèche acide de Melf',level:2},{name:'Ténèbres',level:2},
     {name:"Marche sur l'eau",level:3},{name:'Nuage nauséabond',level:3},
     {name:'Liberté de mouvement',level:4},{name:'Localisation de créature',level:4},
-    {name:"Nuée d'insectes",level:5},{name:'Scrutation',level:5}
+    {name:"Fléau d'insectes",level:5},{name:'Scrutation',level:5}
   ],
   'Montagne':[
-    {name:'Escalade',level:2},{name:'Spike Growth',level:2},
-    {name:'Meld Into Stone',level:3},{name:'Éclair',level:3},
+    {name:"Croissance d'épines",level:2},{name:"Pattes d'araignée",level:2},
+    {name:'Éclair',level:3},{name:'Fusion dans la pierre',level:3},
     {name:'Façonnage de la pierre',level:4},{name:'Peau de pierre',level:4},
-    {name:'Passage dans les pierres',level:5},{name:'Transmutation de la roche',level:5}
+    {name:'Mur de pierre',level:5},{name:'Passe-muraille',level:5}
   ],
   'Outreterre':[
-    {name:'Escalade',level:2},{name:'Toile',level:2},
+    {name:"Pattes d'araignée",level:2},{name:"Toile d'araignée",level:2},
     {name:'Forme gazeuse',level:3},{name:'Nuage nauséabond',level:3},
-    {name:'Invisibilité supérieure',level:4},{name:'Façonnage de la pierre',level:4},
-    {name:"Nuée d'insectes",level:5},{name:'Nuage mortel',level:5}
+    {name:'Façonnage de la pierre',level:4},{name:'Invisibilité supérieure',level:4},
+    {name:'Brume mortelle',level:5},{name:"Fléau d'insectes",level:5}
   ],
   'Plaine':[
-    {name:'Invisibilité',level:2},{name:'Pass without Trace',level:2},
-    {name:'Lumière du jour',level:3},{name:'Hâte',level:3},
+    {name:'Invisibilité',level:2},{name:'Passage sans trace',level:2},
+    {name:'Hâte',level:3},{name:'Lumière du jour',level:3},
     {name:'Divination',level:4},{name:'Liberté de mouvement',level:4},
-    {name:'Rêve',level:5},{name:"Nuée d'insectes",level:5}
+    {name:"Fléau d'insectes",level:5},{name:'Songe',level:5}
   ]
 };
 
@@ -752,7 +752,7 @@ function getDruidCircleSpells(p){
   const druEntry=(p.classes||[]).find(c=>c.name==='Druide');
   if(!druEntry||druEntry.level<3)return[];
   const arch=(p.archetype||{})['Druide']||'';
-  if(!arch.toLowerCase().includes('terres'))return[];
+  if(!arch.toLowerCase().includes('terre'))return[];
   const terrain=p.druidTerrain||'';
   if(!terrain)return[];
   const spells=DRUID_CIRCLE_SPELLS[terrain]||[];
@@ -775,7 +775,7 @@ function calcLUSteps(p,className,newClassLevel){
     const isOrigin=className==='Ensorceleur'&&newClassLevel===1;
     const _EXPERTISE_LVL={'Barde':[3,10],'Roublard':[1,6]};
     const needExpertise=_EXPERTISE_LVL[className]&&_EXPERTISE_LVL[className].includes(newClassLevel);
-    const needSecrets=className==='Barde'&&[9,14,18].includes(newClassLevel);
+    const needSecrets=className==='Barde'&&[10,14,18].includes(newClassLevel);
     const needInvocations=className==='Occultiste'&&[2,5,7,9,12,15,18].includes(newClassLevel);
     if(isStyle)steps.push('style');
     if(isArchetype||isOrigin)steps.push('archetype');
@@ -884,7 +884,7 @@ function luStepArchetype(p){
   const archs=cd&&cd.archetypes?cd.archetypes:[];
   window._luArchs=archs;
   const isDruide=mc&&mc.name==='Druide';
-  const needsTerrain=isDruide&&LU.archetypeChoice==='Cercle des terres';
+  const needsTerrain=isDruide&&LU.archetypeChoice==='Cercle de la terre';
   const terrains=['Arctique','Désert','Forêt','Littoral','Marais','Montagne','Outreterre','Plaine'];
   const canContinue=LU.archetypeChoice&&(!needsTerrain||LU.terrainChoice);
   const terrainSection=needsTerrain?`<div style="margin-top:12px;padding:10px;background:var(--surface2);border-radius:10px">
@@ -1379,83 +1379,85 @@ const _ARCHETYPE_LEVEL_FEATS={
       14:{name:'Lien totémique',desc:'Bénéfice en rage selon ton totem (Ours : ennemis ont désavantage vs alliés ; Aigle : vitesse de vol ; Loup : renverser les cibles).'},
     },
     'Voie de la magie sauvage':{
-      6:{name:'Réserve de magie',desc:'Si tu n\'as plus de charges de rage au début de ton tour (en rage), tu en regagnes 1 automatiquement.'},
-      10:{name:'Réaction instable',desc:'Réaction : quand tu subis les effets d\'un sort, tu peux déclencher un Sursaut sauvage.'},
+      6:{name:'Réserve de magie',desc:'Action : touche une créature (toi inclus). Au choix : +1d3 à ses jets d\'attaque et de caractéristique pendant 10 min, OU elle regagne un emplacement de sort de niveau ≤ 1d3. Maîtrise utilisations/repos long.'},
+      10:{name:'Réaction instable',desc:'Réaction : juste après avoir subi des dégâts ou raté un JS pendant ta rage, tu déclenches un nouveau Sursaut sauvage (remplace l\'effet en cours).'},
       14:{name:'Sursaut contrôlé',desc:'Lors d\'un Sursaut sauvage, deux résultats sont tirés. Tu choisis lequel appliquer.'},
     },
   },
   'Guerrier':{
     'Champion':{
-      7:{name:'Athlète accompli',desc:'Tu maîtrises une compétence. Tu ajoutes la moitié du bonus de maîtrise aux jets de Force, Dextérité et Constitution pour lesquels tu n\'as pas de maîtrise.'},
+      7:{name:'Athlète accompli',desc:'Tu ajoutes la moitié de ton bonus de maîtrise (arrondi au supérieur) aux jets de Force, Dextérité et Constitution qui n\'utilisent pas déjà ta maîtrise. Tes sauts en longueur gagnent mod FOR × 30 cm.'},
       10:{name:'Style de combat supplémentaire',desc:'Tu choisis un deuxième style de combat.'},
       15:{name:'Critique supérieur',desc:'Tes coups critiques surviennent sur un résultat de 18, 19 ou 20 au lieu de 20.'},
-      18:{name:'Survivant',desc:'Au début de chacun de tes tours, si tu es à la moitié ou moins de tes PV max, tu récupères 5 + modificateur CON PV.'},
+      18:{name:'Survivant',desc:'Au début de chacun de tes tours, si tu es à la moitié ou moins de tes PV max (mais pas à 0), tu récupères 5 + modificateur CON PV.'},
     },
     'Maître de guerre':{
-      7:{name:'Observation de l\'ennemi',desc:'Tu peux dépenser 1 dé de supériorité pour ajouter son résultat à un jet de Perception, Investigation ou Survie.'},
+      7:{name:'Observation de l\'ennemi',desc:'Après 1 minute à observer ou interagir avec une créature hors combat, le MJ te dit si elle t\'est égale, supérieure ou inférieure sur 2 critères de ton choix (FOR, DEX, CON, CA, PV actuels, niveaux de classe).'},
       10:{name:'Dés de supériorité améliorés (d10)',desc:'Tes dés de supériorité deviennent des d10.'},
       15:{name:'Implacable',desc:'Si tu n\'as plus de dés de supériorité quand tu lances l\'initiative, tu en regagnes 1.'},
       18:{name:'Dés de supériorité maîtrisés (d12)',desc:'Tes dés de supériorité deviennent des d12.'},
     },
     'Chevalier occulte':{
       7:{name:'Magie de guerre',desc:'Quand tu utilises ton action pour lancer un cantrip, tu peux faire une attaque avec une arme comme action bonus.'},
-      10:{name:'Frappe occulte',desc:'Quand tu touches une créature, tu peux dépenser un emplacement de sort pour lui imposer désavantage à son prochain jet de sauvegarde contre tes sorts.'},
-      15:{name:'Charge arcanique',desc:'Tu peux te téléporter jusqu\'à 9m vers un espace inoccupé visible quand tu utilises ta Fougue.'},
-      18:{name:'Magie de guerre améliorée',desc:'Quand tu utilises ton action pour lancer un sort, tu peux faire deux attaques avec une arme comme action bonus.'},
+      10:{name:'Frappe occulte',desc:'Quand tu touches une créature avec une attaque d\'arme, elle a un désavantage à son prochain jet de sauvegarde contre un sort que tu lances avant la fin de ton prochain tour.'},
+      15:{name:'Charge arcanique',desc:'Tu peux te téléporter jusqu\'à 9m vers un espace inoccupé visible quand tu utilises ta Fougue (avant ou après l\'action supplémentaire).'},
+      18:{name:'Magie de guerre améliorée',desc:'Quand tu utilises ton action pour lancer un sort (quel qu\'il soit), tu peux faire une attaque avec une arme en action bonus.'},
     },
   },
   'Clerc':{
-    'Domaine de la vie':{2:{name:'Maîtrise des armures lourdes — Vie',desc:'Tu acquiers la maîtrise des armures lourdes.'},6:{name:'Guérison bénie',desc:'Quand tu lances un sort de soin sur une autre créature, tu récupères aussi des PV égaux à 2 + le niveau du sort.'},8:{name:'Frappe divine — Rayonnant',desc:'+1d8 dégâts radiants une fois par tour (+2d8 au niv.14).'},17:{name:'Guérison suprême',desc:'Quand tu utilises un sort de soin, tu utilises le maximum du dé plutôt que de le lancer.'}},
-    'Domaine de la lumière':{2:{name:'Flash ardent',desc:'Action bonus : flash aveuglant (JS CON DD sorts ou aveuglé jusqu\'à ta prochaine fin de tour).'},6:{name:'Lumière protectrice',desc:'Réaction : quand une créature à 9m subit des dégâts, lui donner résistance à ce type de dégâts.'},8:{name:'Frappe divine — Feu/Radiant',desc:'+1d8 dégâts de feu ou radiants une fois par tour (+2d8 au niv.14).'},17:{name:'Couronne de lumière',desc:'Action : émets une lumière éclatante 45m. Sorts de feu/rayonnant infligent le maximum de dégâts.'}},
-    'Domaine de la nature':{2:{name:'Maîtrise des armures lourdes — Nature',desc:'Maîtrise des armures lourdes + 1 compétence parmi Dressage, Nature, Survie.'},6:{name:'Arrêter la nature',desc:'Conduit divin : charmer ou effrayer des bêtes et végétaux à 9m.'},8:{name:'Frappe divine — Foudre/Poison',desc:'+1d8 dégâts de foudre ou de poison une fois par tour (+2d8 au niv.14).'},17:{name:'Maître de la nature',desc:'Action : charmer automatiquement bêtes et végétaux qui t\'entendent.'}},
-    'Domaine de la tempête':{2:{name:'Maîtrise des armures lourdes — Tempête',desc:'Maîtrise des armures lourdes.'},6:{name:'Frappe de tonnerre',desc:'Quand tu touches une créature Immense ou plus petite au corps-à-corps, tu peux la repousser de 3m.'},8:{name:'Frappe divine — Tonnerre',desc:'+1d8 dégâts de tonnerre une fois par tour (+2d8 au niv.14).'},17:{name:'Stase éolienne',desc:'Les créatures volantes dans un rayon de 90m ont du mal à se déplacer.'}},
-    'Domaine de la tromperie':{2:{name:'Invocation du double',desc:'Conduit divin : créer un duplicata illusoire de toi-même à 1,5m ou moins.'},6:{name:'Cloak of Shadows',desc:'Conduit divin : tu deviens invisible jusqu\'à la fin de ton prochain tour.'},8:{name:'Frappe divine — Poison',desc:'+1d8 dégâts de poison une fois par tour (+2d8 au niv.14).'},17:{name:'Frappe améliorée',desc:'Quand tu utilises Frappe divine, tu lances 2 fois le dé et prends la meilleure valeur.'}},
-    'Domaine de la guerre':{2:{name:'Maîtrise martiale',desc:'Maîtrise des armes de guerre et armures lourdes. Action bonus : attaque supplémentaire 1×/tour.'},6:{name:'Frappe guidée',desc:'Conduit divin : donner +10 à un jet d\'attaque (avant de voir le résultat).'},8:{name:'Frappe divine — Guerre',desc:'+1d8 (type de l\'arme) une fois par tour (+2d8 au niv.14).'},17:{name:'Avatar de la bataille',desc:'Résistance aux dégâts non-magiques contondants, perforants et tranchants.'}},
-    'Domaine du savoir':{2:{name:'Visions du passé',desc:'Conduit divin : tenir un objet 1 min pour connaître son histoire récente ou visualiser des événements dans un lieu proche.'},6:{name:'Lecture des pensées',desc:'Conduit divin : lire les pensées de créatures à 18m. JS SAG pour résister.'},8:{name:'Frappe puissante',desc:'+2d8 dégâts psychiques une fois par tour.'},17:{name:'Visions du passé améliorées',desc:'Conduit divin étendu à l\'enquête criminelle à longue portée.'}},
-    'Domaine de la forge':{2:{name:'Bénédiction de la forge',desc:'Action : attiser un objet non-magique (armure : +1 CA / arme : +1 attaque et dégâts) jusqu\'au repos long.'},6:{name:'Âme de la forge',desc:'Résistance aux dégâts de feu. +1 CA quand tu portes une armure.'},8:{name:'Frappe divine — Feu (Forge)',desc:'+1d8 dégâts de feu une fois par tour (+2d8 au niv.14).'},17:{name:'Forgé dans le feu',desc:'Immunité aux dégâts de feu. Résistance aux dégâts non-magiques physiques.'}},
+    'Domaine de la vie':{2:{name:'Préservation de la vie',desc:'Conduit divin : action — distribue 5 × niveau de clerc PV entre des créatures à 9m (sans dépasser la moitié de leur max ; sans effet sur morts-vivants/artificiels).'},6:{name:'Guérisseur béni',desc:'Quand tu lances un sort de soin de niv.1+ sur une autre créature, tu récupères aussi 2 + le niveau du sort PV.'},8:{name:'Frappe divine — Radiant',desc:'+1d8 dégâts radiants une fois par tour quand tu touches avec une arme (+2d8 au niv.14).'},17:{name:'Guérison suprême',desc:'Tes sorts de soin appliquent directement le maximum de chaque dé (ex. 2d6 → 12).'}},
+    'Domaine de la lumière':{2:{name:'Radiance de l\'aube',desc:'Conduit divin : action — dissipe les ténèbres magiques à 9m ; créatures hostiles à 9m : JS CON ou 2d10 + niveau de clerc dégâts radiants (moitié si réussi).'},6:{name:'Illumination améliorée',desc:'Tu peux utiliser Illumination protectrice aussi quand une créature visible à 9m attaque quelqu\'un d\'autre que toi.'},8:{name:'Incantation puissante',desc:'Tu ajoutes ton modificateur de Sagesse aux dégâts de tes sorts mineurs de clerc.'},17:{name:'Halo de lumière',desc:'Action : aura de lumière du soleil 1 min — lumière vive 18m + faible 9m. Tes ennemis dans la lumière vive ont un désavantage aux JS contre les sorts de feu ou radiants.'}},
+    'Domaine de la nature':{2:{name:'Charme des animaux et des plantes',desc:'Conduit divin : action — bêtes et plantes visibles à 9m : JS SAG ou charmées 1 min (ou jusqu\'aux dégâts), amicales envers toi.'},6:{name:'Atténuation des éléments',desc:'Réaction : quand toi ou une créature à 9m subit des dégâts d\'acide, de froid, de feu, de foudre ou de tonnerre — accorde-lui la résistance à ce type.'},8:{name:'Frappe divine — Froid/Feu/Foudre',desc:'+1d8 dégâts de froid, de feu ou de foudre (au choix) une fois par tour quand tu touches avec une arme (+2d8 au niv.14).'},17:{name:'Maître de la nature',desc:'Action bonus : commande verbalement les créatures charmées par ton Charme des animaux et des plantes (leur prochain tour).'}},
+    'Domaine de la tempête':{2:{name:'Fureur destructrice',desc:'Conduit divin : quand tu infliges des dégâts de foudre ou de tonnerre, inflige le maximum au lieu de lancer les dés.'},6:{name:'Frappe de l\'éclair',desc:'Quand tu infliges des dégâts de foudre à une créature de taille G ou inférieure, tu peux la repousser de 3m.'},8:{name:'Frappe divine — Tonnerre',desc:'+1d8 dégâts de tonnerre une fois par tour quand tu touches avec une arme (+2d8 au niv.14).'},17:{name:'Enfant de la tempête',desc:'Vitesse de vol égale à ta vitesse de déplacement, tant que tu n\'es ni sous terre ni en intérieur.'}},
+    'Domaine de la duperie':{2:{name:'Invocation de réplique',desc:'Conduit divin : action — illusion parfaite de toi-même à 9m (1 min, concentration). Action bonus : la déplacer de 9m. Tu peux lancer tes sorts depuis sa position ; avantage aux attaques si toi et l\'illusion êtes à 1,5m de la cible.'},6:{name:'Linceul d\'ombre',desc:'Conduit divin : action — tu deviens invisible jusqu\'à la fin de ton prochain tour (fin si tu attaques ou lances un sort).'},8:{name:'Frappe divine — Poison',desc:'+1d8 dégâts de poison une fois par tour quand tu touches avec une arme (+2d8 au niv.14).'},17:{name:'Réplique améliorée',desc:'Invocation de réplique crée jusqu\'à 4 doublons. Action bonus : en déplacer plusieurs (9m chacun, max 36m de toi).'}},
+    'Domaine de la guerre':{2:{name:'Frappe guidée',desc:'Conduit divin : +10 à TON jet d\'attaque, décidé après avoir vu le jet mais avant le verdict du MJ.'},6:{name:'Bénédiction du dieu de la guerre',desc:'Conduit divin, réaction : +10 au jet d\'attaque d\'une créature à 9m (après le jet, avant le verdict).'},8:{name:'Frappe divine — Guerre',desc:'+1d8 dégâts du même type que l\'arme, une fois par tour quand tu touches (+2d8 au niv.14).'},17:{name:'Avatar de bataille',desc:'Résistance aux dégâts contondants, perforants et tranchants des attaques non magiques.'}},
+    'Domaine du savoir':{2:{name:'Savoir ancestral',desc:'Conduit divin : action — choisis une compétence ou un outil : tu en obtiens la maîtrise pendant 10 minutes.'},6:{name:'Lecture des pensées',desc:'Conduit divin : action — créature à 18m : JS SAG ou tu lis ses pensées de surface 1 min ; tu peux ensuite lancer Suggestion sans emplacement (JS automatiquement raté).'},8:{name:'Incantation puissante',desc:'Tu ajoutes ton modificateur de Sagesse aux dégâts de tes sorts mineurs de clerc.'},17:{name:'Visions du passé',desc:'Méditation 1 min+ : visions du passé d\'un objet (propriétaires) ou d\'une zone (SAG jours). 1×/repos court ou long.'}},
+    'Domaine de la forge':{2:{name:'Bénédiction de l\'artisan',desc:'Conduit divin : rituel d\'1h — crée un objet non magique en métal d\'une valeur ≤ 100 po (le métal utilisé se transforme).'},6:{name:'Âme de la forge',desc:'Résistance aux dégâts de feu. +1 à la CA quand tu portes une armure lourde.'},8:{name:'Frappe divine — Feu (Forge)',desc:'+1d8 dégâts de feu une fois par tour quand tu touches avec une arme (+2d8 au niv.14).'},17:{name:'Saint de la forge et du feu',desc:'Immunité aux dégâts de feu. En armure lourde : résistance aux dégâts contondants, perforants et tranchants non magiques.'}},
   },
   'Paladin':{
-    'Serment de dévotion':{7:{name:'Aura de dévotion',desc:'Les créatures alliées à 3m de toi (9m au niv.18) ne peuvent pas être charmées.'},15:{name:'Pureté d\'esprit',desc:'Tu es toujours sous l\'effet de Protection contre le mal et le bien.'},20:{name:'Forme d\'avatar sacré',desc:'Transform. 1 min : aura 9m, régénère 10 PV/tour, résistances : acide, feu, foudre, psychique, tonnerre.'}},
-    'Serment des anciens':{7:{name:'Aura d\'entraves',desc:'Féées, fiélons et morts-vivants à 9m ont désavantage aux jets de sauvegarde.'},15:{name:'Ancienneté protectrice',desc:'Immunité au vieillissement magique. Les créatures immortelles ont désavantage contre toi.'},20:{name:'Seigneur de l\'hiver',desc:'Transform. 1 min : résistance à tous les dégâts non-psychiques, aura 3m qui ralentit les créatures.'}},
-    'Serment de vengeance':{7:{name:'Aura implacable',desc:'Si une créature hostile se déplace vers toi, tu peux utiliser ta réaction pour t\'en approcher.'},15:{name:'Âme vindicative',desc:'Si tu rates un jet de sauvegarde, la source subit 2d8 + CHA dégâts psychiques.'},20:{name:'Avatar de la vengeance',desc:'Transform. 1 min : vitesse +3m, attaque deux fois la même cible qui t\'a attaqué, résistance aux dégâts hors de tes attaquants.'}},
+    'Serment de dévotion':{7:{name:'Aura de dévotion',desc:'Toi et les créatures alliées à 3m (9m au niv.18) ne pouvez pas être charmés tant que tu es conscient.'},15:{name:'Pureté de l\'esprit',desc:'Tu es en permanence sous l\'effet du sort Protection contre le mal et le bien.'},20:{name:'Nimbe sacré',desc:'Action : pendant 1 min, lumière vive 9m (+ faible 9m). Un ennemi qui commence son tour dans la lumière vive subit 10 dégâts radiants ; avantage à tes JS contre les sorts des fiélons et morts-vivants. 1/repos long.'}},
+    'Serment des anciens':{7:{name:'Aura de garde',desc:'Toi et tes alliés à 3m (9m au niv.18) avez la résistance aux dégâts causés par les sorts.'},15:{name:'Sentinelle immortelle',desc:'Quand tu tombes à 0 PV sans être tué sur le coup, tu peux rester à 1 PV (1/repos long). Tu ne subis plus les inconvénients de la vieillesse et ne peux pas vieillir magiquement.'},20:{name:'Champion antique',desc:'Action : transformation 1 min — +10 PV au début de chacun de tes tours, sorts de paladin (1 action) lançables en action bonus, ennemis à 3m : désavantage aux JS contre tes sorts et Conduits. 1/repos long.'}},
+    'Serment de vengeance':{7:{name:'Vengeur implacable',desc:'Quand tu touches une créature avec une attaque d\'opportunité, tu peux te déplacer de la moitié de ta vitesse juste après (dans la même réaction), sans provoquer d\'attaque d\'opportunité.'},15:{name:'Âme vengeresse',desc:'Quand la créature sous ton Vœu d\'hostilité fait une attaque, tu peux utiliser ta réaction pour l\'attaquer si elle est à portée.'},20:{name:'Ange de la vengeance',desc:'Action : transformation 1 heure — ailes (vol 18m) et aura de menace 9m (les ennemis qui y commencent leur tour : JS SAG ou effrayés 1 min). 1/repos long.'}},
   },
   'Rôdeur':{
-    'Chasseur':{3:{name:'Proie du chasseur',desc:'Choisissez : Colosse (arbalète bonus vs Grande créature), Défense contre les multiples (résistance si ≥2 ennemis proches) ou Ennemi de la horde (dégâts supplémentaires).'},7:{name:'Tactiques défensives',desc:'Choisissez : Échapper à la horde (pas d\'attaques d\'opportunité), Protection contre les attaques multiples (½ dégâts si ciblé par 2+) ou Focus sauvage (avantage JS FOR).'},11:{name:'Salve ou Frappe tourbillonnante',desc:'Salve : attaques multiples sur plusieurs cibles à 9m. Frappe tourbillonnante : attaque toutes créatures à 1,5m.'},15:{name:'Défense supérieure',desc:'Résistance dégâts physiques de sorts. Esquive améliorée (½ si raté → 0 si réussi).'}},
-    'Maître des bêtes':{7:{name:'Protecteur exceptionnel',desc:'Le compagnon peut attaquer deux fois. Utilise ton bonus de maîtrise si supérieur.'},11:{name:'Assaut bestial',desc:'Si le compagnon est adjacent à une cible que tu attaques, il peut attaquer comme action bonus.'},15:{name:'Partager des sorts',desc:'Quand tu te lances un sort sur toi-même, ton compagnon animal en bénéficie aussi.'}},
+    'Chasseur':{3:{name:'Proie du chasseur',desc:'Choisis : Tueur de colosses (+1d8 1×/tour si la cible est sous son maximum de PV) / Tueur de géants (réaction : attaquer une créature de taille G+ à 1,5m qui vient de t\'attaquer) / Briseur de hordes (1×/tour : une attaque supplémentaire avec la même arme contre une autre créature à 1,5m de la cible).'},7:{name:'Tactiques défensives',desc:'Choisis : Échapper à la horde (les attaques d\'opportunité contre toi ont un désavantage) / Défense contre les attaques multiples (+4 CA contre les attaques suivantes de la créature qui t\'a touché, jusqu\'à la fin du tour) / Moral d\'acier (avantage aux JS contre la peur).'},11:{name:'Attaques multiples',desc:'Choisis : Volée (action : une attaque à distance contre chaque créature à 3m d\'un point visible, munitions requises) / Attaque tourbillonnante (action : une attaque de mêlée contre chaque créature à 1,5m).'},15:{name:'Défense du chasseur supérieure',desc:'Choisis : Esquive totale (JS DEX réussi = 0 dégât, raté = moitié) / Retour de bâton (réaction : une attaque de mêlée qui te rate est répétée contre une autre créature de ton choix) / Esquive instinctive (réaction : les dégâts d\'une attaque visible sont réduits de moitié).'}},
+    'Maître des bêtes':{7:{name:'Entraînement exceptionnel',desc:'Action bonus : ordonner au compagnon Aider, Foncer ou Se désengager (les tours où il n\'attaque pas). Ses attaques comptent comme magiques.'},11:{name:'Fureur bestiale',desc:'Quand tu ordonnes l\'action Attaquer, ton compagnon peut attaquer deux fois.'},15:{name:'Partage des sorts',desc:'Quand tu lances un sort qui te cible, tu peux aussi en faire bénéficier ton compagnon s\'il est à 9m ou moins.'}},
+    'Gardien de drake':{7:{name:'Lien du croc et d\'écailles',desc:'Le drake gagne des ailes (vol = sa vitesse de marche), passe en taille M et peut te servir de monture (pas de vol monté à ce niveau). Sa morsure inflige +1d6 dégâts de son essence, et tu gagnes la résistance au type d\'essence du drake.'},11:{name:'Souffle de drake',desc:'Action : cône de 9m — JS DEX contre ton DD de sort de rôdeur, 8d6 dégâts (10d6 au niv.15) d\'acide, froid, feu, foudre ou poison au choix, moitié si réussi. 1×/repos long, ou en dépensant un emplacement de sort de niv.3+.'},15:{name:'Lien parfait',desc:'Le drake passe en taille G, sa morsure inflige +2d6 dégâts d\'essence au total, et tu peux voler en le chevauchant.'}},
   },
   'Moine':{
-    'Voie de la paume':{6:{name:'Bras agile',desc:'À la fin d\'un repos long : soigner 1d6+SAG PV à une créature au toucher (1×/repos long) ou immunité contre une maladie.'},11:{name:'Tranquillité',desc:'Quand tu utilises Pas du vent, tu peux te lancer Sanctuaire.'},17:{name:'Vibrations frappantes',desc:'3 points de ki : 3d10 nécrotiques + Étourdi jusqu\'à réussite JS.'}},
-    "Voie de l'ombre":{6:{name:'Frappe des ombres',desc:'Portée de Pas du vent étendue à 18m. La sortie peut effrayer la cible.'},11:{name:'Manteau des ombres',desc:'Zone sombre — 1 point de ki : invisible jusqu\'à ta prochaine fin de tour.'},17:{name:'Opportuniste des ombres',desc:'Réaction : si une créature à 1,5m est attaquée par un allié, tu peux l\'attaquer.'}},
-    'Voie des quatre éléments':{6:{name:'Discipline élémentaire supplémentaire',desc:'Tu apprends une nouvelle discipline élémentaire.'},11:{name:'Discipline élémentaire avancée',desc:'Tu apprends une discipline élémentaire nécessitant 2 points de ki.'},17:{name:'Discipline élémentaire maîtrisée',desc:'Tu apprends une discipline élémentaire nécessitant 4 points de ki.'}},
+    'Voie de la paume':{6:{name:'Intégrité du corps',desc:'Action : tu récupères 3 × ton niveau de moine PV. 1×/repos long.'},11:{name:'Tranquillité',desc:'À la fin d\'un repos long : effet du sort Sanctuaire (DD 8 + maîtrise + SAG) jusqu\'au début de ton prochain repos long. Prend fin si tu attaques ou lances un sort.'},17:{name:'Frappe des vibrations',desc:'3 points de ki quand tu touches à mains nues : vibrations implantées pendant plusieurs jours. Action pour les déclencher : JS CON ou la cible tombe à 0 PV (réussite : 10d10 dégâts nécrotiques).'}},
+    "Voie de l'ombre":{6:{name:'Pas des ombres',desc:'Action bonus dans une lumière faible ou les ténèbres : téléportation jusqu\'à 18m vers une zone sombre visible, puis avantage à ta première attaque de mêlée avant la fin du tour.'},11:{name:'Manteau des ombres',desc:'Action dans une lumière faible ou les ténèbres : invisible jusqu\'à ce que tu attaques, lances un sort ou entres dans une lumière vive.'},17:{name:'Opportuniste',desc:'Réaction : quand une créature à 1,5m de toi est touchée par une attaque d\'un autre que toi, tu peux faire une attaque de mêlée contre elle.'}},
+    'Voie des quatre éléments':{6:{name:'Discipline élémentaire supplémentaire',desc:'Tu apprends une nouvelle discipline élémentaire de ton choix (tu peux aussi en remplacer une connue).'},11:{name:'Discipline élémentaire avancée',desc:'Tu apprends une nouvelle discipline élémentaire de ton choix (tu peux aussi en remplacer une connue).'},17:{name:'Discipline élémentaire maîtrisée',desc:'Tu apprends une nouvelle discipline élémentaire de ton choix (tu peux aussi en remplacer une connue).'}},
   },
   'Roublard':{
-    'Voleur':{9:{name:'Emploi rapide',desc:'Utiliser un objet comme action bonus. Gain de la propriété Main légère pour les armes à deux mains.'},13:{name:'Infiltrateur',desc:'Escalade à vitesse normale. Chutes ≤3m sans dégâts. Avantage en Acrobaties pour l\'équilibre.'},17:{name:'Glissement',desc:'Réaction : quand une créature rate son attaque contre toi, tu peux te déplacer de 1,5m.'}},
-    'Assassin':{9:{name:'Imposteur',desc:'Parfaitement reproduire l\'écriture/voix/comportement de quelqu\'un observé 3h+. Avantage Imposture.'},13:{name:'Morte imposteur',desc:'Réaction : passer pour mort jusqu\'à la fin du tour.'},17:{name:'Mort instantanée',desc:'Si tu surprends une créature et ne la tues pas, JS CON ou tombe à 0 PV.'}},
-    'Escroc arcanique':{9:{name:'Voleur de sorts',desc:'Tu peux contresort et te dispell. 1×/repos long : utiliser un sort volé.'},13:{name:'Main versatile',desc:'Tu peux lancer Main de mage à volonté.'},17:{name:'Voleur de sorts amélioré',desc:'Tu peux voler des sorts de niv. 1-4 et les utiliser une fois.'}},
-    'Conspirateur':{9:{name:'Informateur',desc:'Accès aux informations criminelles locales et aux contacts du milieu.'},13:{name:'Protections',desc:'Tu bénéficies d\'un réseau de protections dans toutes les villes.'},17:{name:'Mémoire infaillible',desc:'Avantage aux jets de mémoire concernant personnes, organisations et lieux.'}},
+    'Voleur':{9:{name:'Discrétion suprême',desc:'Avantage aux jets de Dextérité (Discrétion) si tu ne te déplaces pas de plus de la moitié de ta vitesse pendant le tour.'},13:{name:'Utilisation d\'objets magiques',desc:'Tu ignores toutes les exigences de classe, de race et de niveau pour utiliser les objets magiques.'},17:{name:'Réflexes de voleur',desc:'Tu joues deux tours au premier round d\'un combat : le premier à ton initiative normale, le second à ton initiative −10. Pas si tu es surpris.'}},
+    'Assassin':{9:{name:'Expert en infiltration',desc:'Tu peux créer de fausses identités (1 semaine + 25 po chacune) qui passent pour réelles jusqu\'à preuve du contraire.'},13:{name:'Imposteur',desc:'Après 3h d\'étude, tu dupliques parfaitement la voix, l\'écriture et les manières d\'une personne. Avantage à Tromperie en cas de soupçon.'},17:{name:'Frappe meurtrière',desc:'Quand tu touches une créature SURPRISE : JS CON DD 8 + maîtrise + DEX, ou les dégâts de l\'attaque sont doublés.'}},
+    'Escroc arcanique':{9:{name:'Embuscade magique',desc:'Si tu es caché d\'une créature quand tu lui lances un sort, elle a un désavantage à ses JS contre ce sort pendant ce tour.'},13:{name:'Escroc polyvalent',desc:'Action bonus : ta main de mage distrait une créature à 1,5m d\'elle → avantage à tes jets d\'attaque contre cette créature jusqu\'à la fin du tour.'},17:{name:'Voleur de sort',desc:'Réaction quand un sort te cible : le lanceur fait un JS (son mod d\'incantation) contre ton DD ; s\'il rate, le sort est annulé contre toi et tu le voles pendant 8h. 1/repos long.'}},
+    'Conspirateur':{9:{name:'Manipulateur perspicace',desc:'Après 1 min d\'observation ou d\'interaction hors combat, le MJ te dit si la cible t\'est égale, supérieure ou inférieure sur 2 critères au choix (INT, SAG, CHA, niveaux de classe).'},13:{name:'Redirection',desc:'Réaction quand une attaque te cible et qu\'une créature à 1,5m t\'offre un abri : l\'attaque cible cette créature à ta place.'},17:{name:'Âme de la duperie',desc:'Tes pensées sont illisibles par télépathie (seules de fausses pensées sont lues). La magie de vérité te voit toujours véridique, et tu peux mentir dans les langues que tu connais.'}},
   },
   'Barde':{
-    'Collège du savoir':{6:{name:'Secrets magiques supplémentaires',desc:'Tu apprends 2 sorts de n\'importe quelle classe. Ils comptent comme des sorts de Barde.'},14:{name:'Maîtrise inégalée',desc:'Quand tu rates un jet de sauvegarde, tu peux utiliser ton dé d\'inspiration pour augmenter le résultat.'}},
-    'Collège de la vaillance':{6:{name:'Inspiration de combat',desc:'Ton dé d\'inspiration bardique peut être utilisé pour les jets de dégâts et la CA.'},14:{name:'Attaque magique',desc:'Tes sorts de barde ignorent la résistance et l\'immunité aux dégâts.'}},
+    'Collège du savoir':{6:{name:'Secrets magiques supplémentaires',desc:'Tu apprends 2 sorts de n\'importe quelle classe. Ils comptent comme des sorts de barde mais pas dans ton nombre de sorts connus.'},14:{name:'Compétence hors-pair',desc:'Quand tu fais un jet de caractéristique, tu peux dépenser 1 inspiration bardique et ajouter le dé au résultat (après le jet, avant le verdict du MJ).'}},
+    'Collège de la vaillance':{6:{name:'Attaque supplémentaire',desc:'Tu peux attaquer deux fois, au lieu d\'une, quand tu utilises l\'action Attaquer.'},14:{name:'Magie de combat',desc:'Quand tu utilises ton action pour lancer un sort de barde, tu peux faire une attaque avec une arme en action bonus.'}},
   },
   'Occultiste':{
-    'Fiélon':{6:{name:'Résistance du Fiélon',desc:'Quand tu tues une créature avec un sort, tu gagnes des PV temporaires = modificateur CHA + niveau Occultiste.'},10:{name:'Résistance infernale',desc:'Tu es résistant aux dégâts de feu.'},14:{name:'Feu infernal',desc:'Quand tu touches avec un sort, la cible est aveuglée jusqu\'à la fin de son prochain tour.'}},
-    'Archefée':{6:{name:'Séduction féérique',desc:'Tu peux charmer ou effrayer des créatures à 18m (JS Sagesse) une fois par repos court.'},10:{name:'Revêtement des fées',desc:'Résistance aux dégâts psychiques. Les fées ne peuvent pas te charmer.'},14:{name:'Brume féérique',desc:'Action bonus : lancer Brume à volonté.'}},
-    'Grand Ancien':{6:{name:'Pensée élonguée',desc:'Tu peux communiquer télépatiquement avec toute créature à 9m que tu peux voir.'},10:{name:'Bouclier d\'avatars',desc:'Réaction : quand tu subis des dégâts psychiques, en annuler la moitié.'},14:{name:'Créer un thrall',desc:'Tu peux charmer une créature. Elle te transmet ce qu\'elle perçoit.'}},
+    "Le Fiélon":{6:{name:'Chance du ténébreux',desc:'Quand tu fais un jet de caractéristique ou de sauvegarde : ajoute 1d10 (après le dé, avant le verdict). 1/repos court ou long.'},10:{name:'Résistance fiélonne',desc:'À chaque repos court ou long, choisis un type de dégâts : tu y es résistant (ignoré par les armes magiques et en argent).'},14:{name:'Traversée des enfers',desc:'Quand tu touches avec une attaque : la cible disparaît dans les plans inférieurs jusqu\'à la fin de ton prochain tour, puis revient avec 10d10 dégâts psychiques (sauf fiélons). 1/repos long.'}},
+    "L'Archifée":{6:{name:'Échappatoire brumeuse',desc:'Réaction quand tu subis des dégâts : invisible + téléportation 18m (jusqu\'au début de ton prochain tour ou jusqu\'à attaque/sort). 1/repos court ou long.'},10:{name:'Défenses captivantes',desc:'Immunité au charme. Réaction quand on tente de te charmer : JS SAG ou tu charmes la créature 1 min (ou jusqu\'aux dégâts).'},14:{name:'Sombre délire',desc:'Action : créature à 18m, JS SAG ou charmée/effrayée 1 min (concentration), perdue dans un royaume illusoire. 1/repos court ou long.'}},
+    "Le Grand Ancien":{6:{name:'Protection entropique',desc:'Réaction : impose un désavantage à un jet d\'attaque contre toi ; si l\'attaque rate, avantage à ta prochaine attaque contre cette créature. 1/repos court ou long.'},10:{name:'Bouclier mental',desc:'Pensées illisibles (sauf accord), résistance aux dégâts psychiques, et toute créature qui t\'inflige des dégâts psychiques en subit autant.'},14:{name:'Asservissement',desc:'Action : toucher un humanoïde neutralisé → charmé (sans JS) jusqu\'à Délivrance des malédictions, retrait de l\'état ou réutilisation. Télépathie partagée sur le même plan.'}},
+    "Le Génie":{6:{name:'Présent élémentaire',desc:'Résistance au type de dégâts de ton génie. Action bonus : vol 9m pendant 10 min (vol stationnaire), maîtrise utilisations/repos long.'},10:{name:'Sanctuaire du génie',desc:'Répit embouteillé : tu peux emmener jusqu\'à 5 créatures consentantes dans le catalyseur. 10 min dedans = repos court amélioré (+maîtrise aux PV des dés de vie).'},14:{name:'Souhait limité',desc:'Action : demander au catalyseur l\'effet d\'un sort de niveau ≤ 6 (incantation 1 action, aucune composante). Réutilisable après 1d4 repos longs.'}},
   },
   'Ensorceleur':{
     'Lignée draconique':{6:{name:'Ailes draconiques',desc:'Action bonus : déployer tes ailes et obtenir une vitesse de vol égale à ta vitesse actuelle.'},14:{name:'Présence draconique',desc:'Concentration 1 min : aura 18m — peur ou fascination (JS SAG pour résister). Utilise un emplacement de sort.'}},
     'Magie sauvage':{6:{name:'Chance forcée',desc:'2 points de sorcellerie : retirer le Désavantage à un jet (attaque, sauvegarde ou caractéristique).'},14:{name:'Maîtrise contrôlée du chaos',desc:'Quand tu lances un sort, tu peux dépenser 1 point de sorcellerie pour ajouter ton mod CHA au DD du sort.'}},
   },
   'Druide':{
-    'Cercle de la lune':{6:{name:'Frappe primitive',desc:'Tes attaques en forme animale sont considérées comme magiques.'},10:{name:'Forme élémentaire',desc:'2 utilisations de Forme sauvage : transformation en élémentaire CR 5 ou moins.'},14:{name:'Mille formes',desc:'Modification d\'apparence à volonté (action bonus).'}},
-    'Cercle des terres':{6:{name:'Foulée tellurique',desc:'Les terrains difficiles non-magiques ne te coûtent pas de déplacement supplémentaire.'},10:{name:'Protégée de dame Nature',desc:'Immunité aux poisons et maladies. Résistance élémentaire. Insensible au charme/peur féeriques.'},14:{name:'Sanctuaire de dame Nature',desc:'Bêtes et plantes doivent réussir un JS Sagesse pour t\'attaquer.'}},
+    'Cercle de la lune':{6:{name:'Frappe primitive',desc:'Tes attaques en forme animale sont considérées comme magiques. CR max de Forme sauvage = niveau de druide ÷ 3.'},10:{name:'Forme sauvage élémentaire',desc:'Dépense 2 utilisations de Forme sauvage : transformation en élémentaire (air, eau, terre, feu).'},14:{name:'Mille formes',desc:'Tu peux lancer Modification d\'apparence à volonté.'}},
+    'Cercle de la terre':{6:{name:'Foulée tellurique',desc:'Les terrains difficiles non-magiques ne te coûtent pas de déplacement supplémentaire.'},10:{name:'Protégé de dame Nature',desc:'Ni charmé ni effrayé par les élémentaires et les fées. Immunité au poison et aux maladies.'},14:{name:'Sanctuaire de dame Nature',desc:'Bêtes et plantes doivent réussir un JS Sagesse pour t\'attaquer.'}},
   },
   'Artificier':{
-    'Alchimiste':{9:{name:'Réactif alchimique',desc:'Tu maîtrises les objets alchimiques (acide, feu grégeois, etc.). Crée ces objets 1×/repos long.'},15:{name:'Maître chimiste',desc:'Tu crées des élixirs sans dépenser d\'emplacement de sort 1×/repos long.'}},
-    'Artilleur':{9:{name:'Artillerie explosive',desc:'Ton canon peut exploser dans une zone de 1,5m 1×/repos court.'},15:{name:'Canon arcaniste',desc:'Action bonus : ton canon lance un sort de baguette.'}},
-    'Forgeron de bataille':{9:{name:'Arme animée',desc:'L\'Arme arcanique peut attaquer de manière autonome comme action bonus.'},15:{name:'Améliorations de forge',desc:'+1 à la CA de ton Armure d\'acier.'}},
-    'Maître armurier':{9:{name:'Armure améliorée — Rang 2',desc:'+1 CA ou +1 aux jets d\'attaque/dégâts sur ton armure spéciale.'},15:{name:'Armure parfaite',desc:'Tu peux lancer des sorts depuis ton armure comme action bonus.'}},
+    'Alchimiste':{5:{name:'Érudit alchimique',desc:'Quand tu lances un sort avec ton matériel d\'alchimiste comme focaliseur : +INT (min +1) à UN jet de soins ou de dégâts d\'acide, de feu, nécrotiques ou de poison.'},9:{name:'Ingrédients revigorants',desc:'Boire un de tes élixirs donne 2d6+INT PV temporaires. Tu peux lancer Restauration partielle sans emplacement (via matériel d\'alchimiste), INT fois/repos long.'},15:{name:'Maîtrise chimique',desc:'Résistance aux dégâts d\'acide et de poison, immunité à l\'état empoisonné. Tu peux lancer Restauration supérieure et Guérison sans emplacement ni composantes (via matériel d\'alchimiste), 1×/repos long chacune.'}},
+    'Artilleur':{5:{name:'Arme à feu arcanique',desc:'Au repos long : grave une baguette, un bâton ou un sceptre → focaliseur ; les sorts d\'artificier lancés à travers gagnent +1d8 à un de leurs jets de dégâts.'},9:{name:'Canon explosif',desc:'Les jets de dégâts de ton canon gagnent +1d8. Action (à 18m) : faire exploser le canon — créatures à 6m : JS DEX ou 3d8 dégâts de force (moitié si réussi).'},15:{name:'Position fortifiée',desc:'Toi et tes alliés avez un abri partiel à 3m de tes canons. Tu peux avoir DEUX canons à la fois, créés par la même action et activés par la même action bonus.'}},
+    'Forgeron de guerre':{5:{name:'Attaque supplémentaire',desc:'Tu peux attaquer deux fois, au lieu d\'une, quand tu utilises l\'action Attaquer.'},9:{name:'Décharge arcanique',desc:'Quand toi ou ton défenseur d\'acier touchez avec une arme magique : +2d6 dégâts de force OU soigner 2d6 PV à une créature visible à 9m de la cible. INT utilisations/repos long, 1/tour.'},15:{name:'Défenseur amélioré',desc:'Ta Décharge arcanique passe à 4d6. Ton défenseur d\'acier gagne +2 CA et sa Parade d\'attaque inflige 1d4+INT dégâts de force à l\'attaquant.'}},
+    'Maître armurier':{5:{name:'Attaque supplémentaire',desc:'Tu peux attaquer deux fois, au lieu d\'une, quand tu utilises l\'action Attaquer.'},9:{name:'Modifications d\'armure',desc:'Ton armure d\'arcanes compte comme plusieurs objets séparés pour tes imprégnations (torse, bottes, casque, arme intégrée), et tu peux porter 2 imprégnations de plus sur elle.'},15:{name:'Armure parfaite',desc:'Ton modèle d\'armure s\'améliore (Gardien : attirer magiquement une créature + frapper en réaction / Infiltrateur : la cible du Lance-foudre brille, désavantage à ses attaques contre toi et avantage au prochain jet contre elle — cf. TCE).'}},
   },
   'Magicien':{
     "École d'abjuration":{6:{name:'Protection de l\'abjureur',desc:'PV temporaires = mod INT chaque fois que tu lances un sort d\'abjuration niv.1+.'},10:{name:'Abjuration améliorée',desc:'Réaction : donner l\'avantage aux jets de sauvegarde d\'une créature à 9m.'},14:{name:'Résistance aux sorts',desc:'Résistance aux dégâts de sorts. Avantage aux JS contre les sorts.'}},
@@ -1582,7 +1584,7 @@ function applyLevelUp(){
       p.features.push({name:LU.archetypeChoice,desc:arch.desc,classe:mc?mc.name:''});
       if(!p.archetype)p.archetype={};
       p.archetype[mc.name]=LU.archetypeChoice;
-      if(mc&&mc.name==='Druide'&&LU.archetypeChoice==='Cercle des terres'&&LU.terrainChoice){
+      if(mc&&mc.name==='Druide'&&LU.archetypeChoice==='Cercle de la terre'&&LU.terrainChoice){
         p.druidTerrain=LU.terrainChoice;
       }
     }

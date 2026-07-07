@@ -113,7 +113,7 @@ function _calcArmorCA(p){
     const classes=p.classes||[];
     const isBarbare=classes.some(c=>c.name==='Barbare');
     const isMoine=classes.some(c=>c.name==='Moine');
-    const isEnsorceleurDrac=classes.some(c=>c.name==='Ensorceleur')&&(p.features||[]).some(f=>f.name==='Origine draconique');
+    const isEnsorceleurDrac=classes.some(c=>c.name==='Ensorceleur')&&(p.features||[]).some(f=>f.name==='Lignée draconique');
     if(isBarbare)base=10+dexM+conM;       // Défense sans armure Barbare : 10+DEX+CON
     else if(isMoine)base=10+dexM+sagM;   // Défense sans armure Moine : 10+DEX+SAG
     else if(isEnsorceleurDrac)base=13+dexM; // Résilience draconique : 13+DEX

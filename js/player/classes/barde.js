@@ -29,7 +29,7 @@ function renderBarde(p) {
       ${hasAllies&&biUsed>0?`<button class="btn bsm bac" onclick="openGiveInspirationModal('${bardDie}',${bardInspiMax})">🎵 Donner à un allié</button>`:''}
       ${!hasAllies?`<button class="btn bsm bac" onclick="rollCustomDmg('1${bardDie}','Inspiration bardique')">🎲 Lancer ${bardDie}</button>`:''}
     </div>
-    <div style="font-size:15px;color:var(--text3);margin-top:6px">Action bonus : donne un dé ${bardDie} à un allié. Il peut l'ajouter à un jet d'attaque, compétence ou sauvegarde.</div>
+    <div style="font-size:15px;color:var(--text3);margin-top:6px">Action bonus : donne un dé ${bardDie} à un allié à 18m qui t'entend. Dans les 10 min, il peut l'ajouter à un jet de caractéristique, d'attaque ou de sauvegarde (après le jet, avant le verdict). Un seul dé à la fois par créature.</div>
   </div>`);
 
   // ── Chant reposant (niv.2+) ───────────────────────────────
@@ -82,7 +82,7 @@ function renderBarde(p) {
   if (isSavoir && bardeLvl>=3) {
     let savoirContent = `<div style="padding:7px 10px;background:var(--surface2);border-radius:6px;margin-bottom:6px">
       <div style="font-size:18px;font-weight:600;margin-bottom:2px">🗡 Mots cinglants <span style="font-size:15px;color:var(--cp);margin-left:4px">Réaction • 1 inspiration</span></div>
-      <div style="font-size:17px;color:var(--text3)">Quand une créature visible fait un jet d'attaque, compétence ou dégâts : dépense 1 inspiration, la cible soustrait le résultat du dé. Décider après le jet, avant l'annonce du MJ. Immunisé si la cible est insensible aux charmes.</div>
+      <div style="font-size:17px;color:var(--text3)">Quand une créature visible à 18m fait un jet d'attaque, de caractéristique ou de dégâts : dépense 1 inspiration, la cible soustrait le résultat du dé. Décider après le jet, avant l'annonce du MJ. Sans effet si la cible ne t'entend pas ou est insensible aux charmes.</div>
       <button class="btn bsm bac" style="margin-top:6px" onclick="_bardeUseInspi('cinglants')">🗡 Mots cinglants (−1 inspi)</button>
     </div>`;
     if (bardeLvl>=6) {
@@ -94,7 +94,7 @@ function renderBarde(p) {
     if (bardeLvl>=14) {
       savoirContent += `<div style="padding:7px 10px;background:var(--surface2);border-radius:6px">
         <div style="font-size:18px;font-weight:600;margin-bottom:2px">🎯 Compétence hors-pair <span style="font-size:15px;color:var(--text3)">niv.14</span></div>
-        <div style="font-size:17px;color:var(--text3)">Quand tu rates un jet de caractéristique, dépense 1 inspiration bardique et ajoute le résultat du dé. Peut transformer un échec en réussite.</div>
+        <div style="font-size:17px;color:var(--text3)">Quand tu fais un jet de caractéristique, dépense 1 inspiration bardique et ajoute le résultat du dé (après ton jet, avant le verdict du MJ). Peut transformer un échec en réussite.</div>
         <button class="btn bsm bac" style="margin-top:6px" onclick="_bardeUseInspi('horspair')">🎯 Compétence hors-pair (−1 inspi)</button>
       </div>`;
     }

@@ -171,7 +171,7 @@ function _lrPrepClassList(p,className){
   return db.filter(s=>s.level>=1&&s.level<=maxLvl&&(!s.classes||!s.classes.length||s.classes.includes(className)||s.classes.includes(en)));
 }
 function _lrAlwaysPrepared(p,className){
-  // Sorts TOUJOURS préparés modélisés (Cercle des terres). Domaine/Serment → à brancher avec ces classes (@OPTION_B).
+  // Sorts TOUJOURS préparés modélisés (Cercle de la terre). Domaine/Serment → à brancher avec ces classes (@OPTION_B).
   if(className==='Druide'&&typeof getDruidCircleSpells==='function')return getDruidCircleSpells(p).filter(s=>s.level>0).map(s=>s.name);
   return [];
 }

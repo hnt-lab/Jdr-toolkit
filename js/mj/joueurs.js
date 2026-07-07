@@ -712,8 +712,8 @@ function mjEditPlayerSheet(idx){
     ${sec('Classes & Niveaux')}
     <div id="mje_class_list" style="margin-bottom:4px">${_mjRenderClassList(classes)}</div>
     <button class="btn bsm" style="width:100%;margin-bottom:12px" onclick="mjEditAddClass()">+ Ajouter une classe</button>
-    ${(p.archetype||{})['Druide']==='Cercle des terres'?`<div style="margin-bottom:12px;padding:8px 10px;background:rgba(200,168,75,.08);border-radius:8px">
-      <div style="font-size:15px;color:var(--text3);margin-bottom:4px">🗺 Terrain du Cercle des terres</div>
+    ${(p.archetype||{})['Druide']==='Cercle de la terre'?`<div style="margin-bottom:12px;padding:8px 10px;background:rgba(200,168,75,.08);border-radius:8px">
+      <div style="font-size:15px;color:var(--text3);margin-bottom:4px">🗺 Terrain du Cercle de la terre</div>
       <select id="mje_druid_terrain" style="width:100%;padding:5px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:18px">
         <option value="">-- Choisir un terrain --</option>
         ${['Arctique','Désert','Forêt','Littoral','Marais','Montagne','Outreterre','Plaine'].map(t=>`<option value="${t}"${p.druidTerrain===t?' selected':''}>${t}</option>`).join('')}

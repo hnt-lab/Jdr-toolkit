@@ -56,11 +56,11 @@ function tabCombat(p){
   const isMdG=guerPath?.name==='Maître de guerre';
   const isCO=guerPath?.name==='Chevalier occulte';
   const clercLvl=((p.classes||[]).find(c=>c.name==='Clerc')||{}).level||0;
-  const clercPath=(p.features||[]).find(f=>['Domaine de la vie','Domaine de la lumière','Domaine de la nature','Domaine de la tempête','Domaine de la tromperie','Domaine de la guerre','Domaine du savoir','Domaine de la forge'].includes(f.name));
+  const clercPath=(p.features||[]).find(f=>['Domaine de la vie','Domaine de la lumière','Domaine de la nature','Domaine de la tempête','Domaine de la duperie','Domaine de la guerre','Domaine du savoir','Domaine de la forge'].includes(f.name));
   const druLvl=((p.classes||[]).find(c=>c.name==='Druide')||{}).level||0;
-  const druPath=(p.features||[]).find(f=>['Cercle de la lune','Cercle des terres'].includes(f.name));
+  const druPath=(p.features||[]).find(f=>['Cercle de la lune','Cercle de la terre'].includes(f.name));
   const isLune=druPath?.name==='Cercle de la lune';
-  const isTerres=druPath?.name==='Cercle des terres';
+  const isTerres=druPath?.name==='Cercle de la terre';
   const paladinLvl=((p.classes||[]).find(c=>c.name==='Paladin')||{}).level||0;
   const paladinPath=(p.features||[]).find(f=>['Serment de dévotion','Serment des anciens','Serment de vengeance'].includes(f.name));
   const isDevot=paladinPath?.name==='Serment de dévotion';
@@ -79,10 +79,10 @@ function tabCombat(p){
   const isEscrocArc=roublardPath?.name==='Escroc arcanique';
   const isCons=roublardPath?.name==='Conspirateur';
   const artLvl=((p.classes||[]).find(c=>c.name==='Artificier')||{}).level||0;
-  const artPath=(p.features||[]).find(f=>['Alchimiste','Artilleur','Forgeron de bataille','Maître armurier'].includes(f.name));
+  const artPath=(p.features||[]).find(f=>['Alchimiste','Artilleur','Forgeron de guerre','Maître armurier'].includes(f.name));
   const isAlchi=artPath?.name==='Alchimiste';
   const isArtil=artPath?.name==='Artilleur';
-  const isFdB=artPath?.name==='Forgeron de bataille';
+  const isFdB=artPath?.name==='Forgeron de guerre';
   const artsMartiauxDie=moineLvl>=17?'d10':moineLvl>=11?'d8':moineLvl>=5?'d6':'d4';
   const snkDice=Math.ceil(roublardLvl/2);
   const isVaillanceCombat=(p.features||[]).some(f=>f.name==='Collège de la vaillance');
@@ -96,11 +96,11 @@ function tabCombat(p){
     'Barde':['Inspiration bardique','Contre-charme','Inspiration supérieure'],
     'Moine':['Points de ki'],
     'Ensorceleur':['Points de sorcellerie'],
-    'Guerrier':['Second souffle',"Sursaut d'action",'Indomptable'],
+    'Guerrier':['Second souffle','Fougue','Inflexible'],
     'Druide':['Forme sauvage'],
     'Clerc':['Conduit divin','Intervention divine'],
     'Paladin':['Conduit divin','Imposition des mains','Aura de protection','Aura de courage','Forme sacrée'],
-    'Roublard':['Roublardise'],
+    'Roublard':['Attaque sournoise'],
     'Rôdeur':['Vigilance primitive','Foulée tellurique','Camouflage naturel','Disparition','Sens sauvages','Tueur implacable'],
     'Magicien':['Restauration arcanique','Maîtrise des sorts','Sorts de prédilection'],
   };
@@ -280,7 +280,7 @@ function tabCombat(p){
     const niv5=lvl<5?'':'<div style="padding:6px 8px;background:var(--surface2);border-radius:6px;display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:18px;font-weight:600">🌑 Ténèbres</div><div style="font-size:15px;color:var(--text3)">Niv.2 — 1×/repos long • Obscurité magique (rayon 4,5m)</div></div><div style="display:flex;align-items:center;gap:6px"><span class="slot-bubble'+(usedNiv5?' used':'')+'" style="width:18px;height:18px" onclick="P().combatCharges=P().combatCharges||{};P().combatCharges[\'SortsInfernaux_Niv5\']=!P().combatCharges[\'SortsInfernaux_Niv5\'];saveAll();render()"></span>'+(usedNiv5?'<button class="btn bsm" onclick="P().combatCharges=P().combatCharges||{};delete P().combatCharges[\'SortsInfernaux_Niv5\'];saveAll();render()">↺</button>':'')+'</div></div>';
     return cs('cs-tiefling','<div class="panel mb10"><div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>🔥 Sorts infernaux</div><div style="font-size:17px;color:var(--text3);margin-bottom:8px">DD sorts : <strong style="color:var(--cp)">'+spellDC+'</strong> • Bonus attaque sorts : <strong style="color:var(--cp)">'+fmt(pb(lvl)+chaM)+'</strong> (CHA)</div><div style="padding:6px 8px;background:var(--surface2);border-radius:6px;margin-bottom:4px;display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:18px;font-weight:600">✨ Thaumaturgie</div><div style="font-size:15px;color:var(--text3)">Sort mineur — À volonté</div></div><span style="font-size:22px;color:var(--cp)">∞</span></div>'+niv3+niv5+'</div>');
   })()}
-  ${wsC?.active?cs('cs-ws-info',`<div class="panel mb10" style="border-color:rgba(76,175,80,.3);background:rgba(76,175,80,.04)"><div style="font-size:18px;color:var(--text3);text-align:center;padding:8px">🐺 En forme animale — sorts et capacités de classe indisponibles${druLvl>=18?'<br><span style="color:#4caf50;font-size:17px">Niv. 18 — Sorts de bête : tu peux lancer des sorts ✓</span>':''}</div></div>`):''}
+  ${wsC?.active?cs('cs-ws-info',`<div class="panel mb10" style="border-color:rgba(76,175,80,.3);background:rgba(76,175,80,.04)"><div style="font-size:18px;color:var(--text3);text-align:center;padding:8px">🐺 En forme animale — sorts et capacités de classe indisponibles${druLvl>=18?'<br><span style="color:#4caf50;font-size:17px">Niv. 18 — Incantation animale : tu peux lancer des sorts ✓</span>':''}</div></div>`):''}
   ${renderOccultiste(p)}
   ${renderMagicien(p)}
   ${renderRodeur(p)}
@@ -326,7 +326,7 @@ function _veilleHasFeat(p,re){return (p.features||[]).some(f=>re.test(f.name||''
 // Cas validés (table feedback_veille_pattern). when : 'myturn' | 'enemyturn' | 'round1'.
 const _VEILLE_CASES=[
   {cls:'Rôdeur',lvl:14,when:'myturn',icon:'👻',title:'Disparition',text:"Action bonus : te cacher. Tu ne peux pas être pisté par des moyens non magiques."},
-  {cls:'Ensorceleur',lvl:14,arch:'Origine draconique',when:'myturn',icon:'🦋',title:'Ailes draconiques',text:"Action bonus : déployer tes ailes → vitesse de vol = ton déplacement."},
+  {cls:'Ensorceleur',lvl:14,arch:'Lignée draconique',when:'myturn',icon:'🦋',title:'Ailes draconiques',text:"Action bonus : déployer tes ailes → vitesse de vol = ton déplacement."},
   {cls:'Moine',lvl:2,when:'myturn',icon:'🥋',title:'Défense patiente',text:"Action bonus (1 ki) : Esquive — les attaques contre toi ont le désavantage ce tour."},
   {cls:'Roublard',lvl:3,arch:'Assassin',when:'round1',icon:'🗡',title:'Assassinat',text:"1er tour : avantage contre toute créature n'ayant pas encore agi · critique auto si la cible est surprise."},
   {cls:'Paladin',lvl:7,arch:'Serment de vengeance',when:'enemyturn',icon:'↪',title:'Vengeur implacable',text:"Si ton attaque d'opportunité touche → réaction : déplacement de ½ vitesse."},
@@ -627,9 +627,9 @@ function renderSpellList(p, combatOnly){
   const wsActive=p.wildshape?.active&&!p.wildshape?.isElemental;
   const druEntry=(p.classes||[]).find(c=>c.name==='Druide');
   const druLvl=druEntry?druEntry.level:0;
-  if(wsActive&&druLvl<18)return`<div style="padding:12px;background:rgba(76,175,80,.08);border:1px solid rgba(76,175,80,.3);border-radius:8px;font-size:18px;color:var(--text3);text-align:center">🐺 En forme animale — l'incantation est impossible avant le niveau 18 (Sorts de bête).</div>`;
+  if(wsActive&&druLvl<18)return`<div style="padding:12px;background:rgba(76,175,80,.08);border:1px solid rgba(76,175,80,.3);border-radius:8px;font-size:18px;color:var(--text3);text-align:center">🐺 En forme animale — l'incantation est impossible avant le niveau 18 (Incantation animale).</div>`;
   const wsMaterialRestrict=wsActive&&druLvl>=18;
-  const materialNote=wsMaterialRestrict?`<div style="padding:8px 10px;background:rgba(76,175,80,.08);border:1px solid rgba(76,175,80,.3);border-radius:8px;font-size:18px;color:var(--text2);margin-bottom:8px">🐺 <strong>Sorts de bête (niv.18)</strong> — Seuls les sorts sans composante matérielle (V/S uniquement) sont lancables en forme animale. Les sorts avec <strong style="color:#e57373">M</strong> sont grisés.</div>`:'';
+  const materialNote=wsMaterialRestrict?`<div style="padding:8px 10px;background:rgba(76,175,80,.08);border:1px solid rgba(76,175,80,.3);border-radius:8px;font-size:18px;color:var(--text2);margin-bottom:8px">🐺 <strong>Incantation animale (niv.18)</strong> — Seuls les sorts sans composante matérielle (V/S uniquement) sont lancables en forme animale. Les sorts avec <strong style="color:#e57373">M</strong> sont grisés.</div>`:'';
   const prepCaster = isPrepCaster(p);
   const _mc=mainClass(p);const _cd=_mc?SRD.classes.find(c=>c.name===_mc.name):null;
   const _lvl=totalLevel(p);

@@ -5,11 +5,11 @@ const BARBARE_SURSAUT = [
   'Cible à 9m — JS CON ou 1d12 nécrotiques. Toi : +1d12+niv PV temporaires.',
   'Téléportation 9m (espace visible). Répétable comme action bonus en rage.',
   'Esprit à 1,5m d\'une cible → explose : JS DEX ou 1d6 force dans 1,5m. Répétable comme action bonus.',
-  'Lumière éblouissante : créatures à 1,5m → JS CON ou 1d6 radiant + aveuglées jusqu\'à ton prochain tour.',
+  'Éclair de lumière : une créature au choix à 9m → JS CON ou 1d6 radiant + aveuglée jusqu\'au début de ton prochain tour. Répétable comme action bonus.',
   'Représailles passives : chaque créature qui te touche subit 1d6 force.',
   '+1 CA pour toi. Alliés à 3m : +1 CA également.',
   'Terrain difficile 4,5m autour de toi pour les ennemis jusqu\'à fin de la rage.',
-  'Arme choisie → dégâts de force + légère + lancer (4,5m/9m). Revient en main automatiquement.'
+  'Arme choisie → dégâts de force + légère + lancer (6m/18m). Revient en main automatiquement.'
 ];
 
 function renderBarbare(p) {
@@ -44,7 +44,7 @@ function renderBarbare(p) {
     : `<div style="display:flex;gap:4px;flex-wrap:wrap">${Array.from({length:rageMax},(_,i)=>`<span class="slot-bubble${i<rem?'':' used'}" onclick="useCombatCharge('RageCharges',${rageMax})" title="Utiliser une rage"></span>`).join('')}</div><div style="font-size:15px;color:var(--text3);margin-top:4px">${rem}/${rageMax} • Récup. repos long</div><button class="btn bsm" style="margin-top:4px" onclick="recoverCombatCharge('RageCharges',${rageMax})">↺ Récupérer</button>`;
 
   const baseResTags = ['Contondant','Perforant','Tranchant'].map(r=>`<span style="font-size:17px;padding:2px 8px;border-radius:10px;background:${rageActive?'rgba(229,57,53,.2)':'var(--surface3)'};color:${rageActive?'#e53935':'var(--text3)'};border:1px solid ${rageActive?'#e53935':'var(--border)'}">${r}</span>`).join('');
-  const totemOursTags = (isTotem&&totemChoice==='Ours'&&rageActive)?['Feu','Froid','Foudre','Nécrotique','Acide','Tonnerre','Radiant','Poison'].map(r=>`<span style="font-size:17px;padding:2px 8px;border-radius:10px;background:rgba(76,175,80,.2);color:#4caf50;border:1px solid #4caf50">${r}</span>`).join(''):'';
+  const totemOursTags = (isTotem&&totemChoice==='Ours'&&rageActive)?['Feu','Froid','Foudre','Nécrotique','Acide','Tonnerre','Radiant','Poison','Force'].map(r=>`<span style="font-size:17px;padding:2px 8px;border-radius:10px;background:rgba(76,175,80,.2);color:#4caf50;border:1px solid #4caf50">${r}</span>`).join(''):'';
   const berserkerImmuTag = (isBerserker&&barbareLvl>=6&&rageActive)?`<span style="font-size:17px;padding:2px 8px;border-radius:10px;background:rgba(76,175,80,.2);color:#4caf50;border:1px solid #4caf50">🛡 Imm. charme/peur</span>`:'';
 
   panels.push(`<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px">
@@ -141,16 +141,20 @@ function renderBarbare(p) {
           <span style="font-size:18px;font-weight:600;color:var(--cp)">↪ Représailles</span>
           <span style="font-size:15px;color:#9c27b0;border:1px solid rgba(156,39,176,.4);border-radius:8px;padding:1px 6px">Réaction</span>
         </div>
-        <div style="font-size:17px;color:var(--text3)">Quand tu subis des dégâts d\'une attaque de mêlée, tu peux immédiatement faire 1 attaque de mêlée contre l\'attaquant.</div>
+        <div style="font-size:17px;color:var(--text3)">Quand tu subis des dégâts d\'une créature à 1,5m de toi, tu peux utiliser ta réaction pour faire une attaque de mêlée avec une arme contre elle.</div>
       </div>`);
     }
   }
 
   // ── GUERRIER TOTEM ────────────────────────────────────────
   if (isTotem && barbareLvl>=3) {
+    panels.push(`<div style="margin-bottom:10px;padding:8px;background:var(--surface2);border-radius:6px">
+      <div style="font-size:18px;font-weight:600;color:var(--cp);margin-bottom:4px">🕊 Quêteur spirituel</div>
+      <div style="font-size:17px;color:var(--text3)">Tu peux lancer <em>Communication avec les animaux</em> et <em>Sens animal</em>, mais uniquement en tant que rituels.</div>
+    </div>`);
     const totems = [
       {id:'Ours',icon:'🐻',desc:'Résistance à tous les dégâts sauf psychiques en rage.'},
-      {id:'Aigle',icon:'🦅',desc:'Tes déplacements ne provoquent pas d\'attaques d\'opportunité en rage (hors armure lourde).'},
+      {id:'Aigle',icon:'🦅',desc:'En rage (hors armure lourde) : les attaques d\'opportunité contre toi ont un désavantage, et tu peux Foncer en action bonus.'},
       {id:'Loup',icon:'🐺',desc:'En rage, tes alliés ont l\'avantage sur les attaques de mêlée contre les créatures à 1,5m de toi.'}
     ];
     panels.push(`<div style="margin-bottom:10px;padding:8px;background:var(--surface2);border-radius:6px">
@@ -162,7 +166,7 @@ function renderBarbare(p) {
     if (barbareLvl>=6) {
       const aspectDesc = ({
         Ours:'🐻 Force de portage doublée. Avantage sur les jets de Force pour pousser, tirer, soulever ou casser des objets.',
-        Aigle:'🦅 Vision jusqu\'à 1,5km sans difficulté (détails comme à 30m). Nuages et brouillard n\'entravent pas ta vue.',
+        Aigle:'🦅 Vision jusqu\'à 1,5km sans difficulté (détails comme à 30m). La faible luminosité n\'impose pas de désavantage à tes jets de Sagesse (Perception).',
         Loup:'🐺 Tu peux pister des créatures même à allure rapide. Déplacement furtif à vitesse normale possible.'
       })[totemChoice]||'<em style="color:var(--text3)">Choisissez d\'abord votre esprit totem (niv.3).</em>';
       panels.push(`<div style="margin-bottom:10px;padding:8px;background:var(--surface2);border-radius:6px">
@@ -253,8 +257,20 @@ function renderBarbare(p) {
       ${srsHtml}
     </div>`;
 
-    if (barbareLvl>=6) msContent += `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"><div style="font-size:17px;font-weight:600;color:var(--text2);margin-bottom:2px">⚡ Réserve de magie</div><div style="font-size:17px;color:var(--text3)">Si tu n'as plus de charges de rage au début de ton tour (clique <em>Fin de tour</em> dans le panneau rage), tu en regagnes 1 automatiquement.</div></div>`;
-    if (barbareLvl>=10) msContent += `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"><div style="font-size:17px;font-weight:600;color:var(--text2);margin-bottom:2px">🌀 Réaction instable</div><div style="font-size:17px;color:var(--text3)">Réaction : quand tu subis les effets d'un sort, tu peux déclencher un Sursaut sauvage. Utilise le bouton ⚡ Réaction ci-dessus.</div></div>`;
+    if (barbareLvl>=6) {
+      const rmMax = pb(lvl);
+      const rmCur = cc['ReserveMagie']!==undefined ? cc['ReserveMagie'] : rmMax;
+      msContent += `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+          <span style="font-size:17px;font-weight:600;color:var(--text2)">⚡ Réserve de magie (${rmCur}/${rmMax})</span>
+          <button class="btn bsm" onclick="recoverCombatCharge('ReserveMagie',${rmMax})">↺ Récupérer</button>
+        </div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:4px">${Array.from({length:rmMax},(_,i)=>`<span class="slot-bubble${i<rmCur?'':' used'}" onclick="useCombatCharge('ReserveMagie',${rmMax})" title="Utiliser Réserve de magie"></span>`).join('')}</div>
+        <div style="font-size:15px;color:var(--text3);margin-bottom:4px">Action : touche une créature (toi inclus). Au choix : pendant 10 min elle ajoute 1d3 à chaque jet d'attaque et de caractéristique, OU elle regagne un emplacement de sort de niveau ≤ 1d3 (cette 2ᵉ option : 1×/repos long par créature). Récup. repos long.</div>
+        <button class="btn bsm bac" onclick="rollCustomDmg('1d3','Réserve de magie')">🎲 1d3</button>
+      </div>`;
+    }
+    if (barbareLvl>=10) msContent += `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"><div style="font-size:17px;font-weight:600;color:var(--text2);margin-bottom:2px">🌀 Réaction instable</div><div style="font-size:17px;color:var(--text3)">Réaction : juste après avoir subi des dégâts ou raté un JS pendant ta rage, déclenche un Sursaut sauvage (remplace l'effet en cours). Utilise le bouton ⚡ Réaction ci-dessus.</div></div>`;
     if (barbareLvl>=14) msContent += `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"><div style="font-size:17px;font-weight:600;color:var(--text2);margin-bottom:2px">🎯 Sursaut contrôlé</div><div style="font-size:17px;color:var(--text3)">Lors d'un Sursaut sauvage, deux résultats sont tirés (🎲 ×2). Choisissez le résultat à appliquer en cliquant dessus.</div></div>`;
 
     panels.push(`<div style="margin-bottom:10px;padding:10px;background:rgba(156,39,176,.07);border:1px solid rgba(156,39,176,.2);border-radius:8px">
@@ -298,7 +314,7 @@ function toggleRageActive() {
   const isMagieSauvage = barbarePath?.name==='Voie de la magie sauvage';
   const totemChoice = p.combatCharges['TotemSpirit']||'';
   const RAGE_RES = ['Contondant','Perforant','Tranchant'];
-  const TOTEM_OURS_RES = ['Feu','Froid','Foudre','Nécrotique','Acide','Tonnerre','Radiant','Poison'];
+  const TOTEM_OURS_RES = ['Feu','Froid','Foudre','Nécrotique','Acide','Tonnerre','Radiant','Poison','Force'];
 
   if (p.combatCharges['RageActive']===true) {
     p.combatCharges['RageActive'] = false;
@@ -441,17 +457,6 @@ function endRageTurn() {
   if (!p.combatCharges['RageActive']) return;
   const barbareLvl = ((p.classes||[]).find(c=>c.name==='Barbare')||{}).level||0;
   if (barbareLvl >= 15) { showToast('♾ Rage persistante — durée illimitée.'); return; }
-
-  // Réserve de magie (niv.6) : si 0 charges au début de ce tour, regagne 1
-  const _msPath = (p.features||[]).find(f=>f.name==='Voie de la magie sauvage');
-  if (_msPath && barbareLvl>=6) {
-    const _rMax = barbareLvl>=17?6:barbareLvl>=12?5:barbareLvl>=6?4:barbareLvl>=3?3:2;
-    const _cur = p.combatCharges['RageCharges']!==undefined ? p.combatCharges['RageCharges'] : _rMax;
-    if (_cur <= 0) {
-      p.combatCharges['RageCharges'] = 1;
-      showToast('⚡ Réserve de magie — 1 charge de rage regagnée !');
-    }
-  }
 
   const turns = Math.max(0, (p.combatCharges['RageTurns']||0) - 1);
   if (turns <= 0) {
