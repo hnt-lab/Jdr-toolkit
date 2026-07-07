@@ -111,7 +111,7 @@ function tabSorts(p){
     const druEntry=(p.classes||[]).find(c=>c.name==='Druide');
     if(!druEntry||druEntry.level<3)return'';
     const arch=(p.archetype||{})['Druide']||'';
-    if(!arch.toLowerCase().includes('terres'))return'';
+    if(!arch.toLowerCase().includes('terre'))return'';
     const terrain=p.druidTerrain||'';
     if(!terrain)return`<div style="font-size:17px;color:var(--text3);padding:8px 0;font-style:italic">⭐ Sorts du Cercle — terrain non configuré. Réinitialisez votre personnage (respec MJ) pour choisir un terrain.</div>`;
     const cs=getDruidCircleSpells(p);

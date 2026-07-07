@@ -144,7 +144,7 @@ function showApp(){
 }
 
 // ─── CACHE INVALIDATION ───
-const _DB_VERSION='comp-v1'; // bump → purge l'ancien cache (passage au système de paquets COMP)
+const _DB_VERSION='comp-v2'; // bump → purge les caches de données comp_* (garde le choix de paquets). v2 : spells_db legacy nettoyé en 482 officiels FR (2026-07-07)
 (function(){
   if(localStorage.getItem('_db_version')!==_DB_VERSION){
     // anciennes clés de cache mono-fichier (remplacées par comp_<packId>_<type>)
