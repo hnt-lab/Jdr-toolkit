@@ -697,54 +697,56 @@ function _resolveDruidCircleFeat(featName,circleArchetype,level){
   return circleFeat&&circleFeat[level]?circleFeat[level]:null;
 }
 
+// Noms FR = textes de règles officiels (Documents sources). Le champ en = nom anglais canonique,
+// utilisé pour retrouver le sort dans le compendium installé si sa traduction FR diffère (voir getDruidCircleSpells).
 const DRUID_CIRCLE_SPELLS={
   'Arctique':[
-    {name:"Croissance d'épines",level:2},{name:'Immobilisation de personne',level:2},
-    {name:'Lenteur',level:3},{name:'Tempête de neige',level:3},
-    {name:'Liberté de mouvement',level:4},{name:'Tempête de grêle',level:4},
-    {name:'Communion avec la nature',level:5},{name:'Cône de froid',level:5}
+    {name:"Croissance d'épines",en:'Spike Growth',level:2},{name:'Immobilisation de personne',en:'Hold Person',level:2},
+    {name:'Lenteur',en:'Slow',level:3},{name:'Tempête de neige',en:'Sleet Storm',level:3},
+    {name:'Liberté de mouvement',en:'Freedom of Movement',level:4},{name:'Tempête de grêle',en:'Ice Storm',level:4},
+    {name:'Communion avec la nature',en:'Commune with Nature',level:5},{name:'Cône de froid',en:'Cone of Cold',level:5}
   ],
   'Désert':[
-    {name:'Flou',level:2},{name:'Silence',level:2},
-    {name:"Création de nourriture et d'eau",level:3},{name:"Protection contre l'énergie",level:3},
-    {name:'Flétrissement',level:4},{name:'Terrain hallucinatoire',level:4},
-    {name:"Fléau d'insectes",level:5},{name:'Mur de pierre',level:5}
+    {name:'Flou',en:'Blur',level:2},{name:'Silence',en:'Silence',level:2},
+    {name:"Création de nourriture et d'eau",en:'Create Food and Water',level:3},{name:"Protection contre l'énergie",en:'Protection from Energy',level:3},
+    {name:'Flétrissement',en:'Blight',level:4},{name:'Terrain hallucinatoire',en:'Hallucinatory Terrain',level:4},
+    {name:"Fléau d'insectes",en:'Insect Plague',level:5},{name:'Mur de pierre',en:'Wall of Stone',level:5}
   ],
   'Forêt':[
-    {name:"Pattes d'araignée",level:2},{name:"Peau d'écorce",level:2},
-    {name:'Appel de la foudre',level:3},{name:'Croissance végétale',level:3},
-    {name:'Divination',level:4},{name:'Liberté de mouvement',level:4},
-    {name:'Communion avec la nature',level:5},{name:'Passage par les arbres',level:5}
+    {name:"Pattes d'araignée",en:'Spider Climb',level:2},{name:"Peau d'écorce",en:'Barkskin',level:2},
+    {name:'Appel de la foudre',en:'Call Lightning',level:3},{name:'Croissance végétale',en:'Plant Growth',level:3},
+    {name:'Divination',en:'Divination',level:4},{name:'Liberté de mouvement',en:'Freedom of Movement',level:4},
+    {name:'Communion avec la nature',en:'Commune with Nature',level:5},{name:'Passage par les arbres',en:'Tree Stride',level:5}
   ],
   'Littoral':[
-    {name:'Foulée brumeuse',level:2},{name:'Image miroir',level:2},
-    {name:"Marche sur l'eau",level:3},{name:'Respiration aquatique',level:3},
-    {name:"Contrôle de l'eau",level:4},{name:'Liberté de mouvement',level:4},
-    {name:"Invocation d'élémentaire",level:5},{name:'Scrutation',level:5}
+    {name:'Foulée brumeuse',en:'Misty Step',level:2},{name:'Image miroir',en:'Mirror Image',level:2},
+    {name:"Marche sur l'eau",en:'Water Walk',level:3},{name:'Respiration aquatique',en:'Water Breathing',level:3},
+    {name:"Contrôle de l'eau",en:'Control Water',level:4},{name:'Liberté de mouvement',en:'Freedom of Movement',level:4},
+    {name:"Invocation d'élémentaire",en:'Conjure Elemental',level:5},{name:'Scrutation',en:'Scrying',level:5}
   ],
   'Marais':[
-    {name:'Flèche acide de Melf',level:2},{name:'Ténèbres',level:2},
-    {name:"Marche sur l'eau",level:3},{name:'Nuage nauséabond',level:3},
-    {name:'Liberté de mouvement',level:4},{name:'Localisation de créature',level:4},
-    {name:"Fléau d'insectes",level:5},{name:'Scrutation',level:5}
+    {name:'Flèche acide de Melf',en:"Melf's Acid Arrow",level:2},{name:'Ténèbres',en:'Darkness',level:2},
+    {name:"Marche sur l'eau",en:'Water Walk',level:3},{name:'Nuage nauséabond',en:'Stinking Cloud',level:3},
+    {name:'Liberté de mouvement',en:'Freedom of Movement',level:4},{name:'Localisation de créature',en:'Locate Creature',level:4},
+    {name:"Fléau d'insectes",en:'Insect Plague',level:5},{name:'Scrutation',en:'Scrying',level:5}
   ],
   'Montagne':[
-    {name:"Croissance d'épines",level:2},{name:"Pattes d'araignée",level:2},
-    {name:'Éclair',level:3},{name:'Fusion dans la pierre',level:3},
-    {name:'Façonnage de la pierre',level:4},{name:'Peau de pierre',level:4},
-    {name:'Mur de pierre',level:5},{name:'Passe-muraille',level:5}
+    {name:"Croissance d'épines",en:'Spike Growth',level:2},{name:"Pattes d'araignée",en:'Spider Climb',level:2},
+    {name:'Éclair',en:'Lightning Bolt',level:3},{name:'Fusion dans la pierre',en:'Meld into Stone',level:3},
+    {name:'Façonnage de la pierre',en:'Stone Shape',level:4},{name:'Peau de pierre',en:'Stoneskin',level:4},
+    {name:'Mur de pierre',en:'Wall of Stone',level:5},{name:'Passe-muraille',en:'Passwall',level:5}
   ],
   'Outreterre':[
-    {name:"Pattes d'araignée",level:2},{name:"Toile d'araignée",level:2},
-    {name:'Forme gazeuse',level:3},{name:'Nuage nauséabond',level:3},
-    {name:'Façonnage de la pierre',level:4},{name:'Invisibilité supérieure',level:4},
-    {name:'Brume mortelle',level:5},{name:"Fléau d'insectes",level:5}
+    {name:"Pattes d'araignée",en:'Spider Climb',level:2},{name:"Toile d'araignée",en:'Web',level:2},
+    {name:'Forme gazeuse',en:'Gaseous Form',level:3},{name:'Nuage nauséabond',en:'Stinking Cloud',level:3},
+    {name:'Façonnage de la pierre',en:'Stone Shape',level:4},{name:'Invisibilité supérieure',en:'Greater Invisibility',level:4},
+    {name:'Brume mortelle',en:'Cloudkill',level:5},{name:"Fléau d'insectes",en:'Insect Plague',level:5}
   ],
   'Plaine':[
-    {name:'Invisibilité',level:2},{name:'Passage sans trace',level:2},
-    {name:'Hâte',level:3},{name:'Lumière du jour',level:3},
-    {name:'Divination',level:4},{name:'Liberté de mouvement',level:4},
-    {name:"Fléau d'insectes",level:5},{name:'Songe',level:5}
+    {name:'Invisibilité',en:'Invisibility',level:2},{name:'Passage sans trace',en:'Pass without Trace',level:2},
+    {name:'Hâte',en:'Haste',level:3},{name:'Lumière du jour',en:'Daylight',level:3},
+    {name:'Divination',en:'Divination',level:4},{name:'Liberté de mouvement',en:'Freedom of Movement',level:4},
+    {name:"Fléau d'insectes",en:'Insect Plague',level:5},{name:'Songe',en:'Dream',level:5}
   ]
 };
 
@@ -758,7 +760,18 @@ function getDruidCircleSpells(p){
   const spells=DRUID_CIRCLE_SPELLS[terrain]||[];
   const druLvl=druEntry.level;
   const maxSlotLvl=druLvl>=9?5:druLvl>=7?4:druLvl>=5?3:2;
-  return spells.filter(s=>s.level<=maxSlotLvl);
+  // Résolution tolérante contre le compendium installé : si le nom FR officiel (source) n'existe pas
+  // dans la DB (traduction différente ou encore en anglais), on retrouve le sort par son nom EN canonique
+  // et on renvoie le nom réellement installé → le « toujours préparé » matche quel que soit l'état de la traduction.
+  const _db=(typeof getSpellsDB==='function')?(getSpellsDB()||[]):[];
+  const _n=x=>String(x||'').toLowerCase().trim();
+  return spells.filter(s=>s.level<=maxSlotLvl).map(s=>{
+    if(_db.length&&!_db.some(d=>_n(d.name)===_n(s.name))){
+      const hit=s.en?_db.find(d=>_n(d.nameEN)===_n(s.en)||_n(d.name)===_n(s.en)):null;
+      if(hit)return{name:hit.name,level:s.level};
+    }
+    return s;
+  });
 }
 
 // Calcule les étapes nécessaires pour cette montée de niveau
@@ -1532,6 +1545,7 @@ function applyLevelUp(){
       'Capacité du domaine','Capacité du serment sacré','Capacité de la tradition monastique',
       'Capacité du spécialiste','Capacité de la voie',"Capacité de l'archétype",
       "Capacité de l'archétype de rôdeur",
+      'Capacité du collège',"Capacité du patron d'Outremonde",'Capacité de la spécialité','Capacité du cercle',
     ];
     const _curArchetype=(p.archetype||{})[mc.name]||LU.archetypeChoice||null;
     const druideCircle2=mc.name==='Druide'?_curArchetype:null;

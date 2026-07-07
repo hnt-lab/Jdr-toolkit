@@ -317,10 +317,11 @@ function defPlayer(name='Nouveau'){return{
 
 // Principe #4 — « texte générique = bug » : remplace les capacités d'archétype génériques
 // (« Capacité de la voie », etc.) par les VRAIES capacités de l'archétype choisi, sinon supprime l'entrée.
-const _GENERIC_FEAT_NAMES=['Capacité de la voie','Capacité de la voie primitive',"Capacité de l'archétype","Capacité de l'archétype martial","Capacité de l'archétype de rôdeur",'Amélioration archétype',"Amélioration de l'archétype",'Capacité du domaine','Capacité du serment','Capacité du serment sacré','Capacité du cercle','Capacité du collège','Capacité monastique','Capacité de la tradition monastique','Capacité du spécialiste'];
+const _GENERIC_FEAT_NAMES=['Capacité de la voie','Capacité de la voie primitive',"Capacité de l'archétype","Capacité de l'archétype martial","Capacité de l'archétype de rôdeur",'Amélioration archétype',"Amélioration de l'archétype",'Capacité du domaine','Capacité du serment','Capacité du serment sacré','Capacité du cercle','Capacité du collège','Capacité monastique','Capacité de la tradition monastique','Capacité du spécialiste',"Capacité du patron d'Outremonde",'Capacité de la spécialité',"Capacité de la spécialité d'artificier"];
 function _migrateGenericFeats(p){
   if(!p||!Array.isArray(p.features))return;
-  if(!p.features.some(f=>_GENERIC_FEAT_NAMES.includes(f.name)))return; // aucun générique → rien à faire
+  // Retire les placeholders génériques s'il y en a, puis backfill SYSTÉMATIQUE (idempotent) :
+  // répare aussi les persos dont l'archétype n'avait jamais reçu ses capacités (ex. bug clés Occultiste).
   p.features=p.features.filter(f=>!_GENERIC_FEAT_NAMES.includes(f.name)); // retire les placeholders
   if(typeof _ARCHETYPE_LEVEL_FEATS==='undefined')return;
   (p.classes||[]).forEach(c=>{

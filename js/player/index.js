@@ -222,7 +222,9 @@ function renderDicePanel(){
     return;
   }
   const mc=mainClass(p);const lvl=totalLevel(p);
-  const saves=CLASS_SAVES[mc?mc.name:'']||[];
+  // Âme de diamant (Moine niv.14) : maîtrise de TOUS les jets de sauvegarde (audit RAW 2026-07-07)
+  const _moineDiamant=(((p.classes||[]).find(c=>c.name==='Moine')||{}).level||0)>=14;
+  const saves=_moineDiamant?[0,1,2,3,4,5]:(CLASS_SAVES[mc?mc.name:'']||[]);
   const barbareLvl=((p.classes||[]).find(c=>c.name==='Barbare')||{}).level||0;
   const rageActive=barbareLvl>0&&(p.combatCharges||{})['RageActive']===true;
 

@@ -86,7 +86,9 @@ function tabCombat(p){
   const artsMartiauxDie=moineLvl>=17?'d10':moineLvl>=11?'d8':moineLvl>=5?'d6':'d4';
   const snkDice=Math.ceil(roublardLvl/2);
   const isVaillanceCombat=(p.features||[]).some(f=>f.name==='Collège de la vaillance');
-  const hasExtraAttack=(p.classes||[]).some(c=>['Guerrier','Barbare','Paladin','Rôdeur','Moine'].includes(c.name)&&(c.level||0)>=5)||(isVaillanceCombat&&bardeLvl>=6);
+  const _artLvlAtk=((p.classes||[]).find(c=>c.name==='Artificier')||{}).level||0;
+  const _artExtraAtk=_artLvlAtk>=5&&(artPath?.name==='Forgeron de guerre'||artPath?.name==='Maître armurier');
+  const hasExtraAttack=(p.classes||[]).some(c=>['Guerrier','Barbare','Paladin','Rôdeur','Moine'].includes(c.name)&&(c.level||0)>=5)||(isVaillanceCombat&&bardeLvl>=6)||_artExtraAtk;
   const attackCount=guerrierLvl>=20?4:guerrierLvl>=11?3:hasExtraAttack?2:1;
   const wsC=p.wildshape;
 

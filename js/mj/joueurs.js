@@ -82,6 +82,7 @@ function mjShowPlayerDetail(idx){
   const fmt2=v=>(v>=0?'+':'')+v;
   const saveProf=new Set();
   (p.classes||[]).forEach(c=>{const cd=SRD.classes.find(cl=>cl.name===c.name);if(cd)(cd.saves||[]).forEach(s=>saveProf.add(s));});
+  if((((p.classes||[]).find(c=>c.name==='Moine')||{}).level||0)>=14)['FOR','DEX','CON','INT','SAG','CHA'].forEach(s=>saveProf.add(s)); // Âme de diamant
   const skillsHtml=SKILLS.map(sk=>{
     const prof=(p.skillProf||{})[sk.name]||0;
     const bonus=mods[sk.ab]+(prof>=2?pb*2:prof>=1?pb:0);

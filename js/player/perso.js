@@ -288,6 +288,12 @@ function _classPassiveResist(p){
   }
   // Magicien — Insensibilité à la non-vie (École de nécromancie niv.10) : résistance nécrotique
   if((((p.classes||[]).find(c=>c.name==='Magicien')||{}).level||0)>=10&&feats.some(f=>f.name==='École de nécromancie'))r.push('Nécrotique');
+  // Rôdeur — Lien du croc et d'écailles (Gardien de drake niv.7) : résistance à l'essence du drake invoqué
+  const _rodDrakeLvl=((p.classes||[]).find(c=>c.name==='Rôdeur')||{}).level||0;
+  if(_rodDrakeLvl>=7&&p.drakeCompanion&&p.drakeCompanion.active&&p.drakeCompanion.essence)r.push(p.drakeCompanion.essence);
+  // Artificier — Maîtrise chimique (Alchimiste niv.15) : résistance acide et poison
+  const _artAlchiLvl=((p.classes||[]).find(c=>c.name==='Artificier')||{}).level||0;
+  if(_artAlchiLvl>=15&&feats.some(f=>f.name==='Alchimiste'))r.push('Acide','Poison');
   return r;
 }
 // Immunités passives calculées (miroir de _classPassiveResist) — étendu classe par classe
@@ -598,6 +604,41 @@ function openResistModal(){
 function toggleInspiration(){const p=P();p.inspiration=!p.inspiration;_markUnsaved();render();}
 
 // ── REPOS ──
+// Reset centralisé des jauges internes des panneaux de classe (audit RAW 2026-07-07).
+// Les combatFeatures de config.js sont resetées par nom ailleurs ; ici = les clés propres aux panneaux.
+function _classGaugeRestResets(p,type){
+  const cc=p.combatCharges;if(!cc)return;
+  const lvlOf=n=>((p.classes||[]).find(c=>c.name===n)||{}).level||0;
+  const _pbv=pb(totalLevel(p));
+  const intM=mod((p.abilities||[])[3]||10),sagM=mod((p.abilities||[])[4]||10),chaM=mod((p.abilities||[])[5]||10);
+  // ── Repos court OU long ──
+  const guer=lvlOf('Guerrier');
+  if(guer>0){cc['SursautAction']=guer>=17?2:1;if(guer>=3)cc['DésSupériorité']=guer>=15?6:guer>=7?5:4;}
+  const clerc=lvlOf('Clerc');
+  if(clerc>=2)cc['ConduitDivin']=clerc>=18?3:clerc>=6?2:1;
+  if(clerc>=17)delete cc['VisionsPasse'];
+  if(lvlOf('Paladin')>=3)cc['Conduit divin']=1;
+  if(lvlOf('Occultiste')>0)['PresenceFeeUsed','EchappatBrumeUsed','SombreDelireUsed','ChanceTenebreuxUsed','ProtecEntropiqueUsed'].forEach(k=>delete cc[k]);
+  if(lvlOf('Ensorceleur')>=20)delete cc['RestaurationEnsorceleurUsed'];
+  if(lvlOf('Roublard')>=20)delete cc['CoupDeChanceUsed'];
+  const barde=lvlOf('Barde');
+  if(barde>0&&(type==='long'||barde>=5))cc['InspBardique']=Math.max(1,chaM);
+  if(lvlOf('Barbare')>=11)cc['RageImplacableUses']=0; // le DD retombe à 10 (repos court ou long)
+  // ── Repos long uniquement ──
+  if(type==='long'){
+    const barb=lvlOf('Barbare');
+    if(barb>0){cc['RageCharges']=barb>=20?99:barb>=17?6:barb>=12?5:barb>=6?4:barb>=3?3:2;cc['SensMagie']=_pbv;cc['ReserveMagie']=_pbv;}
+    if(guer>=9)cc['Indomptable']=guer>=17?3:guer>=13?2:1;
+    const pala=lvlOf('Paladin');
+    if(pala>0){cc['SensDivin']=Math.max(1,1+chaM);if(pala>=14)cc['ContactPurifiant']=Math.max(1,chaM);if(pala>=20)cc['FormeSacree']=1;delete cc['SentinelleImmortelleUsed'];}
+    if(clerc>0){if(clerc>=1)cc['IlluminationProtectrice']=Math.max(1,sagM);cc['FureurOuragan']=Math.max(1,sagM);cc['PretreGuerre']=Math.max(1,sagM);}
+    if(lvlOf('Occultiste')>0){delete cc['TraverseeEnfersUsed'];delete cc['MaitreOcculteUsed'];['ArcanumNiv6Used','ArcanumNiv7Used','ArcanumNiv8Used','ArcanumNiv9Used'].forEach(k=>delete cc[k]);}
+    if(lvlOf('Druide')>=2)delete cc['RecupNaturelle'];
+    if(lvlOf('Rôdeur')>=11)delete cc['SouffleDrake'];
+    const art=lvlOf('Artificier');
+    if(art>0){cc['EclairGenie']=Math.max(1,intM);cc['DechargeArcanique']=Math.max(1,intM);cc['DefenseurReparation']=3;cc['ChampDefensif']=_pbv;cc['ObjetStockeSort']=Math.max(2,2*intM);cc['ElixirExp']=art>=15?3:art>=6?2:1;cc['IngredientsRevigo']=Math.max(1,intM);delete cc['MaitriseChim1'];delete cc['MaitriseChim2'];}
+  }
+}
 function doShortRest(){
   if(typeof _activeCombatState!=='undefined'&&_activeCombatState&&_activeCombatState.active){showToast('⛔ Pas de repos pendant un combat !');return;}
   const p=P();const mc=mainClass(p);const cd=mc?SRD.classes.find(c=>c.name===mc.name):null;if(!cd)return;
@@ -623,6 +664,7 @@ function doShortRest(){
   const _moineRestLvl=((p.classes||[]).find(c=>c.name==='Moine')||{}).level||0;
   if(_moineRestLvl>0)p.combatCharges['Ki']=_moineRestLvl;
   delete p.combatCharges['ChantReposantResult'];
+  _classGaugeRestResets(p,'court');
   render();saveAll();showToast(`☕ Repos court — ${cd.hd}(${roll-mod(p.abilities[2])})+CON = <strong>+${healed}</strong>${_chantBonus?` + 🎶 <strong>+${_chantBonus}</strong>`:''} PV`);
 }
 function _applyIRLShortRest(){
@@ -645,6 +687,7 @@ function _applyIRLShortRest(){
   const _moineIRLLvl=((p.classes||[]).find(c=>c.name==='Moine')||{}).level||0;
   if(_moineIRLLvl>0)p.combatCharges['Ki']=_moineIRLLvl;
   delete p.combatCharges['ChantReposantResult'];
+  _classGaugeRestResets(p,'court');
   _proposeGroupRest('court');closeModal();render();saveAll();showToast(`☕ Repos court — <strong>+${healed}</strong>${_rlChantB?` + 🎶 <strong>+${_rlChantB}</strong>`:''} PV`);
 }
 function doLongRest(){
@@ -660,6 +703,12 @@ function doLongRest(){
   delete p.relentlessEnduranceUsed;
   delete p.combatCharges['ChantReposantResult'];
   delete p.combatCharges['SortsInfernaux_Niv3'];delete p.combatCharges['SortsInfernaux_Niv5'];
+  _classGaugeRestResets(p,'long');
+  // Reset Forme sauvage / Ki (le repos long compte aussi comme repos court)
+  const _druLRLvl=((p.classes||[]).find(c=>c.name==='Druide')||{}).level||0;
+  if(_druLRLvl>0)p.combatCharges['Forme sauvage']=_druLRLvl>=20?99:2;
+  const _moineLRLvl=((p.classes||[]).find(c=>c.name==='Moine')||{}).level||0;
+  if(_moineLRLvl>0)p.combatCharges['Ki']=_moineLRLvl;
   _proposeGroupRest('long');render();saveAll();showBanner('🌙','Repos long','PV, sorts, charges et conditions récupérés',{variant:'info'});
   // Principe 18 — prompt de (re)préparation des sorts pour les préparateurs
   if(typeof isPrepCaster==='function'&&isPrepCaster(p)&&typeof _openLongRestPrep==='function')_openLongRestPrep(p);
