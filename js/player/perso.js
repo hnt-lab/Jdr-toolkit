@@ -621,6 +621,7 @@ function _classGaugeRestResets(p,type){
   if(lvlOf('Occultiste')>0)['PresenceFeeUsed','EchappatBrumeUsed','SombreDelireUsed','ChanceTenebreuxUsed','ProtecEntropiqueUsed'].forEach(k=>delete cc[k]);
   if(lvlOf('Ensorceleur')>=20)delete cc['RestaurationEnsorceleurUsed'];
   if(lvlOf('Roublard')>=20)delete cc['CoupDeChanceUsed'];
+  if(lvlOf('Roublard')>0)delete cc['AssassinatReady']; // le mode Assassinat armé ne survit pas à un repos
   const barde=lvlOf('Barde');
   if(barde>0&&(type==='long'||barde>=5))cc['InspBardique']=Math.max(1,chaM);
   if(lvlOf('Barbare')>=11)cc['RageImplacableUses']=0; // le DD retombe à 10 (repos court ou long)

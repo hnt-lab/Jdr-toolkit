@@ -33,6 +33,10 @@ function tabCombat(p){
   const isMagieSauvage=barbarePath?.name==='Voie de la magie sauvage';
   const frenActive=isBerserker&&barbareLvl>=3&&rageActive&&cc['FrénésieActive']===true;
 
+  // Assassinat (Roublard — Assassin niv.3) : toggle « armer-puis-frapper » — '' / 'adv' (cible n'ayant pas agi) / 'surprise' (critique auto + Frappe meurtrière niv.17)
+  const _rogLvlTC=((p.classes||[]).find(c=>c.name==='Roublard')||{}).level||0;
+  const assassinMode=(_rogLvlTC>=3&&(p.features||[]).some(f=>f.name==='Assassin'))?(cc['AssassinatReady']||''):'';
+
   // Bonus ki Moine selon niveau
   const moineLvl=((p.classes||[]).find(c=>c.name==='Moine')||{}).level||0;
   const moinePath=(p.features||[]).find(f=>["Voie de la paume","Voie de l'ombre",'Voie des quatre éléments'].includes(f.name));
@@ -151,16 +155,17 @@ function tabCombat(p){
         if(!hasMainhand&&!wsC?.active){
           const unarmedMod=moineLvl>=1?Math.max(forM,dexM):forM;
           const unarmedAtk=pb(lvl)+unarmedMod;
-          const unarmedDmg=moineLvl>=1?`1${artsMartiauxDie.replace('d','d')} contondant`:'1 contondant';
+          const kiMagic=moineLvl>=6?' (magique ✨)':''; // Frappes de ki (Moine niv.6) : mains nues = attaques magiques
+          const unarmedDmg=moineLvl>=1?`1${artsMartiauxDie.replace('d','d')} contondant${kiMagic}`:'1 contondant';
           const unarmedDmgRaw=moineLvl>=1?artsMartiauxDie:'1';
           return`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:10px;margin-bottom:6px">
             <div style="display:flex;justify-content:space-between;align-items:center">
               <span style="font-size:19px;font-weight:600">Poing</span>
               <span style="color:var(--cp);font-weight:600">+${unarmedAtk} / ${esc(unarmedDmg)}</span>
             </div>
-            <div style="font-size:17px;color:var(--text3);margin-top:3px">Main nue — ${moineLvl>=1?'Arts martiaux ('+ABILITIES_SH[forM>=dexM?0:1]+')':'Force'}</div>
+            <div style="font-size:17px;color:var(--text3);margin-top:3px">Main nue — ${moineLvl>=1?'Arts martiaux ('+ABILITIES_SH[forM>=dexM?0:1]+')':'Force'}${moineLvl>=6?' • ✨ magique (Frappes de ki)':''}</div>
             <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">
-              ${Array.from({length:attackCount},(_,ai)=>`<button class="btn bsm${temActive?' bac':''}" onclick="rollAttack('Poing',${unarmedAtk},'${jsq(unarmedDmgRaw)} contondant','mainhand',${rageActive?rageBonus:0},false,${temActive?1:0})">🎲${attackCount>1?' Att.'+(ai+1):'  Attaque'}</button>`).join('')}
+              ${Array.from({length:attackCount},(_,ai)=>`<button class="btn bsm${(temActive||assassinMode)?' bac':''}" onclick="rollAttack('Poing',${unarmedAtk},'${jsq(unarmedDmgRaw)} contondant${kiMagic}','mainhand',${rageActive?rageBonus:0},false,${(temActive||assassinMode)?1:0})">🎲${attackCount>1?' Att.'+(ai+1):'  Attaque'}</button>`).join('')}
             </div>
           </div>`;
         }
@@ -198,6 +203,7 @@ function tabCombat(p){
         const ammoItem=isRanged&&w.ammoLink?(p.inventory||[]).find(i=>i.name===w.ammoLink):null;
         const ammoCount=ammoItem?ammoItem.qty:null;
         let styleBadge='';
+        if(assassinMode)styleBadge+=`<span style="font-size:15px;color:#9c27b0;margin-left:4px">🎯 Assassinat${assassinMode==='surprise'?' (surprise : critique auto)':''} — avantage</span>`;
         if(rageActive&&!isRanged)styleBadge+=`<span style="font-size:15px;color:#e53935;margin-left:4px">🔥 +${rageBonus} rage</span>`;
         if(isDueling)styleBadge+=`<span style="font-size:15px;color:#4caf50;margin-left:4px">+2 dégâts (Duel)</span>`;
         else if(archerieBonus)styleBadge+=`<span style="font-size:15px;color:#4caf50;margin-left:4px">+2 att. (Archerie)</span>`;
@@ -216,7 +222,7 @@ function tabCombat(p){
             ${w.ammoLink?`<button class="btn bsm" style="font-size:15px" onclick="unlinkRangedAmmo()">↩ Délier ${esc(w.ammoLink)}</button>`:
             `<button class="btn bsm" style="font-size:15px" onclick="openLinkAmmoModal()">🏹 Lier des munitions</button>`}
           </div>`:''}
-          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">${isOffhand?`<button class="btn bsm${temActive?' bac':''}" onclick="rollAttack('${jsq(w.name)}',${atkBonus},'${jsq(dmgStr)}','${w.slot}',${dmgBonus},false,${temActive&&!isRanged?1:0})">🎲${temActive?' ⚡':''} Att. bonus</button>`:Array.from({length:attackCount},(_,ai)=>`<button class="btn bsm${temActive&&!isRanged?' bac':''}" onclick="rollAttack('${jsq(w.name)}',${atkBonus},'${jsq(dmgStr)}','${w.slot}',${dmgBonus},${isTwoHandedStyle},${temActive&&!isRanged?1:0})">🎲${temActive&&!isRanged?' ⚡':''}${attackCount>1?' Att.'+(ai+1):'  Attaque'}</button>`).join('')}${!isOffhand&&!isRanged&&(typeof _activeCombatState!=='undefined'&&_activeCombatState&&_activeCombatState.active)&&!(typeof _veilleMyTurn==='function'&&_veilleMyTurn())?`<button class="btn bsm" style="border-color:#9c27b0;color:#9c27b0${(p.actionEco&&p.actionEco.r)?';opacity:.45':''}" ${(p.actionEco&&p.actionEco.r)?'disabled':''} onclick="rollOpportunityAttack('${jsq(w.name)}',${atkBonus},'${jsq(dmgStr)}','${w.slot}',${dmgBonus},${isTwoHandedStyle})" title="Attaque d'opportunité (tour ennemi) — consomme ta réaction">↪ AO</button>`:''}</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">${isOffhand?`<button class="btn bsm${(temActive||assassinMode)?' bac':''}" onclick="rollAttack('${jsq(w.name)}',${atkBonus},'${jsq(dmgStr)}','${w.slot}',${dmgBonus},false,${((temActive&&!isRanged)||assassinMode)?1:0})">🎲${temActive?' ⚡':''} Att. bonus</button>`:Array.from({length:attackCount},(_,ai)=>`<button class="btn bsm${((temActive&&!isRanged)||assassinMode)?' bac':''}" onclick="rollAttack('${jsq(w.name)}',${atkBonus},'${jsq(dmgStr)}','${w.slot}',${dmgBonus},${isTwoHandedStyle},${((temActive&&!isRanged)||assassinMode)?1:0})">🎲${temActive&&!isRanged?' ⚡':''}${attackCount>1?' Att.'+(ai+1):'  Attaque'}</button>`).join('')}${!isOffhand&&!isRanged&&(typeof _activeCombatState!=='undefined'&&_activeCombatState&&_activeCombatState.active)&&!(typeof _veilleMyTurn==='function'&&_veilleMyTurn())?`<button class="btn bsm" style="border-color:#9c27b0;color:#9c27b0${(p.actionEco&&p.actionEco.r)?';opacity:.45':''}" ${(p.actionEco&&p.actionEco.r)?'disabled':''} onclick="rollOpportunityAttack('${jsq(w.name)}',${atkBonus},'${jsq(dmgStr)}','${w.slot}',${dmgBonus},${isTwoHandedStyle})" title="Attaque d'opportunité (tour ennemi) — consomme ta réaction">↪ AO</button>`:''}</div>
           ${frenActive&&!isRanged&&!isOffhand?`<div style="margin-top:4px"><button class="btn bsm" style="border-color:#b71c1c;color:#b71c1c;background:rgba(183,28,28,.12)" onclick="rollAttack('${jsq(w.name)}',${atkBonus},'${jsq(dmgStr)}','${w.slot}',${dmgBonus},false,${temActive?1:0})">💢 Frénésie (bonus)</button></div>`:''}
         </div>`;
       }).join(''):`<div style="font-size:18px;color:var(--text3);font-style:italic">Aucune arme équipée.</div>`}
@@ -421,6 +427,11 @@ function rollAttack(name,bonus,dmg,slot,dmgBonus=0,rerollLow=false,advantageMode
     const _rageIRL=(_rp.combatCharges||{})['RageActive']===true;
     const _critDiceIRL=_barbLvlIRL>=17?3:_barbLvlIRL>=13?2:1;
     const critBrutalNote=_barbLvlIRL>=9&&_rageIRL&&slot!=='ranged'?`<div style="margin-top:6px;padding:6px 8px;background:rgba(255,152,0,.1);border:1px solid rgba(255,152,0,.3);border-radius:6px;font-size:17px;color:#ff9800">💥 Si critique (20) : n'oublie pas +${_critDiceIRL} dé${_critDiceIRL>1?'s':''} de dégâts (Critique brutal niv.${_barbLvlIRL})</div>`:'';
+    const _palLvlIRL=((_rp.classes||[]).find(c=>c.name==='Paladin')||{}).level||0;
+    const smiteIRLNote=_palLvlIRL>=11&&slot&&slot!=='ranged'&&name!=='Poing'?`<div style="margin-top:6px;padding:6px 8px;background:rgba(255,213,79,.1);border:1px solid rgba(255,213,79,.3);border-radius:6px;font-size:17px;color:#ffd54f">⚡ Si touche : +1d8 radiants (Châtiment divin amélioré) — doublé sur critique</div>`:'';
+    const _rogLvlIRL=((_rp.classes||[]).find(c=>c.name==='Roublard')||{}).level||0;
+    const _assIRL=slot!==undefined&&_rogLvlIRL>=3&&(_rp.combatCharges||{})['AssassinatReady']==='surprise'&&(_rp.features||[]).some(f=>f.name==='Assassin');
+    const assassinIRLNote=_assIRL?`<div style="margin-top:6px;padding:6px 8px;background:rgba(156,39,176,.1);border:1px solid rgba(156,39,176,.3);border-radius:6px;font-size:17px;color:#9c27b0">🎯 Cible surprise : toute touche = CRITIQUE automatique${_rogLvlIRL>=17?` · 🗡 Frappe meurtrière : JS CON DD ${8+pb(totalLevel(_rp))+mod((_rp.abilities||[])[1]||10)} raté → dégâts DOUBLÉS`:''}</div>`:'';
     showIRLRoll(`<strong style="font-size:20px;color:var(--cp)">⚔ ${name}</strong>
       <div style="margin-top:12px;padding:10px;background:var(--surface2);border-radius:8px">
         <div style="font-size:18px;color:var(--text3);margin-bottom:4px">ATTAQUE</div>
@@ -430,7 +441,7 @@ function rollAttack(name,bonus,dmg,slot,dmgBonus=0,rerollLow=false,advantageMode
       <div style="margin-top:8px;padding:10px;background:var(--surface2);border-radius:8px">
         <div style="font-size:18px;color:var(--text3);margin-bottom:4px">DÉGÂTS SI TOUCHE</div>
         <div style="font-size:22px;color:var(--cp)">${esc(dmgFull)}</div>
-      </div>${critBrutalNote}`);
+      </div>${critBrutalNote}${smiteIRLNote}${assassinIRLNote}`);
     return;
   }
   let ra,rb=null;
@@ -444,10 +455,13 @@ function rollAttack(name,bonus,dmg,slot,dmgBonus=0,rerollLow=false,advantageMode
     const total=atk+bonus;
     // Guerrier Champion : Critique amélioré (19-20 niv.3) / supérieur (18-20 niv.15)
     const _pa=P();const _gLvlC=(((_pa.classes||[]).find(c=>c.name==='Guerrier')||{}).level)||0;const critMin=((_pa.features||[]).some(f=>f.name==='Champion'))?(_gLvlC>=15?18:19):20;
-    const isCrit=atk>=critMin;const isFumble=atk===1;
+    // Assassinat (Roublard Assassin) : mode « cible surprise » armé → toute touche est un critique automatique
+    const _rogLvlFA=(((_pa.classes||[]).find(c=>c.name==='Roublard')||{}).level)||0;
+    const _assSurprise=slot!==undefined&&_rogLvlFA>=3&&((_pa.combatCharges||{})['AssassinatReady']==='surprise')&&(_pa.features||[]).some(f=>f.name==='Assassin');
+    const isFumble=atk===1;const isCrit=!isFumble&&(atk>=critMin||_assSurprise);
     const col=isCrit?'#ffd54f':isFumble?'#e53935':'var(--cp)';
     const advTag=atkAlt!==null?(advantageMode>0?`<span style="font-size:15px;color:#4caf50;margin-left:3px">AVT(${atk},~~${atkAlt}~~)</span>`:`<span style="font-size:15px;color:#e53935;margin-left:3px">DES(~~${atk}~~,${atkAlt})</span>`):'';
-    let dmgHtml='';
+    let dmgHtml='';let _totalDmgOut=0;
     if(!isFumble){
       const m=(dmg+'').match(/(\d+)d(\d+)([+-]\d+)?/);
       if(m){
@@ -458,12 +472,25 @@ function rollAttack(name,bonus,dmg,slot,dmgBonus=0,rerollLow=false,advantageMode
         const demiOrcExtra=isCrit&&_p.race==='Demi-Orc'&&slot!=='ranged'?1:0;
         const numDice=isCrit?dq*2+brutCritExtra+demiOrcExtra:dq;
         const rolls=[];for(let i=0;i<numDice;i++){let r=Math.ceil(Math.random()*ds);if(rerollLow&&(r===1||r===2))r=Math.ceil(Math.random()*ds);rolls.push(r);}
-        const totalDmg=rolls.reduce((s,v)=>s+v,0)+fixedBonus;
+        const totalDmg=rolls.reduce((s,v)=>s+v,0)+fixedBonus;_totalDmgOut=totalDmg;
         const typeMatch=(dmg+'').match(/\d+d\d+[+-]?\d*\s+(.*)/);
         const dmgType=typeMatch?typeMatch[1].trim():'';
         const critNote=isCrit?((brutCritExtra>0||demiOrcExtra>0)?' (critique + '+(brutCritExtra+demiOrcExtra)+' dé'+((brutCritExtra+demiOrcExtra)>1?'s':'')+' supplémentaire)':' (critique — dés doublés)'):'';
         dmgHtml=`<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.1);font-size:18px">Dégâts : <span style="color:var(--text2)">${rolls.join('+')}${fixedBonus?fmt(fixedBonus):''}</span> = <b style="color:var(--cp);font-size:24px">${totalDmg}</b>${dmgType?` <span style="font-size:17px;color:var(--text3)">${esc(dmgType)}${critNote}</span>`:''}</div>`;
       }
+    }
+    // Châtiment divin amélioré (Paladin niv.11) : +1d8 radiant AUTO sur toute touche d'arme de corps à corps
+    // (slot requis = attaque du perso, pas des entités ; mains nues exclues : pas une arme RAW)
+    const _palLvlFA=(((_pa.classes||[]).find(c=>c.name==='Paladin')||{}).level)||0;
+    if(!isFumble&&_palLvlFA>=11&&slot&&slot!=='ranged'&&name!=='Poing'){
+      const _nd=isCrit?2:1;const _rs=[];for(let i=0;i<_nd;i++)_rs.push(Math.ceil(Math.random()*8));
+      const _st=_rs.reduce((s,v)=>s+v,0);_totalDmgOut+=_st;
+      dmgHtml+=`<div style="margin-top:4px;font-size:17px;color:#ffd54f">⚡ Châtiment divin amélioré : +${_nd}d8(${_rs.join('+')}) = <b>${_st}</b> radiants${isCrit?' (critique : dé doublé)':''}</div>`;
+    }
+    // Assassinat / Frappe meurtrière (Roublard Assassin niv.17) : rappel critique auto + total doublé si JS CON raté
+    if(!isFumble&&_assSurprise){
+      const _fmDD=8+pb(totalLevel(_pa))+mod((_pa.abilities||[])[1]||10);
+      dmgHtml+=`<div style="margin-top:4px;font-size:17px;color:#9c27b0">🎯 Assassinat — critique automatique (cible surprise)${_rogLvlFA>=17?`<br>🗡 Frappe meurtrière : JS CON DD ${_fmDD} — si la cible rate, dégâts DOUBLÉS = <b>${_totalDmgOut*2}</b>`:''}</div>`;
     }
     _lastRollResultHtml=`<div>⚔ ${esc(name)} — d20(${atk})${advTag}${fmt(bonus)} = <span style="font-size:20px;color:${col};font-weight:800">${total}</span>${isCrit?' 🎉 CRITIQUE!':isFumble?' 💀 FUMBLE!':''}</div>${dmgHtml}`;
     const el=document.getElementById('rollResult');
