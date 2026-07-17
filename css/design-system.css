@@ -1,0 +1,319 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   DESIGN-SYSTEM « La Boîte à Outils » — ÉTAPE 1 du chantier refonte
+   Source de vérité : _veille/maquette-design-system.html (v3.8, validée)
+   Décisions : _veille/THEORIE-PAGES.md (4 pages + volet desktop, validés)
+   Chargement : @import EN DERNIER dans main.css (doit gagner la cascade).
+   Préfixe ds- : AUCUNE collision avec l'existant — tant qu'un écran
+   n'utilise pas ces classes, ce fichier n'a aucun effet.
+   État : [x] tokens  [x] boutons/champs  [x] cartes/jauges  [x] caracs
+          [x] pins/items  [x] fold/coins  [x] journal  [x] chrome/nav
+          [x] rail  [x] vitals  [x] dé  [x] classe  [x] gaucher  [x] desktop
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── 01 · TOKENS — thème clair « Grimoire » (défaut) ─────────────────── */
+:root, .ds-light{
+  --ds-page:#e7d8b2; --ds-card:#f4ead0; --ds-card2:#efe4c8;
+  --ds-ink:#2c2113; --ds-soft:#6b5a3a; --ds-faint:#8a744a;
+  --ds-acc:#9a7a32; --ds-acc-strong:#7a5f22;
+  --ds-seal:#7a2e2e; --ds-good:#3f6d3a; --ds-warn:#9a6a1e;
+  --ds-line:#c3ab77; --ds-line-soft:#d6c395;
+  --ds-glow:rgba(154,122,50,.28);
+  /* Chrome cuir + laiton — COMMUN aux deux thèmes (c'est « le même livre ») */
+  --ds-leather:#221507; --ds-leather2:#31200c;
+  --ds-brass:#b98f3e; --ds-brass-hi:#e9c877;
+  /* Typo */
+  --ds-disp:'Cinzel','Palatino Linotype','Book Antiqua',Georgia,serif;
+  --ds-body:Georgia,Cambria,'Times New Roman',serif;
+  --ds-mono:ui-monospace,'Cascadia Code',Consolas,monospace;
+  /* Couleur de classe (surchargée par perso via style="--cls-c:...") */
+  --cls-c:var(--ds-acc);
+}
+
+/* ── 01b · TOKENS — thème sombre « Veillée » (Direction 03) ──────────── */
+.ds-dark{
+  --ds-page:#12100e; --ds-card:#1e1b17; --ds-card2:#242019;
+  --ds-ink:#ede8df; --ds-soft:#9c9384; --ds-faint:#6e6455;
+  --ds-acc:#d4af6a; --ds-acc-strong:#e9c877;
+  --ds-seal:#c8632e; --ds-good:#8fbf6f; --ds-warn:#e0a850;
+  --ds-line:#3b342a; --ds-line-soft:#2c261e;
+  --ds-glow:rgba(212,175,106,.22);
+  --ds-leather:#191007; --ds-leather2:#241809;
+  --ds-brass:#8a6a2e; --ds-brass-hi:#d4af6a;
+}
+
+/* Règles contractuelles (rappel) :
+   · Angles nets partout (2px max) — cercles réservés : points de charge,
+     rivets, dé flottant. Jauges rectangulaires « vitrées ».
+   · Un accent à la fois : laiton/or = action ; sceau/cuivre = danger/dégâts.
+   · JAMAIS de bouton transparent (fond visible + bord, dimensions pleines).
+   · Icônes THÉMATIQUES — le 🎲 est réservé au lanceur flottant.
+   · Caracs : MODIFICATEUR gros + gras, stat de base en petit.
+   · Cible tactile ≥ 40px (rail : 42×44, actif 53).                        */
+
+/* ── 02 · BOUTONS & CHAMPS ───────────────────────────────────────────── */
+.ds-btn{font-family:var(--ds-body);font-size:15px;padding:9px 14px;min-height:40px;
+  background:var(--ds-card2);border:1px solid var(--ds-acc);color:var(--ds-ink);cursor:pointer;border-radius:0}
+.ds-btn:hover{filter:brightness(1.05)}
+.ds-btn:active{transform:translateY(1px)}
+.ds-btn.primary{background:var(--ds-acc);color:var(--ds-card);font-weight:700;border-color:var(--ds-acc-strong)}
+.ds-btn.danger{background:var(--ds-seal);color:#f4ead0;border-color:var(--ds-seal);font-weight:600}
+.ds-btn.quiet{background:var(--ds-card2);border-color:var(--ds-line)} /* secondaire — JAMAIS transparent */
+.ds-btn.big{min-height:46px;font-size:16px}
+.ds-btn:disabled{opacity:.45;cursor:default}
+.ds-btn:focus-visible{outline:2px solid var(--ds-acc-strong);outline-offset:1px}
+.ds-input{background:var(--ds-card2);border:1px solid var(--ds-line);color:var(--ds-ink);
+  padding:9px 10px;font-family:var(--ds-body);font-size:15px;min-height:40px;border-radius:0}
+.ds-input::placeholder{color:var(--ds-faint)}
+
+/* ── 03 · CARTES, TITRES, CHIPS, BANNIÈRES ───────────────────────────── */
+.ds-card{background:var(--ds-card);border:1px solid var(--ds-acc);color:var(--ds-ink);padding:12px 14px;
+  box-shadow:inset 0 0 0 2px var(--ds-card),inset 0 0 0 3px var(--ds-line)}
+.ds-title{font-family:var(--ds-disp);font-variant:small-caps;letter-spacing:.08em;color:var(--ds-acc-strong);
+  font-size:16px;border-bottom:2px solid var(--ds-acc);padding-bottom:5px;margin-bottom:9px;
+  display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.ds-title .r{font-family:var(--ds-body);font-variant:normal;letter-spacing:0;color:var(--ds-soft);font-size:13px}
+.ds-note{font-size:13.5px;color:var(--ds-soft)}
+.ds-chip{display:inline-flex;align-items:center;gap:5px;font-size:13px;border:1px solid var(--ds-line);
+  color:var(--ds-soft);padding:3px 9px;background:var(--ds-card2);white-space:nowrap}
+.ds-chip.warn{color:var(--ds-warn);border-color:var(--ds-warn)}
+.ds-chip.seal{color:var(--ds-seal);border-color:var(--ds-seal)}
+.ds-chip.good{color:var(--ds-good);border-color:var(--ds-good)}
+.ds-banner{border:1px solid var(--ds-acc);background:linear-gradient(180deg,var(--ds-glow),transparent);
+  padding:9px 12px;font-size:14px;color:var(--ds-ink);display:flex;gap:9px;align-items:center}
+.ds-banner b{color:var(--ds-acc-strong)}
+.ds-seclbl{font-family:var(--ds-mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ds-acc-strong);border-bottom:1px solid var(--ds-line);padding-bottom:3px}
+.ds-seclbl.mj{color:var(--ds-good);border-color:var(--ds-good)}
+
+/* ── 04 · JAUGES VITRÉES (liquide centré, reflet, lueur, pouls) ──────── */
+.ds-hp{position:relative;height:16px;border:1px solid var(--ds-acc-strong);background:var(--ds-card2);
+  box-shadow:inset 0 0 5px rgba(0,0,0,.28), 0 0 10px var(--ds-glow)}
+.ds-hp>i{position:absolute;inset:3px auto 3px 3px;width:72%;overflow:hidden;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--ds-good) 62%,white) 0%,var(--ds-good) 42%,color-mix(in srgb,var(--ds-good) 55%,black))}
+.ds-hp>i::before{content:"";position:absolute;top:1px;left:2px;right:2px;height:2px;background:rgba(255,255,255,.3);z-index:2}
+.ds-hp>i::after{content:"";position:absolute;top:0;bottom:0;left:-30px;width:26px;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.5),transparent);animation:dsSweep 3.4s ease-in-out infinite}
+@keyframes dsSweep{0%{left:-30px}55%,100%{left:110%}}
+.ds-hp .vv{position:absolute;right:7px;top:50%;transform:translateY(-50%);
+  font-family:var(--ds-mono);font-size:11px;color:var(--ds-ink);z-index:3}
+.ds-hp.mid>i{background:linear-gradient(180deg,color-mix(in srgb,var(--ds-warn) 62%,white) 0%,var(--ds-warn) 42%,color-mix(in srgb,var(--ds-warn) 55%,black))}
+.ds-hp.low>i{background:linear-gradient(180deg,color-mix(in srgb,var(--ds-seal) 70%,white) 0%,var(--ds-seal) 42%,color-mix(in srgb,var(--ds-seal) 55%,black))}
+.ds-hp.low{animation:dsPulse 1.5s ease-in-out infinite}
+@keyframes dsPulse{0%,100%{box-shadow:inset 0 0 5px rgba(0,0,0,.28),0 0 6px color-mix(in srgb,var(--ds-seal) 40%,transparent)}
+  50%{box-shadow:inset 0 0 5px rgba(0,0,0,.28),0 0 16px color-mix(in srgb,var(--ds-seal) 75%,transparent)}}
+/* Réservoir de ressources — même verre, balayage plus lent */
+.ds-tank{height:10px;position:relative;border:1px solid var(--ds-line);background:var(--ds-card2);
+  box-shadow:inset 0 0 3px rgba(0,0,0,.25)}
+.ds-tank>i{position:absolute;inset:1px auto 1px 1px;width:58%;overflow:hidden;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--ds-acc) 70%,white),var(--ds-acc) 45%,color-mix(in srgb,var(--ds-acc) 55%,black))}
+.ds-tank>i::after{content:"";position:absolute;top:0;bottom:0;left:-24px;width:20px;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.4),transparent);animation:dsSweep 4.6s ease-in-out infinite}
+/* Points de charge (cercles autorisés) */
+.ds-dots{display:flex;gap:5px}
+.ds-dot{width:15px;height:15px;border-radius:50%;border:2px solid var(--ds-acc);background:var(--ds-acc);
+  box-shadow:inset 0 0 3px rgba(0,0,0,.4)}
+.ds-dot.used{background:transparent}
+/* Mini-barre PLATE — listes denses (initiative MJ) uniquement */
+.ds-hpmini{height:7px;background:var(--ds-card2);border:1px solid var(--ds-line);position:relative}
+.ds-hpmini>i{position:absolute;inset:1px auto 1px 1px;background:var(--ds-good)}
+
+/* ── 05 · CARACTÉRISTIQUES — MODIFICATEUR gros/gras, base en petit ───── */
+.ds-carac{text-align:center;background:var(--ds-card2);border:1px solid var(--ds-line);padding:6px 2px}
+.ds-carac .n{font-size:10.5px;color:var(--ds-soft);letter-spacing:.08em;text-transform:uppercase}
+.ds-carac .m{font-family:var(--ds-disp);font-size:22px;font-weight:800;color:var(--ds-ink);line-height:1.1}
+.ds-carac .b{font-family:var(--ds-mono);font-size:11px;color:var(--ds-faint)}
+
+/* ── 06 · INDICES MJ (4 matières, rivet laiton) + ARTEFACTS/OBJETS ───── */
+.ds-pin{position:relative;background:#efe4c8;color:#2c2113;border:1px solid #c3ab77;padding:15px 12px 10px;
+  font-family:var(--ds-mono);font-size:12.5px;line-height:1.5;transform:rotate(-1.4deg);
+  box-shadow:2px 3px 8px rgba(0,0,0,.3);margin-top:9px}
+.ds-pin::before{content:"";position:absolute;top:-7px;left:50%;transform:translateX(-50%);
+  width:15px;height:15px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,var(--ds-brass-hi),var(--ds-brass) 60%,#5a4418);
+  box-shadow:0 2px 3px rgba(0,0,0,.45)}
+.ds-pin.stone{background:linear-gradient(160deg,#a8a294,#8f8a7c);color:#2e2b26;border-color:#6f6a5e;
+  text-shadow:0 1px 0 rgba(255,255,255,.3);letter-spacing:.05em;transform:rotate(.8deg)}
+.ds-pin.wood{background:repeating-linear-gradient(95deg,#8a6a44 0 7px,#80603b 7px 14px);color:#2b1d0e;
+  border-color:#5e452a;text-shadow:0 1px 0 rgba(255,255,255,.18);transform:rotate(-.9deg)}
+.ds-pin.rune{background:radial-gradient(120% 120% at 50% 0%,#2c2138,#1c1526);color:#c9a5f2;border-color:#5d3a8e;
+  font-family:var(--ds-disp);letter-spacing:.1em;text-shadow:0 0 8px rgba(160,100,255,.6);
+  box-shadow:0 0 12px rgba(120,70,200,.35),2px 3px 8px rgba(0,0,0,.3);transform:rotate(.6deg)}
+.ds-item{display:flex;gap:9px;align-items:center;background:var(--ds-card);border:1px solid var(--ds-acc);
+  padding:8px 10px;color:var(--ds-ink)}
+.ds-item .ic{width:34px;height:34px;flex:none;border:1px solid var(--ds-acc-strong);background:var(--ds-card2);
+  display:grid;place-items:center;font-size:17px}
+.ds-item.artefact{border-color:var(--ds-acc-strong);
+  box-shadow:inset 0 0 0 2px var(--ds-card),inset 0 0 0 3px var(--ds-acc),0 0 10px var(--ds-glow)}
+.ds-item.artefact .ic{background:radial-gradient(circle at 35% 30%,var(--ds-brass-hi),var(--ds-brass));border-color:var(--ds-acc-strong)}
+
+/* ── 07 · CATÉGORIE DÉPLIABLE (⠿ modulable) + COINS SERTIS ───────────── */
+.ds-fold{border:1px solid var(--ds-acc);background:var(--ds-card);
+  box-shadow:inset 0 0 0 2px var(--ds-card),inset 0 0 0 3px var(--ds-line)}
+.ds-fold>.fh{display:flex;align-items:center;gap:7px;padding:8px 10px;cursor:pointer;user-select:none;
+  min-height:40px;font-family:var(--ds-disp);font-variant:small-caps;letter-spacing:.07em;
+  color:var(--ds-acc-strong);font-size:14.5px;border-bottom:1px solid var(--ds-line-soft)}
+.ds-fold.closed>.fh{border-bottom:none}
+.ds-fold>.fh .grip{color:var(--ds-faint);font-size:14px;cursor:grab;letter-spacing:-1px;touch-action:none}
+.ds-fold>.fh .chev{margin-left:auto;transition:transform .2s;font-size:11px;color:var(--ds-soft)}
+.ds-fold.closed>.fh .chev{transform:rotate(-90deg)}
+.ds-fold>.fb{padding:9px 10px;display:flex;flex-direction:column;gap:8px}
+.ds-fold.closed>.fb{display:none}
+.ds-corners{position:relative;background:var(--ds-card);border:1px solid var(--ds-line);padding:10px 12px;color:var(--ds-ink)}
+.ds-corners::before,.ds-corners::after,.ds-corners .cx::before,.ds-corners .cx::after{
+  content:"";position:absolute;width:12px;height:12px;border:2px solid var(--ds-acc-strong)}
+.ds-corners::before{top:-2px;left:-2px;border-right:none;border-bottom:none}
+.ds-corners::after{bottom:-2px;right:-2px;border-left:none;border-top:none}
+.ds-corners .cx::before{top:-2px;right:-2px;border-left:none;border-bottom:none}
+.ds-corners .cx::after{bottom:-2px;left:-2px;border-right:none;border-top:none}
+
+/* ── 08 · JOURNAL / CHAT / CHRONIQUES (trait de couleur par personne) ── */
+.ds-log{border:1px solid var(--ds-line-soft);border-left:3px solid var(--who,var(--ds-acc));
+  background:var(--ds-card2);padding:6px 9px;font-size:13.5px;color:var(--ds-ink)}
+.ds-log .lh{display:flex;align-items:center;gap:6px;margin-bottom:2px}
+.ds-log .lh b{font-family:var(--ds-disp);font-size:13px;color:var(--who,var(--ds-acc))}
+.ds-log .lh time{font-family:var(--ds-mono);font-size:10px;color:var(--ds-faint);margin-left:auto}
+
+/* ── 09 · CHROME — en-tête & nav bas (3 items + signaux Groupe) ──────── */
+.ds-chrome{background:linear-gradient(180deg,var(--ds-leather),var(--ds-leather2));
+  color:var(--ds-brass-hi);font-family:var(--ds-disp)}
+.ds-chrome.top{display:flex;align-items:center;gap:8px;padding:9px 12px;
+  border-bottom:2px solid var(--ds-brass);font-size:14px;letter-spacing:.05em}
+.ds-chrome.top .opt{margin-left:auto;width:32px;height:32px;flex:none;border:1.5px solid var(--ds-brass-hi);
+  border-radius:50%;display:grid;place-items:center;font-size:14px;cursor:pointer;background:transparent;color:var(--ds-brass-hi)}
+.ds-nav{position:relative;display:flex;align-items:center;justify-content:space-around;
+  min-height:56px;padding:8px;padding-bottom:calc(8px + env(safe-area-inset-bottom,0px));
+  border-top:2px solid var(--ds-brass);background:linear-gradient(180deg,var(--ds-leather2),var(--ds-leather));
+  font-family:var(--ds-disp)}
+.ds-nav .it{position:relative;font-size:11px;color:var(--ds-brass-hi);opacity:.7;text-align:center;
+  line-height:1.3;min-width:72px;min-height:40px;padding:2px 6px;cursor:pointer;background:none;border:none}
+.ds-nav .it.on{opacity:1;font-weight:700}
+.ds-nav .it .bdg{position:absolute;top:-2px;right:8px;min-width:15px;height:15px;border-radius:50%;
+  font-size:10px;font-weight:700;display:grid;place-items:center;color:#fff}
+.ds-nav .it .bdg.turn{background:#6d28d9;animation:dsBdgPulse 1.6s ease-in-out infinite}
+.ds-nav .it .bdg.danger{background:var(--ds-seal)}
+@keyframes dsBdgPulse{50%{box-shadow:0 0 10px #6d28d9}}
+/* Bannière globale « ⚡ C'est ton tour » (haut de fiche) */
+.ds-turnbar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;
+  background:linear-gradient(135deg,#6d28d9,#4338ca);color:#fff;font-size:15px;font-weight:700;
+  animation:dsBdgPulse 2s ease-in-out infinite}
+
+/* ── 10 · RAIL D'ONGLETS (42×44, actif 53, fusion à la page) ─────────── */
+.ds-main{display:flex;min-height:0} /* conteneur : page + rail */
+.ds-scroll{flex:1;overflow-y:auto;border-right:1px solid var(--ds-acc-strong);background:var(--ds-page)}
+.ds-rail{width:52px;flex:none;display:flex;flex-direction:column;gap:6px;padding:10px 4px 10px 0;
+  background:color-mix(in srgb,var(--ds-leather) 14%,var(--ds-page))}
+.ds-rail button{width:42px;height:44px;margin-left:auto;border:1px solid var(--ds-line);
+  background:var(--ds-card);font-size:17px;cursor:pointer;padding:0;color:var(--ds-ink);opacity:.75;border-radius:0}
+.ds-rail button.on{opacity:1;width:53px;margin-left:0;position:relative;left:-1px;
+  border:1px solid var(--ds-acc-strong);border-left:none;background:var(--ds-page);font-size:19px}
+.ds-rail button:focus-visible{outline:2px solid var(--ds-acc-strong)}
+.ds-rail button.lvlup{border-color:var(--ds-brass-hi);color:var(--ds-acc-strong);
+  animation:dsLvl 1.8s ease-in-out infinite}
+@keyframes dsLvl{50%{box-shadow:0 0 10px var(--ds-brass-hi)}}
+.ds-rail .foot{margin-top:auto;display:flex;flex-direction:column;gap:4px}
+.ds-rail .foot button{height:34px;font-size:13px;opacity:.6} /* 🔒 + ↕ en pied de rail */
+
+/* ── 11 · VITALS ANCRÉES (mobile) + bandeau identité ─────────────────── */
+.ds-head{position:relative;display:flex;align-items:center;gap:10px;padding:8px 12px;z-index:5;
+  background:linear-gradient(180deg,var(--ds-leather),var(--ds-leather2));
+  border-bottom:2px solid var(--ds-brass);color:var(--ds-brass-hi);font-family:var(--ds-disp)}
+.ds-head .pp{width:46px;height:46px;flex:none;border:2px solid var(--cls-c,var(--ds-brass));
+  background:var(--ds-card2);display:grid;place-items:center;font-size:24px;overflow:hidden;
+  margin-bottom:-16px;box-shadow:0 3px 7px rgba(0,0,0,.45);cursor:pointer}
+.ds-head .pp img{width:100%;height:100%;object-fit:cover}
+.ds-head .pp.lvlup{animation:dsPPGold 1.6s ease-in-out infinite}
+@keyframes dsPPGold{50%{box-shadow:0 0 14px var(--ds-brass-hi),0 3px 7px rgba(0,0,0,.45);border-color:var(--ds-brass-hi)}}
+.ds-head .nm{font-size:16px;letter-spacing:.04em;line-height:1.1}
+.ds-head .cl{font-size:11px;opacity:.75;font-family:var(--ds-body)}
+.ds-vitals{display:flex;align-items:center;gap:9px;padding:8px 10px 8px 70px;
+  background:var(--ds-card2);border-bottom:2px solid var(--ds-acc);font-size:12px}
+.ds-vitals .vs{white-space:nowrap;color:var(--ds-soft)}
+.ds-vitals .vs b{color:var(--ds-ink);font-family:var(--ds-mono);font-size:13.5px}
+.ds-vitals .ds-hp{flex:1;height:16px;min-width:70px;cursor:pointer} /* tap = Dégâts/Soins */
+
+/* ── 12 · DÉ FLOTTANT (ancrage + estompage 4 s) ──────────────────────── */
+.ds-die{position:fixed;right:16px;bottom:73px;width:54px;height:54px;border-radius:50%;z-index:888;
+  display:grid;place-items:center;font-size:23px;cursor:grab;touch-action:none;user-select:none;
+  background:radial-gradient(circle at 34% 30%,var(--ds-brass-hi),var(--ds-brass) 58%,#6e5320);
+  box-shadow:0 0 0 3px var(--ds-leather),0 0 0 5px var(--ds-brass),0 4px 10px rgba(0,0,0,.5);
+  transition:opacity .5s}
+.ds-die.idle{opacity:.45}
+.ds-die:active{cursor:grabbing}
+.ds-dsock{position:fixed;right:12px;bottom:69px;width:62px;height:62px;border-radius:50%;z-index:887;
+  background:radial-gradient(circle,rgba(0,0,0,.38),rgba(0,0,0,.12));
+  box-shadow:inset 0 3px 8px rgba(0,0,0,.55);opacity:0;transition:opacity .15s;pointer-events:none}
+.ds-dsock.show{opacity:1}
+/* Estompage appliqué au dé EXISTANT (#diceFloat) par shell.js */
+#diceFloat{transition:opacity .5s}
+#diceFloat.ds-idle{opacity:.45}
+
+/* ── 13 · IDENTITÉ DE CLASSE — option de profil (2 styles validés) ───── */
+/* Style « Complet » (profil n°1) : liseré + filets/jauges teintés + coins gravés */
+.ds-cls-full .ds-card{border-top:3px solid var(--cls-c)}
+.ds-cls-full .ds-title,.ds-cls-full .ds-fold>.fh{border-bottom-color:var(--cls-c)}
+.ds-cls-full .ds-dot{border-color:var(--cls-c);background:var(--cls-c)}
+.ds-cls-full .ds-dot.used{background:transparent}
+.ds-cls-full .ds-tank>i{background:linear-gradient(180deg,color-mix(in srgb,var(--cls-c) 70%,white),var(--cls-c) 45%,color-mix(in srgb,var(--cls-c) 55%,black))}
+/* Glyphes de coin : GROS (18px) et EN TRANSPARENCE (jamais de fond opaque) */
+.ds-clsglyph{position:absolute;font-size:18px;font-weight:700;color:var(--cls-c);line-height:1;pointer-events:none}
+.ds-clsglyph.tl{top:-12px;left:-9px}
+.ds-clsglyph.br{bottom:-12px;right:-9px}
+/* Style « Par le motif » (profil n°2) : portrait liseré + emblème + coins SEULS */
+.ds-cls-motif .ds-head .pp{border-color:var(--cls-c)}
+/* Emblème en filigrane au bout du bandeau (les 2 styles) */
+.ds-emblem{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:32px;opacity:.18;pointer-events:none}
+
+/* ── 14 · MODE GAUCHER (option de profil) — rail + dé à GAUCHE ───────── */
+.ds-lefty .ds-main{flex-direction:row-reverse}
+.ds-lefty .ds-scroll{border-right:none;border-left:1px solid var(--ds-acc-strong)}
+.ds-lefty .ds-rail{padding:10px 0 10px 4px}
+.ds-lefty .ds-rail button{margin-left:0;margin-right:auto}
+.ds-lefty .ds-rail button.on{margin-left:-4px;margin-right:0;left:0;
+  border-left:1px solid var(--ds-acc-strong);border-right:none}
+.ds-lefty .ds-die{right:auto;left:16px}
+.ds-lefty .ds-dsock{right:auto;left:12px}
+
+/* ── 15 · DESKTOP (≥900px) — rail à libellés, 2 colonnes, charRail ───── */
+@media(min-width:900px){
+  .ds-wrap{max-width:1400px;margin:0 auto}
+  /* Rail élargi : libellé à côté de l'icône */
+  .ds-rail{width:150px}
+  .ds-rail button{width:140px;display:flex;align-items:center;gap:8px;padding:0 10px;
+    font-size:16px;font-family:var(--ds-disp)}
+  .ds-rail button .lbl{font-size:13px}
+  .ds-rail button.on{width:151px}
+  .ds-lefty .ds-rail button.on{margin-left:-4px}
+  /* Contenu : 2 colonnes de catégories (déplaçables entre colonnes) */
+  .ds-cols2{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+  /* Dé plus grand */
+  .ds-die{width:80px;height:80px;font-size:34px;bottom:84px}
+  .ds-dsock{width:90px;height:90px;bottom:79px}
+  /* Fiche : charRail (existant, conservé) | contenu 2 col. | rail onglets */
+  .ds-fiche3{display:grid;grid-template-columns:300px minmax(0,1fr) auto;gap:14px}
+}
+/* Mobile : le rail-libellé n'existe pas, 1 colonne */
+@media(max-width:899px){
+  .ds-rail button .lbl{display:none}
+  .ds-cols2{display:flex;flex-direction:column;gap:9px}
+}
+
+/* ── 17 · PAGE TABLES (hub) — migration P1 ───────────────────────────── */
+#hubContent{background:var(--ds-page);color:var(--ds-ink)}
+.ds-hub-hero{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px;padding:48px 20px;min-height:55vh}
+.ds-hub-hero .ey{font-family:var(--ds-mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--ds-acc-strong)}
+.ds-hub-hero h2{font-family:var(--ds-disp);font-size:30px;color:var(--ds-ink);margin:0;line-height:1.2}
+.ds-hub-hero .ds-btn{width:min(340px,92%);min-height:48px;font-size:16px}
+.ds-tablecard{background:var(--ds-card);border:1px solid var(--ds-line);border-left:4px solid var(--ds-acc);color:var(--ds-ink);cursor:pointer;margin-bottom:10px}
+.ds-tablecard.mj{border-left-color:var(--ds-good)}
+.ds-tablecard.sel{border-color:var(--ds-acc-strong);box-shadow:0 0 8px var(--ds-glow)}
+.ds-tablecard .art{height:56px;background:linear-gradient(120deg,var(--ds-leather2),color-mix(in srgb,var(--ds-acc) 45%,var(--ds-leather2)));display:grid;place-items:center;font-size:22px;border-bottom:1px solid var(--ds-line);overflow:hidden}
+.ds-tablecard.mj .art{background:linear-gradient(120deg,var(--ds-leather2),color-mix(in srgb,var(--ds-good) 40%,var(--ds-leather2)))}
+.ds-tablecard .art img{width:100%;height:100%;object-fit:cover}
+.ds-tablecard .bd{padding:9px 11px}
+
+/* ── 16 · ACCESSIBILITÉ ──────────────────────────────────────────────── */
+@media(prefers-reduced-motion:reduce){
+  .ds-hp>i::after,.ds-tank>i::after{animation:none!important}
+  .ds-hp.low,.ds-nav .it .bdg.turn,.ds-turnbar,.ds-rail button.lvlup,.ds-head .pp.lvlup{animation:none!important}
+  .ds-die{transition:none}
+}

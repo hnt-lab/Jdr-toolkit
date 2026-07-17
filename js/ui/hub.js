@@ -101,157 +101,174 @@ function _hubRerender(){ const el=document.getElementById('hubContent'); if(el&&
 function hubSelectTable(id){ _hubSelectedTableId=id; _hubMobileDetail=true; _hubRerender(); } // mobile : bascule sur le détail
 function hubBackToTables(){ _hubMobileDetail=false; _hubRerender(); } // mobile : revient à la liste
 
-// Carte de campagne (logique d'origine réutilisée telle quelle)
+// Carte de campagne — design-system (logique d'origine INTACTE ; bouton Chroniques RETIRÉ → page Groupe, P3)
 function _hubCampCardHTML(t,c,isMJ){
       const key=t.id+'_'+c.id;
       const expanded=_expandedCamp===key;
       let expandedHtml='';
       if(expanded){
         const charInfo=t._charInfos&&t._charInfos[c.id];
-        const imgHtml=c.imageUrl?`<img src="${esc(c.imageUrl)}" style="width:100%;max-height:200px;border-radius:8px;object-fit:cover;margin-bottom:10px;display:block" onload="campImgOnLoad(this)" onerror="this.style.display='none'">`:'';
+        const imgHtml=c.imageUrl?`<img src="${esc(c.imageUrl)}" style="width:100%;max-height:200px;object-fit:cover;margin-bottom:10px;display:block;border:1px solid var(--ds-line)" onload="campImgOnLoad(this)" onerror="this.style.display='none'">`:'';
         const campParticipants=t._campParticipants&&t._campParticipants[c.id]||[];
-        const participantHtml=campParticipants.length?`<div style="margin-top:10px"><div style="font-size:17px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Personnages</div>
+        const participantHtml=campParticipants.length?`<div style="margin-top:10px"><div class="ds-seclbl" style="margin-bottom:6px">Personnages</div>
           ${campParticipants.map(pp=>{
             const isMe=pp.uid===currentUser.uid;
             const fd=pp.fullData||{};
             const pPortrait=fd.portrait||fd.equipPortrait;
-            return`<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:rgba(255,255,255,.03);border-radius:6px;margin-bottom:4px">
+            return`<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:var(--ds-card2);border:1px solid var(--ds-line-soft);margin-bottom:4px">
               ${pPortrait
-                ?`<img src="${pPortrait}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;border:1.5px solid ${isMe?'var(--cp)':'var(--border)'};flex-shrink:0">`
-                :`<div style="width:30px;height:30px;border-radius:50%;background:var(--surface2);border:1.5px solid ${isMe?'var(--cp)':'var(--border)'};display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0">${pp.avatar||'⚔'}</div>`}
+                ?`<img src="${pPortrait}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;border:1.5px solid ${isMe?'var(--ds-acc-strong)':'var(--ds-line)'};flex-shrink:0">`
+                :`<div style="width:30px;height:30px;border-radius:50%;background:var(--ds-card);border:1.5px solid ${isMe?'var(--ds-acc-strong)':'var(--ds-line)'};display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0">${pp.avatar||'⚔'}</div>`}
               <div style="flex:1;min-width:0">
                 <div style="display:flex;align-items:center;gap:4px">
-                  <span style="font-size:18px;font-weight:600;color:${isMe?'var(--cp)':'var(--text)'}">${esc(pp.charName||'?')}</span>
-                  <span style="font-size:13px;color:var(--text3)">${isMe?'Moi':esc(pp.playerName||'')}</span>
+                  <span style="font-size:15px;font-weight:600;color:${isMe?'var(--ds-acc-strong)':'var(--ds-ink)'}">${esc(pp.charName||'?')}</span>
+                  <span class="ds-note" style="font-size:12px">${isMe?'Moi':esc(pp.playerName||'')}</span>
                 </div>
-                <div style="font-size:15px;color:var(--text3)">${esc(pp.charClass||'')}</div>
+                <div class="ds-note">${esc(pp.charClass||'')}</div>
               </div>
               ${isMJ
-                ?`<button class="btn bsm" style="color:#e53935;border-color:rgba(229,57,53,.35);flex-shrink:0;font-size:15px;padding:2px 6px" onclick="hubKickConfirm('${t.id}','${pp.uid}','${jsq(pp.playerName||'ce joueur')}')">✕</button>`
-                :`<button class="btn bsm" style="flex-shrink:0;font-size:18px;padding:2px 7px;border-color:rgba(200,168,75,.3)" title="${isMe?'Ouvrir ma fiche':'Voir la fiche'}" onclick="${isMe?`enterCampaign('${t.id}','${c.id}')`:`openHubPlayerSheet('${pp.uid}','${c.id}')`}">📋</button>`}
+                ?`<button class="ds-btn quiet" style="color:var(--ds-seal);border-color:var(--ds-seal);flex-shrink:0;min-height:30px;padding:2px 8px" onclick="hubKickConfirm('${t.id}','${pp.uid}','${jsq(pp.playerName||'ce joueur')}')">✕</button>`
+                :`<button class="ds-btn quiet" style="flex-shrink:0;min-height:30px;padding:2px 8px" title="${isMe?'Ouvrir ma fiche':'Voir la fiche'}" onclick="${isMe?`enterCampaign('${t.id}','${c.id}')`:`openHubPlayerSheet('${pp.uid}','${c.id}')`}">📋</button>`}
             </div>`;
           }).join('')}
         </div>`:'';
         const charBlock=isMJ
-          ?`<button class="btn bac" style="width:100%;margin-top:8px;font-weight:600" onclick="enterCampaign('${t.id}','${c.id}')">🎲 Gérer la campagne</button>`
+          ?`<button class="ds-btn primary" style="width:100%;margin-top:8px" onclick="enterCampaign('${t.id}','${c.id}')">👑 Gérer la campagne</button>`
           :(charInfo&&!charInfo.leftCampaign
             ?`<div style="margin-top:8px">
-                <div style="display:flex;align-items:center;gap:6px;padding:8px;background:rgba(200,168,75,.06);border-radius:6px 6px 0 0;border:1px solid rgba(200,168,75,.15);border-bottom:none">
+                <div style="display:flex;align-items:center;gap:6px;padding:8px;background:var(--ds-card2);border:1px solid var(--ds-line);border-bottom:none">
                   <span style="font-size:25px">${currentUserData&&currentUserData.avatar||'⚔'}</span>
-                  <div style="flex:1;min-width:0"><div style="font-size:18px;font-weight:600">${esc(charInfo.charName||'?')}</div><div style="font-size:17px;color:var(--text3)">${esc(charInfo.charClass||'')}</div></div>
-                  <button class="btn bsm" style="color:#e53935;border-color:rgba(229,57,53,.35);flex-shrink:0" onclick="playerLeaveCharacter('${c.id}')">✕ Quitter</button>
+                  <div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:600">${esc(charInfo.charName||'?')}</div><div class="ds-note">${esc(charInfo.charClass||'')}</div></div>
+                  <button class="ds-btn quiet" style="color:var(--ds-seal);border-color:var(--ds-seal);flex-shrink:0;min-height:32px;padding:3px 9px" onclick="playerLeaveCharacter('${c.id}')">✕ Quitter</button>
                 </div>
-                <button class="btn bac" style="width:100%;font-weight:600;border-radius:0 0 6px 6px" onclick="joinGroupOnly('${t.id}','${c.id}')">👥 Rejoindre le groupe</button>
+                <button class="ds-btn primary" style="width:100%" onclick="joinGroupOnly('${t.id}','${c.id}')">👥 Rejoindre le groupe</button>
               </div>`
             :(charInfo&&charInfo.leftCampaign
               ?`<div style="margin-top:8px">
-                  <div style="display:flex;align-items:center;gap:6px;padding:8px;background:rgba(255,255,255,.03);border-radius:6px 6px 0 0;border:1px solid var(--border);border-bottom:none">
+                  <div style="display:flex;align-items:center;gap:6px;padding:8px;background:var(--ds-card2);border:1px solid var(--ds-line);border-bottom:none">
                     <span style="font-size:25px;opacity:.5">${currentUserData&&currentUserData.avatar||'⚔'}</span>
-                    <div style="flex:1;min-width:0"><div style="font-size:18px;font-weight:600;color:var(--text3)">${esc(charInfo.charName||'?')}</div><div style="font-size:17px;color:var(--text3)">Inactif — vous avez quitté cette campagne</div></div>
+                    <div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:600;color:var(--ds-soft)">${esc(charInfo.charName||'?')}</div><div class="ds-note">Inactif — vous avez quitté cette campagne</div></div>
                   </div>
-                  <div style="display:flex;gap:6px;border-radius:0 0 6px 6px;overflow:hidden">
-                    <button class="btn bprimary" style="flex:2;font-weight:600;border-radius:0" onclick="playerRejoinCampaign('${c.id}')">↩ Rejoindre</button>
-                    <button class="btn" style="flex:1;color:#e53935;border-color:rgba(229,57,53,.35);border-radius:0" onclick="deleteCharFromLib('${c.id}')">🗑</button>
+                  <div style="display:flex;gap:6px">
+                    <button class="ds-btn primary" style="flex:2" onclick="playerRejoinCampaign('${c.id}')">↩ Rejoindre</button>
+                    <button class="ds-btn quiet" style="flex:1;color:var(--ds-seal);border-color:var(--ds-seal)" onclick="deleteCharFromLib('${c.id}')">🗑</button>
                   </div>
                 </div>`
-              :`<button class="btn bprimary" style="width:100%;margin-top:8px" onclick="openCharOrCreate('${t.id}','${c.id}')">+ Créer mon personnage</button>`));
+              :`<button class="ds-btn primary" style="width:100%;margin-top:8px" onclick="openCharOrCreate('${t.id}','${c.id}')">＋ Créer mon personnage</button>`));
         const mjEditHtml=isMJ?`
           <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">
-            <button class="btn bsm" onclick="openEditCampaign('${t.id}','${c.id}')">✏ Modifier</button>
+            <button class="ds-btn quiet" onclick="openEditCampaign('${t.id}','${c.id}')">✏ Modifier</button>
           </div>`:'';
-        const chronicleBtn=!isMJ?`<button class="btn bsm" style="width:100%;margin-top:6px" onclick="openCampChronicle('${t.id}','${c.id}')">📜 Voir les Chroniques</button>`:'';
-        expandedHtml=`<div class="camp-expanded">${imgHtml}
-          ${c.detailedDesc?`<p style="font-size:19px;color:var(--text2);line-height:1.65;margin-bottom:8px">${esc(c.detailedDesc)}</p>`:''}
+        expandedHtml=`<div style="padding:10px 12px;border:1px solid var(--ds-line);border-top:none;background:var(--ds-card)">${imgHtml}
+          ${c.detailedDesc?`<p style="font-size:15px;color:var(--ds-ink);line-height:1.65;margin:0 0 8px">${esc(c.detailedDesc)}</p>`:''}
           <div style="clear:both"></div>
-          ${charBlock}${chronicleBtn}${participantHtml}${mjEditHtml}
+          ${charBlock}${participantHtml}${mjEditHtml}
         </div>`;
       }
-      return`<div>
-        <div class="camp-card" onclick="toggleCampExpand('${t.id}','${c.id}')">
-          ${c.imageUrl?`<img class="camp-thumb" src="${esc(c.imageUrl)}" onerror="this.style.display='none'">`:`<div class="camp-thumb camp-thumb-ph">⚔</div>`}
-          <div style="flex:1;min-width:0"><div class="camp-card-name">${esc(c.name)}</div>
-            ${c.description?`<div style="font-size:18px;color:var(--text3);margin-top:2px">${esc(c.description)}</div>`:''}
+      return`<div style="margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--ds-card);border:1px solid var(--ds-line);cursor:pointer" onclick="toggleCampExpand('${t.id}','${c.id}')">
+          ${c.imageUrl?`<img src="${esc(c.imageUrl)}" style="width:44px;height:44px;object-fit:cover;border:1px solid var(--ds-line);flex-shrink:0" onerror="this.style.display='none'">`:`<div style="width:44px;height:44px;background:var(--ds-card2);border:1px solid var(--ds-line);display:grid;place-items:center;font-size:20px;flex-shrink:0">⚔</div>`}
+          <div style="flex:1;min-width:0"><div style="font-family:var(--ds-disp);font-size:15.5px;font-weight:700;color:var(--ds-ink)">${esc(c.name)}</div>
+            ${c.description?`<div class="ds-note" style="margin-top:2px">${esc(c.description)}</div>`:''}
           </div>
           <div style="display:flex;align-items:center;gap:8px">
-            <span class="camp-card-status ${c.status==='finished'?'camp-status-finished':'camp-status-active'}">${c.status==='finished'?'Terminée':'Active'}</span>
-            <span style="color:var(--cp);transition:transform .2s;${expanded?'transform:rotate(90deg)':''}"">›</span>
+            <span class="ds-chip ${c.status==='finished'?'':'good'}" style="font-size:11px">${c.status==='finished'?'Terminée':'Active'}</span>
+            <span style="color:var(--ds-acc-strong);transition:transform .2s;${expanded?'transform:rotate(90deg)':''}">›</span>
           </div>
         </div>${expandedHtml}</div>`;
 }
 
-// Élément du rail gauche (une table)
-function _hubTableRailItemHTML(t,selected){
+// Carte de table (rail) — illustration + catégorie code couleur + « Reprendre » direct (P1 validée)
+function _dsTableCardHTML(t,selected){
   const isMJ=t.mjId===currentUser.uid;
   const n=(t.campaigns||[]).length;
   const thumb=(t.campaigns||[]).map(c=>c.imageUrl).find(Boolean);
-  return`<div class="hub-table-item${selected?' sel':''}" onclick="hubSelectTable('${t.id}')">
-    ${thumb?`<img class="hub-table-thumb" src="${esc(thumb)}" onerror="this.style.display='none'">`:`<div class="hub-table-item-ic">${isMJ?'👑':'⚔'}</div>`}
-    <div style="flex:1;min-width:0">
-      <div class="hub-table-item-name">${esc(t.name)}</div>
-      <div class="hub-table-item-sub">${isMJ?'Maître de Jeu':'Joueur'} · ${n} campagne${n>1?'s':''}</div>
+  const lastId=localStorage.getItem('lastCamp_'+t.id);
+  const last=(t.campaigns||[]).find(c=>c.id===lastId)||(t.campaigns||[]).find(c=>c.status!=='finished');
+  const resume=last?`<button class="ds-btn primary" style="width:100%;margin-top:8px" onclick="event.stopPropagation();hubResumeTable('${t.id}')">${isMJ?'👑 Ouvrir':'▶ Reprendre'} — ${esc(last.name)}</button>`:'';
+  return`<div class="ds-tablecard${isMJ?' mj':''}${selected?' sel':''}" onclick="hubSelectTable('${t.id}')">
+    <div class="art">${thumb?`<img src="${esc(thumb)}" onerror="this.style.display='none'">`:(isMJ?'🏰':'🌫')}</div>
+    <div class="bd">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="flex:1;min-width:0">
+          <div style="font-family:var(--ds-disp);font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(t.name)}</div>
+          <div class="ds-note">${isMJ?'Maître de jeu':'Joueur'} · ${n} campagne${n>1?'s':''}${!isMJ&&t.mjName?` · MJ : ${esc(t.mjName)}`:''}</div>
+        </div>
+        ${isMJ?`<button class="ds-btn quiet" style="min-height:34px;padding:4px 10px" title="Réglages de la table" onclick="event.stopPropagation();openTableSettings('${t.id}','${jsq(t.name)}','${t.inviteCode}')">⚙</button>`:''}
+      </div>
+      ${resume}
     </div>
-    ${isMJ?`<button class="btn bsm" title="Réglages de la table" onclick="event.stopPropagation();openTableSettings('${t.id}','${jsq(t.name)}','${t.inviteCode}')">⚙</button>`:''}
   </div>`;
+}
+// « Reprendre » : ouvre DIRECTEMENT la dernière campagne jouée de la table (fallback : détail).
+function hubResumeTable(tableId){
+  const t=_hubCache&&_hubCache.find(x=>x.id===tableId);
+  if(!t){hubSelectTable(tableId);return;}
+  const lastId=localStorage.getItem('lastCamp_'+tableId);
+  const c=(t.campaigns||[]).find(x=>x.id===lastId)||(t.campaigns||[]).find(x=>x.status!=='finished')||(t.campaigns||[])[0];
+  if(c)enterCampaign(tableId,c.id);
+  else hubSelectTable(tableId);
 }
 
 // Panneau de détail (table sélectionnée) — réutilise _hubCampCardHTML
 function _hubTableDetailHTML(t){
-  if(!t) return`<div class="hub-empty">Sélectionne une table, ou crées-en une.</div>`;
+  if(!t) return`<div class="ds-note" style="padding:30px;text-align:center">Sélectionne une table, ou crées-en une.</div>`;
   const isMJ=t.mjId===currentUser.uid;
   const memberAvatars=t.memberAvatars||{},memberNames=t.memberNames||{};
   const players=(t.memberIds||[]).filter(uid=>uid!==t.mjId);
-  const memberBadges=players.map(uid=>`<span class="member-badge">${memberAvatars[uid]||'⚔'} ${esc(memberNames[uid]||'Joueur')}</span>`).join('');
-  const campList=(t.campaigns||[]).length?t.campaigns.map(c=>_hubCampCardHTML(t,c,isMJ)).join(''):`<div style="font-size:18px;color:var(--text3);font-style:italic;padding:6px 0">Aucune campagne pour l'instant.</div>`;
+  const memberBadges=players.map(uid=>`<span class="ds-chip">${memberAvatars[uid]||'⚔'} ${esc(memberNames[uid]||'Joueur')}</span>`).join('');
+  const campList=(t.campaigns||[]).length?t.campaigns.map(c=>_hubCampCardHTML(t,c,isMJ)).join(''):`<div class="ds-note" style="font-style:italic;padding:6px 0">Aucune campagne pour l'instant.</div>`;
   const art=(t.campaigns||[]).map(c=>c.imageUrl).find(Boolean);
   // Étape D — paquets requis par la table que CE joueur ne possède pas encore
   const _missing=(!isMJ&&typeof COMP!=='undefined'&&typeof compTableRequiredPacks==='function')?(COMP.missingPacks(compTableRequiredPacks(t))||[]):[];
   return`
-    <div class="hub-detail-hdr">
-      ${art?`<img class="hub-detail-art" src="${esc(art)}" onerror="this.style.display='none'">`:`<div class="hub-detail-ic">${isMJ?'👑':'⚔'}</div>`}
-      <div style="flex:1;min-width:0">
-        <div class="hub-detail-name">${esc(t.name)} ${isMJ?'<span class="hub-role mj">🎲 MJ</span>':'<span class="hub-role pl">⚔ Joueur</span>'}</div>
-        <div class="hub-detail-sub">MJ : ${t.mjAvatar||'🎲'} ${esc(t.mjName||'MJ')}${players.length?` · ${players.length} joueur${players.length>1?'s':''}`:''}</div>
-        ${memberBadges?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:8px"><span style="font-size:15px;color:var(--text3);align-self:center">Joueurs :</span>${memberBadges}</div>`:''}
+    <div class="ds-card" style="padding:0;overflow:hidden;margin-bottom:12px">
+      <div style="height:${art?'110px':'56px'};background:linear-gradient(120deg,var(--ds-leather2),color-mix(in srgb,${isMJ?'var(--ds-good)':'var(--ds-acc)'} 40%,var(--ds-leather2)));overflow:hidden;display:grid;place-items:center;font-size:24px">${art?`<img src="${esc(art)}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">`:(isMJ?'🏰':'🌫')}</div>
+      <div style="padding:10px 14px 12px">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="font-family:var(--ds-disp);font-size:19px;font-weight:700">${esc(t.name)}</span>
+          <span class="ds-chip ${isMJ?'good':''}">${isMJ?'👑 MJ':'🧙 Joueur'}</span>
+          ${isMJ?`<button class="ds-btn quiet" style="margin-left:auto;min-height:34px;padding:4px 10px" onclick="openTableSettings('${t.id}','${jsq(t.name)}','${t.inviteCode}')">⚙ Réglages</button>`:''}
+        </div>
+        <div class="ds-note" style="margin-top:4px">MJ : ${t.mjAvatar||'🎲'} ${esc(t.mjName||'MJ')}${players.length?` · ${players.length} joueur${players.length>1?'s':''}`:''}</div>
+        ${memberBadges?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:8px">${memberBadges}</div>`:''}
       </div>
-      ${isMJ?`<button class="btn bsm hub-gear" title="Réglages de la table" onclick="openTableSettings('${t.id}','${jsq(t.name)}','${t.inviteCode}')">⚙</button>`:''}
     </div>
-    ${_missing.length?`<div style="margin:12px 0 0;padding:10px 12px;background:rgba(229,57,53,.1);border:1px solid rgba(229,57,53,.4);border-radius:10px">
-      <div style="font-size:17px;color:#e53935;font-weight:600">⚠ Compendium(s) requis manquant(s)</div>
-      <div style="font-size:15px;color:var(--text2);margin-top:4px">Cette table utilise des paquets que tu n'as pas encore importés : ${_missing.map(id=>`<strong>${esc(id)}</strong>`).join(', ')}. Demande le fichier à ton MJ, puis importe-le.</div>
-      <button class="btn bsm bprimary" style="margin-top:8px" onclick="importCompPack()">📥 Importer un paquet</button>
+    ${_missing.length?`<div class="ds-card" style="border-color:var(--ds-seal);margin-bottom:12px">
+      <div style="font-size:15px;color:var(--ds-seal);font-weight:700">⚠ Compendium(s) requis manquant(s)</div>
+      <div class="ds-note" style="margin-top:4px">Cette table utilise des paquets que tu n'as pas encore importés : ${_missing.map(id=>`<strong>${esc(id)}</strong>`).join(', ')}. Demande le fichier à ton MJ, puis importe-le.</div>
+      <button class="ds-btn primary" style="margin-top:8px" onclick="importCompPack()">📥 Importer un paquet</button>
     </div>`:''}
-    <div class="hub-detail-sec">
-      <div class="hub-sec-title"><span>📜 Campagnes</span>${isMJ?`<button class="btn bsm bprimary" onclick="openCreateCampaign('${t.id}')">+ Nouvelle campagne</button>`:''}</div>
-      ${campList}
-    </div>`;
+    <div class="ds-title">📜 Campagnes ${isMJ?`<button class="ds-btn primary" style="min-height:34px;padding:4px 12px" onclick="openCreateCampaign('${t.id}')">＋ Nouvelle</button>`:''}</div>
+    ${campList}`;
 }
 
 function renderHubHTML(tables){
-  if(!tables||!tables.length) return`<div class="hub-2col">
-    <div class="hub-rail">
-      <div class="hub-rail-hdr"><span>⚔ Mes Tables</span></div>
-      <div class="hub-empty" style="margin-bottom:10px">Aucune table.</div>
-      <div class="hub-rail-actions">
-        <button class="btn bsm bprimary" onclick="openCreateTable()">+ Créer une table</button>
-        <button class="btn bsm" onclick="openJoinTable()">👥 Rejoindre une table</button>
-      </div>
-    </div>
-    <div class="hub-detail"><div class="hub-empty">Crée une table ou rejoins-en une pour commencer !</div></div>
+  // Premier lancement : hero « Prêt pour l'aventure ? » (P1 validée)
+  if(!tables||!tables.length) return`<div class="ds-hub-hero">
+    <div class="ey">La Boîte à Outils</div>
+    <h2>Prêt pour l'aventure ?</h2>
+    <div class="ds-note" style="max-width:42ch">Rejoins tes compagnons avec un code d'invitation, ou crée ta propre table et deviens Maître de Jeu.</div>
+    <button class="ds-btn primary" onclick="openCreateTable()">＋ Créer une table</button>
+    <button class="ds-btn" onclick="openJoinTable()">🚪 Rejoindre une table</button>
   </div>`;
   if(!_hubSelectedTableId||!tables.find(t=>t.id===_hubSelectedTableId)) _hubSelectedTableId=tables[0].id;
   const sel=tables.find(t=>t.id===_hubSelectedTableId);
-  const rail=tables.map(t=>_hubTableRailItemHTML(t,t.id===_hubSelectedTableId)).join('');
+  const mine=tables.filter(t=>t.mjId===currentUser.uid);
+  const others=tables.filter(t=>t.mjId!==currentUser.uid);
+  const sec=(lbl,cls,arr)=>arr.length?`<div class="ds-seclbl ${cls}" style="margin:12px 0 8px">${lbl}</div>${arr.map(t=>_dsTableCardHTML(t,t.id===_hubSelectedTableId)).join('')}`:'';
   return`<div class="hub-2col${_hubMobileDetail?' show-detail':''}">
     <div class="hub-rail">
-      <div class="hub-rail-hdr"><span>⚔ Mes Tables</span><span style="font-size:18px;color:var(--text3)">${tables.length}</span></div>
-      ${rail}
-      <div class="hub-rail-actions">
-        <button class="btn bsm bprimary" onclick="openCreateTable()">+ Créer une table</button>
-        <button class="btn bsm" onclick="openJoinTable()">👥 Rejoindre une table</button>
+      <div class="ds-title">Mes tables <span class="r">${tables.length}</span></div>
+      ${sec('🧙 Joueur','',others)}
+      ${sec('👑 Maître de jeu','mj',mine)}
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="ds-btn" style="flex:1" onclick="openCreateTable()">＋ Créer</button>
+        <button class="ds-btn" style="flex:1" onclick="openJoinTable()">🚪 Rejoindre</button>
       </div>
     </div>
     <div class="hub-detail">
-      <button class="btn bsm hub-back" onclick="hubBackToTables()">← Mes tables</button>
+      <button class="ds-btn quiet hub-back" onclick="hubBackToTables()">← Mes tables</button>
       ${_hubTableDetailHTML(sel)}
     </div>
   </div>`;
@@ -613,6 +630,7 @@ function copyInviteLink(code){
 async function enterCampaign(tableId,campaignId,tName,cName,preloadedCharData,forceNew){
   currentTableId=tableId;
   currentCampaignId=campaignId;
+  try{localStorage.setItem('lastCamp_'+tableId,campaignId);}catch(e){} // mémo « Reprendre » (P1)
   if(!tName&&_hubCache){const t=_hubCache.find(t=>t.id===tableId);if(t){tName=t.name;const c=t.campaigns.find(c=>c.id===campaignId);if(c)cName=c.name;}}
   currentTableName=tName||'';
   currentCampaignName=cName||'';
