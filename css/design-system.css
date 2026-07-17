@@ -308,8 +308,23 @@
 .ds-tablecard.sel{border-color:var(--ds-acc-strong);box-shadow:0 0 8px var(--ds-glow)}
 .ds-tablecard .art{height:56px;background:linear-gradient(120deg,var(--ds-leather2),color-mix(in srgb,var(--ds-acc) 45%,var(--ds-leather2)));display:grid;place-items:center;font-size:22px;border-bottom:1px solid var(--ds-line);overflow:hidden}
 .ds-tablecard.mj .art{background:linear-gradient(120deg,var(--ds-leather2),color-mix(in srgb,var(--ds-good) 40%,var(--ds-leather2)))}
-.ds-tablecard .art img{width:100%;height:100%;object-fit:cover}
+.ds-tablecard .art{position:relative}
+.ds-tablecard .art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .ds-tablecard .bd{padding:9px 11px}
+/* Bandeau d'illustration générique (détail de table) — emoji dessous, image par-dessus si valide */
+.ds-artband{position:relative;display:grid;place-items:center;font-size:24px;overflow:hidden}
+.ds-artband img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+
+/* §17b — Retours TEST 1 (2026-07-18) : fond UNI (exit la peinture de taverne),
+   FAB groupe supprimé (la nav Groupe le remplace), gouttière gauche libérée. */
+#hubScreen.tavern-bg,#hubScreen{background:var(--ds-page)!important}
+#hubScreen.tavern-bg::before,#hubScreen.tavern-bg::after{display:none!important}
+.hub-body{max-width:1400px}
+.hub-rail,.hub-detail{background:transparent;border:none;box-shadow:none}
+.hub-2col{gap:14px}
+.hub-back{margin:2px 0 10px}
+#partyHudBtn{display:none!important}
+@media(max-width:640px){ #modeNav{padding-left:12px!important} }
 
 /* ── 16 · ACCESSIBILITÉ ──────────────────────────────────────────────── */
 @media(prefers-reduced-motion:reduce){

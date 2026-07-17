@@ -187,7 +187,7 @@ function _dsTableCardHTML(t,selected){
   const last=(t.campaigns||[]).find(c=>c.id===lastId)||(t.campaigns||[]).find(c=>c.status!=='finished');
   const resume=last?`<button class="ds-btn primary" style="width:100%;margin-top:8px" onclick="event.stopPropagation();hubResumeTable('${t.id}')">${isMJ?'👑 Ouvrir':'▶ Reprendre'} — ${esc(last.name)}</button>`:'';
   return`<div class="ds-tablecard${isMJ?' mj':''}${selected?' sel':''}" onclick="hubSelectTable('${t.id}')">
-    <div class="art">${thumb?`<img src="${esc(thumb)}" onerror="this.style.display='none'">`:(isMJ?'🏰':'🌫')}</div>
+    <div class="art">${isMJ?'🏰':'⚔'}${thumb?`<img src="${esc(thumb)}" onerror="this.remove()">`:''}</div>
     <div class="bd">
       <div style="display:flex;align-items:center;gap:8px">
         <div style="flex:1;min-width:0">
@@ -223,7 +223,7 @@ function _hubTableDetailHTML(t){
   const _missing=(!isMJ&&typeof COMP!=='undefined'&&typeof compTableRequiredPacks==='function')?(COMP.missingPacks(compTableRequiredPacks(t))||[]):[];
   return`
     <div class="ds-card" style="padding:0;overflow:hidden;margin-bottom:12px">
-      <div style="height:${art?'110px':'56px'};background:linear-gradient(120deg,var(--ds-leather2),color-mix(in srgb,${isMJ?'var(--ds-good)':'var(--ds-acc)'} 40%,var(--ds-leather2)));overflow:hidden;display:grid;place-items:center;font-size:24px">${art?`<img src="${esc(art)}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">`:(isMJ?'🏰':'🌫')}</div>
+      <div class="ds-artband" style="height:${art?'110px':'56px'};background:linear-gradient(120deg,var(--ds-leather2),color-mix(in srgb,${isMJ?'var(--ds-good)':'var(--ds-acc)'} 40%,var(--ds-leather2)))">${isMJ?'🏰':'⚔'}${art?`<img src="${esc(art)}" onerror="this.remove()">`:''}</div>
       <div style="padding:10px 14px 12px">
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
           <span style="font-family:var(--ds-disp);font-size:19px;font-weight:700">${esc(t.name)}</span>

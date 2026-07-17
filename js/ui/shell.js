@@ -31,7 +31,7 @@ function _dsBuildNav(){
   if(nav.dataset.ds3)return; // déjà construit
   nav.dataset.ds3='1';
   nav.innerHTML=
-    `<button class="mode-btn mode-hub" onclick="showHub()"><span class="mode-ico">🗺</span><span class="mode-lbl">Tables</span></button>`+
+    `<button class="mode-btn mode-hub" onclick="showHub()"><span class="mode-ico">🧭</span><span class="mode-lbl">Tables</span></button>`+
     `<button class="mode-btn mode-char" onclick="_navGoChar()"><span class="mode-ico mode-char-ico">🧙</span><span class="mode-lbl mode-char-lbl">Personnage</span></button>`+
     `<button class="mode-btn mode-group" onclick="_dsNavGoGroup()" style="position:relative"><span class="mode-ico">👥</span><span class="mode-lbl">Groupe</span>`+
     `<span id="dsNavTurn" class="ds-navbdg" style="display:none;position:absolute;top:2px;right:14px;min-width:16px;height:16px;border-radius:50%;background:#6d28d9;color:#fff;font-size:11px;font-weight:700;display:none;align-items:center;justify-content:center;animation:combatPulse 1.6s ease-in-out infinite">⚡</span>`+
