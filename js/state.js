@@ -698,16 +698,15 @@ function renderTabBar(){
   const bar=document.getElementById('tabBar');if(!bar)return;
   const p=P();
   if(!p.created){bar.innerHTML='';return;}
+  // REFONTE P2 : 6 onglets fusionnés (Personnage=Perso+Compétences · Inventaire=Équip.+Sac · Historique=XP+Historique)
+  const _lvlupCls=(()=>{const _lvl=totalLevel(p);const _nxt=XP_LEVELS[_lvl]||XP_LEVELS[19];return(p.xp||0)>=_nxt&&_lvl<20&&!p.pendingLevelUp?'lvlup':''})();
   let TABS=[
-    {id:'perso',label:'🧑 Perso'},
-    {id:'competences',label:'🎯 Compétences'},
-    {id:'combat',label:'⚔️ Combat'},
-    {id:'sorts',label:'✨ Sorts'},
-    {id:'equipement',label:'🛡️ Équip.'},
-    {id:'sac',label:'🎒 Sac'},
-    {id:'historique',label:'📖 Historique'},
-    {id:'journal',label:'📝 Journal'},
-    {id:'xp',label:'⭐ XP',cls:(()=>{const _lvl=totalLevel(p);const _nxt=XP_LEVELS[_lvl]||XP_LEVELS[19];return(p.xp||0)>=_nxt&&_lvl<20&&!p.pendingLevelUp?'lvlup':''})()},
+    {id:'perso',ico:'👤',txt:'Personnage'},
+    {id:'combat',ico:'⚔️',txt:'Combat'},
+    {id:'sorts',ico:'✨',txt:'Sorts'},
+    {id:'equipement',ico:'🎒',txt:'Inventaire'},
+    {id:'historique',ico:'📜',txt:'Historique',cls:_lvlupCls},
+    {id:'journal',ico:'📖',txt:'Journal'},
   ];
   if(p.tabOrder&&p.tabOrder.length){
     const ordered=[];
@@ -715,17 +714,20 @@ function renderTabBar(){
     TABS.forEach(t=>{if(!ordered.find(x=>x.id===t.id))ordered.push(t);});
     TABS=ordered;
   }
-  if(p.pendingLevelUp)TABS.push({id:'levelup',label:'⬆ Niveau +',cls:'lvlup'});
-  bar.innerHTML=TABS.map(t=>`<button class="tab${state.activeTab===t.id?' on':''}${t.cls?' '+t.cls:''}" onclick="setTab('${t.id}')">${t.label}</button>`).join('')
-    +`<button class="tab" onclick="openPrivacySettings()" title="Confidentialité" style="margin-left:auto;opacity:.7;font-size:18px">🔒</button>`
-    +`<button class="tab" onclick="openTabOrderSettings()" title="Réorganiser les onglets" style="opacity:.7;font-size:18px">↕</button>`;
+  if(p.pendingLevelUp)TABS.unshift({id:'levelup',ico:'⬆',txt:'Niveau +',cls:'lvlup'});
+  // Alias des anciens onglets fusionnés (activeTab sauvegardé en 9-onglets)
+  const _alias={competences:'perso',sac:'equipement',xp:'historique'};
+  if(_alias[state.activeTab])state.activeTab=_alias[state.activeTab];
+  bar.innerHTML=TABS.map(t=>`<button class="tab${state.activeTab===t.id?' on':''}${t.cls?' '+t.cls:''}" onclick="setTab('${t.id}')"><span class="ti">${t.ico||''}</span><span class="tl">${t.txt||t.label||''}</span></button>`).join('')
+    +`<button class="tab tab-foot" onclick="openPrivacySettings()" title="Confidentialité"><span class="ti">🔒</span></button>`
+    +`<button class="tab tab-foot" onclick="openTabOrderSettings()" title="Réorganiser les onglets"><span class="ti">↕</span></button>`;
   if(typeof _initTabScrollers==='function')setTimeout(_initTabScrollers,0);
 }
 
 function openTabOrderSettings(){
   const p=P();
-  const BASE_IDS=['perso','competences','combat','sorts','equipement','sac','historique','journal','xp'];
-  const LABELS={perso:'🧑 Perso',competences:'🎯 Compétences',combat:'⚔️ Combat',sorts:'✨ Sorts',equipement:'🛡️ Équip.',sac:'🎒 Sac',historique:'📖 Historique',journal:'📝 Journal',xp:'⭐ XP'};
+  const BASE_IDS=['perso','combat','sorts','equipement','historique','journal'];
+  const LABELS={perso:'👤 Personnage',combat:'⚔️ Combat',sorts:'✨ Sorts',equipement:'🎒 Inventaire',historique:'📜 Historique',journal:'📖 Journal'};
   if(!p.tabOrder||p.tabOrder.length<BASE_IDS.length)p.tabOrder=[...BASE_IDS];
   window._tabOrderMove=(id,dir)=>{
     const order=p.tabOrder;const i=order.indexOf(id);const j=i+dir;
@@ -771,7 +773,22 @@ function renderTab(){
   const p=P();
   if(!p.created){el.innerHTML=tabCreation(p);if(typeof _ctaScrollGlow==='function')setTimeout(_ctaScrollGlow,40);return;}
   const map={perso:tabPerso,competences:tabCompetences,combat:tabCombat,equipement:tabEquipement,sac:tabSac,historique:tabHistorique,xp:tabXP,sorts:tabSorts,levelup:tabLevelUp,journal:tabJournal};
-  el.innerHTML=(map[state.activeTab]||tabPerso)(p);
+  // REFONTE P2 — onglets FUSIONNÉS : catégories dépliables (contenus d'origine INTACTS)
+  const _alias={competences:'perso',sac:'equipement',xp:'historique'};
+  if(_alias[state.activeTab])state.activeTab=_alias[state.activeTab];
+  const FUSED={perso:[['perso','👤 Identité & caractéristiques'],['competences','🎯 Compétences']],
+    equipement:[['equipement','🛡 Équipement'],['sac','🎒 Sac & encombrement']],
+    historique:[['historique','⭐ Progression & XP'],['xp','📖 Montée de niveau']]};
+  // NB : l'ordre Historique = progression d'abord (tabHistorique = historique du perso, tabXP = XP/LU)
+  if(FUSED[state.activeTab]){
+    const parts=state.activeTab==='historique'?[['xp','⭐ Progression & XP'],['historique','📖 Historique du personnage']]:FUSED[state.activeTab];
+    el.innerHTML=parts.map(([id,lbl])=>`<div class="ds-fold" data-fuse="${id}">
+      <div class="fh" onclick="this.parentElement.classList.toggle('closed')"><span class="grip">⠿</span>${lbl}<span class="chev">▼</span></div>
+      <div class="fb">${(map[id]||(()=>''))(p)}</div>
+    </div>`).join('');
+  }else{
+    el.innerHTML=(map[state.activeTab]||tabPerso)(p);
+  }
   if(state.activeTab==='levelup'&&typeof _ctaScrollGlow==='function')setTimeout(_ctaScrollGlow,40); // scroll+glow bouton continuer au LU
   _enableTabDrag();applyAllSectionOrders(); // synchrone : pas de fenêtre où les attributs de drag manquent
   setTimeout(autoGrowAll,0);

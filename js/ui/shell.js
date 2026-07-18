@@ -22,17 +22,100 @@ dsApplyPrefs();
 // Remplace le contenu de #modeNav (2 items) par 3 items. Le bouton Groupe
 // ouvre pour l'instant le panneau de groupe existant (partyHud) — il
 // deviendra la vraie page Groupe à la migration de la page 3.
+// ── PAGE GROUPE (P3) — overlay plein écran : Tour → Membres → Partages MJ → Chronique ──
+let _dsGroupOpen=false,_dsShares=null;
 function _dsNavGoGroup(){
-  if(window._currentCampIsMJ){return;} // MJ : pas d'item Groupe (nav = Tables · Panneau MJ)
-  if(typeof _togglePartyHud==='function')_togglePartyHud();
+  if(window._currentCampIsMJ)return;
+  _dsGroupOpen?_dsCloseGroup():_dsOpenGroup();
+}
+function _dsOpenGroup(){
+  _dsGroupOpen=true;_dsShares=null;
+  let el=document.getElementById('dsGroupPage');
+  if(!el){el=document.createElement('div');el.id='dsGroupPage';document.body.appendChild(el);}
+  el.style.display='block';
+  _dsRenderGroup();
+  // Partages du MJ : lecture du doc campagne à l'ouverture
+  try{
+    if(currentCampaignId&&typeof fbDb!=='undefined'){
+      fbDb.collection('campaigns').doc(currentCampaignId).get().then(d=>{
+        _dsShares=(d.exists&&d.data().shares)||[];
+        if(_dsGroupOpen)_dsRenderGroup();
+      }).catch(()=>{_dsShares=[];});
+    }
+  }catch(e){_dsShares=[];}
+  if(typeof _refreshModeNav==='function')_refreshModeNav();
+}
+function _dsCloseGroup(){
+  _dsGroupOpen=false;
+  const el=document.getElementById('dsGroupPage');if(el)el.style.display='none';
+  if(typeof _refreshModeNav==='function')_refreshModeNav();
+}
+function _dsShareHTML(s,idx,mjMode){
+  const del=mjMode?`<button class="ds-btn quiet" style="min-height:26px;padding:2px 8px;color:var(--ds-seal);border-color:var(--ds-seal)" onclick="_dsRemoveShare(${idx})">🗑</button>`:'';
+  if(s.type==='indice'){
+    const mat=s.matiere==='pierre'?'stone':s.matiere==='bois'?'wood':s.matiere==='rune'?'rune':'';
+    return`<div class="ds-pin ${mat}">${s.title?`<b>${esc(s.title)}</b><br>`:''}${esc(s.text||'')}${del?`<div style="margin-top:6px;text-align:right">${del}</div>`:''}</div>`;
+  }
+  const ic=s.type==='artefact'?'🗡':'🗝';
+  const chip=s.type==='artefact'?'<span class="ds-chip seal" style="font-size:10px;padding:1px 6px">Artefact</span>':'<span class="ds-chip" style="font-size:10px;padding:1px 6px">Objet de quête</span>';
+  return`<div class="ds-item ${s.type==='artefact'?'artefact':''}"><span class="ic">${ic}</span>
+    <div style="flex:1;min-width:0"><div style="font-family:var(--ds-disp);font-size:14px;font-weight:700">${esc(s.title||'?')} ${chip}</div>
+    ${s.text?`<div class="ds-note">${esc(s.text)}</div>`:''}</div>${del}</div>`;
+}
+function _dsRenderGroup(){
+  const el=document.getElementById('dsGroupPage');if(!el||!_dsGroupOpen)return;
+  const combat=window._activeCombatState&&_activeCombatState.active;
+  const myTurn=combat&&_activeCombatState.currentTurnUid===(window.currentUser&&currentUser.uid);
+  const gd=window._groupData||[];
+  const tour=combat?`<div class="ds-seclbl" style="margin:12px 0 8px">⚡ Tour de jeu</div>
+    ${myTurn?`<div class="ds-turnbar"><span>⚡ C'est ton tour !</span><button class="ds-btn" style="min-height:34px" onclick="playerEndTurn()">⏩ Fin du tour</button></div>`
+      :`<div class="ds-banner">⚔ <span>Combat en cours — au tour de <b>${esc((gd.find(pp=>pp.uid===_activeCombatState.currentTurnUid)||{}).playerName||(((gd.find(pp=>pp.uid===_activeCombatState.currentTurnUid)||{}).charData||{}).charName)||'…')}</b></span></div>`}`:'';
+  const membres=gd.length?gd.map(pp=>{
+    const p=pp.charData||{};
+    const hp=p.hp||0,hpMax=p.hpMax||1;
+    const pct=Math.max(0,Math.min(100,hp/hpMax*100));
+    const low=pct<=25,mid=pct>25&&pct<=50;
+    const down=hp<=0,dead=down&&(p.deathSaves&&p.deathSaves.fail>=3);
+    const isOwn=pp.uid===(window.currentUser&&currentUser.uid);
+    const portrait=p.portrait||p.equipPortrait;
+    const cls=(p.classes||[]).map(c=>c.name+' '+c.level).join(' / ');
+    const chips=(typeof _buildChargeChips==='function')?_buildChargeChips(p):'';
+    return`<div class="ds-corners" style="margin-bottom:10px;cursor:${isOwn?'default':'pointer'}" ${isOwn?'':`onclick="_showHudDetail('${pp.uid}')"`}><i class="cx"></i>
+      <div style="display:flex;gap:9px;align-items:center">
+        ${portrait?`<img src="${portrait}" style="width:42px;height:42px;object-fit:cover;border:1px solid var(--ds-acc);flex:none">`
+          :`<span style="width:42px;height:42px;border:1px solid var(--ds-acc);background:var(--ds-card2);display:grid;place-items:center;font-size:21px;flex:none">${pp.avatar||'⚔'}</span>`}
+        <div style="flex:1;min-width:0">
+          <div style="font-family:var(--ds-disp);font-size:14.5px;color:var(--ds-ink)"><b>${esc(p.charName||pp.playerName||'?')}</b>
+            <span class="ds-note" style="font-size:11px">${isOwn?'Moi':esc(pp.playerName||'')}${cls?' · '+esc(cls):''}</span></div>
+          <div class="ds-hp ${low?'low':mid?'mid':''}" style="height:13px;margin-top:4px"><i style="width:${pct}%"></i><span class="vv">${dead?'💀':down?'⚠ 0':hp+'/'+hpMax}</span></div>
+          ${(p.conditions||[]).length?`<div class="ds-note" style="margin-top:3px">${p.conditions.slice(0,4).join(' ')}</div>`:''}
+          ${chips?`<div style="margin-top:3px">${chips}</div>`:''}
+        </div>
+      </div></div>`;
+  }).join(''):`<div class="ds-note" style="padding:10px 0">En attente des joueurs…</div>`;
+  const shares=_dsShares===null?`<div class="ds-note">Chargement…</div>`
+    :(_dsShares.length?_dsShares.map((s,i)=>_dsShareHTML(s,i,false)).join(''):`<div class="ds-note" style="font-style:italic">Le MJ n'a encore rien mis à disposition.</div>`);
+  el.innerHTML=`<div class="ds-grouppage">
+    <div class="ds-chrome top">👥 Le groupe${currentCampaignName?` — ${esc(currentCampaignName)}`:''}<button class="opt" onclick="_dsCloseGroup()">✕</button></div>
+    <div class="gp-body">
+      ${tour}
+      <div class="ds-seclbl" style="margin:12px 0 8px">🧑‍🤝‍🧑 Membres</div>
+      ${membres}
+      <div class="ds-seclbl" style="margin:14px 0 8px">📌 Mis à disposition par le MJ</div>
+      ${shares}
+      <div class="ds-seclbl" style="margin:14px 0 8px">📜 Chronique</div>
+      <button class="ds-btn" style="width:100%" onclick="_dsCloseGroup();openCampChronicle(currentTableId,currentCampaignId)">📜 Ouvrir la chronique de la campagne</button>
+      <div style="height:90px"></div>
+    </div>
+  </div>`;
 }
 function _dsBuildNav(){
   const nav=document.getElementById('modeNav');if(!nav)return;
   if(nav.dataset.ds3)return; // déjà construit
   nav.dataset.ds3='1';
   nav.innerHTML=
-    `<button class="mode-btn mode-hub" onclick="showHub()"><span class="mode-ico">🧭</span><span class="mode-lbl">Tables</span></button>`+
-    `<button class="mode-btn mode-char" onclick="_navGoChar()"><span class="mode-ico mode-char-ico">🧙</span><span class="mode-lbl mode-char-lbl">Personnage</span></button>`+
+    `<button class="mode-btn mode-hub" onclick="_dsCloseGroup();showHub()"><span class="mode-ico">🧭</span><span class="mode-lbl">Tables</span></button>`+
+    `<button class="mode-btn mode-char" onclick="_dsCloseGroup();_navGoChar()"><span class="mode-ico mode-char-ico">🧙</span><span class="mode-lbl mode-char-lbl">Personnage</span></button>`+
     `<button class="mode-btn mode-group" onclick="_dsNavGoGroup()" style="position:relative"><span class="mode-ico">👥</span><span class="mode-lbl">Groupe</span>`+
     `<span id="dsNavTurn" class="ds-navbdg" style="display:none;position:absolute;top:2px;right:14px;min-width:16px;height:16px;border-radius:50%;background:#6d28d9;color:#fff;font-size:11px;font-weight:700;display:none;align-items:center;justify-content:center;animation:combatPulse 1.6s ease-in-out infinite">⚡</span>`+
     `<span id="dsNavDanger" style="display:none;position:absolute;top:2px;left:14px;min-width:16px;height:16px;border-radius:50%;background:#e53935;color:#fff;font-size:10px;font-weight:700;align-items:center;justify-content:center"></span>`+
@@ -52,8 +135,10 @@ function _refreshModeNav(){
   nav.querySelectorAll('.mode-char-ico').forEach(el=>el.textContent=mj?'👑':'🧙');
   const grp=nav.querySelector('.mode-group');if(grp)grp.style.display=mj?'none':'';
   const hb=nav.querySelector('.mode-hub'),ch=nav.querySelector('.mode-char');
-  if(hb)hb.classList.toggle('on',!!onHub);
-  if(ch)ch.classList.toggle('on',!!onChar);
+  const gOpen=typeof _dsGroupOpen!=='undefined'&&_dsGroupOpen;
+  if(hb)hb.classList.toggle('on',!!onHub&&!gOpen);
+  if(ch)ch.classList.toggle('on',!!onChar&&!gOpen);
+  if(grp)grp.classList.toggle('on',gOpen);
   if(typeof _placeModeNavDesktop==='function')_placeModeNavDesktop();
 }
 // Signaux sur l'item Groupe (appelé par _updatePartyHUD via patch ci-dessous)
@@ -70,7 +155,124 @@ function _dsNavSignals(){
 // Patch : chaque rafraîchissement du HUD de groupe met aussi à jour la nav.
 if(typeof _updatePartyHUD==='function'){
   const _dsOldUPH=_updatePartyHUD;
-  _updatePartyHUD=function(){_dsOldUPH.apply(this,arguments);try{_dsNavSignals();}catch(e){}};
+  _updatePartyHUD=function(){_dsOldUPH.apply(this,arguments);try{_dsNavSignals();}catch(e){}
+    try{if(typeof _dsGroupOpen!=='undefined'&&_dsGroupOpen)_dsRenderGroup();}catch(e){}};
+}
+// Suppression d'un partage (côté MJ uniquement)
+function _dsRemoveShare(idx){
+  if(!window._currentCampIsMJ||!currentCampaignId)return;
+  const s=(_dsShares||[])[idx];if(!s)return;
+  fbDb.collection('campaigns').doc(currentCampaignId).update({shares:firebase.firestore.FieldValue.arrayRemove(s)})
+    .then(()=>{_dsShares.splice(idx,1);showToast('🗑 Partage retiré.');if(typeof _dsRenderMJShares==='function')_dsRenderMJShares();})
+    .catch(()=>showToast('❌ Une erreur est survenue, réessaie.'));
+}
+
+// ── MJ (P4) : onglet « Joueurs » → « 👥 Groupe » + « 🎁 Apporter au groupe » ──
+function renderMJTabs(){ // surcharge de mj/index.js — rail 6 onglets {ico,txt}
+  const tabs=[
+    {id:'joueurs',ico:'👥',txt:'Groupe'},
+    {id:'combat',ico:'⚡',txt:'Combat'},
+    {id:'pnj',ico:'🐉',txt:'PNJ'},
+    {id:'objets',ico:'💰',txt:'Objets'},
+    {id:'journal',ico:'📓',txt:'Journal MJ'},
+    {id:'regles',ico:'📖',txt:'Règles'},
+  ];
+  const bar=document.getElementById('mjTabBar');
+  if(bar) bar.innerHTML=tabs.map(t=>{
+    const ce=t.id==='combat'?(window._mjCombatStarted?' mj-tab-combat-active':' mj-tab-combat-idle'):'';
+    return`<button class="mj-tab${window._mjTab===t.id?' on':''}${ce}" onclick="setMJTab('${t.id}')"><span class="ti">${t.ico}</span><span class="tl">${t.txt}</span></button>`;
+  }).join('');
+}
+function _dsOpenShareModal(type){
+  const T={indice:'📜 Indice',artefact:'🗡 Artefact',quete:'🗝 Objet de quête'}[type]||type;
+  const MI={parchemin:'📜',pierre:'🪨',bois:'🌳',rune:'🔮'};
+  const mat=type==='indice'?`<div class="fl mb6">Matière de l'indice</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+      ${['parchemin','pierre','bois','rune'].map((m,i)=>`<button class="btn ds-matopt${i===0?' bac':''}" data-m="${m}" onclick="document.querySelectorAll('.ds-matopt').forEach(b=>b.classList.remove('bac'));this.classList.add('bac')">${MI[m]} ${m}</button>`).join('')}
+    </div>`:'';
+  openModal(`<div class="pt">${T} — apporter au groupe</div>
+    <div class="fl mb6">Titre${type==='indice'?' (optionnel)':''}</div>
+    <input class="fi" id="dsShTitle" style="margin-bottom:10px">
+    ${mat}
+    <div class="fl mb6">${type==='indice'?"Texte de l'indice":'Description'}</div>
+    <textarea class="fi" id="dsShText" rows="3" style="resize:vertical;margin-bottom:12px"></textarea>
+    <div style="display:flex;gap:8px">
+      <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
+      <button class="btn bac" style="flex:2" onclick="_dsConfirmShare('${type}')">🎁 Mettre à disposition</button>
+    </div>`);
+}
+function _dsConfirmShare(type){
+  const title=((document.getElementById('dsShTitle')||{}).value||'').trim();
+  const text=((document.getElementById('dsShText')||{}).value||'').trim();
+  if(!text&&!title){showToast('❌ Écris au moins un titre ou un texte.');return;}
+  const mEl=document.querySelector('.ds-matopt.bac');
+  const share={type,title,text,ts:Date.now()};
+  if(type==='indice')share.matiere=mEl?mEl.dataset.m:'parchemin';
+  fbDb.collection('campaigns').doc(currentCampaignId).update({shares:firebase.firestore.FieldValue.arrayUnion(share)})
+    .then(()=>{closeModal();showToast('🎁 Mis à disposition du groupe.');_dsShares=null;_dsRenderMJShares(true);})
+    .catch(()=>showToast('❌ Une erreur est survenue, réessaie.'));
+}
+function _dsRenderMJShares(reload){
+  const host=document.getElementById('dsMJShares');if(!host)return;
+  if(_dsShares===null||reload){
+    host.innerHTML='<div class="ds-note">Chargement…</div>';
+    fbDb.collection('campaigns').doc(currentCampaignId).get()
+      .then(d=>{_dsShares=(d.exists&&d.data().shares)||[];_dsRenderMJShares();})
+      .catch(()=>{_dsShares=[];_dsRenderMJShares();});
+    return;
+  }
+  host.innerHTML=_dsShares.length
+    ?_dsShares.map((s,i)=>_dsShareHTML(s,i,true)).join('')
+    :'<div class="ds-note" style="font-style:italic">Rien de partagé pour l\'instant — indices, artefacts et objets de quête apparaîtront sur la page Groupe des joueurs.</div>';
+}
+if(typeof renderMJContent==='function'){
+  const _dsOldMJC=renderMJContent;
+  renderMJContent=function(){
+    _dsOldMJC.apply(this,arguments);
+    try{
+      if(typeof _mjTab!=='undefined'&&_mjTab==='joueurs'){
+        const c=document.getElementById('mjTabContent');
+        if(c&&!document.getElementById('dsMJShares')){
+          const w=document.createElement('div');
+          w.innerHTML=`<div class="ds-seclbl" style="margin:4px 0 8px">🎁 Apporter au groupe</div>
+            <div style="display:flex;gap:8px;margin-bottom:8px">
+              <button class="ds-btn" style="flex:1" onclick="_dsOpenShareModal('indice')">📜 Indice</button>
+              <button class="ds-btn" style="flex:1" onclick="_dsOpenShareModal('artefact')">🗡 Artefact</button>
+              <button class="ds-btn" style="flex:1" onclick="_dsOpenShareModal('quete')">🗝 Obj. quête</button>
+            </div><div id="dsMJShares"></div>
+            <div class="ds-seclbl" style="margin:12px 0 8px">👥 Joueurs</div>`;
+          c.insertBefore(w,c.firstChild);
+          _dsRenderMJShares();
+        }
+      }
+    }catch(e){}
+  };
+}
+
+// ── OPTIONS PROFIL : thème ☀/🌙 + main 🖐/✋ (section ajoutée au modal Profil) ──
+if(typeof openUserSettings==='function'){
+  const _dsOldUS=openUserSettings;
+  openUserSettings=function(){
+    _dsOldUS.apply(this,arguments);
+    try{
+      setTimeout(()=>{
+        const box=document.getElementById('modalBox')||document.querySelector('.modal-content')||document.querySelector('.modal');
+        if(box&&!document.getElementById('dsPrefsSec')){
+          const t=localStorage.getItem('ds_theme')||'light';
+          const h=localStorage.getItem('ds_hand')||'right';
+          const w=document.createElement('div');w.id='dsPrefsSec';
+          w.innerHTML=`<div class="fl mb6" style="margin-top:14px">🎨 Affichage</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button class="btn${t==='light'?' bac':''}" onclick="dsSetTheme('light');closeModal();openUserSettings()">☀ Grimoire</button>
+              <button class="btn${t==='dark'?' bac':''}" onclick="dsSetTheme('dark');closeModal();openUserSettings()">🌙 Veillée</button>
+              <button class="btn${h==='right'?' bac':''}" onclick="dsSetHand('right');closeModal();openUserSettings()">🖐 Droitier</button>
+              <button class="btn${h==='left'?' bac':''}" onclick="dsSetHand('left');closeModal();openUserSettings()">✋ Gaucher</button>
+            </div>`;
+          box.appendChild(w);
+        }
+      },60);
+    }catch(e){}
+  };
 }
 
 // ── DÉ FLOTTANT : déplaçable + ancrage + estompage (sur #diceFloat existant) ──
