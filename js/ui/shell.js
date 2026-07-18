@@ -124,9 +124,14 @@ function _dsBuildNav(){
 // Surcharge de core.js : gère les 3 items + masque Groupe côté MJ.
 function _refreshModeNav(){
   const nav=document.getElementById('modeNav');if(!nav)return;
-  if(!currentCampaignId){nav.style.display='none';return;}
+  // La nav reste VISIBLE dès qu'on est connecté (avant : cachée sans campagne → bandeau qui
+  // apparaît/disparaît, déroutant). Sans campagne : Personnage/Groupe grisés.
+  const auth=document.getElementById('authScreen');
+  if(auth&&auth.style.display!=='none'){nav.style.display='none';return;}
   _dsBuildNav();
   nav.style.display='flex';
+  const noCamp=!currentCampaignId;
+  nav.querySelectorAll('.mode-char,.mode-group').forEach(b=>{b.style.opacity=noCamp?'.35':'';b.style.pointerEvents=noCamp?'none':'';});
   const vis=el=>el&&el.style.display!=='none';
   const onHub=vis(document.getElementById('hubScreen'));
   const onChar=vis(document.getElementById('app'))||vis(document.getElementById('mjScreen'));
@@ -182,6 +187,9 @@ function renderMJTabs(){ // surcharge de mj/index.js — rail 6 onglets {ico,txt
     const ce=t.id==='combat'?(window._mjCombatStarted?' mj-tab-combat-active':' mj-tab-combat-idle'):'';
     return`<button class="mj-tab${window._mjTab===t.id?' on':''}${ce}" onclick="setMJTab('${t.id}')"><span class="ti">${t.ico}</span><span class="tl">${t.txt}</span></button>`;
   }).join('');
+  // CRUCIAL : envelopper la barre dans .tab-scroller (le rail fixe) — en session MJ pure,
+  // renderTabBar (joueur) ne tourne jamais, donc personne d'autre ne crée le wrapper.
+  if(typeof _initTabScrollers==='function')setTimeout(_initTabScrollers,0);
 }
 function _dsOpenShareModal(type){
   const T={indice:'📜 Indice',artefact:'🗡 Artefact',quete:'🗝 Objet de quête'}[type]||type;
@@ -240,6 +248,7 @@ if(typeof renderMJContent==='function'){
               <button class="ds-btn" style="flex:1" onclick="_dsOpenShareModal('artefact')">🗡 Artefact</button>
               <button class="ds-btn" style="flex:1" onclick="_dsOpenShareModal('quete')">🗝 Obj. quête</button>
             </div><div id="dsMJShares"></div>
+            <button class="ds-btn" style="width:100%;margin:10px 0 4px" onclick="setMJTab('journal');setTimeout(()=>{_journalSubTab='chronicle';renderMJContent();},0)">📜 Chronique de la campagne</button>
             <div class="ds-seclbl" style="margin:12px 0 8px">👥 Joueurs</div>`;
           c.insertBefore(w,c.firstChild);
           _dsRenderMJShares();

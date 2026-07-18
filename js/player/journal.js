@@ -50,15 +50,10 @@ function _journalEntriesList(entries, deleteFn){
 }
 
 function tabJournalPlayer(p){
-  const subTabs=[
-    {id:'entries',label:'📓 Mes entrées'},
-    {id:'chronicle',label:'📜 Chronique'},
-  ];
-  const bar=`<div class="journal-subtab">
-    ${subTabs.map(t=>`<button class="${_playerJournalSubTab===t.id?'on':''}" onclick="_playerJournalSubTab='${t.id}';renderTab()">${t.label}</button>`).join('')}
-  </div>`;
+  // REFONTE P3 : la Chronique a DÉMÉNAGÉ sur la page Groupe — plus de sous-onglet ici.
+  // On garde le rendu chronicle pour l'arrivée via la page Groupe (openCampChronicle), avec un retour.
   if(_playerJournalSubTab==='chronicle'){
-    return`<div>${bar}${renderChronicleView()}</div>`;
+    return`<div><button class="ds-btn quiet" style="margin-bottom:10px" onclick="_playerJournalSubTab='entries';renderTab()">← Mes entrées</button>${renderChronicleView()}</div>`;
   }
   const entries=p.journal||[];
   return`<div>${bar}
