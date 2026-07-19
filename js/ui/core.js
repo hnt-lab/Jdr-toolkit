@@ -69,7 +69,8 @@ function _syncFloatingUI(){
   const onAuth=auth&&auth.style.display!=='none';
   const hasCamp=!!currentCampaignId;
   const mj=!!window._currentCampIsMJ;
-  const _df=document.getElementById('diceFloat');if(_df)_df.style.display=(!onAuth&&hasCamp)?'flex':'none';
+  // Dé = élément PERMANENT du chrome (2026-07-19) : visible dès la connexion, campagne ou pas
+  const _df=document.getElementById('diceFloat');if(_df)_df.style.display=(!onAuth)?'flex':'none';
   const hud=document.getElementById('partyHud');if(hud)hud.style.display=(!onAuth&&hasCamp&&!mj)?'block':'none';
 }
 function showAuthScreen(){

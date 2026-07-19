@@ -367,7 +367,7 @@
 /* Dé SERTI DANS LE BANDEAU à droite (rapport 2026-07-19, screen de réf) —
    la nav réserve la gouttière, les boutons se redimensionnent, inversé en gaucher */
 @media(max-width:899px){
-  #diceFloat{bottom:calc(env(safe-area-inset-bottom) + 5px)!important;right:10px!important}
+  #diceFloat{bottom:calc(env(safe-area-inset-bottom) + 7px)!important;right:10px!important}
   #modeNav{padding-right:84px!important;padding-left:12px!important}
   body.ds-lefty #modeNav{padding-right:12px!important;padding-left:84px!important}
   .ds-dsock{bottom:calc(env(safe-area-inset-bottom) + 1px);right:6px}
