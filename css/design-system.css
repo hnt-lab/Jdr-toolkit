@@ -447,6 +447,27 @@
 .modal-box .invite-box{background:var(--ds-card2)!important;border:1px solid var(--ds-line)!important;color:var(--ds-ink)!important}
 .modal-box .invite-code{color:var(--ds-acc-strong)!important;font-family:var(--ds-mono)!important}
 
+/* ── 22 · VEILLÉE : neutraliser le voile parchemin (spécificité #id) ─── */
+/* parchemin.css force des fonds clairs sur #tabContent/#charRail avec !important ;
+   en mode sombre on le re-force avec la MÊME spécificité + ordre (ce fichier est dernier). */
+body.ds-dark #tabContent,body.ds-dark #mjTabContent{background:var(--ds-page)!important}
+body.ds-dark #charRail{background:transparent!important}
+body.ds-dark #charRail .rail-vitals{background:var(--ds-card2)!important}
+body.ds-dark #tabContent .panel,body.ds-dark #mjTabContent .panel{
+  background:var(--ds-card)!important;color:var(--ds-ink)!important;border-color:var(--ds-line)!important}
+body.ds-dark #tabContent .pt,body.ds-dark #mjTabContent .pt{color:var(--ds-acc)!important;border-color:var(--ds-acc)!important}
+body.ds-dark #tabContent .fi,body.ds-dark #tabContent input,body.ds-dark #tabContent textarea,body.ds-dark #tabContent select,
+body.ds-dark #mjTabContent .fi,body.ds-dark #mjTabContent input,body.ds-dark #mjTabContent textarea,body.ds-dark #mjTabContent select{
+  background:var(--ds-card2)!important;color:var(--ds-ink)!important;border-color:var(--ds-line)!important}
+body.ds-dark #tabContent .btn,body.ds-dark #mjTabContent .btn{
+  background:var(--ds-card2)!important;color:var(--ds-ink)!important;border-color:var(--ds-acc)!important}
+body.ds-dark #tabContent .btn.bac,body.ds-dark #tabContent .btn.bprimary,
+body.ds-dark #mjTabContent .btn.bac,body.ds-dark #mjTabContent .btn.bprimary{
+  background:var(--ds-acc)!important;color:var(--ds-leather)!important}
+
+/* ── 23 · GAUCHER : le dé EXISTANT (#diceFloat) passe aussi à gauche ─── */
+body.ds-lefty #diceFloat{right:auto!important;left:13px!important}
+
 /* ── 16 · ACCESSIBILITÉ ──────────────────────────────────────────────── */
 @media(prefers-reduced-motion:reduce){
   .ds-hp>i::after,.ds-tank>i::after{animation:none!important}
