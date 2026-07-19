@@ -342,20 +342,23 @@
 #tabBar .tab.lvlup{border-color:var(--ds-brass-hi)!important;color:var(--ds-acc-strong)!important;animation:dsLvl 1.8s ease-in-out infinite}
 #tabBar .tab.tab-foot{opacity:.6;min-height:34px;font-size:13px}
 #tabBar button.tab-foot:nth-last-child(2){margin-top:auto}
-#tabContent{padding-right:58px}
+/* La marge latérale du rail est portée par l'ÉCRAN ENTIER (#app/#mjScreen) :
+   AUCUN contenu (charRail, cartes larges, panneaux MJ) ne peut glisser sous le rail. */
+#app,#mjScreen{padding-right:58px!important;min-height:100vh;overflow-x:hidden}
+#hubScreen{min-height:100vh}
 @media(min-width:900px){
   .tab-scroller{width:150px!important}
   #tabBar .tab{width:140px;justify-content:flex-start;gap:8px;padding:0 10px!important}
   #tabBar .tab .tl{display:inline;font-size:13px;font-family:var(--ds-disp)}
   #tabBar .tab.on{width:151px}
-  #tabContent{padding-right:162px}
+  #app,#mjScreen{padding-right:162px!important}
 }
 /* Gaucher : rail à gauche */
 .ds-lefty .tab-scroller{right:auto!important;left:0!important;padding:8px 0 8px 4px}
 .ds-lefty #tabBar .tab{margin-left:0;margin-right:auto}
 .ds-lefty #tabBar .tab.on{left:1px;border-left:1px solid var(--ds-acc-strong)!important;border-right:none!important}
-.ds-lefty #tabContent{padding-right:0;padding-left:58px}
-@media(min-width:900px){.ds-lefty #tabContent{padding-left:162px;padding-right:0}}
+.ds-lefty #app,.ds-lefty #mjScreen{padding-right:0!important;padding-left:58px!important}
+@media(min-width:900px){.ds-lefty #app,.ds-lefty #mjScreen{padding-left:162px!important;padding-right:0!important}}
 /* Fond de la fiche : parchemin uni (même règle que le hub) */
 #app{background:var(--ds-page)!important}
 #app.tavern-bg::before,#app.tavern-bg::after{display:none!important}
@@ -422,11 +425,8 @@
   #mjTabBar .mj-tab .tl{display:inline;font-size:13px;font-family:var(--ds-disp)}
   #mjTabBar .mj-tab.on{width:151px}
 }
-#mjTabContent{padding-right:58px}
-@media(min-width:900px){#mjTabContent{padding-right:162px}}
 .ds-lefty #mjTabBar .mj-tab{margin-left:0;margin-right:auto}
 .ds-lefty #mjTabBar .mj-tab.on{left:1px;border-left:1px solid var(--ds-acc-strong)!important;border-right:none!important}
-.ds-lefty #mjTabContent{padding-right:0;padding-left:58px}
 #mjScreen{background:var(--ds-page)!important}
 @media(max-width:640px){#mjScreen{padding-top:64px!important}}
 

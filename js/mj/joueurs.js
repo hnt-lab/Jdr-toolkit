@@ -5,8 +5,8 @@ function mjTabJoueurs(){
     <div style="margin-top:12px"><button class="btn bsm bprimary" onclick="renderMJContent()">🔄 Actualiser</button></div>
   </div>`;
   return`<div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-      <div style="font-family:var(--F);font-size:18px;color:var(--cp)">${_mjPlayersData.length} joueur(s) <span style="font-size:15px;color:var(--text3);margin-left:4px">● Live</span></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <div style="font-family:var(--F);font-size:18px;color:var(--cp);white-space:nowrap">${_mjPlayersData.length} joueur(s) <span style="font-size:15px;color:var(--text3);margin-left:4px">● Live</span></div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
         <button class="btn bsm" onclick="renderMJContent()">🔄 Actualiser</button>
         <button class="btn bsm" onclick="mjOpenCompendium()">📚 Compendium</button>
@@ -26,9 +26,9 @@ function mjTabJoueurs(){
       const abilNames=['FOR','DEX','CON','INT','SAG','CHA'];
       const mods=(p.abilities||[0,0,0,0,0,0]).map(v=>Math.floor((v-10)/2));
       return`<div class="mj-player-card">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
           <span style="font-size:22px">${pp.avatar||'⚔'}</span>
-          <div style="flex:1;min-width:0;cursor:pointer" onclick="mjQuickKickConfirm(${i})" title="Cliquer pour exclure ce joueur">
+          <div style="flex:1;min-width:150px;cursor:pointer" onclick="mjQuickKickConfirm(${i})" title="Cliquer pour exclure ce joueur">
             <div style="font-size:19px;font-weight:600;color:var(--text)">${esc(p.charName||'?')}</div>
             <div style="font-size:17px;color:var(--text3)">${esc(cls)} — Niv.${lvl} — ${esc(pp.playerName||'')}</div>
           </div>
