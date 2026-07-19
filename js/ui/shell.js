@@ -258,6 +258,33 @@ if(typeof renderMJContent==='function'){
   };
 }
 
+// ── REPRISE DE SESSION : revenir là où on était (pas à l'accueil) ──
+// L'OS tue/recharge la PWA → avant : retour au hub. Maintenant : on mémorise la
+// campagne active et on y REPLONGE au démarrage (fallback hub si échec).
+if(typeof enterCampaign==='function'){
+  const _dsOldEC=enterCampaign;
+  enterCampaign=function(tableId,campaignId){
+    try{localStorage.setItem('ds_resume',JSON.stringify({t:tableId,c:campaignId}));}catch(e){}
+    return _dsOldEC.apply(this,arguments);
+  };
+}
+if(typeof showHub==='function'){
+  const _dsOldSH=showHub;
+  showHub=function(){
+    if(!window._dsResumeTried){
+      window._dsResumeTried=true;
+      try{
+        const r=JSON.parse(localStorage.getItem('ds_resume')||'null');
+        if(r&&r.t&&r.c){enterCampaign(r.t,r.c);return;}
+      }catch(e){}
+    }else{
+      // Navigation volontaire vers les Tables : on n'y ramènera pas de force au prochain démarrage
+      try{localStorage.removeItem('ds_resume');}catch(e){}
+    }
+    _dsOldSH.apply(this,arguments);
+  };
+}
+
 // ── OPTIONS PROFIL : thème ☀/🌙 + main 🖐/✋ (section ajoutée au modal Profil) ──
 if(typeof openUserSettings==='function'){
   const _dsOldUS=openUserSettings;
@@ -266,16 +293,26 @@ if(typeof openUserSettings==='function'){
     try{
       setTimeout(()=>{
         const box=document.querySelector('#modal .modal-box');
+        if(box){
+          // Toutes les sections du Profil REPLIÉES par défaut (rapport 2026-07-19)
+          box.querySelectorAll('details.acc[open]').forEach(d=>d.removeAttribute('open'));
+        }
         if(box&&!document.getElementById('dsPrefsSec')){
           const t=localStorage.getItem('ds_theme')||'light';
           const h=localStorage.getItem('ds_hand')||'right';
-          const w=document.createElement('div');w.id='dsPrefsSec';
-          w.innerHTML=`<div class="fl mb6" style="margin-top:14px">🎨 Affichage</div>
-            <div style="display:flex;gap:6px;flex-wrap:wrap">
-              <button class="btn${t==='light'?' bac':''}" onclick="dsSetTheme('light');closeModal();openUserSettings()">☀ Grimoire</button>
-              <button class="btn${t==='dark'?' bac':''}" onclick="dsSetTheme('dark');closeModal();openUserSettings()">🌙 Veillée</button>
-              <button class="btn${h==='right'?' bac':''}" onclick="dsSetHand('right');closeModal();openUserSettings()">🖐 Droitier</button>
-              <button class="btn${h==='left'?' bac':''}" onclick="dsSetHand('left');closeModal();openUserSettings()">✋ Gaucher</button>
+          const w=document.createElement('details');w.id='dsPrefsSec';w.className='acc';
+          w.innerHTML=`<summary>🎨 Affichage</summary>
+            <div class="acc-body">
+              <div class="fl mb6">Thème</div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+                <button class="btn${t==='light'?' bac':''}" onclick="dsSetTheme('light');closeModal();openUserSettings()">☀ Grimoire</button>
+                <button class="btn${t==='dark'?' bac':''}" onclick="dsSetTheme('dark');closeModal();openUserSettings()">🌙 Veillée</button>
+              </div>
+              <div class="fl mb6">Main directrice</div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap">
+                <button class="btn${h==='right'?' bac':''}" onclick="dsSetHand('right');closeModal();openUserSettings()">🖐 Droitier</button>
+                <button class="btn${h==='left'?' bac':''}" onclick="dsSetHand('left');closeModal();openUserSettings()">✋ Gaucher</button>
+              </div>
             </div>`;
           box.appendChild(w);
         }

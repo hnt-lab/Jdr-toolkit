@@ -16,14 +16,8 @@ function renderCharRail(p){
   const hpBonus=(p.statuses||[]).filter(s=>s.stat==='hp').reduce((a,s)=>a+(parseInt(s.value)||0),0);
   const caDisplay=p.ac+caBonus;
   const dexM=mod(p.abilities[1]);
-  // Caracs (lecture seule joueur / éditables MJ / forme sauvage)
-  const caracs=ABILITIES_SH.map((ab,i)=>{
-    const totalBonus=(p.statuses||[]).filter(s=>s.stat===ab.toLowerCase()).reduce((a,s)=>a+(parseInt(s.value)||0),0);
-    const finalVal=p.abilities[i]+totalBonus;
-    if(ws?.active) return `<div class="rail-carac" style="border-color:#4caf50"><div class="rail-carac-n">${ab}</div><div class="rail-carac-v" style="color:#4caf50">${ws.beast.ab[i]}</div><div class="rail-carac-m" style="color:#4caf50">${fmt(Math.floor((ws.beast.ab[i]-10)/2))}</div></div>`;
-    if(mj) return `<div class="rail-carac"><div class="rail-carac-n">${ab}</div><input type="number" min="1" max="30" value="${p.abilities[i]}" oninput="P().abilities[${i}]=Math.min(30,Math.max(1,parseInt(this.value)||10));render()" class="rail-carac-input"><div class="rail-carac-m">${fmt(mod(finalVal))}</div></div>`;
-    return `<div class="rail-carac"><div class="rail-carac-n">${ab}</div><div class="rail-carac-v"${totalBonus?' style="color:#4caf50"':''}>${finalVal}</div><div class="rail-carac-m">${fmt(mod(finalVal))}</div></div>`;
-  }).join('');
+  // (Caracs déplacées dans l'onglet Personnage — décision maquette 2026-07-19 :
+  //  le rail ne garde que CA / PV / Init / Vitesse. Voir _caracsChipsHTML.)
   // Bloc PV (normal ou forme sauvage)
   let hpBlock;
   if(ws?.active){
@@ -51,8 +45,6 @@ function renderCharRail(p){
   const spdVal=ws?.active?ws.beast.speed:(_spd+' m');
   const caVal=ws?.active?ws.beast.ac:caDisplay;
   const initVal=ws?.active?fmt(Math.floor((ws.beast.ab[1]-10)/2)):fmt(dexM);
-  const resist=(typeof getEffectiveResistances==='function')?getEffectiveResistances(p):[];
-  const chips=(p.statuses||[]).slice(0,8).map(s=>`<span class="rail-chip">${esc(s.icon||'•')} ${esc(s.name||s.stat||'')}</span>`).join('')+resist.map(t=>`<span class="rail-chip rail-resist">🛡 ${esc(t)}</span>`).join('')+(_encum&&_encum.level?`<span class="rail-chip" style="color:${_encum.level===2?'#e53935':'#ff9800'};border-color:${_encum.level===2?'rgba(229,57,53,.4)':'rgba(255,152,0,.4)'}">🎒 ${_encum.label} (−${_encum.speedMalus} m)</span>`:'');
   return `
     <div class="rail-id">
       ${p.portrait?`<img class="rail-portrait" src="${p.portrait}" onclick="document.getElementById('portInput')?.click()">`:`<div class="rail-portrait rail-portrait-ph" onclick="document.getElementById('portInput')?.click()">🧑</div>`}
@@ -71,8 +63,25 @@ function renderCharRail(p){
         <div class="rail-stat"><div class="rail-stat-l">👣</div><div class="rail-stat-v" style="font-size:19px">${spdVal}</div></div>
       </div>
     </div>
-    ${chips?`<div class="rail-sec"><div class="rail-sec-t">États & résistances</div><div class="rail-chips">${chips}</div></div>`:''}
-    <div class="rail-caracs">${caracs}</div>`;
+    `;
+}
+
+// Caractéristiques + états/résistances — vivent dans l'onglet PERSONNAGE (maquette :
+// le rail ne garde que CA/PV/Init/Vitesse). MJ éditable, forme sauvage reflétée.
+function _caracsChipsHTML(p){
+  const ws=p.wildshape;const mj=isMJ();
+  const caracs=ABILITIES_SH.map((ab,i)=>{
+    const totalBonus=(p.statuses||[]).filter(s=>s.stat===ab.toLowerCase()).reduce((a,s)=>a+(parseInt(s.value)||0),0);
+    const finalVal=p.abilities[i]+totalBonus;
+    if(ws?.active) return `<div class="rail-carac" style="border-color:#4caf50"><div class="rail-carac-n">${ab}</div><div class="rail-carac-v" style="color:#4caf50">${ws.beast.ab[i]}</div><div class="rail-carac-m" style="color:#4caf50">${fmt(Math.floor((ws.beast.ab[i]-10)/2))}</div></div>`;
+    if(mj) return `<div class="rail-carac"><div class="rail-carac-n">${ab}</div><input type="number" min="1" max="30" value="${p.abilities[i]}" oninput="P().abilities[${i}]=Math.min(30,Math.max(1,parseInt(this.value)||10));render()" class="rail-carac-input"><div class="rail-carac-m">${fmt(mod(finalVal))}</div></div>`;
+    return `<div class="rail-carac"><div class="rail-carac-n">${ab}</div><div class="rail-carac-v"${totalBonus?' style="color:#4caf50"':''}>${finalVal}</div><div class="rail-carac-m">${fmt(mod(finalVal))}</div></div>`;
+  }).join('');
+  const resist=(typeof getEffectiveResistances==='function')?getEffectiveResistances(p):[];
+  const _encum=(typeof getEncumbrance==='function')?getEncumbrance(p):null;
+  const chips=(p.statuses||[]).slice(0,8).map(s=>`<span class="rail-chip">${esc(s.icon||'•')} ${esc(s.name||s.stat||'')}</span>`).join('')+resist.map(t=>`<span class="rail-chip rail-resist">🛡 ${esc(t)}</span>`).join('')+(_encum&&_encum.level?`<span class="rail-chip" style="color:${_encum.level===2?'#e53935':'#ff9800'};border-color:${_encum.level===2?'rgba(229,57,53,.4)':'rgba(255,152,0,.4)'}">🎒 ${_encum.label} (−${_encum.speedMalus} m)</span>`:'');
+  return`<div class="rail-caracs" style="margin-bottom:10px">${caracs}</div>
+    ${chips?`<div class="rail-chips" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px">${chips}</div>`:''}`;
 }
 
 // ═══════════════════════════════════════
@@ -93,10 +102,10 @@ function tabPerso(p){
   const caDisplay=p.ac+caBonus;
   const hpDisplay=p.hp+hpBonus;
 
-  return`<div class="g2">
+  return`${_caracsChipsHTML(p)}<div class="g2">
   <!-- COLONNE GAUCHE -->
   <div data-csgroup="perso-gauche">
-    <!-- (Portrait + Statistiques déplacés dans le rail perso — renderCharRail) -->
+    <!-- (Portrait déplacé dans le rail ; caractéristiques ci-dessus — _caracsChipsHTML) -->
 
     ${ws?.active?`<div class="panel mb10" style="border-color:rgba(76,175,80,.4);background:rgba(76,175,80,.04)">
       <div class="pt" style="color:#4caf50;display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>${ws.beast.icon} ${esc(ws.beast.name)} — Attaques & Traits</div>

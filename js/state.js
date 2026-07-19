@@ -782,8 +782,9 @@ function renderTab(){
   // NB : l'ordre Historique = progression d'abord (tabHistorique = historique du perso, tabXP = XP/LU)
   if(FUSED[state.activeTab]){
     const parts=state.activeTab==='historique'?[['xp','⭐ Progression & XP'],['historique','📖 Historique du personnage']]:FUSED[state.activeTab];
-    el.innerHTML=parts.map(([id,lbl])=>`<div class="ds-fold" data-fuse="${id}">
-      <div class="fh" onclick="this.parentElement.classList.toggle('closed')"><span class="grip">⠿</span>${lbl}<span class="chev">▼</span></div>
+    const _fc=id=>{try{return localStorage.getItem('fold_'+id)==='1'}catch(e){return false}}; // état plié MÉMORISÉ
+    el.innerHTML=parts.map(([id,lbl])=>`<div class="ds-fold${_fc(id)?' closed':''}" data-fuse="${id}">
+      <div class="fh" onclick="this.parentElement.classList.toggle('closed');try{localStorage.setItem('fold_'+this.parentElement.dataset.fuse,this.parentElement.classList.contains('closed')?'1':'0')}catch(e){}"><span class="grip">⠿</span>${lbl}<span class="chev">▼</span></div>
       <div class="fb">${(map[id]||(()=>''))(p)}</div>
     </div>`).join('');
   }else{

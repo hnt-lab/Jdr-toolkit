@@ -364,8 +364,15 @@
 #app.tavern-bg::before,#app.tavern-bg::after{display:none!important}
 /* Les onglets ne sont plus une barre en haut : le padding-top mobile revient à l'en-tête seul (56px+8) */
 @media(max-width:640px){#app{padding-top:64px!important}}
-/* Le dé remonte au-dessus du bandeau de nav (décision maquette : flottant, pas serti dans le bandeau) */
-#diceFloat{bottom:calc(76px + env(safe-area-inset-bottom))!important}
+/* Dé SERTI DANS LE BANDEAU à droite (rapport 2026-07-19, screen de réf) —
+   la nav réserve la gouttière, les boutons se redimensionnent, inversé en gaucher */
+@media(max-width:899px){
+  #diceFloat{bottom:calc(env(safe-area-inset-bottom) + 3px)!important;right:10px!important}
+  #modeNav{padding-right:84px!important;padding-left:12px!important}
+  body.ds-lefty #modeNav{padding-right:12px!important;padding-left:84px!important}
+  .ds-dsock{bottom:calc(env(safe-area-inset-bottom) + 1px);right:6px}
+  .ds-lefty .ds-dsock{right:auto;left:6px}
+}
 @media(min-width:900px){#diceFloat{bottom:88px!important}}
 
 /* ── 19 · charRail restylé ds (aucun JS modifié — hooks de classes) ──── */
@@ -508,6 +515,22 @@ body.ds-dark #tabContent [style*="background:#f"],body.ds-dark #mjTabContent [st
 /* ── 26 · VEILLÉE : cartes de listes MJ héritées (.pnj-card & co) ────── */
 body.ds-dark .pnj-card{background:var(--ds-card)!important;border-color:var(--ds-line)!important;color:var(--ds-ink)!important}
 body.ds-dark .pnj-card.pnj-selected{border-color:var(--ds-acc-strong)!important;box-shadow:0 0 8px var(--ds-glow)!important}
+/* Règles MJ + inventaire MJ lisibles en sombre (rapport 2026-07-19) */
+body.ds-dark .regles-table,body.ds-dark .regles-table td,body.ds-dark .regles-table th{
+  background:transparent!important;color:var(--ds-ink)!important;border-color:var(--ds-line)!important}
+body.ds-dark .regles-table th{color:var(--ds-acc)!important}
+body.ds-dark .inv-item{background:var(--ds-card)!important;color:var(--ds-ink)!important;border-color:var(--ds-line)!important}
+
+/* ── 27 · HEADERS PERMANENTS (rapport 2026-07-19) ────────────────────── */
+.hdr,.mj-hdr,.hub-hdr{position:fixed!important;top:0;left:0;right:0;z-index:850}
+#app,#mjScreen,#hubScreen{padding-top:64px!important}
+
+/* ── 28 · FUSION du rail RENFORCÉE (l'onglet actif mord sur la page) ─── */
+@media(max-width:899px){
+  #tabBar .tab.on{width:61px!important;left:-9px}
+  #mjTabBar .mj-tab.on{width:61px!important;left:-9px}
+  .ds-lefty #tabBar .tab.on,.ds-lefty #mjTabBar .mj-tab.on{left:1px;width:61px!important}
+}
 
 /* ── 16 · ACCESSIBILITÉ ──────────────────────────────────────────────── */
 @media(prefers-reduced-motion:reduce){
