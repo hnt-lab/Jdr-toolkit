@@ -258,6 +258,26 @@ if(typeof renderMJContent==='function'){
   };
 }
 
+// ── TOASTS RICHES → POPUPS GRIMOIRE (rapport 2026-07-19) ──
+// Les toasts COURTS (confirmations passives) restent des toasts ; les toasts RICHES
+// (résultats de combat, contenus multi-lignes) deviennent une popup avec bouton OK.
+if(typeof showToast==='function'){
+  const _dsOldToast=showToast;
+  showToast=function(html,duration){
+    const big=(typeof html==='string')&&(html.length>140||/<(div|table|br|ul)/i.test(html));
+    if(!big)return _dsOldToast.apply(this,arguments);
+    let ov=document.getElementById('dsToastPop');
+    if(!ov){
+      ov=document.createElement('div');ov.id='dsToastPop';
+      ov.addEventListener('click',e=>{if(e.target===ov)ov.style.display='none';});
+      document.body.appendChild(ov);
+    }
+    ov.innerHTML=`<div class="dsp-box">${html}<button class="btn" onclick="document.getElementById('dsToastPop').style.display='none'">✓ OK</button></div>`;
+    ov.style.display='flex';
+    clearTimeout(ov._t);ov._t=setTimeout(()=>{ov.style.display='none';},Math.max(duration||0,6000));
+  };
+}
+
 // ── REPRISE DE SESSION : revenir là où on était (pas à l'accueil) ──
 // L'OS tue/recharge la PWA → avant : retour au hub. Maintenant : on mémorise la
 // campagne active et on y REPLONGE au démarrage (fallback hub si échec).
