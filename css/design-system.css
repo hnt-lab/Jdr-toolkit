@@ -468,6 +468,17 @@ body.ds-dark #mjTabContent .btn.bac,body.ds-dark #mjTabContent .btn.bprimary{
 /* ── 23 · GAUCHER : le dé EXISTANT (#diceFloat) passe aussi à gauche ─── */
 body.ds-lefty #diceFloat{right:auto!important;left:13px!important}
 
+/* ── 24 · VEILLÉE, finitions ─────────────────────────────────────────── */
+/* La bande du rail restait claire (styles hérités) : on force, clair ET sombre */
+.tab-scroller{background:color-mix(in srgb,var(--ds-leather) 14%,var(--ds-page))!important}
+body.ds-dark .tab-scroller{background:color-mix(in srgb,var(--ds-leather) 40%,var(--ds-page))!important}
+/* Encarts internes posés en INLINE avec des fonds blancs translucides (pensés pour
+   l'ancien thème sombre) : en Veillée on les ramène aux tokens via le sélecteur d'attribut */
+body.ds-dark #tabContent [style*="rgba(255,255,255"],body.ds-dark #mjTabContent [style*="rgba(255,255,255"]{
+  background:var(--ds-card2)!important;color:var(--ds-ink)!important}
+body.ds-dark #tabContent [style*="background:#f"],body.ds-dark #mjTabContent [style*="background:#f"]{
+  background:var(--ds-card2)!important;color:var(--ds-ink)!important}
+
 /* ── 16 · ACCESSIBILITÉ ──────────────────────────────────────────────── */
 @media(prefers-reduced-motion:reduce){
   .ds-hp>i::after,.ds-tank>i::after{animation:none!important}
