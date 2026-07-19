@@ -132,6 +132,7 @@ function tabCombat(p){
   const _activeAura=(p.activeBuffs||[]).find(b=>b.name==='AuraProtection');
   if(_activeAura)_buffBanners.push(`<div style="background:rgba(255,213,79,.08);border:2px solid #ffd54f;border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span style="font-size:20px">🛡</span><div style="flex:1"><div style="font-size:18px;font-weight:700;color:#ffd54f">Aura de protection — +${_activeAura.value||0} à TOUS tes JS</div><div style="font-size:15px;color:var(--text3)">de ${esc(_activeAura.sourceName||'Paladin')} • appliqué automatiquement (tant que tu es dans l'aura)</div></div><button class="btn bsm" onclick="removeSupportBuff('AuraProtection')" style="color:var(--text3)">✕ Quitter</button></div>`);
   return`<div id="combatContainer" data-csgroup="combat">
+  <button class="btn" style="width:100%;margin-bottom:10px;background:#b71c1c;color:#fff;border-color:#b71c1c;min-height:46px;font-size:17px;font-weight:700" onclick="openHpModal()">💥 Dégâts / 💚 Soins</button>
   ${_buffBanners.join('')}
   ${typeof renderVeille==='function'?renderVeille(p):''}
   ${typeof renderActionEco==='function'?renderActionEco(p):''}

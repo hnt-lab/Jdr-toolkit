@@ -18,21 +18,17 @@ function renderCharRail(p){
   const dexM=mod(p.abilities[1]);
   // (Caracs déplacées dans l'onglet Personnage — décision maquette 2026-07-19 :
   //  le rail ne garde que CA / PV / Init / Vitesse. Voir _caracsChipsHTML.)
-  // Bloc PV (normal ou forme sauvage)
-  let hpBlock;
+  // Rail = UNE ligne compacte CA · jauge PV (tap = Dégâts/Soins) · Init · Vitesse (maquette 2026-07-20).
+  // Le bouton Dégâts/Soins vit en tête de l'onglet COMBAT (double accès validé P2-Q3).
+  let barText,hpExtra='';
   if(ws?.active){
-    hpBlock=`<div class="rail-hp-top"><span style="color:#4caf50">🐺 PV bête</span><span>${ws.beast.hpCur}/${ws.beast.hpMax}</span></div>
-      <div class="hp-bar hp-bar-hero"><div class="hp-fill" style="width:${pct}%;background:#4caf50"></div></div>
-      <button class="btn bsm" style="width:100%;margin-top:6px;background:#b71c1c;color:#fff;border-color:#b71c1c" onclick="openHpModal()">💥 Dégâts / 💚 Soins</button>
-      <button class="btn bsm" style="width:100%;margin-top:6px;border-color:rgba(76,175,80,.5);color:#4caf50" onclick="revertWildshape()">↩ Reprendre forme</button>`;
+    barText=`🐺 ${ws.beast.hpCur}/${ws.beast.hpMax}`;
+    hpExtra=`<button class="btn bsm" style="width:100%;margin-top:6px;border-color:rgba(76,175,80,.5);color:#4caf50" onclick="revertWildshape()">↩ Reprendre forme</button>`;
   } else {
-    hpBlock=`${p.hp<=0?`<div class="rail-down">💀 À TERRE — 0 PV${p.deathSaves?.fail>=3?' ☠':''}</div>`:''}
-      <div class="rail-hp-top"><span>❤ PV</span><span>${p.hp}${hpBonus?`<span style="color:#4caf50"> +${hpBonus}</span>`:''}/${effectiveHpMax}${_exhLvl>=4?' ½':''}${(p.hpTemp||0)>0?`<span style="color:#4caf50"> (+${p.hpTemp})</span>`:''}</span></div>
-      <div class="hp-bar hp-bar-hero"><div class="hp-fill" style="width:${pct}%;background:${hpColor}"></div></div>
-      ${(p.shieldHp||0)>0?`<div class="rail-shield">🔵 Bouclier ${p.shieldHp}/${p.shieldHpMax||p.shieldHp}</div>`:''}
-      <button class="btn bsm" style="width:100%;margin-top:6px;background:#b71c1c;color:#fff;border-color:#b71c1c" onclick="openHpModal()">💥 Dégâts / 💚 Soins</button>
+    barText=`${p.hp}${(p.hpTemp||0)>0?`+${p.hpTemp}`:''}/${effectiveHpMax}${_exhLvl>=4?' ½':''}`;
+    hpExtra=`${(p.shieldHp||0)>0?`<div class="rail-shield">🔵 Bouclier ${p.shieldHp}/${p.shieldHpMax||p.shieldHp}</div>`:''}
       ${mj?`<div class="rail-mjhp"><label>PV max <input type="number" min="1" value="${p.hpMax}" oninput="P().hpMax=Math.max(1,parseInt(this.value)||1);render()"></label><label>Temp <input type="number" min="0" value="${p.hpTemp||0}" oninput="P().hpTemp=Math.max(0,parseInt(this.value)||0)"></label></div>`:''}
-      ${p.hp<=0?`<div class="rail-ds"><span style="color:#4caf50">✓</span>${[0,1,2].map(i=>`<span class="ds-circle${i<(p.deathSaves?.success||0)?' s':''}" onclick="cycleDS('success',${i})"></span>`).join('')}<span style="color:#e53935;margin-left:10px">✗</span>${[0,1,2].map(i=>`<span class="ds-circle${i<(p.deathSaves?.fail||0)?' f':''}" onclick="cycleDS('fail',${i})"></span>`).join('')}</div>`:''}`;
+      ${p.hp<=0?`<div class="rail-down">💀 À TERRE — 0 PV${p.deathSaves?.fail>=3?' ☠':''}</div><div class="rail-ds"><span style="color:#4caf50">✓</span>${[0,1,2].map(i=>`<span class="ds-circle${i<(p.deathSaves?.success||0)?' s':''}" onclick="cycleDS('success',${i})"></span>`).join('')}<span style="color:#e53935;margin-left:10px">✗</span>${[0,1,2].map(i=>`<span class="ds-circle${i<(p.deathSaves?.fail||0)?' f':''}" onclick="cycleDS('fail',${i})"></span>`).join('')}</div>`:''}`;
   }
   // Vitesse (forme sauvage / barbare rapide / épuisement)
   const _barbLvl=((p.classes||[]).find(c=>c.name==='Barbare')||{}).level||0;
@@ -56,12 +52,13 @@ function renderCharRail(p){
       </div>
     </div>
     <div class="rail-vitals">
-      ${hpBlock}
-      <div class="rail-statline rail-statline-3" style="margin-top:8px">
-        <div class="rail-stat"><div class="rail-stat-l">🛡 CA</div><div class="rail-stat-v">${caVal}</div></div>
-        <div class="rail-stat"><div class="rail-stat-l">⚡ Init</div><div class="rail-stat-v">${initVal}</div></div>
-        <div class="rail-stat"><div class="rail-stat-l">👣</div><div class="rail-stat-v" style="font-size:19px">${spdVal}</div></div>
+      <div class="dsv-row">
+        <span class="dsv-stat" title="Classe d'armure">🛡 <b>${caVal}</b></span>
+        <div class="hp-bar hp-bar-hero" onclick="openHpModal()" title="Dégâts / Soins"><div class="hp-fill" style="width:${pct}%;background:${ws?.active?'#4caf50':hpColor}"></div><span class="dsv-hp">${barText}</span></div>
+        <span class="dsv-stat" title="Initiative">⚡ <b>${initVal}</b></span>
+        <span class="dsv-stat" title="Vitesse">👣 <b>${spdVal}</b></span>
       </div>
+      ${hpExtra}
     </div>
     `;
 }

@@ -532,6 +532,24 @@ body.ds-dark .inv-item{background:var(--ds-card)!important;color:var(--ds-ink)!i
   .ds-lefty #tabBar .tab.on,.ds-lefty #mjTabBar .mj-tab.on{left:1px;width:61px!important}
 }
 
+/* ── 29 · VITALS EN UNE LIGNE (maquette) + liquides aux tokens + toasts ── */
+.dsv-row{display:flex;align-items:center;gap:9px}
+.dsv-row .hp-bar-hero{flex:1;min-width:70px;margin:0!important;position:relative}
+.dsv-stat{white-space:nowrap;color:var(--ds-soft);font-size:13px}
+.dsv-stat b{color:var(--ds-ink);font-family:var(--ds-mono);font-size:15px}
+.dsv-hp{position:absolute;right:7px;top:50%;transform:translateY(-50%);font-family:var(--ds-mono);font-size:11px;color:var(--ds-ink);z-index:3}
+#charRail .rail-vitals{padding:8px 10px!important}
+/* Bouton Dégâts/Soins (tête de Combat) → sceau des tokens */
+#tabContent .btn[style*="#b71c1c"]{background:var(--ds-seal)!important;border-color:var(--ds-seal)!important;color:#f4ead0!important}
+/* Remplissages de jauges posés en inline → liquides « verre » aux tokens (2 thèmes) */
+.hp-fill[style*="#4caf50"]{background:linear-gradient(180deg,color-mix(in srgb,var(--ds-good) 62%,white),var(--ds-good) 42%,color-mix(in srgb,var(--ds-good) 55%,black))!important}
+.hp-fill[style*="#ff9800"]{background:linear-gradient(180deg,color-mix(in srgb,var(--ds-warn) 62%,white),var(--ds-warn) 42%,color-mix(in srgb,var(--ds-warn) 55%,black))!important}
+.hp-fill[style*="#e53935"]{background:linear-gradient(180deg,color-mix(in srgb,var(--ds-seal) 70%,white),var(--ds-seal) 42%,color-mix(in srgb,var(--ds-seal) 55%,black))!important}
+/* Toasts → style grimoire (en attendant la passe popups) */
+#toast{background:var(--ds-card)!important;color:var(--ds-ink)!important;border:1px solid var(--ds-acc)!important;
+  border-radius:0!important;box-shadow:inset 0 0 0 2px var(--ds-card),inset 0 0 0 3px var(--ds-line),0 8px 28px rgba(0,0,0,.45)!important;
+  font-family:var(--ds-body)!important;bottom:76px!important}
+
 /* ── 16 · ACCESSIBILITÉ ──────────────────────────────────────────────── */
 @media(prefers-reduced-motion:reduce){
   .ds-hp>i::after,.ds-tank>i::after{animation:none!important}
