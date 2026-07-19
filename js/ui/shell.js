@@ -335,10 +335,10 @@ if(typeof openUserSettings==='function'){
     return sock;
   }
   function wake(){
+    // Estompage ANNULÉ (2026-07-19) : le dé serti dans le bandeau reste pleinement visible.
     if(!el())return;
     df.classList.remove('ds-idle');
     clearTimeout(idleT);
-    idleT=setTimeout(()=>{if(df)df.classList.add('ds-idle');},4000);
   }
   window._dsDieSeat=function(){ // repose le dé dans son ancrage (position CSS par défaut)
     if(!el())return;

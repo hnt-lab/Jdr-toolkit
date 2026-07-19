@@ -243,9 +243,9 @@
   background:radial-gradient(circle,rgba(0,0,0,.38),rgba(0,0,0,.12));
   box-shadow:inset 0 3px 8px rgba(0,0,0,.55);opacity:0;transition:opacity .15s;pointer-events:none}
 .ds-dsock.show{opacity:1}
-/* Estompage appliqué au dé EXISTANT (#diceFloat) par shell.js */
+/* Estompage ANNULÉ (2026-07-19) : serti dans le bandeau, le dé ne gêne plus — il reste visible. */
 #diceFloat{transition:opacity .5s}
-#diceFloat.ds-idle{opacity:.45}
+#diceFloat.ds-idle{opacity:1}
 
 /* ── 13 · IDENTITÉ DE CLASSE — option de profil (2 styles validés) ───── */
 /* Style « Complet » (profil n°1) : liseré + filets/jauges teintés + coins gravés */
@@ -367,7 +367,7 @@
 /* Dé SERTI DANS LE BANDEAU à droite (rapport 2026-07-19, screen de réf) —
    la nav réserve la gouttière, les boutons se redimensionnent, inversé en gaucher */
 @media(max-width:899px){
-  #diceFloat{bottom:calc(env(safe-area-inset-bottom) + 3px)!important;right:10px!important}
+  #diceFloat{bottom:calc(env(safe-area-inset-bottom) + 5px)!important;right:10px!important}
   #modeNav{padding-right:84px!important;padding-left:12px!important}
   body.ds-lefty #modeNav{padding-right:12px!important;padding-left:84px!important}
   .ds-dsock{bottom:calc(env(safe-area-inset-bottom) + 1px);right:6px}
