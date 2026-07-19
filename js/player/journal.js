@@ -56,7 +56,7 @@ function tabJournalPlayer(p){
     return`<div><button class="ds-btn quiet" style="margin-bottom:10px" onclick="_playerJournalSubTab='entries';renderTab()">← Mes entrées</button>${renderChronicleView()}</div>`;
   }
   const entries=p.journal||[];
-  return`<div>${bar}
+  return`<div>
     ${_journalEntryForm('j','addJournalEntry')}
     ${_journalEntriesList(entries,'deleteJournalEntry')}
   </div>`;

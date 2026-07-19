@@ -265,7 +265,7 @@ if(typeof openUserSettings==='function'){
     _dsOldUS.apply(this,arguments);
     try{
       setTimeout(()=>{
-        const box=document.getElementById('modalBox')||document.querySelector('.modal-content')||document.querySelector('.modal');
+        const box=document.querySelector('#modal .modal-box');
         if(box&&!document.getElementById('dsPrefsSec')){
           const t=localStorage.getItem('ds_theme')||'light';
           const h=localStorage.getItem('ds_hand')||'right';

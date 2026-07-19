@@ -430,22 +430,22 @@
 #mjScreen{background:var(--ds-page)!important}
 @media(max-width:640px){#mjScreen{padding-top:64px!important}}
 
-/* ── 21 · MODALS — peau design-system (hooks .modal/.pt/.fl/.fi/.btn) ── */
-.modal,.modal-content,#modalBox{background:var(--ds-card)!important;color:var(--ds-ink)!important;
+/* ── 21 · MODALS — peau design-system (le conteneur réel = #modal > .modal-box) ── */
+.modal-box{background:var(--ds-card)!important;color:var(--ds-ink)!important;
   border:1px solid var(--ds-acc)!important;border-radius:0!important;
   box-shadow:inset 0 0 0 2px var(--ds-card),inset 0 0 0 3px var(--ds-line),0 12px 40px rgba(0,0,0,.5)!important}
-.modal .pt,#modalBox .pt{font-family:var(--ds-disp)!important;font-variant:small-caps;letter-spacing:.06em;
+.modal-box .pt{font-family:var(--ds-disp)!important;font-variant:small-caps;letter-spacing:.06em;
   color:var(--ds-acc-strong)!important;border-bottom:2px solid var(--ds-acc);padding-bottom:6px}
-.modal .fl,#modalBox .fl{color:var(--ds-soft)!important}
-.modal .fi,#modalBox .fi{background:var(--ds-card2)!important;border:1px solid var(--ds-line)!important;
+.modal-box .fl{color:var(--ds-soft)!important}
+.modal-box .fi{background:var(--ds-card2)!important;border:1px solid var(--ds-line)!important;
   color:var(--ds-ink)!important;border-radius:0!important}
-.modal .btn,#modalBox .btn{background:var(--ds-card2)!important;border:1px solid var(--ds-acc)!important;
+.modal-box .btn{background:var(--ds-card2)!important;border:1px solid var(--ds-acc)!important;
   color:var(--ds-ink)!important;border-radius:0!important;min-height:40px}
-.modal .btn.bac,.modal .btn.bprimary,#modalBox .btn.bac,#modalBox .btn.bprimary{
+.modal-box .btn.bac,.modal-box .btn.bprimary{
   background:var(--ds-acc)!important;color:var(--ds-card)!important;border-color:var(--ds-acc-strong)!important;font-weight:700}
-.modal .btn.bdanger,#modalBox .btn.bdanger{background:var(--ds-seal)!important;color:#f4ead0!important;border-color:var(--ds-seal)!important}
-.modal .invite-box,#modalBox .invite-box{background:var(--ds-card2)!important;border:1px solid var(--ds-line)!important;color:var(--ds-ink)!important}
-.modal .invite-code,#modalBox .invite-code{color:var(--ds-acc-strong)!important;font-family:var(--ds-mono)!important}
+.modal-box .btn.bdanger{background:var(--ds-seal)!important;color:#f4ead0!important;border-color:var(--ds-seal)!important}
+.modal-box .invite-box{background:var(--ds-card2)!important;border:1px solid var(--ds-line)!important;color:var(--ds-ink)!important}
+.modal-box .invite-code{color:var(--ds-acc-strong)!important;font-family:var(--ds-mono)!important}
 
 /* ── 16 · ACCESSIBILITÉ ──────────────────────────────────────────────── */
 @media(prefers-reduced-motion:reduce){
