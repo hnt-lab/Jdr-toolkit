@@ -61,6 +61,7 @@ function renderCharRail(p){
       <span class="vs" title="Vitesse">👣 <b>${spdVal}</b></span>
       ${hpExtra?`<div class="norg-xtra">${hpExtra}</div>`:''}
     </div>
+    <div class="rail-body">${_caracsChipsHTML(p)}</div>
     `;
 }
 
@@ -100,7 +101,7 @@ function tabPerso(p){
   const caDisplay=p.ac+caBonus;
   const hpDisplay=p.hp+hpBonus;
 
-  return`${_caracsChipsHTML(p)}<div class="g2">
+  return`<div class="caracs-intab">${_caracsChipsHTML(p)}</div><div class="g2">
   <!-- COLONNE GAUCHE -->
   <div data-csgroup="perso-gauche">
     <!-- (Portrait déplacé dans le rail ; caractéristiques ci-dessus — _caracsChipsHTML) -->

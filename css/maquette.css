@@ -217,30 +217,35 @@ body.ds-lefty .norg-rail button.on{margin-left:-4px;margin-right:0;left:0;border
 body.ds-lefty .norg-scroll{border-right:none;border-left:1px solid var(--acc-strong)}
 body.ds-lefty .norg-nav{padding:7px 10px calc(7px + env(safe-area-inset-bottom)) 76px}
 
-/* ── DESKTOP (théorisation validée) : charRail À GAUCHE (barre fixe) |
-      contenu 2 colonnes | rail à libellés À DROITE (barre fixe).
-      ⚠ On ne touche JAMAIS au `display` de #app (le JS le pilote pour montrer/
-      cacher les écrans) : les deux barres sont FIXES, le contenu a des marges. ── */
+/* Caracs : dans l'onglet Personnage sur MOBILE, dans le charRail sur DESKTOP */
+.rail-body{display:none}
+/* ── DESKTOP (théorisation validée) : charRail À GAUCHE (identité + vitals + caracs)
+      | contenu 2 colonnes | rail à libellés À DROITE. Le tout CENTRÉ dans 1400px
+      (les barres fixes se calent sur les bords du cadre, pas de l'écran).
+      ⚠ On ne touche JAMAIS au `display` de #app (le JS le pilote). ── */
 @media(min-width:900px){
-  /* colonne d'identité gauche = barre fixe pleine hauteur */
-  #charRail{position:fixed;left:0;top:0;bottom:0;width:290px;z-index:840;overflow-y:auto;
-    background:var(--page);border-right:1px solid var(--acc-strong);padding:0}
+  .caracs-intab{display:none}      /* les caracs vivent dans le charRail */
+  .rail-body{display:block;padding:0 10px 12px}
+  /* colonne d'identité gauche = barre fixe, calée sur le bord du cadre 1400 */
+  #charRail{position:fixed;left:max(0px,calc(50% - 700px));top:0;bottom:0;width:290px;z-index:840;
+    overflow-y:auto;background:var(--page);border-right:1px solid var(--acc-strong);padding:0}
   #charRail .norg-head{position:static;border-bottom:2px solid var(--brass-trim)}
   #charRail .norg-vitals{position:static;padding:8px 10px;flex-wrap:wrap}
-  /* le contenu vit ENTRE les deux barres fixes (padding, pas de grille sur #app) */
-  #app{padding:16px 168px 96px 306px!important}
+  #charRail .rail-caracs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px}
+  /* contenu entre les deux barres (marges = gouttière du cadre + largeur des barres) */
+  #app{padding:16px calc(max(0px,50% - 700px) + 168px) 96px calc(max(0px,50% - 700px) + 306px)!important}
   #tabContent{max-width:none}
-  /* 2 colonnes de catégories */
   .norg-panel{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
-  /* rail droit élargi, à libellés */
-  .norg-rail{width:150px;top:0;bottom:0}
+  /* rail droit élargi, à libellés, calé sur le bord du cadre */
+  .norg-rail{width:150px;top:0;bottom:0;right:max(0px,calc(50% - 700px))}
   .norg-rail button{width:140px;justify-content:flex-start;gap:8px;padding:0 10px;font-family:var(--f-disp)}
   .norg-rail button.on{width:151px}
   .norg-rail .tl{display:inline;font-size:13px}
   /* gaucher : identité à droite, rail à gauche */
-  body.ds-lefty #charRail{left:auto;right:0;border-right:none;border-left:1px solid var(--acc-strong)}
-  body.ds-lefty #app{padding-left:168px!important;padding-right:306px!important}
-  /* MJ : pas de colonne d'identité, juste contenu + rail droit */
-  #mjScreen{padding:16px 168px 96px 16px!important}
-  body.ds-lefty #mjScreen{padding-left:168px!important;padding-right:16px!important}
+  body.ds-lefty #charRail{left:auto;right:max(0px,calc(50% - 700px));border-right:none;border-left:1px solid var(--acc-strong)}
+  body.ds-lefty .norg-rail{right:auto;left:max(0px,calc(50% - 700px))}
+  body.ds-lefty #app{padding-left:calc(max(0px,50% - 700px) + 168px)!important;padding-right:calc(max(0px,50% - 700px) + 306px)!important}
+  /* MJ : pas de colonne d'identité, contenu + rail droit, centré 1400 */
+  #mjScreen{padding:16px calc(max(0px,50% - 700px) + 168px) 96px calc(max(0px,50% - 700px) + 16px)!important}
+  body.ds-lefty #mjScreen{padding-left:calc(max(0px,50% - 700px) + 168px)!important;padding-right:calc(max(0px,50% - 700px) + 16px)!important}
 }
