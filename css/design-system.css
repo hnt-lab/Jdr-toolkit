@@ -578,6 +578,56 @@ body.ds-dark .inv-item{background:var(--ds-card)!important;color:var(--ds-ink)!i
 #dsToastPop .dsp-box .btn{width:100%;margin-top:12px;background:var(--ds-acc)!important;color:var(--ds-card)!important;
   border:1px solid var(--ds-acc-strong)!important;min-height:42px;font-weight:700}
 
+/* ── 31 · ÉCHELLE MAQUETTE — normalisation typo & densité ────────────── */
+/* LE correctif d'allure : la maquette = typo fine (12-15px) + cartes denses.
+   ~1900 tailles inline (17/18/15px…) sont écrasées ici — !important bat l'inline.
+   ⚠ Remplace l'ancienne règle « ≥17px mobile » (2026-06) : l'échelle maquette prime. */
+#tabContent,#mjTabContent,#charRail,#hubContent,#dsGroupPage,.modal-box{font-size:14px;line-height:1.45}
+#tabContent [style*="font-size:25px"],#mjTabContent [style*="font-size:25px"],#charRail [style*="font-size:25px"],#hubContent [style*="font-size:25px"],.modal-box [style*="font-size:25px"]{font-size:17px!important}
+#tabContent [style*="font-size:22px"],#mjTabContent [style*="font-size:22px"],#charRail [style*="font-size:22px"],#hubContent [style*="font-size:22px"],.modal-box [style*="font-size:22px"]{font-size:16px!important}
+#tabContent [style*="font-size:21px"],#mjTabContent [style*="font-size:21px"],#charRail [style*="font-size:21px"],#hubContent [style*="font-size:21px"],.modal-box [style*="font-size:21px"]{font-size:15px!important}
+#tabContent [style*="font-size:20px"],#mjTabContent [style*="font-size:20px"],#charRail [style*="font-size:20px"],#hubContent [style*="font-size:20px"],.modal-box [style*="font-size:20px"]{font-size:15px!important}
+#tabContent [style*="font-size:19px"],#mjTabContent [style*="font-size:19px"],#charRail [style*="font-size:19px"],#hubContent [style*="font-size:19px"],.modal-box [style*="font-size:19px"]{font-size:14px!important}
+#tabContent [style*="font-size:18px"],#mjTabContent [style*="font-size:18px"],#charRail [style*="font-size:18px"],#hubContent [style*="font-size:18px"],.modal-box [style*="font-size:18px"]{font-size:13.5px!important}
+#tabContent [style*="font-size:17px"],#mjTabContent [style*="font-size:17px"],#charRail [style*="font-size:17px"],#hubContent [style*="font-size:17px"],.modal-box [style*="font-size:17px"]{font-size:13px!important}
+#tabContent [style*="font-size:15px"],#mjTabContent [style*="font-size:15px"],#charRail [style*="font-size:15px"],#hubContent [style*="font-size:15px"],.modal-box [style*="font-size:15px"]{font-size:12px!important}
+#tabContent [style*="font-size:13px"],#mjTabContent [style*="font-size:13px"],#charRail [style*="font-size:13px"],#hubContent [style*="font-size:13px"],.modal-box [style*="font-size:13px"]{font-size:11px!important}
+/* Titres, boutons, champs, panneaux : densité maquette */
+#tabContent .pt,#mjTabContent .pt{font-size:15px!important}
+#tabContent .panel,#mjTabContent .panel{padding:10px 12px!important;margin-bottom:10px!important}
+#tabContent .btn,#mjTabContent .btn,#charRail .btn,#hubContent .btn,.modal-box .btn{font-size:13px!important;min-height:34px;padding:6px 10px!important}
+#tabContent .btn.bsm,#mjTabContent .btn.bsm,#charRail .btn.bsm,.modal-box .btn.bsm{font-size:12.5px!important;min-height:30px;padding:4px 8px!important}
+#tabContent .fi,#mjTabContent .fi,.modal-box .fi{font-size:13.5px!important;min-height:34px;padding:6px 8px!important}
+.rail-chip,.status-badge{font-size:11px!important;padding:2px 8px!important}
+/* Bandeau identité + vitals + caracs compacts (proportions maquette) */
+.rail-id{padding:7px 10px!important}
+.rail-portrait{width:42px!important;height:42px!important}
+.rail-name{font-size:15px!important}
+.rail-sub,.rail-sub2{font-size:11px!important}
+.dsv-stat{font-size:12px}
+.dsv-stat b{font-size:14px}
+#charRail .hp-bar-hero{height:15px!important}
+.rail-carac{padding:4px 2px!important}
+.rail-carac-m{font-size:19px!important}
+.rail-carac-n{font-size:9.5px!important}
+.rail-carac-v,.rail-carac-input{font-size:10.5px!important}
+/* Chrome compact : en-tête 44px, nav fine, dé proportionné (mobile) */
+@media(max-width:899px){
+  .hdr,.mj-hdr,.hub-hdr{min-height:44px!important;padding:4px 10px!important}
+  .hdr-logo{width:22px!important;height:22px!important}
+  .hdr-home-txt,.mj-hdr-title{font-size:14px!important}
+  .hdr-char{font-size:12px!important}
+  #hubVersion{font-size:9px!important}
+  .nav-avatar{width:30px!important;height:30px!important;font-size:15px!important}
+  #app,#mjScreen,#hubScreen{padding-top:48px!important}
+  .tab-scroller{top:46px!important}
+  @supports (position:sticky){.rail-vitals{top:44px}}
+  #modeNav{min-height:54px!important}
+  .mode-btn .mode-ico{font-size:17px!important}
+  .mode-btn .mode-lbl{font-size:10.5px!important}
+  #diceFloat{width:56px!important;height:56px!important;font-size:25px!important}
+}
+
 /* ── 16 · ACCESSIBILITÉ ──────────────────────────────────────────────── */
 @media(prefers-reduced-motion:reduce){
   .ds-hp>i::after,.ds-tank>i::after{animation:none!important}
