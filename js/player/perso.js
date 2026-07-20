@@ -46,10 +46,11 @@ function renderCharRail(p){
       ${p.portrait?`<img class="rail-portrait" src="${p.portrait}" onclick="document.getElementById('portInput')?.click()">`:`<div class="rail-portrait rail-portrait-ph" onclick="document.getElementById('portInput')?.click()">🧑</div>`}
       <input type="file" id="portInput" accept="image/jpeg,image/png" style="display:none" onchange="uploadPortrait(this)">
       <div class="rail-id-txt" style="min-width:0">
-        <div class="rail-name">${esc(p.charName||'Personnage')}${ws?.active?' 🐺':''}</div>
-        <div class="rail-sub">${esc(p.race||'')}${cls?' · '+esc(cls):''}</div>
-        ${align?`<div class="rail-sub2">${esc(align)}</div>`:''}
+        <div class="rail-name">${esc(p.charName||'Personnage')}${ws?.active?' 🐺':''}<span id="playerSyncDot" class="sync-dot" title="Mis à jour en temps réel"></span></div>
+        <div class="rail-sub">${esc(p.race||'')}${cls?' · '+esc(cls):''}${align?' · '+esc(align):''}</div>
       </div>
+      <button class="rail-gear" onclick="showHub()" title="Retour aux tables">🧭</button>
+      <button class="rail-gear" onclick="openUserSettings()" title="Profil & options">⚙</button>
     </div>
     <div class="rail-vitals">
       <div class="dsv-row">
@@ -112,7 +113,7 @@ function tabPerso(p){
           <span style="color:var(--text2);font-size:13px">+${a.bonus} / <strong>${esc(a.dmg)}</strong> ${esc(a.type||'')}</span>
         </div>
         ${a.special?`<div style="font-size:13px;color:var(--text3);margin-top:3px">${esc(a.special)}</div>`:''}
-        <button class="btn bsm" style="margin-top:6px;border-color:rgba(76,175,80,.4);color:var(--good)" onclick="rollAttack('${jsq(a.name)}',${a.bonus},'${jsq(a.dmg)}')" title="Jet d'attaque + dégâts">🎲 Attaque</button>
+        <button class="btn bsm" style="margin-top:6px;border-color:rgba(76,175,80,.4);color:var(--good)" onclick="rollAttack('${jsq(a.name)}',${a.bonus},'${jsq(a.dmg)}')" title="Jet d'attaque + dégâts">⚔ Attaque</button>
       </div>`).join('')}
       ${ws.beast.traits.map(t=>`<div style="font-size:13px;color:var(--text2);padding:5px 0;border-bottom:1px solid rgba(76,175,80,.15)">🐾 ${esc(t)}</div>`).join('')}
     </div>`:''}
@@ -355,7 +356,7 @@ function promptConcSave(dmg){
     <div class="pt" style="margin-bottom:6px">Concentration menacée</div>
     <div style="font-size:13px;color:var(--text2);margin-bottom:16px">Tu as subi <strong style="color:var(--danger)">${dmg}</strong> dégâts en te concentrant${p.concentrationSpell?` sur <strong style="color:var(--cp)">${esc(p.concentrationSpell)}</strong>`:''}.<br>Jet de sauvegarde : <strong>CON DD ${dc}</strong>.<br><span style="font-size:13px;color:var(--text3)">Échec = concentration brisée.</span></div>
     <div style="display:flex;gap:8px;justify-content:center">
-      <button class="btn bac" onclick="closeModal();${typeof rollConcSave==='function'?`rollConcSave(${dmg})`:''}">🎲 Lancer le JS CON</button>
+      <button class="btn bac" onclick="closeModal();${typeof rollConcSave==='function'?`rollConcSave(${dmg})`:''}">✨ Lancer le JS CON</button>
       <button class="btn" onclick="closeModal()">Plus tard</button>
     </div></div>`);
 }

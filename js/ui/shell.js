@@ -278,6 +278,22 @@ if(typeof showToast==='function'){
   };
 }
 
+// ── EN-TÊTE FICHE : cale la hauteur du bandeau fixe (bandeau+vitals) sur mobile ──
+// Robuste aux variations (bouclier, jets de mort, inputs MJ) : mesure réelle → --fiche-head.
+function _dsSyncFicheHead(){
+  try{
+    const cr=document.getElementById('charRail');
+    if(!cr||window.innerWidth>=900){document.documentElement.style.removeProperty('--fiche-head');return;}
+    const h=cr.offsetHeight;
+    if(h>0)document.documentElement.style.setProperty('--fiche-head',(h+4)+'px');
+  }catch(e){}
+}
+if(typeof render==='function'){
+  const _dsOldRender=render;
+  render=function(){_dsOldRender.apply(this,arguments);setTimeout(_dsSyncFicheHead,0);};
+}
+window.addEventListener('resize',_dsSyncFicheHead);
+
 // ── REPRISE DE SESSION : revenir là où on était (pas à l'accueil) ──
 // L'OS tue/recharge la PWA → avant : retour au hub. Maintenant : on mémorise la
 // campagne active et on y REPLONGE au démarrage (fallback hub si échec).
@@ -320,7 +336,7 @@ if(typeof openUserSettings==='function'){
         if(box&&!document.getElementById('dsPrefsSec')){
           const t=localStorage.getItem('ds_theme')||'light';
           const h=localStorage.getItem('ds_hand')||'right';
-          const w=document.createElement('details');w.id='dsPrefsSec';w.className='acc';
+          const w=document.createElement('details');w.id='dsPrefsSec';w.className='acc';w.open=false;
           w.innerHTML=`<summary>🎨 Affichage</summary>
             <div class="acc-body">
               <div class="fl mb6">Thème</div>
@@ -334,7 +350,11 @@ if(typeof openUserSettings==='function'){
                 <button class="btn${h==='left'?' bac':''}" onclick="dsSetHand('left');closeModal();openUserSettings()">✋ Gaucher</button>
               </div>
             </div>`;
-          box.appendChild(w);
+          // Placer « Affichage » JUSTE APRÈS l'accordéon « Profil » (1ᵉʳ .acc), pas à la fin
+          const accs=box.querySelectorAll('details.acc');
+          let profAcc=null;
+          accs.forEach(a=>{const s=a.querySelector('summary');if(s&&/profil/i.test(s.textContent)&&!profAcc)profAcc=a;});
+          if(profAcc)profAcc.insertAdjacentElement('afterend',w); else box.appendChild(w);
         }
       },60);
     }catch(e){}

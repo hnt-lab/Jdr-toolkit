@@ -29,7 +29,7 @@ function mjTabRegles(){
         </div>
       </div>
       <div class="regles-section">
-        <div class="pt">🎲 Initiative &amp; Surprise</div>
+        <div class="pt">⚡ Initiative &amp; Surprise</div>
         <div style="font-size:13px;color:var(--text2);line-height:1.8">
           <strong>Initiative</strong> : 1d20 + mod DEX au début du combat. Ordre décroissant. Égalité : le MJ décide (ou d20 supplémentaire).<br><br>
           <strong>Surprise</strong> : Si un groupe ne détecte pas l'ennemi (DEX Discrétion vs Perception passive), ses membres sont <em>surpris</em> au premier round.<br>

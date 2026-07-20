@@ -252,7 +252,7 @@ function renderBarbare(p) {
     <div style="margin-bottom:8px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
         <span style="font-size:13px;font-weight:600;color:var(--text2)">⚡ Sursaut sauvage</span>
-        <div style="display:flex;gap:4px">${barbareLvl>=10?`<button class="btn bsm" onclick="(()=>{const r=Math.floor(Math.random()*8);const p=P();if(!p.combatCharges)p.combatCharges={};p.combatCharges['SursautResult']=r;delete p.combatCharges['SursautResult2'];_markUnsaved();render();showToast('Sursaut réaction — '+(r+1)+'/8')})()">⚡ Réaction</button>`:''}<button class="btn bsm bac" onclick="${sursLancerOnClick}">🎲 Lancer${barbareLvl>=14?' (×2)':''}</button></div>
+        <div style="display:flex;gap:4px">${barbareLvl>=10?`<button class="btn bsm" onclick="(()=>{const r=Math.floor(Math.random()*8);const p=P();if(!p.combatCharges)p.combatCharges={};p.combatCharges['SursautResult']=r;delete p.combatCharges['SursautResult2'];_markUnsaved();render();showToast('Sursaut réaction — '+(r+1)+'/8')})()">⚡ Réaction</button>`:''}<button class="btn bsm bac" onclick="${sursLancerOnClick}">✨ Lancer${barbareLvl>=14?' (×2)':''}</button></div>
       </div>
       ${srsHtml}
     </div>`;
@@ -416,7 +416,7 @@ function checkRageImplacable() {
     <div style="font-size:14px;color:var(--text2);margin-bottom:6px">Tu tombes à 0 PV en rage !</div>
     <div style="font-size:13px;font-weight:600;color:var(--cp);margin-bottom:14px">JS CON DD ${dc}${uses>0?' (usage '+uses+')':''}</div>
     <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-      <button class="btn bac" onclick="_implacableRoll(${dc},${conMod})">🎲 Lancer</button>
+      <button class="btn bac" onclick="_implacableRoll(${dc},${conMod})">✨ Lancer</button>
       <button class="btn" onclick="_implacableIRL(${dc},${conMod})">✏ IRL</button>
       <button class="btn" onclick="closeModal()">Ignorer</button>
     </div>

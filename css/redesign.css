@@ -242,14 +242,16 @@
 
   /* 1. Le bandeau de modes : plein-largeur, plaque métal sombre, liseré laiton.
         Larges CREUX (90px) à G/D pour loger les GROS FABs + leur rebord laiton. */
+  /* Bandeau ÉPAIS à liseré laiton marqué (maquette) */
   #modeNav{
-    left:0;right:0;bottom:0;top:auto;transform:none;width:100%;max-width:none;min-height:56px;
+    left:0;right:0;bottom:0;top:auto;transform:none;width:100%;max-width:none;min-height:68px;
     z-index:845;gap:6px;justify-content:space-around;align-items:center;
-    padding:5px 74px calc(5px + env(safe-area-inset-bottom)) 10px;
+    padding:7px 76px calc(7px + env(safe-area-inset-bottom)) 10px;
     background:linear-gradient(180deg,var(--leather),var(--leather2));
-    border:none;border-top:2px solid var(--brass);border-radius:0;
-    box-shadow:0 -3px 0 #000,0 -9px 24px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.05);
+    border:none;border-top:3px solid var(--brass);border-radius:0;
+    box-shadow:0 -1px 0 var(--brass-hi),0 -4px 0 var(--leather),0 -10px 26px rgba(0,0,0,.65),inset 0 2px 0 rgba(255,255,255,.06);
   }
+  .mode-btn{min-height:52px}
   body.ds-lefty #modeNav{padding:5px 10px calc(5px + env(safe-area-inset-bottom)) 74px}
   /* Boutons Hub / Personnage : chacun prend la MOITIÉ du bandeau (flex:1) */
   .mode-btn{flex:1;flex-direction:column;justify-content:center;gap:2px;padding:5px 6px;font-size:13px}

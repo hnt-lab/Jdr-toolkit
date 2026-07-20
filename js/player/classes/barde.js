@@ -27,7 +27,7 @@ function renderBarde(p) {
     <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
       <button class="btn bsm" onclick="recoverCombatCharge('InspBardique',${bardInspiMax})">↺ Récupérer</button>
       ${hasAllies&&biUsed>0?`<button class="btn bsm bac" onclick="openGiveInspirationModal('${bardDie}',${bardInspiMax})">🎵 Donner à un allié</button>`:''}
-      ${!hasAllies?`<button class="btn bsm bac" onclick="rollCustomDmg('1${bardDie}','Inspiration bardique')">🎲 Lancer ${bardDie}</button>`:''}
+      ${!hasAllies?`<button class="btn bsm bac" onclick="rollCustomDmg('1${bardDie}','Inspiration bardique')">✨ Lancer ${bardDie}</button>`:''}
     </div>
     <div style="font-size:12px;color:var(--text3);margin-top:6px">Action bonus : donne un dé ${bardDie} à un allié à 18m qui t'entend. Dans les 10 min, il peut l'ajouter à un jet de caractéristique, d'attaque ou de sauvegarde (après le jet, avant le verdict). Un seul dé à la fois par créature.</div>
   </div>`);

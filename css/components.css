@@ -12,11 +12,11 @@
 /* Jauge de vie VITRÉE (maquette) — verre + lueur, angles nets */
 .hp-bar-hero{height:15px;border:1px solid var(--cp2);border-radius:0;background:var(--surface2);overflow:hidden;margin:5px 0;box-shadow:inset 0 0 5px rgba(0,0,0,.28),0 0 10px var(--cglow)}
 .hp-bar-hero .hp-fill{height:100%;border-radius:0;box-shadow:inset 0 1px 0 rgba(255,255,255,.35);transition:width .35s}
-.btn{padding:6px 14px;border:1px solid var(--border);border-radius:2px;font-size:13px;cursor:pointer;background:var(--surface);color:var(--text2);font-family:var(--B);transition:all .15s}
+.btn{padding:8px 14px;min-height:38px;border:1px solid var(--cp);border-radius:2px;font-size:13.5px;cursor:pointer;background:var(--surface2);color:var(--text);font-family:var(--B);transition:all .15s}
 .btn:hover{border-color:var(--cp);color:var(--cp)}.btn:disabled{opacity:.4;cursor:not-allowed}
 .bac{background:var(--cp)!important;color:#1a1400!important;border-color:var(--cp)!important;font-weight:600}
 .bac:hover{opacity:.85}.bdanger{background:var(--danger)!important;color:#fff!important;border-color:var(--danger)!important}
-.bsm{padding:3px 8px;font-size:12px}
+.bsm{padding:5px 9px;min-height:30px;font-size:12px}
 .sk{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:2px}
 .sk-dot{width:12px;height:12px;border-radius:50%;border:1px solid var(--border);flex-shrink:0}
 .sk-dot.p{background:var(--cp);border-color:var(--cp)}.sk-dot.e{background:var(--cp);border-color:var(--cp);box-shadow:0 0 0 2px var(--cp)}.sk-dot.h{background:linear-gradient(90deg,var(--cp) 50%,transparent 50%);border-color:var(--cp)}

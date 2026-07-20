@@ -1359,7 +1359,7 @@ function luStepRecap(p,newLvl){
         </div>
         <div style="display:flex;gap:6px">
           <button class="btn bsm" onclick="_luConfirmHP(null,${avg})" style="flex:1;font-size:13px">${avg} Moyenne</button>
-          <button class="btn bsm bac" onclick="_luRollHP(${d.hdVal},${avg})" style="flex:1;font-size:13px">🎲 Lancer 1${esc('d'+d.hdVal)}</button>
+          <button class="btn bsm bac" onclick="_luRollHP(${d.hdVal},${avg})" style="flex:1;font-size:13px">✨ Lancer 1${esc('d'+d.hdVal)}</button>
         </div>`;
       })()}
     </div>

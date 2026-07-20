@@ -46,7 +46,7 @@ function mjTabCombat(){
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
       <button class="btn bsm bprimary" onclick="mjAddAllToCombat()">⚔ Ajouter joueurs</button>
       <button class="btn bsm bprimary" onclick="mjOpenAddMonster()">🐉 Ajouter monstre</button>
-      ${!_mjCombatStarted&&_mjCombatants.length?`<button class="btn bsm" style="border-color:var(--cp);color:var(--cp)" onclick="mjStartCombat()">🎲 Lancer l'initiative</button>`:''}
+      ${!_mjCombatStarted&&_mjCombatants.length?`<button class="btn bsm" style="border-color:var(--cp);color:var(--cp)" onclick="mjStartCombat()">✨ Lancer l'initiative</button>`:''}
       ${_mjCombatStarted?`<button class="btn bsm" style="border-color:var(--cp);color:var(--cp)" onclick="mjNextTurn()">▶ Tour suivant</button>
         <button class="btn bsm" style="border-color:var(--good);color:var(--good)" onclick="mjEndCombat()">🏁 Fin du combat</button>
         <div style="display:flex;align-items:center;gap:6px;padding:4px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;font-size:13px">
@@ -641,7 +641,7 @@ function mjStartCombat(){
   const sorted=[..._mjCombatants].sort((a,b)=>b.initiative-a.initiative);
   // Fix 11 — Liste triée des initiatives dans le log
   const _initList=sorted.map((c,i)=>`${i+1}. ${c.name} : ${c.initiative}`).join(' | ');
-  _mjCombatLog.push(`🎲 Initiative lancée — Round 1.\n📋 Ordre : ${_initList}`);
+  _mjCombatLog.push(`⚡ Initiative lancée — Round 1.\n📋 Ordre : ${_initList}`);
   _mjSaveCombatState(sorted,0);
   renderMJContent();
 }
@@ -729,7 +729,7 @@ function mjOpenCombatDice(idx){
           <div style="font-size:13px;font-weight:700">⚔ ${esc(a.name)}</div>
           <div style="font-size:13px;color:var(--text3)">${a.atkBonus>=0?'+':''}${a.atkBonus} att. · ${esc(a.dmgDice)}${a.dmgBonus?fmt(a.dmgBonus):''} ${esc(a.dmgType||'')}${a.range?' · '+esc(a.range):''}</div>
         </div>
-        <button class="btn bac bsm" style="flex-shrink:0" onclick="mjRollAttack(${idx},${ai})">🎲 Lancer</button>
+        <button class="btn bac bsm" style="flex-shrink:0" onclick="mjRollAttack(${idx},${ai})">✨ Lancer</button>
       </div>`).join('')
     :`<div style="text-align:center;padding:20px;color:var(--text3);font-style:italic">Aucune attaque définie.<br><span style="font-size:13px">Utilisez ✏ Éditer pour en ajouter.</span></div>`;
   const spellsHtml=spells.length
@@ -739,7 +739,7 @@ function mjOpenCombatDice(idx){
             <div style="font-size:13px;font-weight:700">✦ ${esc(s.name)}${s.level?` <span style="font-size:13px;font-weight:400;color:var(--text3)">Niv.${s.level}</span>`:''}</div>
             <div style="font-size:13px;color:var(--text3)">${s.saveStat&&s.saveDC?`JS ${esc(s.saveStat)} DD <b>${s.saveDC}</b>`:''} ${s.dmgDice?'· '+esc(s.dmgDice)+' '+esc(s.dmgType||''):''}</div>
           </div>
-          ${s.dmgDice||s.saveDC?`<button class="btn bac bsm" style="flex-shrink:0" onclick="mjRollSpell(${idx},${si})">🎲 Lancer</button>`:''}
+          ${s.dmgDice||s.saveDC?`<button class="btn bac bsm" style="flex-shrink:0" onclick="mjRollSpell(${idx},${si})">✨ Lancer</button>`:''}
         </div>
         ${s.desc?`<div style="font-size:13px;color:var(--text2);margin-top:4px;font-style:italic">${esc(s.desc)}</div>`:''}
       </div>`).join('')
@@ -1084,7 +1084,7 @@ const MJ_CONDITIONS=[
 
 function mjEditInitiative(idx){
   const c=_mjCombatants[idx];if(!c)return;
-  openModal(`<div class="pt">🎲 Initiative — ${esc(c.name)}</div>
+  openModal(`<div class="pt">⚡ Initiative — ${esc(c.name)}</div>
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
       <div style="flex:1"><div class="fl mb6">Valeur (dé + mod)</div><input class="fi" id="initInput" type="number" value="${c.initiative||0}" style="font-size:15px;text-align:center"></div>
       <button class="btn bsm" style="margin-top:18px;border-color:var(--cp);color:var(--cp)" onclick="mjRerollInitiative(${idx})">🎲 Relancer</button>

@@ -248,7 +248,7 @@ function _showRageImplacablePopup(p){
   openModal(`<div class="pt">💪 Rage implacable — 0 PV !</div>
     <div style="font-size:13px;color:var(--text2);margin-bottom:12px">Tu tombes à 0 PV pendant ta rage.<br>Lance un <strong>JS CON DD ${_implacableDC}</strong> pour rester à 1 PV !</div>
     <div style="font-size:13px;color:var(--text3);margin-bottom:16px">DD actuel : ${_implacableDC}${uses>0?' ('+uses+' usage'+(uses>1?'s':'')+')':''} . +5 par usage, remis à 0 au repos.</div>
-    <button class="btn bac" style="width:100%;margin-bottom:8px" onclick="_doRageImplacableRoll()">🎲 Lancer JS CON DD ${_implacableDC}</button>
+    <button class="btn bac" style="width:100%;margin-bottom:8px" onclick="_doRageImplacableRoll()">✨ Lancer JS CON DD ${_implacableDC}</button>
     <button class="btn" style="width:100%" onclick="closeModal()">✕ Lancer physiquement</button>`);
 }
 function _doRageImplacableRoll(){
@@ -427,7 +427,7 @@ function _showInitiativePopup(){
   const _initHasAdv=_barbLvlInit>=7;
   const _initAdvNote=_initHasAdv?'<div style="font-size:13px;color:var(--danger);margin-bottom:6px">🦅 Instinct sauvage — 2d20, prend le meilleur</div>':'';
   const _initIRLBtn=typeof _isIRLMode==='function'&&_isIRLMode()?`<button onclick="_rollMyInitiativeIRL();event.stopPropagation()" style="margin-top:6px;padding:8px 16px;background:transparent;color:var(--cp);border:2px solid var(--cp);border-radius:2px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--F)">✏ Saisir le résultat IRL</button>`:'';
-  document.getElementById('combatPopupSub').innerHTML=`${_initAdvNote}<button onclick="_rollMyInitiative();event.stopPropagation()" style="margin-top:10px;padding:12px 28px;background:var(--cp);color:#000;border:none;border-radius:2px;font-size:18px;font-weight:700;cursor:pointer;font-family:var(--F)">🎲 Lancer mon initiative</button>${_initIRLBtn?'<br>'+_initIRLBtn:''}`;
+  document.getElementById('combatPopupSub').innerHTML=`${_initAdvNote}<button onclick="_rollMyInitiative();event.stopPropagation()" style="margin-top:10px;padding:12px 28px;background:var(--cp);color:#000;border:none;border-radius:2px;font-size:18px;font-weight:700;cursor:pointer;font-family:var(--F)">✨ Lancer mon initiative</button>${_initIRLBtn?'<br>'+_initIRLBtn:''}`;
   const box=popup.querySelector('.combat-popup-box');
   if(box){box.style.animation='none';void box.offsetHeight;box.style.animation='';}
   popup.className='show';

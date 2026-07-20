@@ -341,7 +341,12 @@
   border-color:var(--ds-acc-strong)!important;border-left:none!important;background:var(--ds-page)!important;font-size:19px;box-shadow:none!important}
 #tabBar .tab.lvlup{border-color:var(--ds-brass-hi)!important;color:var(--ds-acc-strong)!important;animation:dsLvl 1.8s ease-in-out infinite}
 #tabBar .tab.tab-foot{opacity:.6;min-height:34px;font-size:13px}
-#tabBar button.tab-foot:nth-last-child(2){margin-top:auto}
+/* Confidentialité + Réorganiser : juste SOUS les onglets (petit écart, pas collés en bas) */
+#tabBar button.tab-foot:nth-last-child(2){margin-top:10px}
+/* FUSION intercalaire : la page porte un filet côté rail ; l'onglet actif (fond page,
+   sans bord côté page, débordant) recouvre le filet → onglet et page ne font qu'un. */
+#tabContent,#mjTabContent{border-right:1px solid var(--ds-acc-strong);min-height:70vh}
+.ds-lefty #tabContent,.ds-lefty #mjTabContent{border-right:none;border-left:1px solid var(--ds-acc-strong)}
 /* La marge latérale du rail est portée par l'ÉCRAN ENTIER (#app/#mjScreen) :
    AUCUN contenu (charRail, cartes larges, panneaux MJ) ne peut glisser sous le rail. */
 #app,#mjScreen{padding-right:58px!important;min-height:100vh;overflow-x:hidden}
@@ -474,6 +479,27 @@ body.ds-lefty #diceFloat{right:auto!important;left:13px!important}
   @supports (position:sticky){.rail-vitals{top:44px}}
   #diceFloat{width:56px!important;height:56px!important;font-size:25px!important}
 }
+
+/* ── EN-TÊTE TRANSFORMÉ (fiche) : le bandeau perso REMPLACE la barre générique ── */
+#app .hdr{display:none!important} /* plus de « La Boîte à Outils » sur la fiche (maquette) */
+.rail-gear{width:30px;height:30px;flex:none;border:1.5px solid var(--brass-hi);border-radius:50%;
+  background:transparent;color:var(--brass-hi);font-size:14px;cursor:pointer;display:grid;place-items:center;padding:0}
+.rail-id{position:relative;display:flex;align-items:center;gap:9px}
+.rail-id .rail-id-txt{flex:1;min-width:0}
+@media(max-width:899px){
+  /* bandeau + vitals FIXES en haut (hauteur calée en JS via --fiche-head) */
+  #charRail{position:fixed!important;top:0;left:0;right:0;z-index:848;
+    background:linear-gradient(180deg,var(--leather),var(--leather2));border-bottom:2px solid var(--brass)}
+  #app{padding-top:var(--fiche-head,84px)!important}
+  .tab-scroller{top:var(--fiche-head,84px)!important}
+  .rail-vitals{position:static!important} /* elles sont déjà dans le bloc fixe */
+}
+
+/* ── IDENTITÉ DE CLASSE sur la fiche (--cls posé par #app.th-<Classe>) ── */
+/* Style « Par le motif » par défaut : liseré du portrait + accent d'onglet actif teintés classe. */
+#app .rail-portrait{border-color:var(--cls)!important}
+#app #tabBar .tab.on{border-color:var(--cls)!important}
+#app .pt{border-bottom-color:color-mix(in srgb,var(--cls) 55%,var(--cp))}
 
 /* Accessibilité */
 @media(prefers-reduced-motion:reduce){

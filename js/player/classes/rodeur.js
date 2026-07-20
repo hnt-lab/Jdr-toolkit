@@ -55,7 +55,7 @@ function renderGardienDrake(p, rodeurLvl) {
       <div style="display:flex;gap:8px;font-size:13px;color:var(--text3);margin-bottom:6px;flex-wrap:wrap"><span>CA <strong>${14+pbv}</strong></span><span>PV <strong style="color:${dcol}">${dk.hpCur}/${dk.hpMax}</strong></span><span>Vitesse 12m${rodeurLvl>=7?' + vol 12m':''}</span><span>Immunité ${esc(dk.essence)}</span></div>
       <div class="hp-bar mb6"><div class="hp-fill" style="width:${dpct}%;background:${dcol}"></div></div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
-        <button class="btn bsm" onclick="rollAttack('Morsure du drake',${3+pbv},'${biteDmg}')">🎲 Morsure +${3+pbv} (${biteDmg})</button>
+        <button class="btn bsm" onclick="rollAttack('Morsure du drake',${3+pbv},'${biteDmg}')">🗡 Morsure +${3+pbv} (${biteDmg})</button>
         <button class="btn bsm" style="background:var(--danger);color:#fff;border-color:var(--danger)" onclick="openDrakeHpModal()">💥 / 💚 PV</button>
       </div>
       <div style="font-size:12px;color:var(--text3)">↪ Coups imprégnés (réaction) : quand une créature à 9m du drake touche avec une arme, l'attaque inflige +1d6 dégâts de ${esc(dk.essence)}. <button class="btn bsm" onclick="rollCustomDmg('1d6','Coups imprégnés')">🎲 1d6</button></div>
