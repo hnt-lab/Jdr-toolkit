@@ -5,7 +5,10 @@
   border:none;border-bottom:2px solid var(--brass);border-radius:0;
   position:fixed;top:0;left:0;right:0;z-index:850;min-height:44px}
 .hdr-title,.hdr-home-txt,.hub-hdr-title,.mj-hdr-title{font-family:var(--F);font-size:15px;color:var(--brass-hi);letter-spacing:.06em}
-.hdr-char{font-size:12px;color:var(--brass-hi);opacity:.85;flex:1;text-align:center;min-width:0;overflow:hidden}
+/* Identité du perso = dans le bandeau (renderCharRail), pas dans l'en-tête → masquée (maquette) */
+.hdr-char{display:none}
+/* Nom de campagne (en-tête MJ) : lisible sur le cuir (le flip de vars l'avait rendu encre-sur-cuir) */
+#mjHdrCamp{color:var(--brass-hi)!important;opacity:.8}
 .hdr-logo{width:22px;height:22px}
 .pbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px}
 .ptag{padding:4px 10px;border-radius:0;border:1px solid var(--border);font-size:12px;cursor:pointer;background:var(--surface);color:var(--text2);transition:all .15s}
