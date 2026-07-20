@@ -11,7 +11,7 @@ function renderCharRail(p){
   const _exhLvl=p.exhaustion||0;
   const effectiveHpMax=_exhLvl>=4?Math.floor(p.hpMax/2):p.hpMax;
   const pct=Math.max(0,Math.min(100,Math.round((ws?.active?ws.beast.hpCur/Math.max(1,ws.beast.hpMax):p.hp/Math.max(1,effectiveHpMax))*100)));
-  const hpColor=ws?.active?'#4caf50':pct>50?'#4caf50':pct>25?'#ff9800':'#e53935';
+  const hpColor=ws?.active?'var(--good)':pct>50?'var(--good)':pct>25?'var(--warn)':'var(--danger)';
   const caBonus=(p.statuses||[]).filter(s=>s.stat==='ca').reduce((a,s)=>a+(parseInt(s.value)||0),0);
   const hpBonus=(p.statuses||[]).filter(s=>s.stat==='hp').reduce((a,s)=>a+(parseInt(s.value)||0),0);
   const caDisplay=p.ac+caBonus;
@@ -23,12 +23,12 @@ function renderCharRail(p){
   let barText,hpExtra='';
   if(ws?.active){
     barText=`🐺 ${ws.beast.hpCur}/${ws.beast.hpMax}`;
-    hpExtra=`<button class="btn bsm" style="width:100%;margin-top:6px;border-color:rgba(76,175,80,.5);color:#4caf50" onclick="revertWildshape()">↩ Reprendre forme</button>`;
+    hpExtra=`<button class="btn bsm" style="width:100%;margin-top:6px;border-color:rgba(76,175,80,.5);color:var(--good)" onclick="revertWildshape()">↩ Reprendre forme</button>`;
   } else {
     barText=`${p.hp}${(p.hpTemp||0)>0?`+${p.hpTemp}`:''}/${effectiveHpMax}${_exhLvl>=4?' ½':''}`;
     hpExtra=`${(p.shieldHp||0)>0?`<div class="rail-shield">🔵 Bouclier ${p.shieldHp}/${p.shieldHpMax||p.shieldHp}</div>`:''}
       ${mj?`<div class="rail-mjhp"><label>PV max <input type="number" min="1" value="${p.hpMax}" oninput="P().hpMax=Math.max(1,parseInt(this.value)||1);render()"></label><label>Temp <input type="number" min="0" value="${p.hpTemp||0}" oninput="P().hpTemp=Math.max(0,parseInt(this.value)||0)"></label></div>`:''}
-      ${p.hp<=0?`<div class="rail-down">💀 À TERRE — 0 PV${p.deathSaves?.fail>=3?' ☠':''}</div><div class="rail-ds"><span style="color:#4caf50">✓</span>${[0,1,2].map(i=>`<span class="ds-circle${i<(p.deathSaves?.success||0)?' s':''}" onclick="cycleDS('success',${i})"></span>`).join('')}<span style="color:#e53935;margin-left:10px">✗</span>${[0,1,2].map(i=>`<span class="ds-circle${i<(p.deathSaves?.fail||0)?' f':''}" onclick="cycleDS('fail',${i})"></span>`).join('')}</div>`:''}`;
+      ${p.hp<=0?`<div class="rail-down">💀 À TERRE — 0 PV${p.deathSaves?.fail>=3?' ☠':''}</div><div class="rail-ds"><span style="color:var(--good)">✓</span>${[0,1,2].map(i=>`<span class="ds-circle${i<(p.deathSaves?.success||0)?' s':''}" onclick="cycleDS('success',${i})"></span>`).join('')}<span style="color:var(--danger);margin-left:10px">✗</span>${[0,1,2].map(i=>`<span class="ds-circle${i<(p.deathSaves?.fail||0)?' f':''}" onclick="cycleDS('fail',${i})"></span>`).join('')}</div>`:''}`;
   }
   // Vitesse (forme sauvage / barbare rapide / épuisement)
   const _barbLvl=((p.classes||[]).find(c=>c.name==='Barbare')||{}).level||0;
@@ -54,7 +54,7 @@ function renderCharRail(p){
     <div class="rail-vitals">
       <div class="dsv-row">
         <span class="dsv-stat" title="Classe d'armure">🛡 <b>${caVal}</b></span>
-        <div class="hp-bar hp-bar-hero" onclick="openHpModal()" title="Dégâts / Soins"><div class="hp-fill" style="width:${pct}%;background:${ws?.active?'#4caf50':hpColor}"></div><span class="dsv-hp">${barText}</span></div>
+        <div class="hp-bar hp-bar-hero" onclick="openHpModal()" title="Dégâts / Soins"><div class="hp-fill" style="width:${pct}%;background:${ws?.active?'var(--good)':hpColor}"></div><span class="dsv-hp">${barText}</span></div>
         <span class="dsv-stat" title="Initiative">⚡ <b>${initVal}</b></span>
         <span class="dsv-stat" title="Vitesse">👣 <b>${spdVal}</b></span>
       </div>
@@ -70,13 +70,13 @@ function _caracsChipsHTML(p){
   const caracs=ABILITIES_SH.map((ab,i)=>{
     const totalBonus=(p.statuses||[]).filter(s=>s.stat===ab.toLowerCase()).reduce((a,s)=>a+(parseInt(s.value)||0),0);
     const finalVal=p.abilities[i]+totalBonus;
-    if(ws?.active) return `<div class="rail-carac" style="border-color:#4caf50"><div class="rail-carac-n">${ab}</div><div class="rail-carac-v" style="color:#4caf50">${ws.beast.ab[i]}</div><div class="rail-carac-m" style="color:#4caf50">${fmt(Math.floor((ws.beast.ab[i]-10)/2))}</div></div>`;
+    if(ws?.active) return `<div class="rail-carac" style="border-color:var(--good)"><div class="rail-carac-n">${ab}</div><div class="rail-carac-v" style="color:var(--good)">${ws.beast.ab[i]}</div><div class="rail-carac-m" style="color:var(--good)">${fmt(Math.floor((ws.beast.ab[i]-10)/2))}</div></div>`;
     if(mj) return `<div class="rail-carac"><div class="rail-carac-n">${ab}</div><input type="number" min="1" max="30" value="${p.abilities[i]}" oninput="P().abilities[${i}]=Math.min(30,Math.max(1,parseInt(this.value)||10));render()" class="rail-carac-input"><div class="rail-carac-m">${fmt(mod(finalVal))}</div></div>`;
-    return `<div class="rail-carac"><div class="rail-carac-n">${ab}</div><div class="rail-carac-v"${totalBonus?' style="color:#4caf50"':''}>${finalVal}</div><div class="rail-carac-m">${fmt(mod(finalVal))}</div></div>`;
+    return `<div class="rail-carac"><div class="rail-carac-n">${ab}</div><div class="rail-carac-v"${totalBonus?' style="color:var(--good)"':''}>${finalVal}</div><div class="rail-carac-m">${fmt(mod(finalVal))}</div></div>`;
   }).join('');
   const resist=(typeof getEffectiveResistances==='function')?getEffectiveResistances(p):[];
   const _encum=(typeof getEncumbrance==='function')?getEncumbrance(p):null;
-  const chips=(p.statuses||[]).slice(0,8).map(s=>`<span class="rail-chip">${esc(s.icon||'•')} ${esc(s.name||s.stat||'')}</span>`).join('')+resist.map(t=>`<span class="rail-chip rail-resist">🛡 ${esc(t)}</span>`).join('')+(_encum&&_encum.level?`<span class="rail-chip" style="color:${_encum.level===2?'#e53935':'#ff9800'};border-color:${_encum.level===2?'rgba(229,57,53,.4)':'rgba(255,152,0,.4)'}">🎒 ${_encum.label} (−${_encum.speedMalus} m)</span>`:'');
+  const chips=(p.statuses||[]).slice(0,8).map(s=>`<span class="rail-chip">${esc(s.icon||'•')} ${esc(s.name||s.stat||'')}</span>`).join('')+resist.map(t=>`<span class="rail-chip rail-resist">🛡 ${esc(t)}</span>`).join('')+(_encum&&_encum.level?`<span class="rail-chip" style="color:${_encum.level===2?'var(--danger)':'var(--warn)'};border-color:${_encum.level===2?'rgba(229,57,53,.4)':'rgba(255,152,0,.4)'}">🎒 ${_encum.label} (−${_encum.speedMalus} m)</span>`:'');
   return`<div class="rail-caracs" style="margin-bottom:10px">${caracs}</div>
     ${chips?`<div class="rail-chips" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px">${chips}</div>`:''}`;
 }
@@ -91,7 +91,7 @@ function tabPerso(p){
   const _exhLvl=p.exhaustion||0;
   const effectiveHpMax=_exhLvl>=4?Math.floor(p.hpMax/2):p.hpMax;
   const pct=Math.max(0,Math.min(100,Math.round((ws?.active?ws.beast.hpCur/Math.max(1,ws.beast.hpMax):p.hp/Math.max(1,effectiveHpMax))*100)));
-  const hpColor=ws?.active?'#4caf50':pct>50?'#4caf50':pct>25?'#ff9800':'#e53935';
+  const hpColor=ws?.active?'var(--good)':pct>50?'var(--good)':pct>25?'var(--warn)':'var(--danger)';
 
   // Calcul CA affichée avec statuts
   const caBonus=(p.statuses||[]).filter(s=>s.stat==='ca').reduce((a,s)=>a+(parseInt(s.value)||0),0);
@@ -105,16 +105,16 @@ function tabPerso(p){
     <!-- (Portrait déplacé dans le rail ; caractéristiques ci-dessus — _caracsChipsHTML) -->
 
     ${ws?.active?`<div class="panel mb10" style="border-color:rgba(76,175,80,.4);background:rgba(76,175,80,.04)">
-      <div class="pt" style="color:#4caf50;display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>${ws.beast.icon} ${esc(ws.beast.name)} — Attaques & Traits</div>
-      ${ws.beast.attacks.map(a=>`<div style="background:rgba(76,175,80,.08);border:1px solid rgba(76,175,80,.2);border-radius:6px;padding:8px 10px;margin-bottom:6px">
+      <div class="pt" style="color:var(--good);display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>${ws.beast.icon} ${esc(ws.beast.name)} — Attaques & Traits</div>
+      ${ws.beast.attacks.map(a=>`<div style="background:rgba(76,175,80,.08);border:1px solid rgba(76,175,80,.2);border-radius:2px;padding:8px 10px;margin-bottom:6px">
         <div style="display:flex;justify-content:space-between;align-items:center">
-          <strong style="color:#4caf50;font-size:18px">${esc(a.name)}</strong>
-          <span style="color:var(--text2);font-size:18px">+${a.bonus} / <strong>${esc(a.dmg)}</strong> ${esc(a.type||'')}</span>
+          <strong style="color:var(--good);font-size:13px">${esc(a.name)}</strong>
+          <span style="color:var(--text2);font-size:13px">+${a.bonus} / <strong>${esc(a.dmg)}</strong> ${esc(a.type||'')}</span>
         </div>
-        ${a.special?`<div style="font-size:17px;color:var(--text3);margin-top:3px">${esc(a.special)}</div>`:''}
-        <button class="btn bsm" style="margin-top:6px;border-color:rgba(76,175,80,.4);color:#4caf50" onclick="rollAttack('${jsq(a.name)}',${a.bonus},'${jsq(a.dmg)}')" title="Jet d'attaque + dégâts">🎲 Attaque</button>
+        ${a.special?`<div style="font-size:13px;color:var(--text3);margin-top:3px">${esc(a.special)}</div>`:''}
+        <button class="btn bsm" style="margin-top:6px;border-color:rgba(76,175,80,.4);color:var(--good)" onclick="rollAttack('${jsq(a.name)}',${a.bonus},'${jsq(a.dmg)}')" title="Jet d'attaque + dégâts">🎲 Attaque</button>
       </div>`).join('')}
-      ${ws.beast.traits.map(t=>`<div style="font-size:17px;color:var(--text2);padding:5px 0;border-bottom:1px solid rgba(76,175,80,.15)">🐾 ${esc(t)}</div>`).join('')}
+      ${ws.beast.traits.map(t=>`<div style="font-size:13px;color:var(--text2);padding:5px 0;border-bottom:1px solid rgba(76,175,80,.15)">🐾 ${esc(t)}</div>`).join('')}
     </div>`:''}
 
     <!-- Résistances & Immunités (rétractable) -->
@@ -131,13 +131,13 @@ function tabPerso(p){
         const res=p.dmgResistances||[];const imm=p.dmgImmunities||[];const ci=p.condImmunities||[];
         const passRes=getPassiveResistances(p);const passImm=getPassiveImmunities(p);
         const tag=(cat,val,i)=>`<span class="status-badge bonus" style="cursor:pointer" title="Retirer" onclick="removeResist('${cat}',${i})">🛡 ${esc(val)} ✕</span>`;
-        const tagImm=(cat,val,i)=>`<span class="status-badge malus" style="background:#2e1b00;border-color:#ff9800;color:#ff9800;cursor:pointer" title="Retirer" onclick="removeResist('${cat}',${i})">✦ ${esc(val)} ✕</span>`;
+        const tagImm=(cat,val,i)=>`<span class="status-badge malus" style="background:#2e1b00;border-color:var(--warn);color:var(--warn);cursor:pointer" title="Retirer" onclick="removeResist('${cat}',${i})">✦ ${esc(val)} ✕</span>`;
         const tagCond=(cat,val,i)=>`<span class="status-badge malus" style="cursor:pointer" title="Retirer" onclick="removeResist('${cat}',${i})">🚫 ${esc(val)} ✕</span>`;
-        const empty='<span style="font-size:17px;color:var(--text3);font-style:italic">Aucune</span>';
+        const empty='<span style="font-size:13px;color:var(--text3);font-style:italic">Aucune</span>';
         const lockR=v=>`<span class="status-badge bonus" style="opacity:.85" title="Résistance passive (automatique)">🛡 ${esc(v)} 🔒</span>`;
-        const lockI=v=>`<span class="status-badge malus" style="background:#2e1b00;border-color:#ff9800;color:#ff9800;opacity:.85" title="Immunité passive (automatique)">✦ ${esc(v)} 🔒</span>`;
+        const lockI=v=>`<span class="status-badge malus" style="background:#2e1b00;border-color:var(--warn);color:var(--warn);opacity:.85" title="Immunité passive (automatique)">✦ ${esc(v)} 🔒</span>`;
         const stRow=(s,i)=>`<span class="status-badge ${s.type||'neutral'}" title="${esc(s.desc||'')}">${s.icon||'◆'} ${esc(s.name||'')}${(s.value&&s.stat)?` ${s.value>0?'+':''}${s.value} ${esc(s.stat.toUpperCase())}`:''} <span onclick="event.stopPropagation();removeStatus(${i})" style="cursor:pointer;font-weight:700;opacity:.7">×</span></span>`;
-        const lbl=t=>`<div style="font-size:15px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">${t}</div>`;
+        const lbl=t=>`<div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">${t}</div>`;
         return`<div style="margin-bottom:10px">${lbl('Statuts actifs')}<div style="display:flex;flex-wrap:wrap;gap:4px">${sts.length?sts.map(stRow).join(''):empty}</div></div>
         <div style="margin-bottom:8px">${lbl('Résistances dégâts')}<div style="display:flex;flex-wrap:wrap;gap:4px">${(res.length||passRes.length)?res.map((v,i)=>passRes.includes(v)?'':tag('dmgResistances',v,i)).join('')+passRes.map(lockR).join(''):empty}</div></div>
         <div style="margin-bottom:8px">${lbl('Immunités dégâts')}<div style="display:flex;flex-wrap:wrap;gap:4px">${(imm.length||passImm.length)?imm.map((v,i)=>passImm.includes(v)?'':tagImm('dmgImmunities',v,i)).join('')+passImm.map(lockI).join(''):empty}</div></div>
@@ -146,7 +146,7 @@ function tabPerso(p){
     </div>
     <!-- Sauvegardes (déplacé depuis Combat — concerne tous les jets) -->
     <div class="panel"><div class="pt">Sauvegardes</div>
-      ${(()=>{const rageActive=(p.combatCharges||{})['RageActive']===true;return ABILITIES_SH.map((ab,i)=>{const saves=CLASS_SAVES[mc?mc.name:'']||[];const hasSave=saves.includes(i);const m=mod(p.abilities[i])+(hasSave?pb(lvl):0);const forRageAdv=i===0&&rageActive;return forRageAdv?`<div style="display:flex;align-items:center;gap:3px"><div class="save-btn" style="flex:1" onclick="rollSave('${ab}',${m})"><span class="save-dot${hasSave?' p':''}"></span><span style="flex:1;font-size:18px">${ab}</span><span style="color:var(--cp);font-weight:600">${fmt(m)}</span><span style="font-size:15px;color:var(--text3)">🎲</span></div><button class="btn bsm" style="padding:2px 6px;color:#e53935;border-color:#e53935;font-size:15px;flex-shrink:0" onclick="rollSave('${ab}',${m},1)" title="Avantage (rage)">🔥⚡</button></div>`:`<div class="save-btn" onclick="rollSave('${ab}',${m})"><span class="save-dot${hasSave?' p':''}"></span><span style="flex:1;font-size:18px">${ab}</span><span style="color:var(--cp);font-weight:600">${fmt(m)}</span><span style="font-size:15px;color:var(--text3)">🎲</span></div>`;}).join('');})()}
+      ${(()=>{const rageActive=(p.combatCharges||{})['RageActive']===true;return ABILITIES_SH.map((ab,i)=>{const saves=CLASS_SAVES[mc?mc.name:'']||[];const hasSave=saves.includes(i);const m=mod(p.abilities[i])+(hasSave?pb(lvl):0);const forRageAdv=i===0&&rageActive;return forRageAdv?`<div style="display:flex;align-items:center;gap:3px"><div class="save-btn" style="flex:1" onclick="rollSave('${ab}',${m})"><span class="save-dot${hasSave?' p':''}"></span><span style="flex:1;font-size:13px">${ab}</span><span style="color:var(--cp);font-weight:600">${fmt(m)}</span><span style="font-size:12px;color:var(--text3)">🎲</span></div><button class="btn bsm" style="padding:2px 6px;color:var(--danger);border-color:var(--danger);font-size:12px;flex-shrink:0" onclick="rollSave('${ab}',${m},1)" title="Avantage (rage)">🔥⚡</button></div>`:`<div class="save-btn" onclick="rollSave('${ab}',${m})"><span class="save-dot${hasSave?' p':''}"></span><span style="flex:1;font-size:13px">${ab}</span><span style="color:var(--cp);font-weight:600">${fmt(m)}</span><span style="font-size:12px;color:var(--text3)">🎲</span></div>`;}).join('');})()}
     </div>
   </div>
 
@@ -158,16 +158,16 @@ function tabPerso(p){
       <div class="fl mb6">Nom</div>
       <input class="fi mb6" value="${esc(p.charName)}" onchange="upd('charName',this.value);render()">
 
-      ${(p.classes||[]).map(c=>{const d=SRD.classes.find(cl=>cl.name===c.name);if(!d)return'';return`<div style="background:var(--surface2);border-radius:6px;padding:8px 10px;margin-bottom:6px">
-        <div style="font-size:15px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">Classe</div>
-        <div style="font-size:18px;color:var(--cp);font-weight:600;margin-top:2px">${esc(c.name)} — Niveau ${c.level}</div>
-        <div style="font-size:18px;color:var(--text2);margin-top:2px">Dé: ${d.hd} • Armures: ${esc(d.armor.split(',')[0])}${d.spellcaster?' • <span style="color:var(--cp)">✦ Lanceur de sorts</span>':''}</div>
+      ${(p.classes||[]).map(c=>{const d=SRD.classes.find(cl=>cl.name===c.name);if(!d)return'';return`<div style="background:var(--surface2);border-radius:2px;padding:8px 10px;margin-bottom:6px">
+        <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">Classe</div>
+        <div style="font-size:13px;color:var(--cp);font-weight:600;margin-top:2px">${esc(c.name)} — Niveau ${c.level}</div>
+        <div style="font-size:13px;color:var(--text2);margin-top:2px">Dé: ${d.hd} • Armures: ${esc(d.armor.split(',')[0])}${d.spellcaster?' • <span style="color:var(--cp)">✦ Lanceur de sorts</span>':''}</div>
       </div>`;}).join('')}
 
-      ${rd?`<div style="background:var(--surface2);border-radius:6px;padding:8px 10px;margin-bottom:6px">
-        <div style="font-size:15px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">Race</div>
-        <div style="font-size:18px;color:var(--cp);font-weight:600;margin-top:2px">${esc(p.race)}</div>
-        <div style="font-size:18px;color:var(--text2);margin-top:2px">Langues : ${esc(rd.languages)}</div>
+      ${rd?`<div style="background:var(--surface2);border-radius:2px;padding:8px 10px;margin-bottom:6px">
+        <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">Race</div>
+        <div style="font-size:13px;color:var(--cp);font-weight:600;margin-top:2px">${esc(p.race)}</div>
+        <div style="font-size:13px;color:var(--text2);margin-top:2px">Langues : ${esc(rd.languages)}</div>
       </div>`:''}
 
       <div class="fl mb6">Historique</div>
@@ -185,9 +185,9 @@ function tabPerso(p){
 
 
       <!-- Inspiration -->
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--surface2);border-radius:6px">
-        <span style="font-size:18px;color:var(--text2)">Inspiration</span>
-        <span onclick="toggleInspiration()" style="cursor:pointer;font-size:24px">${p.inspiration?'✦':'✧'}</span>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--surface2);border-radius:2px">
+        <span style="font-size:13px;color:var(--text2)">Inspiration</span>
+        <span onclick="toggleInspiration()" style="cursor:pointer;font-size:17px">${p.inspiration?'✦':'✧'}</span>
       </div>
     </div>
 
@@ -199,19 +199,19 @@ function tabPerso(p){
       const _restLocked=(typeof _activeCombatState!=='undefined'&&_activeCombatState&&_activeCombatState.active);
       return`<div class="panel mb10">
         <div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>Repos</div>
-        <div style="display:flex;gap:8px;${_chantB?'padding:6px;border:2px solid var(--cp);border-radius:10px;background:rgba(200,168,75,.04)':''}">
+        <div style="display:flex;gap:8px;${_chantB?'padding:6px;border:2px solid var(--cp);border-radius:2px;background:rgba(200,168,75,.04)':''}">
           <div class="rest-btn short"${_restLocked?' style="opacity:.45;pointer-events:none" title="Pas de repos en combat"':''} onclick="doShortRest()">
-            <div style="font-size:22px">☕</div>
+            <div style="font-size:16px">☕</div>
             <div style="font-weight:600">Repos court</div>
-            <div style="font-size:15px;color:var(--text3);margin-top:1px">≥ 1 heure</div>
-            <div style="font-size:15px;margin-top:2px">Lance le dé de vie + CON</div>
-            ${_chantB?`<div style="font-size:15px;color:var(--cp);font-weight:600;margin-top:4px;border-top:1px solid rgba(200,168,75,.3);padding-top:3px">🎶 +${_chantB} PV (${esc(_chantSrc)})</div>`:''}
+            <div style="font-size:12px;color:var(--text3);margin-top:1px">≥ 1 heure</div>
+            <div style="font-size:12px;margin-top:2px">Lance le dé de vie + CON</div>
+            ${_chantB?`<div style="font-size:12px;color:var(--cp);font-weight:600;margin-top:4px;border-top:1px solid rgba(200,168,75,.3);padding-top:3px">🎶 +${_chantB} PV (${esc(_chantSrc)})</div>`:''}
           </div>
           <div class="rest-btn long"${_restLocked?' style="opacity:.45;pointer-events:none" title="Pas de repos en combat"':''} onclick="doLongRest()">
-            <div style="font-size:22px">🌙</div>
+            <div style="font-size:16px">🌙</div>
             <div style="font-weight:600">Repos long</div>
-            <div style="font-size:15px;color:var(--text3);margin-top:1px">≥ 8 heures</div>
-            <div style="font-size:15px;margin-top:2px">PV max + sorts + charges</div>
+            <div style="font-size:12px;color:var(--text3);margin-top:1px">≥ 8 heures</div>
+            <div style="font-size:12px;margin-top:2px">PV max + sorts + charges</div>
           </div>
         </div>
       </div>`;
@@ -242,18 +242,18 @@ function openPrivacySettings(){
     {id:'xp',label:'✧ Expérience',desc:'XP & niveau'},
   ];
   openModal(`<div class="pt">🔒 Confidentialité</div>
-    <div style="font-size:18px;color:var(--text3);margin-bottom:14px">Le MJ voit toujours tout. Choisissez ce que les autres joueurs peuvent voir onglet par onglet.</div>
+    <div style="font-size:13px;color:var(--text3);margin-bottom:14px">Le MJ voit toujours tout. Choisissez ce que les autres joueurs peuvent voir onglet par onglet.</div>
     ${tabs.map(t=>{
       const checked=priv[t.id]!==false;
       return`<label style="display:flex;align-items:center;gap:10px;padding:8px 4px;cursor:pointer;border-bottom:1px solid var(--border)">
         <input type="checkbox" ${checked?'checked':''} onchange="togglePrivacy('${t.id}',this.checked)" style="width:16px;height:16px;accent-color:var(--cp);flex-shrink:0">
         <div>
-          <div style="font-size:18px;font-weight:600">${t.label}</div>
-          <div style="font-size:17px;color:var(--text3)">${t.desc}</div>
+          <div style="font-size:13px;font-weight:600">${t.label}</div>
+          <div style="font-size:13px;color:var(--text3)">${t.desc}</div>
         </div>
       </label>`;
     }).join('')}
-    <div style="font-size:17px;color:var(--text3);margin-top:10px;padding:8px;background:rgba(200,168,75,.06);border-radius:6px;border:1px solid rgba(200,168,75,.15)">🔐 Les <strong>Secrets</strong> (onglet Historique) sont toujours privés — uniquement toi et le MJ.</div>
+    <div style="font-size:13px;color:var(--text3);margin-top:10px;padding:8px;background:rgba(200,168,75,.06);border-radius:2px;border:1px solid rgba(200,168,75,.15)">🔐 Les <strong>Secrets</strong> (onglet Historique) sont toujours privés — uniquement toi et le MJ.</div>
     <div style="display:flex;justify-content:flex-end;margin-top:14px"></div>`);
 }
 
@@ -336,8 +336,8 @@ function openHpModal(){
     <div class="fl mb6">Type de dégâts <span style="color:var(--text3);font-weight:400">(facultatif — 🛡 résistance / ✦ immunité)</span></div>
     <select id="hpDmgType" class="fi" style="margin-bottom:14px"><option value="">— Non typé —</option>${list.map(t=>`<option value="${esc(t)}">${ei.includes(t)?'✦ ':er.includes(t)?'🛡 ':''}${esc(t)}</option>`).join('')}</select>
     <div style="display:flex;gap:8px">
-      <button class="btn" style="flex:1;background:#b71c1c;color:#fff;border-color:#b71c1c" onclick="_railApplyHp(-1)">💥 Dégâts</button>
-      <button class="btn" style="flex:1;background:#2e7d32;color:#fff;border-color:#2e7d32" onclick="_railApplyHp(1)">💚 Soins</button>
+      <button class="btn" style="flex:1;background:var(--danger);color:#fff;border-color:var(--danger)" onclick="_railApplyHp(-1)">💥 Dégâts</button>
+      <button class="btn" style="flex:1;background:var(--good);color:#fff;border-color:var(--good)" onclick="_railApplyHp(1)">💚 Soins</button>
     </div>`);
   setTimeout(()=>{const i=document.getElementById('hpDelta');if(i)i.focus();},60);
 }
@@ -353,7 +353,7 @@ function promptConcSave(dmg){
   openModal(`<div style="text-align:center;padding:6px 4px">
     <div style="font-size:32px;margin-bottom:4px">🎯</div>
     <div class="pt" style="margin-bottom:6px">Concentration menacée</div>
-    <div style="font-size:18px;color:var(--text2);margin-bottom:16px">Tu as subi <strong style="color:#e53935">${dmg}</strong> dégâts en te concentrant${p.concentrationSpell?` sur <strong style="color:var(--cp)">${esc(p.concentrationSpell)}</strong>`:''}.<br>Jet de sauvegarde : <strong>CON DD ${dc}</strong>.<br><span style="font-size:17px;color:var(--text3)">Échec = concentration brisée.</span></div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:16px">Tu as subi <strong style="color:var(--danger)">${dmg}</strong> dégâts en te concentrant${p.concentrationSpell?` sur <strong style="color:var(--cp)">${esc(p.concentrationSpell)}</strong>`:''}.<br>Jet de sauvegarde : <strong>CON DD ${dc}</strong>.<br><span style="font-size:13px;color:var(--text3)">Échec = concentration brisée.</span></div>
     <div style="display:flex;gap:8px;justify-content:center">
       <button class="btn bac" onclick="closeModal();${typeof rollConcSave==='function'?`rollConcSave(${dmg})`:''}">🎲 Lancer le JS CON</button>
       <button class="btn" onclick="closeModal()">Plus tard</button>
@@ -398,7 +398,7 @@ function applyHp(sign){
       const _newHp=Math.max(0,Math.min(_effMax+(p.hpTemp||0),p.hp-dmg));
       if(_newHp===0&&p.race==='Demi-Orc'&&!p.relentlessEnduranceUsed){
         p.hp=0;_markUnsaved();render();
-        openModal('<div style="text-align:center;padding:20px 16px"><div style="font-size:36px;margin-bottom:8px">🧟</div><div class="pt" style="margin-bottom:6px">Endurance implacable</div><div style="font-size:19px;color:var(--text2);margin-bottom:20px">Vous tombez à 0 PV !<br>Utiliser <strong>Endurance implacable</strong> pour tomber à <strong style="color:#4caf50">1 PV</strong> ?<br><span style="font-size:17px;color:var(--text3)">(1 utilisation par repos long)</span></div><div style="display:flex;gap:8px;justify-content:center"><button class="btn bprimary" style="min-width:80px" onclick="useRelentlessEndurance()">✅ Oui</button><button class="btn" style="min-width:80px" onclick="closeModal()">❌ Non</button></div></div>');
+        openModal('<div style="text-align:center;padding:20px 16px"><div style="font-size:36px;margin-bottom:8px">🧟</div><div class="pt" style="margin-bottom:6px">Endurance implacable</div><div style="font-size:14px;color:var(--text2);margin-bottom:20px">Vous tombez à 0 PV !<br>Utiliser <strong>Endurance implacable</strong> pour tomber à <strong style="color:var(--good)">1 PV</strong> ?<br><span style="font-size:13px;color:var(--text3)">(1 utilisation par repos long)</span></div><div style="display:flex;gap:8px;justify-content:center"><button class="btn bprimary" style="min-width:80px" onclick="useRelentlessEndurance()">✅ Oui</button><button class="btn" style="min-width:80px" onclick="closeModal()">❌ Non</button></div></div>');
         return;
       }
       p.hp=_newHp;
@@ -425,11 +425,11 @@ function _checkHpZeroVeille(){
   const isAnciens=((p.archetype||{})['Paladin']==='Serment des anciens')||(p.features||[]).some(f=>f.name==='Serment des anciens');
   const artLvl=((p.classes||[]).find(c=>c.name==='Artificier')||{}).level||0;
   if(palLvl>=15&&isAnciens&&!cc['SentinelleImmortelleUsed']){
-    openModal('<div style="text-align:center;padding:20px 16px"><div style="font-size:36px;margin-bottom:8px">🌿</div><div class="pt" style="margin-bottom:6px">Sentinelle immortelle</div><div style="font-size:19px;color:var(--text2);margin-bottom:20px">Tu tombes à 0 PV !<br>Rester à <strong style="color:#4caf50">1 PV</strong> à la place ?<br><span style="font-size:17px;color:var(--text3)">(1 utilisation par repos long)</span></div><div style="display:flex;gap:8px;justify-content:center"><button class="btn bprimary" style="min-width:80px" onclick="_applyDropTo1HP(\'SentinelleImmortelleUsed\')">✅ Oui</button><button class="btn" style="min-width:80px" onclick="closeModal()">❌ Non</button></div></div>');
+    openModal('<div style="text-align:center;padding:20px 16px"><div style="font-size:36px;margin-bottom:8px">🌿</div><div class="pt" style="margin-bottom:6px">Sentinelle immortelle</div><div style="font-size:14px;color:var(--text2);margin-bottom:20px">Tu tombes à 0 PV !<br>Rester à <strong style="color:var(--good)">1 PV</strong> à la place ?<br><span style="font-size:13px;color:var(--text3)">(1 utilisation par repos long)</span></div><div style="display:flex;gap:8px;justify-content:center"><button class="btn bprimary" style="min-width:80px" onclick="_applyDropTo1HP(\'SentinelleImmortelleUsed\')">✅ Oui</button><button class="btn" style="min-width:80px" onclick="closeModal()">❌ Non</button></div></div>');
     return;
   }
   if(artLvl>=20){
-    openModal('<div style="text-align:center;padding:20px 16px"><div style="font-size:36px;margin-bottom:8px">⚙</div><div class="pt" style="margin-bottom:6px">Âme de l\'artifice</div><div style="font-size:19px;color:var(--text2);margin-bottom:20px">Tu tombes à 0 PV !<br>Mettre fin à une <strong>infusion</strong> (réaction) pour rester à <strong style="color:#4caf50">1 PV</strong> ?<br><span style="font-size:17px;color:var(--text3)">(retire l\'infusion dans ton panneau)</span></div><div style="display:flex;gap:8px;justify-content:center"><button class="btn bprimary" style="min-width:80px" onclick="_applyDropTo1HP(null)">✅ Oui</button><button class="btn" style="min-width:80px" onclick="closeModal()">❌ Non</button></div></div>');
+    openModal('<div style="text-align:center;padding:20px 16px"><div style="font-size:36px;margin-bottom:8px">⚙</div><div class="pt" style="margin-bottom:6px">Âme de l\'artifice</div><div style="font-size:14px;color:var(--text2);margin-bottom:20px">Tu tombes à 0 PV !<br>Mettre fin à une <strong>infusion</strong> (réaction) pour rester à <strong style="color:var(--good)">1 PV</strong> ?<br><span style="font-size:13px;color:var(--text3)">(retire l\'infusion dans ton panneau)</span></div><div style="display:flex;gap:8px;justify-content:center"><button class="btn bprimary" style="min-width:80px" onclick="_applyDropTo1HP(null)">✅ Oui</button><button class="btn" style="min-width:80px" onclick="closeModal()">❌ Non</button></div></div>');
     return;
   }
 }
@@ -588,16 +588,16 @@ function addResist(cat,val){const p=P();if(!val||!val.trim())return;if(!p[cat])p
 function openResistModal(){
   openModal(`<div>
     <div class="pt" style="margin-bottom:12px">+ Résistances & Immunités</div>
-    <div style="font-size:17px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Résistances aux dégâts</div>
+    <div style="font-size:13px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Résistances aux dégâts</div>
     <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px">${_DMG_TYPES.map(t=>`<span class="status-badge bonus" style="cursor:pointer" onclick="addResist('dmgResistances','${jsq(t)}');closeModal()">🛡 ${esc(t)}</span>`).join('')}</div>
-    <div style="font-size:17px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Immunités aux dégâts</div>
-    <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px">${_DMG_TYPES.map(t=>`<span class="status-badge" style="background:#2e1b00;border-color:#ff9800;color:#ff9800;cursor:pointer" onclick="addResist('dmgImmunities','${jsq(t)}');closeModal()">✦ ${esc(t)}</span>`).join('')}</div>
-    <div style="font-size:17px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Immunités aux conditions</div>
+    <div style="font-size:13px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Immunités aux dégâts</div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px">${_DMG_TYPES.map(t=>`<span class="status-badge" style="background:#2e1b00;border-color:var(--warn);color:var(--warn);cursor:pointer" onclick="addResist('dmgImmunities','${jsq(t)}');closeModal()">✦ ${esc(t)}</span>`).join('')}</div>
+    <div style="font-size:13px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Immunités aux conditions</div>
     <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px">${_COND_TYPES.map(t=>`<span class="status-badge malus" style="cursor:pointer" onclick="addResist('condImmunities','${jsq(t)}');closeModal()">🚫 ${esc(t)}</span>`).join('')}</div>
-    <div style="font-size:17px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Personnalisé</div>
+    <div style="font-size:13px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Personnalisé</div>
     <div style="display:flex;gap:6px">
       <input class="fi" id="resistCustom" placeholder="Type de dégât ou condition..." style="flex:1">
-      <select id="resistCat" style="padding:7px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:18px">
+      <select id="resistCat" style="padding:7px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;color:var(--text);font-size:13px">
         <option value="dmgResistances">Résistance</option>
         <option value="dmgImmunities">Immunité dégâts</option>
         <option value="condImmunities">Immunité condition</option>

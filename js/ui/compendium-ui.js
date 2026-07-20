@@ -27,7 +27,7 @@ function compLibSectionHtml(){
       <button class="btn bsm bprimary" onclick="importCompPack()">📥 Importer un paquet</button>
       ${typeof compCreateNewPack==='function'?`<button class="btn bsm" onclick="compCreateNewPack()">+ Nouveau (perso)</button>`:''}
     </div>
-    <div style="font-size:17px;color:var(--text3);margin-bottom:8px">Les paquets contiennent sorts, objets, monstres… Tu choisis lesquels utiliser <strong>par table</strong> (roue crantée de la table).</div>
+    <div style="font-size:13px;color:var(--text3);margin-bottom:8px">Les paquets contiennent sorts, objets, monstres… Tu choisis lesquels utiliser <strong>par table</strong> (roue crantée de la table).</div>
     <div id="comp_lib_list">${compRenderLibList()}</div>`;
 }
 function editPersoPack(id){
@@ -38,22 +38,22 @@ function editPersoPack(id){
 
 function compRenderLibList(){
   const packs = COMP.library();
-  if(!packs.length) return `<div style="font-size:18px;color:var(--text3);font-style:italic;padding:6px 0">Aucun paquet.</div>`;
+  if(!packs.length) return `<div style="font-size:13px;color:var(--text3);font-style:italic;padding:6px 0">Aucun paquet.</div>`;
   return packs.map(p => {
     const badge = p.builtin
-      ? `<span style="font-size:13px;color:var(--cp);background:rgba(200,168,75,.12);border:1px solid rgba(200,168,75,.35);border-radius:8px;padding:1px 6px">Intégré</span>`
+      ? `<span style="font-size:13px;color:var(--cp);background:rgba(200,168,75,.12);border:1px solid rgba(200,168,75,.35);border-radius:2px;padding:1px 6px">Intégré</span>`
       : p.perso
-      ? `<span style="font-size:13px;color:#b58be0;background:rgba(181,139,224,.12);border:1px solid rgba(181,139,224,.35);border-radius:8px;padding:1px 6px">Perso</span>`
-      : `<span style="font-size:13px;color:#7eb8f7;background:rgba(126,184,247,.1);border:1px solid rgba(126,184,247,.3);border-radius:8px;padding:1px 6px">Importé</span>`;
+      ? `<span style="font-size:13px;color:#b58be0;background:rgba(181,139,224,.12);border:1px solid rgba(181,139,224,.35);border-radius:2px;padding:1px 6px">Perso</span>`
+      : `<span style="font-size:13px;color:#7eb8f7;background:rgba(126,184,247,.1);border:1px solid rgba(126,184,247,.3);border-radius:2px;padding:1px 6px">Importé</span>`;
     const nameJson = JSON.stringify(p.name).replace(/"/g,'&quot;');
-    return `<div style="display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px;margin-bottom:6px">
+    return `<div style="display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:9px;margin-bottom:6px">
       <div style="flex:1;min-width:0">
-        <div style="font-size:18px;font-weight:600;display:flex;align-items:center;gap:6px">${esc(p.name)} ${badge}</div>
-        <div style="font-size:17px;color:var(--text3)">${_compCountsLabel(p.counts)}</div>
+        <div style="font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px">${esc(p.name)} ${badge}</div>
+        <div style="font-size:13px;color:var(--text3)">${_compCountsLabel(p.counts)}</div>
       </div>
       ${p.perso?`<button class="btn bsm" title="Éditer" onclick="editPersoPack('${p.id}')">✏️</button>`:''}
       <button class="btn bsm" title="Exporter / partager" onclick="exportCompPack('${p.id}')">📤</button>
-      ${p.imported?`<button class="btn bsm" style="color:#e53935;border-color:rgba(229,57,53,.3)" title="Supprimer" onclick="confirmRemoveCompPack('${p.id}',${nameJson})">🗑</button>`:''}
+      ${p.imported?`<button class="btn bsm" style="color:var(--danger);border-color:rgba(229,57,53,.3)" title="Supprimer" onclick="confirmRemoveCompPack('${p.id}',${nameJson})">🗑</button>`:''}
     </div>`;
   }).join('');
 }
@@ -119,18 +119,18 @@ function compTableSelectorHtml(selected){
     const cats = types.map(t => {
       const on  = sel ? sel.includes(t) : false;
       const cnt = (p.counts && p.counts[t]) ? ' ('+p.counts[t]+')' : '';
-      return `<label style="display:flex;align-items:center;gap:5px;font-size:18px;cursor:pointer;color:var(--text2)">
+      return `<label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;color:var(--text2)">
         <input type="checkbox" class="tblcat" data-pack="${p.id}" data-type="${t}" ${on?'checked':''} onchange="_compTableSelChanged()" style="accent-color:var(--cp)"> ${_COMP_TYPE_SHORT[t]||t}${cnt}</label>`;
     }).join('');
-    return `<div style="border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:6px">
-      <label style="display:flex;align-items:center;gap:8px;font-size:18px;font-weight:600;cursor:pointer">
+    return `<div style="border:1px solid var(--border);border-radius:2px;padding:8px 10px;margin-bottom:6px">
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;cursor:pointer">
         <input type="checkbox" class="tblmaster" data-pack="${p.id}" ${masterOn?'checked':''} onchange="_compToggleMaster('${p.id}',this.checked);_compTableSelChanged()" style="accent-color:var(--cp)">
         ${esc(p.name)} <span style="font-size:13px;color:var(--text3);font-weight:400">${p.builtin?'Intégré':'Importé'}</span>
       </label>
       <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:7px;padding-left:24px">${cats}</div>
     </div>`;
   }).join('');
-  return rows || `<div style="font-size:18px;color:var(--text3);font-style:italic">Aucun paquet dans ta bibliothèque. Importe-en un dans ton profil.</div>`;
+  return rows || `<div style="font-size:13px;color:var(--text3);font-style:italic">Aucun paquet dans ta bibliothèque. Importe-en un dans ton profil.</div>`;
 }
 function _compToggleMaster(packId, on){
   const sel = '.tblcat[data-pack="' + ((window.CSS && CSS.escape) ? CSS.escape(packId) : packId) + '"]';

@@ -66,30 +66,30 @@ function openUserSettings(){
       :`${esc(c.charClass||'')} • ${esc(c.campaignName||'')} (${esc(c.tableName||'')})`;
     const actionLabel=isSolo?'Éditer →':'Jouer →';
     return`<div class="charlib-item" onclick="enterCampaignFromLib('${campId}','${jsq(c.tableName||'')}','${jsq(c.campaignName||'')}')">
-      <span style="font-size:20px">${currentUserData.avatar||'⚔'}</span>
+      <span style="font-size:15px">${currentUserData.avatar||'⚔'}</span>
       <div style="flex:1;min-width:0">
-        <div style="font-size:18px;font-weight:600;color:var(--text)">${esc(c.charName||'?')}</div>
-        <div style="font-size:17px;color:var(--text3)">${subtitle}</div>
+        <div style="font-size:13px;font-weight:600;color:var(--text)">${esc(c.charName||'?')}</div>
+        <div style="font-size:13px;color:var(--text3)">${subtitle}</div>
       </div>
-      <span style="color:var(--cp);font-size:17px;flex-shrink:0">${actionLabel}</span>
+      <span style="color:var(--cp);font-size:13px;flex-shrink:0">${actionLabel}</span>
       <button class="btn bsm" style="flex-shrink:0;margin-left:4px" onclick="event.stopPropagation();exportCharacter('${campId}')" title="Exporter en JSON">⬇</button>
-      <button class="btn bsm" style="color:#e53935;border-color:rgba(229,57,53,.3);margin-left:4px;flex-shrink:0" onclick="event.stopPropagation();deleteCharFromLib('${campId}')" title="Supprimer ce personnage">🗑</button>
+      <button class="btn bsm" style="color:var(--danger);border-color:rgba(229,57,53,.3);margin-left:4px;flex-shrink:0" onclick="event.stopPropagation();deleteCharFromLib('${campId}')" title="Supprimer ce personnage">🗑</button>
     </div>`;}).join('')
-    :`<div style="font-size:18px;color:var(--text3);font-style:italic;padding:6px 0">Aucun personnage sauvegardé.</div>`;
+    :`<div style="font-size:13px;color:var(--text3);font-style:italic;padding:6px 0">Aucun personnage sauvegardé.</div>`;
   // Section compendiums
   const compIds=Object.keys(_mjCompLib);
   const compHtml=compIds.length?compIds.map(id=>{
     const c=_mjCompLib[id];
-    return`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:6px;display:flex;align-items:center;gap:8px">
+    return`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:10px;margin-bottom:6px;display:flex;align-items:center;gap:8px">
       <div style="flex:1;min-width:0">
-        <div style="font-size:18px;font-weight:600;color:var(--text)">${esc(c.name)}</div>
-        <div style="font-size:17px;color:var(--text3)">${(c.feats||[]).length} capacité(s) · ${(c.spells||[]).length} sort(s) · ${(c.items||[]).length} objet(s)</div>
+        <div style="font-size:13px;font-weight:600;color:var(--text)">${esc(c.name)}</div>
+        <div style="font-size:13px;color:var(--text3)">${(c.feats||[]).length} capacité(s) · ${(c.spells||[]).length} sort(s) · ${(c.items||[]).length} objet(s)</div>
       </div>
       <button class="btn bsm" onclick="closeModal();mjOpenCompendiumEditor('${id}')" title="Éditer">✏️</button>
       <button class="btn bsm" onclick="exportMJCompendium('${id}')" title="Exporter">📤</button>
-      <button class="btn bsm" style="color:#e53935;border-color:rgba(229,57,53,.3)" onclick="mjDeleteComp('${id}')" title="Supprimer">🗑</button>
+      <button class="btn bsm" style="color:var(--danger);border-color:rgba(229,57,53,.3)" onclick="mjDeleteComp('${id}')" title="Supprimer">🗑</button>
     </div>`;}).join('')
-    :`<div style="font-size:18px;color:var(--text3);font-style:italic;padding:6px 0">Aucun compendium personnalisé.</div>`;
+    :`<div style="font-size:13px;color:var(--text3);font-style:italic;padding:6px 0">Aucun compendium personnalisé.</div>`;
   openModal(`<div class="pt" style="margin-bottom:12px">⚙ Paramètres du profil</div>
     <details class="acc" open>
       <summary>🧑 Profil</summary>
@@ -121,26 +121,26 @@ function openUserSettings(){
       <summary>🔄 Mise à jour</summary>
       <div class="acc-body">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-          <div><div style="font-size:18px;color:var(--text2)">Version installée</div><div style="font-size:22px;font-weight:700;color:var(--cp);font-family:monospace">v${typeof APP_VERSION!=='undefined'?APP_VERSION:'—'}</div></div>
-          ${typeof _pendingSwUpdate!=='undefined'&&_pendingSwUpdate?`<span style="font-size:15px;padding:2px 8px;border-radius:10px;background:rgba(200,168,75,.15);border:1px solid var(--cp);color:var(--cp)">Mise à jour disponible</span>`:'<span style="font-size:17px;color:var(--text3)">✓ À jour</span>'}
+          <div><div style="font-size:13px;color:var(--text2)">Version installée</div><div style="font-size:16px;font-weight:700;color:var(--cp);font-family:monospace">v${typeof APP_VERSION!=='undefined'?APP_VERSION:'—'}</div></div>
+          ${typeof _pendingSwUpdate!=='undefined'&&_pendingSwUpdate?`<span style="font-size:12px;padding:2px 8px;border-radius:2px;background:rgba(200,168,75,.15);border:1px solid var(--cp);color:var(--cp)">Mise à jour disponible</span>`:'<span style="font-size:13px;color:var(--text3)">✓ À jour</span>'}
         </div>
         ${typeof _pendingSwUpdate!=='undefined'&&_pendingSwUpdate?`<button class="btn bac" style="width:100%;margin-bottom:8px" onclick="closeModal();_showUpdateOverlay()">✨ Installer la mise à jour en attente</button>`:''}
         <div style="display:flex;flex-direction:column;gap:8px">
           <button class="btn bac" style="width:100%" onclick="closeModal();_manualCheckUpdate()">🔄 Vérifier les mises à jour</button>
           <button class="btn bsm" style="width:100%" onclick="closeModal();_forceHardReload()">🧹 Forcer le rechargement (vide le cache)</button>
         </div>
-        <div style="font-size:15px;color:var(--text3);font-style:italic;margin-top:8px">Le site vérifie aussi automatiquement à chaque chargement. « Forcer le rechargement » sert si une nouvelle version semble bloquée.</div>
+        <div style="font-size:12px;color:var(--text3);font-style:italic;margin-top:8px">Le site vérifie aussi automatiquement à chaque chargement. « Forcer le rechargement » sert si une nouvelle version semble bloquée.</div>
       </div>
     </details>
     <details class="acc">
       <summary>🎲 Effets de dé</summary>
       <div class="acc-body">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px">
-          <div><div style="font-size:18px;color:var(--text2)">Animation de jet</div><div style="font-size:15px;color:var(--text3)">Le résultat surgit en grand à chaque jet (runes arcaniques).</div></div>
+          <div><div style="font-size:13px;color:var(--text2)">Animation de jet</div><div style="font-size:12px;color:var(--text3)">Le résultat surgit en grand à chaque jet (runes arcaniques).</div></div>
           <button class="btn bsm${typeof _diceFxOn==='function'&&_diceFxOn()?' bac':''}" onclick="_setDicePref('fx')">${typeof _diceFxOn==='function'&&_diceFxOn()?'✓ Activée':'Désactivée'}</button>
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
-          <div><div style="font-size:18px;color:var(--text2)">Son de dé</div><div style="font-size:15px;color:var(--text3)">Bruit de dé synthétisé (aucun fichier). Désactivé par défaut.</div></div>
+          <div><div style="font-size:13px;color:var(--text2)">Son de dé</div><div style="font-size:12px;color:var(--text3)">Bruit de dé synthétisé (aucun fichier). Désactivé par défaut.</div></div>
           <button class="btn bsm${typeof _diceSoundIsOn==='function'&&_diceSoundIsOn()?' bac':''}" onclick="_setDicePref('sound')">${typeof _diceSoundIsOn==='function'&&_diceSoundIsOn()?'✓ Activé':'Désactivé'}</button>
         </div>
       </div>
@@ -148,7 +148,7 @@ function openUserSettings(){
     <details class="acc">
       <summary>❓ Aide & Guide</summary>
       <div class="acc-body">
-        <p style="font-size:18px;color:var(--text3);margin-bottom:10px">Revoir les guides de démarrage pas à pas.</p>
+        <p style="font-size:13px;color:var(--text3);margin-bottom:10px">Revoir les guides de démarrage pas à pas.</p>
         <div style="display:flex;flex-direction:column;gap:6px">
           <button class="btn bsm" onclick="closeModal();startTutorial('player')">📖 Guide Joueur</button>
           <button class="btn bsm" onclick="closeModal();startTutorial('fiche')">🧑 Guide Fiche de personnage</button>
@@ -159,30 +159,30 @@ function openUserSettings(){
     <details class="acc">
       <summary>🔐 Compte</summary>
       <div class="acc-body">
-        <div style="font-size:18px;color:var(--text3);margin-bottom:10px">Email : <strong style="color:var(--text2)">${esc(currentUser.email)}</strong></div>
+        <div style="font-size:13px;color:var(--text3);margin-bottom:10px">Email : <strong style="color:var(--text2)">${esc(currentUser.email)}</strong></div>
         <div style="display:flex;flex-direction:column;gap:6px">
           <button class="btn bsm" onclick="openChangeEmail()">✉️ Changer l'email</button>
           <button class="btn bsm" onclick="openChangePassword()">🔑 Changer le mot de passe</button>
-          <button class="btn bsm" style="color:#e53935;border-color:rgba(229,57,53,.3);margin-top:4px" onclick="openDeleteAccount()">🗑 Supprimer le compte</button>
+          <button class="btn bsm" style="color:var(--danger);border-color:rgba(229,57,53,.3);margin-top:4px" onclick="openDeleteAccount()">🗑 Supprimer le compte</button>
         </div>
       </div>
     </details>
     <details class="acc">
       <summary>⚖️ Crédits & licences</summary>
       <div class="acc-body">
-        <div style="font-size:17px;color:var(--text2);line-height:1.5">
+        <div style="font-size:13px;color:var(--text2);line-height:1.5">
           <p style="margin:0 0 8px">Le contenu de jeu (sorts, objets, monstres…) provient du <strong>Document de Référence du Système 5.1 (« SRD 5.1 »)</strong>, publié par <strong>Wizards of the Coast LLC</strong>.</p>
           <p style="margin:0 0 8px">Il est utilisé sous licence <strong>Creative Commons Attribution 4.0 International (CC BY 4.0)</strong>.</p>
-          <div style="font-size:15px;color:var(--text3);font-style:italic;border-left:2px solid var(--border);padding-left:10px;margin:8px 0">This work includes material taken from the System Reference Document 5.1 (« SRD 5.1 ») by Wizards of the Coast LLC, available under the Creative Commons Attribution 4.0 International License.</div>
+          <div style="font-size:12px;color:var(--text3);font-style:italic;border-left:2px solid var(--border);padding-left:10px;margin:8px 0">This work includes material taken from the System Reference Document 5.1 (« SRD 5.1 ») by Wizards of the Coast LLC, available under the Creative Commons Attribution 4.0 International License.</div>
           <div style="display:flex;flex-direction:column;gap:4px;margin-top:8px">
-            <a href="https://dnd.wizards.com/resources/systems-reference-document" target="_blank" rel="noopener" style="color:var(--cp);font-size:16px">↗ SRD 5.1 (Wizards of the Coast)</a>
-            <a href="https://creativecommons.org/licenses/by/4.0/legalcode.fr" target="_blank" rel="noopener" style="color:var(--cp);font-size:16px">↗ Licence CC BY 4.0</a>
+            <a href="https://dnd.wizards.com/resources/systems-reference-document" target="_blank" rel="noopener" style="color:var(--cp);font-size:12.5px">↗ SRD 5.1 (Wizards of the Coast)</a>
+            <a href="https://creativecommons.org/licenses/by/4.0/legalcode.fr" target="_blank" rel="noopener" style="color:var(--cp);font-size:12.5px">↗ Licence CC BY 4.0</a>
           </div>
         </div>
       </div>
     </details>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:8px">
-      <button class="btn bsm" style="color:#e53935;border-color:rgba(229,57,53,.3)" onclick="closeModal();doLogout()">🚪 Déconnexion</button>
+      <button class="btn bsm" style="color:var(--danger);border-color:rgba(229,57,53,.3)" onclick="closeModal();doLogout()">🚪 Déconnexion</button>
       <button class="btn bsm" style="border-color:rgba(200,168,75,.4);color:var(--cp)" onclick="openFeedbackModal()">💬 Avis / Bug</button>
     </div>`);
   window._settingsAvatar=av;
@@ -196,7 +196,7 @@ function selectSettingsAvatar(av){
 
 function openChangeEmail(){
   openModal(`<div class="pt">✉️ Changer l'email</div>
-    <div style="font-size:18px;color:var(--text3);margin-bottom:12px">Email actuel : <strong style="color:var(--text2)">${esc(currentUser.email)}</strong></div>
+    <div style="font-size:13px;color:var(--text3);margin-bottom:12px">Email actuel : <strong style="color:var(--text2)">${esc(currentUser.email)}</strong></div>
     <div class="fl mb6">Nouvel email</div>
     <input class="fi" id="newEmail" type="email" placeholder="nouveau@email.com" style="margin-bottom:10px">
     <div class="fl mb6">Mot de passe actuel (confirmation)</div>
@@ -252,8 +252,8 @@ async function doChangePassword(){
 }
 
 function openDeleteAccount(){
-  openModal(`<div class="pt" style="color:#e53935">⚠️ Supprimer le compte</div>
-    <p style="font-size:18px;color:var(--text2);margin-bottom:14px">Cette action est <strong>irréversible</strong>. Toutes vos données seront supprimées définitivement.</p>
+  openModal(`<div class="pt" style="color:var(--danger)">⚠️ Supprimer le compte</div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:14px">Cette action est <strong>irréversible</strong>. Toutes vos données seront supprimées définitivement.</p>
     <div class="fl mb6">Mot de passe (confirmation)</div>
     <input class="fi" id="deleteAccPwd" type="password" placeholder="••••••••" style="margin-bottom:10px">
     <div class="fl mb6">Tapez <strong style="color:var(--cp)">SUPPRIMER</strong> pour confirmer</div>
@@ -279,7 +279,7 @@ async function doDeleteAccount(){
 }
 function openFeedbackModal(){
   openModal(`<div class="pt" style="margin-bottom:12px">💬 Avis & retours bêta</div>
-    <p style="font-size:18px;color:var(--text2);margin-bottom:14px">Un bug ? Une idée ? Un truc qui manque ? Dis-nous tout — chaque retour compte.</p>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:14px">Un bug ? Une idée ? Un truc qui manque ? Dis-nous tout — chaque retour compte.</p>
     <div class="fl mb6">Type</div>
     <select class="fi" id="fbType" style="margin-bottom:10px">
       <option value="bug">🐛 Bug / problème</option>
@@ -385,12 +385,12 @@ function openCharOrCreate(tableId,campId){
     <div style="margin-bottom:14px">
       <div class="fl mb6" style="margin-bottom:8px">Utiliser un personnage existant</div>
       ${others.map(([cid,c])=>`<div class="charlib-item" style="cursor:pointer" onclick="useExistingCharForCampaign('${cid}','${tableId}','${campId}')">
-        <span style="font-size:25px">${(currentUserData&&currentUserData.avatar)||'⚔'}</span>
+        <span style="font-size:18px">${(currentUserData&&currentUserData.avatar)||'⚔'}</span>
         <div style="flex:1;min-width:0">
-          <div style="font-size:18px;font-weight:600">${esc(c.charName||'?')}</div>
-          <div style="font-size:17px;color:var(--text3)">${esc(c.charClass||'')} • ${esc(c.campaignName||'')}</div>
+          <div style="font-size:13px;font-weight:600">${esc(c.charName||'?')}</div>
+          <div style="font-size:13px;color:var(--text3)">${esc(c.charClass||'')} • ${esc(c.campaignName||'')}</div>
         </div>
-        <span style="color:var(--cp);font-size:17px">Utiliser →</span>
+        <span style="color:var(--cp);font-size:13px">Utiliser →</span>
       </div>`).join('')}
     </div>`:'';
   openModal(`<div class="pt">+ Rejoindre la campagne</div>

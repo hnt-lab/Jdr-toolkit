@@ -437,198 +437,45 @@
 #mjScreen{background:var(--ds-page)!important}
 @media(max-width:640px){#mjScreen{padding-top:64px!important}}
 
-/* ── 21 · MODALS — peau design-system (le conteneur réel = #modal > .modal-box) ── */
-.modal-box{background:var(--ds-card)!important;color:var(--ds-ink)!important;
-  border:1px solid var(--ds-acc)!important;border-radius:0!important;
-  box-shadow:inset 0 0 0 2px var(--ds-card),inset 0 0 0 3px var(--ds-line),0 12px 40px rgba(0,0,0,.5)!important}
-.modal-box .pt{font-family:var(--ds-disp)!important;font-variant:small-caps;letter-spacing:.06em;
-  color:var(--ds-acc-strong)!important;border-bottom:2px solid var(--ds-acc);padding-bottom:6px}
-.modal-box .fl{color:var(--ds-soft)!important}
-.modal-box .fi{background:var(--ds-card2)!important;border:1px solid var(--ds-line)!important;
-  color:var(--ds-ink)!important;border-radius:0!important}
-.modal-box .btn{background:var(--ds-card2)!important;border:1px solid var(--ds-acc)!important;
-  color:var(--ds-ink)!important;border-radius:0!important;min-height:40px}
-.modal-box .btn.bac,.modal-box .btn.bprimary{
-  background:var(--ds-acc)!important;color:var(--ds-card)!important;border-color:var(--ds-acc-strong)!important;font-weight:700}
-.modal-box .btn.bdanger{background:var(--ds-seal)!important;color:#f4ead0!important;border-color:var(--ds-seal)!important}
-.modal-box .invite-box{background:var(--ds-card2)!important;border:1px solid var(--ds-line)!important;color:var(--ds-ink)!important}
-.modal-box .invite-code{color:var(--ds-acc-strong)!important;font-family:var(--ds-mono)!important}
+/* ═══════════════════════════════════════════════════════════════════════
+   STRUCTUREL uniquement (les couleurs/tailles/cartes = variables.css +
+   components.css + layout.css). Fini les rustines : plus de remap de
+   variables, plus de sélecteurs d'attribut, plus de contre-overrides.
+   ═══════════════════════════════════════════════════════════════════════ */
 
-/* ── 22 · VEILLÉE : neutraliser le voile parchemin (spécificité #id) ─── */
-/* parchemin.css force des fonds clairs sur #tabContent/#charRail avec !important ;
-   en mode sombre on le re-force avec la MÊME spécificité + ordre (ce fichier est dernier). */
-body.ds-dark #tabContent,body.ds-dark #mjTabContent{background:var(--ds-page)!important}
-body.ds-dark #charRail{background:transparent!important}
-body.ds-dark #charRail .rail-vitals{background:var(--ds-card2)!important}
-body.ds-dark #tabContent .panel,body.ds-dark #mjTabContent .panel{
-  background:var(--ds-card)!important;color:var(--ds-ink)!important;border-color:var(--ds-line)!important}
-body.ds-dark #tabContent .pt,body.ds-dark #mjTabContent .pt{color:var(--ds-acc)!important;border-color:var(--ds-acc)!important}
-body.ds-dark #tabContent .fi,body.ds-dark #tabContent input,body.ds-dark #tabContent textarea,body.ds-dark #tabContent select,
-body.ds-dark #mjTabContent .fi,body.ds-dark #mjTabContent input,body.ds-dark #mjTabContent textarea,body.ds-dark #mjTabContent select{
-  background:var(--ds-card2)!important;color:var(--ds-ink)!important;border-color:var(--ds-line)!important}
-body.ds-dark #tabContent .btn,body.ds-dark #mjTabContent .btn{
-  background:var(--ds-card2)!important;color:var(--ds-ink)!important;border-color:var(--ds-acc)!important}
-body.ds-dark #tabContent .btn.bac,body.ds-dark #tabContent .btn.bprimary,
-body.ds-dark #mjTabContent .btn.bac,body.ds-dark #mjTabContent .btn.bprimary{
-  background:var(--ds-acc)!important;color:var(--ds-leather)!important}
+/* Vitals en UNE ligne (utilisé par renderCharRail) */
+.dsv-row{display:flex;align-items:center;gap:9px}
+.dsv-row .hp-bar-hero{flex:1;min-width:70px;margin:0!important;position:relative}
+.dsv-stat{white-space:nowrap;color:var(--text2);font-size:12px}
+.dsv-stat b{color:var(--text);font-family:var(--M);font-size:14px}
+.dsv-hp{position:absolute;right:7px;top:50%;transform:translateY(-50%);font-family:var(--M);font-size:11px;color:var(--text);z-index:3}
 
-/* ── 23 · GAUCHER : le dé EXISTANT (#diceFloat) passe aussi à gauche ─── */
+/* Gaucher : le dé passe à gauche */
 body.ds-lefty #diceFloat{right:auto!important;left:13px!important}
 
-/* ── 24 · VEILLÉE, finitions ─────────────────────────────────────────── */
-/* La bande du rail restait claire (styles hérités) : on force, clair ET sombre */
-.tab-scroller{background:color-mix(in srgb,var(--ds-leather) 14%,var(--ds-page))!important}
-body.ds-dark .tab-scroller{background:color-mix(in srgb,var(--ds-leather) 40%,var(--ds-page))!important}
-/* Encarts internes posés en INLINE avec des fonds blancs translucides (pensés pour
-   l'ancien thème sombre) : en Veillée on les ramène aux tokens via le sélecteur d'attribut */
-body.ds-dark #tabContent [style*="rgba(255,255,255"],body.ds-dark #mjTabContent [style*="rgba(255,255,255"]{
-  background:var(--ds-card2)!important;color:var(--ds-ink)!important}
-body.ds-dark #tabContent [style*="background:#f"],body.ds-dark #mjTabContent [style*="background:#f"]{
-  background:var(--ds-card2)!important;color:var(--ds-ink)!important}
+/* Popup (gros toasts convertis en modale) */
+#dsToastPop{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.5)}
+#dsToastPop .dsp-box{background:var(--surface);color:var(--text);border:1px solid var(--cp);
+  box-shadow:inset 0 0 0 2px var(--surface),inset 0 0 0 3px var(--border),0 14px 44px rgba(0,0,0,.55);
+  max-width:min(430px,92vw);max-height:80vh;overflow-y:auto;padding:16px 18px;font-size:14px}
+#dsToastPop .dsp-box .btn{width:100%;margin-top:12px}
 
-/* ── 25 · FIDÉLITÉ MAQUETTE MOBILE — remapping des anciennes variables ── */
-/* Tous les styles inline écrits en var(--surface/--text/--border/--cp) suivent
-   désormais les tokens ds (et donc les DEUX thèmes) dans les zones migrées. */
-#tabContent,#mjTabContent,#charRail,.modal-box,#dsGroupPage,#hubContent{
-  --surface:var(--ds-card);--surface2:var(--ds-card2);--border:var(--ds-line);
-  --text:var(--ds-ink);--text2:var(--ds-ink);--text3:var(--ds-soft);
-  --cp:var(--ds-acc-strong);--arc:var(--ds-acc)}
-/* Boutons hérités (.btn) des zones de contenu : peau grimoire, les 2 thèmes */
-#tabContent .btn,#mjTabContent .btn,#charRail .btn{
-  background:var(--ds-card2)!important;border:1px solid var(--ds-acc)!important;
-  color:var(--ds-ink)!important;border-radius:0!important}
-#tabContent .btn.bac,#tabContent .btn.bprimary,#mjTabContent .btn.bac,#mjTabContent .btn.bprimary,
-#charRail .btn.bac,#charRail .btn.bprimary{
-  background:var(--ds-acc)!important;color:var(--ds-card)!important;border-color:var(--ds-acc-strong)!important;font-weight:700}
-#charRail .btn[style*="#b71c1c"]{background:var(--ds-seal)!important;border-color:var(--ds-seal)!important;color:#f4ead0!important}
-/* Accordéons (Profil, réglages de table) : sections parchemin, titres gravés */
-.modal-box .acc{border:1px solid var(--ds-line)!important;background:var(--ds-card2)!important;border-radius:0!important}
-.modal-box .acc summary{background:var(--ds-card2)!important;color:var(--ds-acc-strong)!important;
-  font-family:var(--ds-disp)!important;font-variant:small-caps;letter-spacing:.06em}
-.modal-box .acc .acc-body{background:var(--ds-card)!important;color:var(--ds-ink)!important}
-/* Jauge PV du rail : VITRÉE (spécificité #id pour battre l'héritage) */
-#charRail .hp-bar-hero{height:16px!important;background:var(--ds-card2)!important;
-  border:1px solid var(--ds-acc-strong)!important;border-radius:0!important;overflow:hidden;
-  box-shadow:inset 0 0 5px rgba(0,0,0,.28),0 0 10px var(--ds-glow)!important}
-#charRail .hp-bar-hero .hp-fill{border-radius:0!important}
-
-/* ── 26 · VEILLÉE : cartes de listes MJ héritées (.pnj-card & co) ────── */
-body.ds-dark .pnj-card{background:var(--ds-card)!important;border-color:var(--ds-line)!important;color:var(--ds-ink)!important}
-body.ds-dark .pnj-card.pnj-selected{border-color:var(--ds-acc-strong)!important;box-shadow:0 0 8px var(--ds-glow)!important}
-/* Règles MJ + inventaire MJ lisibles en sombre (rapport 2026-07-19) */
-body.ds-dark .regles-table,body.ds-dark .regles-table td,body.ds-dark .regles-table th{
-  background:transparent!important;color:var(--ds-ink)!important;border-color:var(--ds-line)!important}
-body.ds-dark .regles-table th{color:var(--ds-acc)!important}
-body.ds-dark .inv-item{background:var(--ds-card)!important;color:var(--ds-ink)!important;border-color:var(--ds-line)!important}
-
-/* ── 27 · HEADERS PERMANENTS (rapport 2026-07-19) ────────────────────── */
-.hdr,.mj-hdr,.hub-hdr{position:fixed!important;top:0;left:0;right:0;z-index:850}
-#app,#mjScreen,#hubScreen{padding-top:64px!important}
-
-/* ── 28 · FUSION du rail RENFORCÉE (l'onglet actif mord sur la page) ─── */
+/* Fusion du rail : l'onglet actif mord sur la page (mobile) */
 @media(max-width:899px){
-  #tabBar .tab.on{width:61px!important;left:-9px}
-  #mjTabBar .mj-tab.on{width:61px!important;left:-9px}
+  #tabBar .tab.on,#mjTabBar .mj-tab.on{width:61px!important;left:-9px}
   .ds-lefty #tabBar .tab.on,.ds-lefty #mjTabBar .mj-tab.on{left:1px;width:61px!important}
 }
 
-/* ── 29 · VITALS EN UNE LIGNE (maquette) + liquides aux tokens + toasts ── */
-.dsv-row{display:flex;align-items:center;gap:9px}
-.dsv-row .hp-bar-hero{flex:1;min-width:70px;margin:0!important;position:relative}
-.dsv-stat{white-space:nowrap;color:var(--ds-soft);font-size:13px}
-.dsv-stat b{color:var(--ds-ink);font-family:var(--ds-mono);font-size:15px}
-.dsv-hp{position:absolute;right:7px;top:50%;transform:translateY(-50%);font-family:var(--ds-mono);font-size:11px;color:var(--ds-ink);z-index:3}
-#charRail .rail-vitals{padding:8px 10px!important}
-/* Bouton Dégâts/Soins (tête de Combat) → sceau des tokens */
-#tabContent .btn[style*="#b71c1c"]{background:var(--ds-seal)!important;border-color:var(--ds-seal)!important;color:#f4ead0!important}
-/* Remplissages de jauges posés en inline → liquides « verre » aux tokens (2 thèmes) */
-.hp-fill[style*="#4caf50"]{background:linear-gradient(180deg,color-mix(in srgb,var(--ds-good) 62%,white),var(--ds-good) 42%,color-mix(in srgb,var(--ds-good) 55%,black))!important}
-.hp-fill[style*="#ff9800"]{background:linear-gradient(180deg,color-mix(in srgb,var(--ds-warn) 62%,white),var(--ds-warn) 42%,color-mix(in srgb,var(--ds-warn) 55%,black))!important}
-.hp-fill[style*="#e53935"]{background:linear-gradient(180deg,color-mix(in srgb,var(--ds-seal) 70%,white),var(--ds-seal) 42%,color-mix(in srgb,var(--ds-seal) 55%,black))!important}
-/* Toasts → style grimoire (en attendant la passe popups) */
-#toast{background:var(--ds-card)!important;color:var(--ds-ink)!important;border:1px solid var(--ds-acc)!important;
-  border-radius:0!important;box-shadow:inset 0 0 0 2px var(--ds-card),inset 0 0 0 3px var(--ds-line),0 8px 28px rgba(0,0,0,.45)!important;
-  font-family:var(--ds-body)!important;bottom:76px!important}
-
-/* ── 30 · BLOC FINAL FIDÉLITÉ — chrome, cartes double-filet, popups ──── */
-/* En-têtes : TOUJOURS cuir + laiton (l'identité de classe passe par le portrait,
-   pas par la couleur du chrome — les thèmes th-* ne teintent plus l'en-tête) */
-.hdr,.mj-hdr,.hub-hdr{background:linear-gradient(180deg,var(--ds-leather),var(--ds-leather2))!important;
-  border-bottom:2px solid var(--ds-brass)!important}
-.hdr-home-txt,.hdr-char,.mj-hdr-title,.hub-hdr-title{color:var(--ds-brass-hi)!important;font-family:var(--ds-disp)!important}
-.nav-avatar{border-color:var(--ds-brass-hi)!important}
-/* Nav bas : cuir + item actif en pastille laiton (texte cuir) */
-#modeNav{background:linear-gradient(180deg,var(--ds-leather2),var(--ds-leather))!important;border-top:2px solid var(--ds-brass)!important}
-.mode-btn{color:var(--ds-brass-hi)!important;font-family:var(--ds-disp)!important}
-.mode-btn.on{background:var(--ds-brass)!important;color:var(--ds-leather)!important;border-radius:3px!important}
-/* Cartes : le DOUBLE FILET signature de la maquette, dans LES DEUX thèmes */
-#tabContent .panel,#mjTabContent .panel{background:var(--ds-card)!important;border:1px solid var(--ds-acc)!important;
-  box-shadow:inset 0 0 0 2px var(--ds-card),inset 0 0 0 3px var(--ds-line)!important;border-radius:0!important;color:var(--ds-ink)!important}
-#tabContent .pt,#mjTabContent .pt{font-family:var(--ds-disp)!important;font-variant:small-caps;letter-spacing:.08em;
-  color:var(--ds-acc-strong)!important;border-bottom:2px solid var(--ds-acc)!important;padding-bottom:5px}
-/* Badges de statut & chips : peau grimoire */
-.status-badge{background:var(--ds-card2)!important;border:1px solid var(--ds-line)!important;color:var(--ds-soft)!important;border-radius:0!important}
-/* Mini-jauges partout : glissière nette aux tokens (le liquide est déjà remappé) */
-.hp-bar{border-radius:0!important;background:var(--ds-card2)!important;border:1px solid var(--ds-line)!important;overflow:hidden}
-/* Popup grimoire (gros toasts convertis — rapport 2026-07-19) */
-#dsToastPop{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.45)}
-#dsToastPop .dsp-box{background:var(--ds-card);color:var(--ds-ink);border:1px solid var(--ds-acc);
-  box-shadow:inset 0 0 0 2px var(--ds-card),inset 0 0 0 3px var(--ds-line),0 14px 44px rgba(0,0,0,.55);
-  max-width:min(430px,92vw);max-height:80vh;overflow-y:auto;padding:16px 18px;font-size:15px}
-#dsToastPop .dsp-box .btn{width:100%;margin-top:12px;background:var(--ds-acc)!important;color:var(--ds-card)!important;
-  border:1px solid var(--ds-acc-strong)!important;min-height:42px;font-weight:700}
-
-/* ── 31 · ÉCHELLE MAQUETTE — normalisation typo & densité ────────────── */
-/* LE correctif d'allure : la maquette = typo fine (12-15px) + cartes denses.
-   ~1900 tailles inline (17/18/15px…) sont écrasées ici — !important bat l'inline.
-   ⚠ Remplace l'ancienne règle « ≥17px mobile » (2026-06) : l'échelle maquette prime. */
-#tabContent,#mjTabContent,#charRail,#hubContent,#dsGroupPage,.modal-box{font-size:14px;line-height:1.45}
-#tabContent [style*="font-size:25px"],#mjTabContent [style*="font-size:25px"],#charRail [style*="font-size:25px"],#hubContent [style*="font-size:25px"],.modal-box [style*="font-size:25px"]{font-size:17px!important}
-#tabContent [style*="font-size:22px"],#mjTabContent [style*="font-size:22px"],#charRail [style*="font-size:22px"],#hubContent [style*="font-size:22px"],.modal-box [style*="font-size:22px"]{font-size:16px!important}
-#tabContent [style*="font-size:21px"],#mjTabContent [style*="font-size:21px"],#charRail [style*="font-size:21px"],#hubContent [style*="font-size:21px"],.modal-box [style*="font-size:21px"]{font-size:15px!important}
-#tabContent [style*="font-size:20px"],#mjTabContent [style*="font-size:20px"],#charRail [style*="font-size:20px"],#hubContent [style*="font-size:20px"],.modal-box [style*="font-size:20px"]{font-size:15px!important}
-#tabContent [style*="font-size:19px"],#mjTabContent [style*="font-size:19px"],#charRail [style*="font-size:19px"],#hubContent [style*="font-size:19px"],.modal-box [style*="font-size:19px"]{font-size:14px!important}
-#tabContent [style*="font-size:18px"],#mjTabContent [style*="font-size:18px"],#charRail [style*="font-size:18px"],#hubContent [style*="font-size:18px"],.modal-box [style*="font-size:18px"]{font-size:13.5px!important}
-#tabContent [style*="font-size:17px"],#mjTabContent [style*="font-size:17px"],#charRail [style*="font-size:17px"],#hubContent [style*="font-size:17px"],.modal-box [style*="font-size:17px"]{font-size:13px!important}
-#tabContent [style*="font-size:15px"],#mjTabContent [style*="font-size:15px"],#charRail [style*="font-size:15px"],#hubContent [style*="font-size:15px"],.modal-box [style*="font-size:15px"]{font-size:12px!important}
-#tabContent [style*="font-size:13px"],#mjTabContent [style*="font-size:13px"],#charRail [style*="font-size:13px"],#hubContent [style*="font-size:13px"],.modal-box [style*="font-size:13px"]{font-size:11px!important}
-/* Titres, boutons, champs, panneaux : densité maquette */
-#tabContent .pt,#mjTabContent .pt{font-size:15px!important}
-#tabContent .panel,#mjTabContent .panel{padding:10px 12px!important;margin-bottom:10px!important}
-#tabContent .btn,#mjTabContent .btn,#charRail .btn,#hubContent .btn,.modal-box .btn{font-size:13px!important;min-height:34px;padding:6px 10px!important}
-#tabContent .btn.bsm,#mjTabContent .btn.bsm,#charRail .btn.bsm,.modal-box .btn.bsm{font-size:12.5px!important;min-height:30px;padding:4px 8px!important}
-#tabContent .fi,#mjTabContent .fi,.modal-box .fi{font-size:13.5px!important;min-height:34px;padding:6px 8px!important}
-.rail-chip,.status-badge{font-size:11px!important;padding:2px 8px!important}
-/* Bandeau identité + vitals + caracs compacts (proportions maquette) */
-.rail-id{padding:7px 10px!important}
-.rail-portrait{width:42px!important;height:42px!important}
-.rail-name{font-size:15px!important}
-.rail-sub,.rail-sub2{font-size:11px!important}
-.dsv-stat{font-size:12px}
-.dsv-stat b{font-size:14px}
-#charRail .hp-bar-hero{height:15px!important}
-.rail-carac{padding:4px 2px!important}
-.rail-carac-m{font-size:19px!important}
-.rail-carac-n{font-size:9.5px!important}
-.rail-carac-v,.rail-carac-input{font-size:10.5px!important}
-/* Chrome compact : en-tête 44px, nav fine, dé proportionné (mobile) */
+/* Chrome compact mobile (proportions maquette) */
 @media(max-width:899px){
-  .hdr,.mj-hdr,.hub-hdr{min-height:44px!important;padding:4px 10px!important}
-  .hdr-logo{width:22px!important;height:22px!important}
-  .hdr-home-txt,.mj-hdr-title{font-size:14px!important}
-  .hdr-char{font-size:12px!important}
-  #hubVersion{font-size:9px!important}
   .nav-avatar{width:30px!important;height:30px!important;font-size:15px!important}
   #app,#mjScreen,#hubScreen{padding-top:48px!important}
   .tab-scroller{top:46px!important}
   @supports (position:sticky){.rail-vitals{top:44px}}
-  #modeNav{min-height:54px!important}
-  .mode-btn .mode-ico{font-size:17px!important}
-  .mode-btn .mode-lbl{font-size:10.5px!important}
   #diceFloat{width:56px!important;height:56px!important;font-size:25px!important}
 }
 
-/* ── 16 · ACCESSIBILITÉ ──────────────────────────────────────────────── */
+/* Accessibilité */
 @media(prefers-reduced-motion:reduce){
   .ds-hp>i::after,.ds-tank>i::after{animation:none!important}
   .ds-hp.low,.ds-nav .it .bdg.turn,.ds-turnbar,.ds-rail button.lvlup,.ds-head .pp.lvlup{animation:none!important}

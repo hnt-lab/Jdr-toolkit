@@ -1,28 +1,34 @@
-#app{max-width:920px;margin:0 auto;padding:12px 12px 90px}
-.hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;flex-wrap:wrap;gap:8px}
-.hdr-title{font-family:var(--F);font-size:22px;color:var(--cp);letter-spacing:.08em}
-.hdr-char{font-size:18px;color:var(--text2);flex:1;text-align:center}
+#app{max-width:920px;margin:0 auto;padding:56px 12px 90px}
+/* CHROME (en-têtes) — cuir + laiton, permanent, commun aux 3 écrans */
+.hdr,.mj-hdr,.hub-hdr{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;
+  padding:8px 12px;background:linear-gradient(180deg,var(--leather),var(--leather2));
+  border:none;border-bottom:2px solid var(--brass);border-radius:0;
+  position:fixed;top:0;left:0;right:0;z-index:850;min-height:44px}
+.hdr-title,.hdr-home-txt,.hub-hdr-title,.mj-hdr-title{font-family:var(--F);font-size:15px;color:var(--brass-hi);letter-spacing:.06em}
+.hdr-char{font-size:12px;color:var(--brass-hi);opacity:.85;flex:1;text-align:center;min-width:0;overflow:hidden}
+.hdr-logo{width:22px;height:22px}
 .pbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px}
-.ptag{padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-size:17px;cursor:pointer;background:var(--surface);color:var(--text2);transition:all .15s}
-.ptag.on{border-color:var(--cp);color:var(--cp);background:var(--surface2);box-shadow:0 0 6px var(--cglow)}
+.ptag{padding:4px 10px;border-radius:0;border:1px solid var(--border);font-size:12px;cursor:pointer;background:var(--surface);color:var(--text2);transition:all .15s}
+.ptag.on{border-color:var(--cp);color:var(--cp);background:var(--surface2)}
 .ptag-add{border-style:dashed}
 .tabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px}
-.tab{padding:6px 13px;border:1px solid var(--border);border-radius:6px;font-size:17px;cursor:pointer;background:var(--surface);color:var(--text2);font-family:var(--B);transition:all .15s}
-.tab.on{border-color:var(--cp);color:var(--cp);background:var(--surface2);box-shadow:0 0 8px var(--cglow)}
-.tab.lvlup{border-color:#ffd54f;color:#ffd54f;animation:pulse 1.5s infinite}
-@keyframes pulse{0%,100%{box-shadow:0 0 6px rgba(255,213,79,.3)}50%{box-shadow:0 0 14px rgba(255,213,79,.7)}}
-.panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px}
-.pt{font-family:var(--F);font-size:18px;color:var(--cp);letter-spacing:.06em;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.tab{padding:6px 12px;border:1px solid var(--border);border-radius:0;font-size:13px;cursor:pointer;background:var(--surface);color:var(--text2);font-family:var(--B);transition:all .15s}
+.tab.on{border-color:var(--cp);color:var(--cp);background:var(--surface2)}
+.tab.lvlup{border-color:var(--brass-hi);color:var(--cp);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 6px var(--cglow)}50%{box-shadow:0 0 14px var(--cglow)}}
+/* CARTE — double-filet signature de la maquette (angles nets) */
+.panel{background:var(--surface);border:1px solid var(--cp);box-shadow:inset 0 0 0 2px var(--surface),inset 0 0 0 3px var(--border);border-radius:0;padding:11px 12px;margin-bottom:10px;color:var(--text)}
+/* TITRE de carte — petites capitales gravées, souligné laiton */
+.pt{font-family:var(--F);font-variant:small-caps;font-size:15px;color:var(--cp2);letter-spacing:.07em;margin-bottom:9px;padding-bottom:5px;border-bottom:2px solid var(--cp)}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 .g6{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
 .mt8{margin-top:8px}.mb6{margin-bottom:6px}.mb10{margin-bottom:10px}
 /* HUB */
-#hubScreen{display:none;min-height:100vh;padding:0}
-.hub-hdr{display:flex;flex-direction:row;align-items:center;gap:10px;padding:10px 16px;background:rgba(12,8,4,.75);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(200,168,75,.2);position:relative;z-index:2}
-.hub-hdr-title{font-family:var(--F);font-size:25px;color:var(--cp);letter-spacing:.08em;text-shadow:0 0 20px rgba(200,168,75,.4);line-height:1.2;white-space:nowrap}
+#hubScreen{display:none;min-height:100vh;padding:56px 0 0;background:var(--bg)}
+.hub-hdr-title{font-size:15px!important;text-shadow:none;line-height:1.2;white-space:nowrap}
 .hub-hdr-row2{display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0}
-.hub-body{max-width:920px;margin:0 auto;padding:16px 16px 90px;position:relative;z-index:1}
+.hub-body{max-width:1400px;margin:0 auto;padding:14px 16px 90px;position:relative;z-index:1}
 .hub-section{margin-bottom:24px}
 .hub-section-title{font-family:var(--F);font-size:18px;color:var(--cp);letter-spacing:.06em;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid rgba(200,168,75,.2);display:flex;align-items:center;justify-content:space-between}
 .table-card{background:rgba(16,11,7,.8);border:1px solid rgba(200,168,75,.2);border-radius:12px;padding:16px;margin-bottom:12px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 4px 20px rgba(0,0,0,.4)}
@@ -36,30 +42,8 @@
 .camp-status-active{color:#4caf50;border-color:#4caf50;background:rgba(76,175,80,.1)}
 .camp-status-finished{color:var(--text3);border-color:var(--border)}
 .hub-empty{text-align:center;padding:32px 16px;color:var(--text3);font-size:18px;font-style:italic}
-/* FOND TAVERNE */
-.tavern-bg{
-  position:relative;
-  background:
-    radial-gradient(ellipse at 15% 80%, rgba(180,90,10,.25) 0%, transparent 50%),
-    radial-gradient(ellipse at 85% 15%, rgba(210,130,20,.15) 0%, transparent 45%),
-    linear-gradient(rgba(6,4,2,.38), rgba(6,4,2,.38)),
-    url('../img/bg-login.jpg') center/cover fixed;
-}
-.tavern-bg::before{
-  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
-  opacity:.04;
-}
-.tavern-bg::after{
-  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
-  background:
-    radial-gradient(ellipse at 50% 100%, rgba(200,120,20,.12) 0%, transparent 60%),
-    radial-gradient(ellipse at 0% 0%, rgba(180,90,10,.08) 0%, transparent 40%);
-  animation:flicker 8s ease-in-out infinite alternate;
-}
-@keyframes flicker{
-  0%{opacity:.7} 30%{opacity:1} 60%{opacity:.85} 80%{opacity:1} 100%{opacity:.75}
-}
+/* FOND TAVERNE — neutralisé (hub en parchemin uni, maquette 2026-07-20) */
+.tavern-bg{position:relative;background:var(--bg)}
 /* AUTH SCREEN */
 #authScreen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:16px}
 .auth-box{
@@ -123,8 +107,8 @@
   /* Combat row — wrap */
   .combat-row{flex-wrap:wrap}
   /* Boutons plus compacts */
-  .btn{padding:5px 10px;font-size:17px}
-  .bsm{padding:3px 7px;font-size:15px}
+  .btn{padding:5px 10px;font-size:13px}
+  .bsm{padding:3px 7px;font-size:12px}
   /* Hub */
   .hub-hdr{padding:8px 12px}
   .hub-hdr-title{font-size:21px}
@@ -175,11 +159,10 @@
   .g6{grid-template-columns:repeat(2,1fr)}
 }
 
-/* ── Lisibilité mobile (2026-06-12) : descriptions plus grandes sur petit écran ── */
+/* ── Descriptions mobile — échelle maquette (remplace l'ancien « ≥17px », caduc 2026-07-20) ── */
 @media (max-width:640px){
-  .sort-body p,.sort-body div,.acc-body,.crd p,.aci .ais,.sk-choice span,.lu-choice p,.eq-opt span{font-size:17px !important;line-height:1.5 !important}
-  .crd h3,.lu-choice h3{font-size:18px !important}
-  .sk-choice .sk-dot{font-size:inherit !important}
+  .sort-body p,.sort-body div,.acc-body,.crd p,.aci .ais,.sk-choice span,.lu-choice p,.eq-opt span{font-size:13px;line-height:1.5}
+  .crd h3,.lu-choice h3{font-size:14px}
 }
 
 /* ── C2 v2 — Bandeau de nav mobile : voir la FIN de redesign.css ──

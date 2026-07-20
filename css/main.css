@@ -1,8 +1,9 @@
+/* FONDATION propre (refonte 2026-07-20) — ordre = cascade voulue.
+   da-theme.css (thème « brut/usé » sombre) et parchemin.css (essai) RETIRÉS :
+   la palette maquette vit désormais dans variables.css, plus de couches concurrentes. */
 @import url('./variables.css');
 @import url('./base.css');
 @import url('./layout.css');
 @import url('./components.css');
-@import url('./da-theme.css');
 @import url('./redesign.css');
-@import url('./parchemin.css'); /* ESSAI parchemin fiche perso — retirer cette ligne pour annuler */
-@import url('./design-system.css'); /* REFONTE 2026-07 : tokens + composants ds- (inertes tant qu'inutilisés) — en dernier, gagne la cascade */
+@import url('./design-system.css'); /* composants ds-* des nouveaux écrans + structurel */

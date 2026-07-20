@@ -1,2 +1,75 @@
-:root{--bg:#0d0d0f;--surface:#16181d;--surface2:#1e2128;--surface3:#252830;--border:#2e3240;--text:#e8e6e0;--text2:#a8a49e;--text3:#5a5870;--cp:#c8a84b;--cglow:rgba(200,168,75,.18);--F:'Cinzel',serif;--B:'Crimson Pro',serif}
-.th-Barbare{--cp:#e05a2b;--cglow:rgba(224,90,43,.18)}.th-Barde{--cp:#9b59b6;--cglow:rgba(155,89,182,.18)}.th-Clerc{--cp:#f0c040;--cglow:rgba(240,192,64,.18)}.th-Druide{--cp:#4caf50;--cglow:rgba(76,175,80,.18)}.th-Guerrier{--cp:#e53935;--cglow:rgba(229,57,53,.18)}.th-Moine{--cp:#80cbc4;--cglow:rgba(128,203,196,.18)}.th-Paladin{--cp:#ffd54f;--cglow:rgba(255,213,79,.18)}.th-Rôdeur{--cp:#66bb6a;--cglow:rgba(102,187,106,.18)}.th-Roublard{--cp:#546e7a;--cglow:rgba(84,110,122,.18)}.th-Ensorceleur{--cp:#e91e63;--cglow:rgba(233,30,99,.18)}.th-Occultiste{--cp:#7e57c2;--cglow:rgba(126,87,194,.18)}.th-Magicien{--cp:#42a5f5;--cglow:rgba(66,165,245,.18)}.th-Artificier{--cp:#ff7043;--cglow:rgba(255,112,67,.18)}
+/* ═══════════════════════════════════════════════════════════════════════
+   FONDATION — palette « La Boîte à Outils » (maquette v3.9)
+   Les NOMS de variables sont ceux que TOUTE l'app utilise déjà (var(--surface)
+   var(--text) var(--cp)…) → changer ces valeurs bascule ~80 % de l'app d'un coup,
+   proprement, sans !important. Grimoire = défaut ; Veillée = body.ds-dark.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+:root{
+  /* Fonds (parchemin) */
+  --bg:#e7d8b2;          /* page */
+  --surface:#f4ead0;     /* carte */
+  --surface2:#efe4c8;    /* carte imbriquée / champ */
+  --surface3:#e6d6a8;    /* creux */
+  /* Filets */
+  --border:#c3ab77;
+  --border2:#d6c395;
+  /* Encre */
+  --text:#2c2113;
+  --text2:#6b5a3a;
+  --text3:#8a744a;
+  /* Accent laiton (l'accent unique — l'identité de classe passe par --cls) */
+  --cp:#9a7a32;
+  --cp2:#7a5f22;
+  --cglow:rgba(154,122,50,.28);
+  /* États sémantiques (tunés parchemin) */
+  --good:#3f6d3a;
+  --warn:#9a6a1e;
+  --danger:#a3372a;
+  --info:#3a6b8a;
+  --arcane:#6b4fa0;
+  /* Chrome cuir + laiton — COMMUN aux deux thèmes */
+  --leather:#221507;
+  --leather2:#31200c;
+  --brass:#b98f3e;
+  --brass-hi:#e9c877;
+  /* Couleur d'identité de classe (défaut laiton ; .th-* la repointe) */
+  --cls:var(--cp);
+  /* Typographie */
+  --F:'Cinzel','Palatino Linotype',Georgia,serif;   /* titres gravés */
+  --B:'Crimson Pro',Georgia,Cambria,serif;          /* corps de lecture */
+  --M:ui-monospace,'Cascadia Code',Consolas,monospace; /* valeurs chiffrées */
+  /* Rayon : angles nets partout (maquette) */
+  --r:0px;
+}
+
+/* ── VEILLÉE (mode sombre) — mêmes rôles, ardoise + or ── */
+body.ds-dark{
+  --bg:#12100e;
+  --surface:#1e1b17;
+  --surface2:#242019;
+  --surface3:#2b271f;
+  --border:#3b342a;
+  --border2:#2c261e;
+  --text:#ede8df;
+  --text2:#9c9384;
+  --text3:#6e6455;
+  --cp:#d4af6a;
+  --cp2:#e9c877;
+  --cglow:rgba(212,175,106,.22);
+  --good:#8fbf6f;
+  --warn:#e0a850;
+  --danger:#d0674e;
+  --info:#6bb0d0;
+  --arcane:#b48ae0;
+  /* chrome inchangé (le même livre) */
+}
+
+/* ── Couleur d'identité de classe (n'affecte QUE --cls, pas le chrome/accent) ──
+   Utilisée par les touches d'identité (liseré portrait, coins gravés du Style Complet).
+   Le reste de l'app reste laiton = look maquette par défaut. */
+.th-Barbare{--cls:#c0532b}.th-Barde{--cls:#8e5aa8}.th-Clerc{--cls:#c79a2e}
+.th-Druide{--cls:#4a8a3f}.th-Guerrier{--cls:#b23b30}.th-Moine{--cls:#4a9d94}
+.th-Paladin{--cls:#c9a53a}.th-Rôdeur{--cls:#5a9d5e}.th-Roublard{--cls:#5a6e7a}
+.th-Ensorceleur{--cls:#c0396b}.th-Occultiste{--cls:#7e57c2}.th-Magicien{--cls:#3f7fc0}
+.th-Artificier{--cls:#c05a2b}

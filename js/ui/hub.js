@@ -86,14 +86,14 @@ async function renderHub(){
     const params=new URLSearchParams(window.location.search);
     const joinCode=params.get('join');
     if(joinCode) setTimeout(()=>promptJoinTable(joinCode),300);
-  }catch(e){hub.innerHTML=`<div style="color:#e53935;padding:16px">Erreur: ${e.message}</div>`;}
+  }catch(e){hub.innerHTML=`<div style="color:var(--danger);padding:16px">Erreur: ${e.message}</div>`;}
 }
 
 function campImgOnLoad(img){
   if(img.naturalHeight>img.naturalWidth){
-    img.style.cssText='float:right;width:38%;max-width:130px;border-radius:8px;object-fit:cover;margin:0 0 8px 10px;display:block';
+    img.style.cssText='float:right;width:38%;max-width:130px;border-radius:2px;object-fit:cover;margin:0 0 8px 10px;display:block';
   }else{
-    img.style.cssText='width:100%;max-height:200px;border-radius:8px;object-fit:cover;margin-bottom:10px;display:block';
+    img.style.cssText='width:100%;max-height:200px;border-radius:2px;object-fit:cover;margin-bottom:10px;display:block';
   }
 }
 let _hubSelectedTableId=null, _hubMobileDetail=false;
@@ -118,10 +118,10 @@ function _hubCampCardHTML(t,c,isMJ){
             return`<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:var(--ds-card2);border:1px solid var(--ds-line-soft);margin-bottom:4px">
               ${pPortrait
                 ?`<img src="${pPortrait}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;border:1.5px solid ${isMe?'var(--ds-acc-strong)':'var(--ds-line)'};flex-shrink:0">`
-                :`<div style="width:30px;height:30px;border-radius:50%;background:var(--ds-card);border:1.5px solid ${isMe?'var(--ds-acc-strong)':'var(--ds-line)'};display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0">${pp.avatar||'⚔'}</div>`}
+                :`<div style="width:30px;height:30px;border-radius:50%;background:var(--ds-card);border:1.5px solid ${isMe?'var(--ds-acc-strong)':'var(--ds-line)'};display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">${pp.avatar||'⚔'}</div>`}
               <div style="flex:1;min-width:0">
                 <div style="display:flex;align-items:center;gap:4px">
-                  <span style="font-size:15px;font-weight:600;color:${isMe?'var(--ds-acc-strong)':'var(--ds-ink)'}">${esc(pp.charName||'?')}</span>
+                  <span style="font-size:12px;font-weight:600;color:${isMe?'var(--ds-acc-strong)':'var(--ds-ink)'}">${esc(pp.charName||'?')}</span>
                   <span class="ds-note" style="font-size:12px">${isMe?'Moi':esc(pp.playerName||'')}</span>
                 </div>
                 <div class="ds-note">${esc(pp.charClass||'')}</div>
@@ -137,8 +137,8 @@ function _hubCampCardHTML(t,c,isMJ){
           :(charInfo&&!charInfo.leftCampaign
             ?`<div style="margin-top:8px">
                 <div style="display:flex;align-items:center;gap:6px;padding:8px;background:var(--ds-card2);border:1px solid var(--ds-line);border-bottom:none">
-                  <span style="font-size:25px">${currentUserData&&currentUserData.avatar||'⚔'}</span>
-                  <div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:600">${esc(charInfo.charName||'?')}</div><div class="ds-note">${esc(charInfo.charClass||'')}</div></div>
+                  <span style="font-size:18px">${currentUserData&&currentUserData.avatar||'⚔'}</span>
+                  <div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600">${esc(charInfo.charName||'?')}</div><div class="ds-note">${esc(charInfo.charClass||'')}</div></div>
                   <button class="ds-btn quiet" style="color:var(--ds-seal);border-color:var(--ds-seal);flex-shrink:0;min-height:32px;padding:3px 9px" onclick="playerLeaveCharacter('${c.id}')">✕ Quitter</button>
                 </div>
                 <button class="ds-btn primary" style="width:100%" onclick="joinGroupOnly('${t.id}','${c.id}')">👥 Rejoindre le groupe</button>
@@ -146,8 +146,8 @@ function _hubCampCardHTML(t,c,isMJ){
             :(charInfo&&charInfo.leftCampaign
               ?`<div style="margin-top:8px">
                   <div style="display:flex;align-items:center;gap:6px;padding:8px;background:var(--ds-card2);border:1px solid var(--ds-line);border-bottom:none">
-                    <span style="font-size:25px;opacity:.5">${currentUserData&&currentUserData.avatar||'⚔'}</span>
-                    <div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:600;color:var(--ds-soft)">${esc(charInfo.charName||'?')}</div><div class="ds-note">Inactif — vous avez quitté cette campagne</div></div>
+                    <span style="font-size:18px;opacity:.5">${currentUserData&&currentUserData.avatar||'⚔'}</span>
+                    <div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:var(--ds-soft)">${esc(charInfo.charName||'?')}</div><div class="ds-note">Inactif — vous avez quitté cette campagne</div></div>
                   </div>
                   <div style="display:flex;gap:6px">
                     <button class="ds-btn primary" style="flex:2" onclick="playerRejoinCampaign('${c.id}')">↩ Rejoindre</button>
@@ -160,14 +160,14 @@ function _hubCampCardHTML(t,c,isMJ){
             <button class="ds-btn quiet" onclick="openEditCampaign('${t.id}','${c.id}')">✏ Modifier</button>
           </div>`:'';
         expandedHtml=`<div style="padding:10px 12px;border:1px solid var(--ds-line);border-top:none;background:var(--ds-card)">${imgHtml}
-          ${c.detailedDesc?`<p style="font-size:15px;color:var(--ds-ink);line-height:1.65;margin:0 0 8px">${esc(c.detailedDesc)}</p>`:''}
+          ${c.detailedDesc?`<p style="font-size:12px;color:var(--ds-ink);line-height:1.65;margin:0 0 8px">${esc(c.detailedDesc)}</p>`:''}
           <div style="clear:both"></div>
           ${charBlock}${participantHtml}${mjEditHtml}
         </div>`;
       }
       return`<div style="margin-bottom:8px">
         <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--ds-card);border:1px solid var(--ds-line);cursor:pointer" onclick="toggleCampExpand('${t.id}','${c.id}')">
-          ${c.imageUrl?`<img src="${esc(c.imageUrl)}" style="width:44px;height:44px;object-fit:cover;border:1px solid var(--ds-line);flex-shrink:0" onerror="this.style.display='none'">`:`<div style="width:44px;height:44px;background:var(--ds-card2);border:1px solid var(--ds-line);display:grid;place-items:center;font-size:20px;flex-shrink:0">⚔</div>`}
+          ${c.imageUrl?`<img src="${esc(c.imageUrl)}" style="width:44px;height:44px;object-fit:cover;border:1px solid var(--ds-line);flex-shrink:0" onerror="this.style.display='none'">`:`<div style="width:44px;height:44px;background:var(--ds-card2);border:1px solid var(--ds-line);display:grid;place-items:center;font-size:15px;flex-shrink:0">⚔</div>`}
           <div style="flex:1;min-width:0"><div style="font-family:var(--ds-disp);font-size:15.5px;font-weight:700;color:var(--ds-ink)">${esc(c.name)}</div>
             ${c.description?`<div class="ds-note" style="margin-top:2px">${esc(c.description)}</div>`:''}
           </div>
@@ -191,7 +191,7 @@ function _dsTableCardHTML(t,selected){
     <div class="bd">
       <div style="display:flex;align-items:center;gap:8px">
         <div style="flex:1;min-width:0">
-          <div style="font-family:var(--ds-disp);font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(t.name)}</div>
+          <div style="font-family:var(--ds-disp);font-size:12.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(t.name)}</div>
           <div class="ds-note">${isMJ?'Maître de jeu':'Joueur'} · ${n} campagne${n>1?'s':''}${!isMJ&&t.mjName?` · MJ : ${esc(t.mjName)}`:''}</div>
         </div>
         ${isMJ?`<button class="ds-btn quiet" style="min-height:34px;padding:4px 10px" title="Réglages de la table" onclick="event.stopPropagation();openTableSettings('${t.id}','${jsq(t.name)}','${t.inviteCode}')">⚙</button>`:''}
@@ -226,7 +226,7 @@ function _hubTableDetailHTML(t){
       <div class="ds-artband" style="height:${art?'110px':'56px'};background:linear-gradient(120deg,var(--ds-leather2),color-mix(in srgb,${isMJ?'var(--ds-good)':'var(--ds-acc)'} 40%,var(--ds-leather2)))">${isMJ?'🏰':'⚔'}${art?`<img src="${esc(art)}" onerror="this.remove()">`:''}</div>
       <div style="padding:10px 14px 12px">
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          <span style="font-family:var(--ds-disp);font-size:19px;font-weight:700">${esc(t.name)}</span>
+          <span style="font-family:var(--ds-disp);font-size:14px;font-weight:700">${esc(t.name)}</span>
           <span class="ds-chip ${isMJ?'good':''}">${isMJ?'👑 MJ':'🧙 Joueur'}</span>
           ${isMJ?`<button class="ds-btn quiet" style="margin-left:auto;min-height:34px;padding:4px 10px" onclick="openTableSettings('${t.id}','${jsq(t.name)}','${t.inviteCode}')">⚙ Réglages</button>`:''}
         </div>
@@ -235,7 +235,7 @@ function _hubTableDetailHTML(t){
       </div>
     </div>
     ${_missing.length?`<div class="ds-card" style="border-color:var(--ds-seal);margin-bottom:12px">
-      <div style="font-size:15px;color:var(--ds-seal);font-weight:700">⚠ Compendium(s) requis manquant(s)</div>
+      <div style="font-size:12px;color:var(--ds-seal);font-weight:700">⚠ Compendium(s) requis manquant(s)</div>
       <div class="ds-note" style="margin-top:4px">Cette table utilise des paquets que tu n'as pas encore importés : ${_missing.map(id=>`<strong>${esc(id)}</strong>`).join(', ')}. Demande le fichier à ton MJ, puis importe-le.</div>
       <button class="ds-btn primary" style="margin-top:8px" onclick="importCompPack()">📥 Importer un paquet</button>
     </div>`:''}
@@ -286,7 +286,7 @@ function openCreateTable(){
     <details class="acc" style="margin-bottom:12px">
       <summary>🧩 Compendiums de la table</summary>
       <div class="acc-body">
-        <div style="font-size:17px;color:var(--text3);margin-bottom:8px">Choisis les paquets (et catégories) que cette table utilise. Tes joueurs devront posséder ces paquets.</div>
+        <div style="font-size:13px;color:var(--text3);margin-bottom:8px">Choisis les paquets (et catégories) que cette table utilise. Tes joueurs devront posséder ces paquets.</div>
         <div id="tbl_pack_selector">${selectorHtml}</div>
       </div>
     </details>
@@ -352,7 +352,7 @@ function openTableSettings(tableId,tableName,inviteCode){
     <details class="acc" style="margin-bottom:16px" open>
       <summary>🧩 Compendiums de la table</summary>
       <div class="acc-body">
-        <div style="font-size:17px;color:var(--text3);margin-bottom:8px">Paquets (et catégories) utilisés par cette table. Tes joueurs doivent les posséder. <em>Enregistrement automatique.</em></div>
+        <div style="font-size:13px;color:var(--text3);margin-bottom:8px">Paquets (et catégories) utilisés par cette table. Tes joueurs doivent les posséder. <em>Enregistrement automatique.</em></div>
         <div id="tbl_pack_selector">${selectorHtml}</div>
       </div>
     </details>
@@ -404,20 +404,20 @@ function openEditCampaign(tableId,campId){
       <button class="btn bac" style="flex:2" onclick="saveEditCampaign('${tableId}','${campId}')">💾 Sauvegarder</button>
     </div>
     <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border)">
-      <button class="btn" style="width:100%;color:#e53935;border-color:rgba(229,57,53,.35)" onclick="openDeleteCampaign('${tableId}','${campId}')">🗑 Supprimer cette campagne</button>
+      <button class="btn" style="width:100%;color:var(--danger);border-color:rgba(229,57,53,.35)" onclick="openDeleteCampaign('${tableId}','${campId}')">🗑 Supprimer cette campagne</button>
     </div>`);
 }
 function openDeleteCampaign(tableId,campId){
   const t=_hubCache&&_hubCache.find(t=>t.id===tableId);
   const c=t&&t.campaigns.find(c=>c.id===campId);
   const campName=c?c.name:'cette campagne';
-  openModal(`<div class="pt" style="color:#e53935">🗑 Supprimer la campagne ?</div>
-    <div style="font-size:18px;color:var(--text2);margin-bottom:8px">Vous êtes sur le point de supprimer :</div>
-    <div style="font-size:19px;font-weight:700;color:var(--text);margin-bottom:12px;padding:8px 12px;background:rgba(229,57,53,.08);border:1px solid rgba(229,57,53,.3);border-radius:6px">${esc(campName)}</div>
-    <div style="font-size:18px;color:var(--text3);margin-bottom:16px;line-height:1.6">Cette action supprimera définitivement la campagne ainsi que <b style="color:var(--text2)">tous les personnages</b> créés par les joueurs dans cette campagne. Elle est <b style="color:#e53935">irréversible</b>.</div>
+  openModal(`<div class="pt" style="color:var(--danger)">🗑 Supprimer la campagne ?</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:8px">Vous êtes sur le point de supprimer :</div>
+    <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:12px;padding:8px 12px;background:rgba(229,57,53,.08);border:1px solid rgba(229,57,53,.3);border-radius:2px">${esc(campName)}</div>
+    <div style="font-size:13px;color:var(--text3);margin-bottom:16px;line-height:1.6">Cette action supprimera définitivement la campagne ainsi que <b style="color:var(--text2)">tous les personnages</b> créés par les joueurs dans cette campagne. Elle est <b style="color:var(--danger)">irréversible</b>.</div>
     <div style="display:flex;gap:8px">
       <button class="btn" style="flex:1" onclick="openEditCampaign('${tableId}','${campId}')">← Retour</button>
-      <button class="btn" style="flex:2;color:#e53935;border-color:rgba(229,57,53,.5)" onclick="doDeleteCampaign('${tableId}','${campId}')">🗑 Confirmer la suppression</button>
+      <button class="btn" style="flex:2;color:var(--danger);border-color:rgba(229,57,53,.5)" onclick="doDeleteCampaign('${tableId}','${campId}')">🗑 Confirmer la suppression</button>
     </div>`);
 }
 async function doDeleteCampaign(tableId,campId){
@@ -460,9 +460,9 @@ async function saveEditCampaign(tableId,campId){
 // ─── REJOINDRE UNE TABLE (JOUEUR) ───
 function openJoinTable(){
   openModal(`<div class="pt">🔗 Rejoindre une table</div>
-    <div style="font-size:18px;color:var(--text2);margin-bottom:12px">Entrez le code d'invitation partagé par votre MJ.</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:12px">Entrez le code d'invitation partagé par votre MJ.</div>
     <div class="fl mb6">Code d'invitation</div>
-    <input class="fi" id="joinCode" placeholder="Ex: AB12CD" style="margin-bottom:16px;text-transform:uppercase;letter-spacing:.1em;font-size:22px;text-align:center">
+    <input class="fi" id="joinCode" placeholder="Ex: AB12CD" style="margin-bottom:16px;text-transform:uppercase;letter-spacing:.1em;font-size:16px;text-align:center">
     <div style="display:flex;gap:8px">
       <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
       <button class="btn bac" style="flex:2" onclick="confirmJoinTable()">Rejoindre →</button>
@@ -470,7 +470,7 @@ function openJoinTable(){
 }
 async function promptJoinTable(code){
   openModal(`<div class="pt">🔗 Invitation reçue</div>
-    <div style="font-size:18px;color:var(--text2);margin-bottom:16px">Vous avez été invité à rejoindre une table. Code : <strong style="color:var(--cp)">${esc(code)}</strong></div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:16px">Vous avez été invité à rejoindre une table. Code : <strong style="color:var(--cp)">${esc(code)}</strong></div>
     <div style="display:flex;gap:8px">
       <button class="btn" style="flex:1" onclick="closeModal()">Ignorer</button>
       <button class="btn bac" style="flex:2" onclick="doJoinTable('${jsq(code)}')">Rejoindre →</button>
@@ -503,11 +503,11 @@ async function doJoinTable(code){
 
 // ─── QUITTER UNE CAMPAGNE (JOUEUR) ───
 function hubKickConfirm(tableId,uid,playerName){
-  openModal(`<div class="pt" style="color:#e53935">⚠️ Retirer ce joueur ?</div>
-    <div style="font-size:18px;color:var(--text2);margin:10px 0 18px"><b>${esc(playerName)}</b> sera retiré de la table et ne pourra plus y accéder.<br><span style="font-size:17px;color:var(--text3)">Son personnage reste dans sa bibliothèque personnelle.</span></div>
+  openModal(`<div class="pt" style="color:var(--danger)">⚠️ Retirer ce joueur ?</div>
+    <div style="font-size:13px;color:var(--text2);margin:10px 0 18px"><b>${esc(playerName)}</b> sera retiré de la table et ne pourra plus y accéder.<br><span style="font-size:13px;color:var(--text3)">Son personnage reste dans sa bibliothèque personnelle.</span></div>
     <div style="display:flex;gap:8px">
       <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
-      <button class="btn" style="flex:2;color:#e53935;border-color:rgba(229,57,53,.5);font-weight:600" onclick="hubKickMember('${tableId}','${uid}')">✓ Retirer de la table</button>
+      <button class="btn" style="flex:2;color:var(--danger);border-color:rgba(229,57,53,.5);font-weight:600" onclick="hubKickMember('${tableId}','${uid}')">✓ Retirer de la table</button>
     </div>`);
 }
 async function hubKickMember(tableId,uid){
@@ -526,11 +526,11 @@ function playerLeaveCharacter(campId){
   const c=currentUserData&&currentUserData.charLib&&currentUserData.charLib[campId];
   const charName=c&&c.charName||'votre personnage';
   window._pendingLeave=campId;
-  openModal(`<div class="pt" style="color:#e53935">Quitter la campagne ?</div>
-    <div style="font-size:18px;color:var(--text2);margin-bottom:16px"><b>${esc(charName)}</b> sera conservé dans votre bibliothèque. Vous pourrez rejoindre à nouveau cette campagne à tout moment.</div>
+  openModal(`<div class="pt" style="color:var(--danger)">Quitter la campagne ?</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:16px"><b>${esc(charName)}</b> sera conservé dans votre bibliothèque. Vous pourrez rejoindre à nouveau cette campagne à tout moment.</div>
     <div style="display:flex;gap:8px">
       <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
-      <button class="btn" style="flex:2;color:#e53935;border-color:rgba(229,57,53,.5)" onclick="confirmPlayerLeave()">✕ Quitter</button>
+      <button class="btn" style="flex:2;color:var(--danger);border-color:rgba(229,57,53,.5)" onclick="confirmPlayerLeave()">✕ Quitter</button>
     </div>`);
 }
 async function confirmPlayerLeave(){
@@ -561,11 +561,11 @@ function deleteCharFromLib(campId){
   const c=currentUserData&&currentUserData.charLib&&currentUserData.charLib[campId];
   const charName=c&&c.charName||'ce personnage';
   window._pendingDeleteLib=campId;
-  openModal(`<div class="pt" style="color:#e53935">🗑 Supprimer "${esc(charName)}" ?</div>
-    <div style="font-size:18px;color:var(--text2);margin-bottom:16px">Ce personnage sera supprimé de votre bibliothèque et de la campagne. Cette action est irréversible.</div>
+  openModal(`<div class="pt" style="color:var(--danger)">🗑 Supprimer "${esc(charName)}" ?</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:16px">Ce personnage sera supprimé de votre bibliothèque et de la campagne. Cette action est irréversible.</div>
     <div style="display:flex;gap:8px">
       <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
-      <button class="btn" style="flex:2;color:#e53935;border-color:rgba(229,57,53,.5)" onclick="confirmDeleteCharLib()">🗑 Supprimer</button>
+      <button class="btn" style="flex:2;color:var(--danger);border-color:rgba(229,57,53,.5)" onclick="confirmDeleteCharLib()">🗑 Supprimer</button>
     </div>`);
 }
 async function confirmDeleteCharLib(){
@@ -593,26 +593,26 @@ function viewCharSheet(uid,campId){
   const isOwn=uid===currentUser.uid;
   const canSee=tab=>(isMJ2||isOwn||priv[tab]!==false);
   const cls=(p.classes||[]).map(c=>c.name+' niv.'+c.level).join(' / ')||'?';
-  const hidden=`<span style="color:var(--text3);font-style:italic;font-size:18px">🔒 Non partagé</span>`;
+  const hidden=`<span style="color:var(--text3);font-style:italic;font-size:13px">🔒 Non partagé</span>`;
   const portrait=p.portrait||p.equipPortrait;
   openModal(`
     ${canSee('perso')&&portrait?`<div style="text-align:center;margin-bottom:10px"><img src="${portrait}" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid rgba(200,168,75,.4)"></div>`:''}
-    <div class="pt" style="margin-bottom:10px">${pp.avatar||'⚔'} ${canSee('perso')?esc(pp.charName||'?'):'???'} <span style="font-weight:400;font-size:17px;color:var(--text3)">— ${esc(pp.playerName||'')}</span></div>
+    <div class="pt" style="margin-bottom:10px">${pp.avatar||'⚔'} ${canSee('perso')?esc(pp.charName||'?'):'???'} <span style="font-weight:400;font-size:13px;color:var(--text3)">— ${esc(pp.playerName||'')}</span></div>
     <div style="max-height:70vh;overflow-y:auto;padding-right:4px">
     ${canSee('perso')?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px"><div class="fl mb6">Classe & Niveau</div><div style="font-size:18px">${esc(cls)}</div></div>
-      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px"><div class="fl mb6">Race</div><div style="font-size:18px">${esc(p.race||'?')}</div></div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:10px"><div class="fl mb6">Classe & Niveau</div><div style="font-size:13px">${esc(cls)}</div></div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:10px"><div class="fl mb6">Race</div><div style="font-size:13px">${esc(p.race||'?')}</div></div>
     </div>`:hidden}
-    ${canSee('combat')?`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px">
+    ${canSee('combat')?`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:10px;margin-bottom:8px">
       <div class="fl mb6">Combat</div>
-      <div style="display:flex;gap:16px"><div><div style="font-size:15px;color:var(--text3)">PV</div><div style="font-size:21px;font-weight:600;color:#4caf50">${p.hp||0}/${p.hpMax||0}</div></div><div><div style="font-size:15px;color:var(--text3)">CA</div><div style="font-size:21px;font-weight:600">${p.ac||10}</div></div></div>
+      <div style="display:flex;gap:16px"><div><div style="font-size:12px;color:var(--text3)">PV</div><div style="font-size:15px;font-weight:600;color:var(--good)">${p.hp||0}/${p.hpMax||0}</div></div><div><div style="font-size:12px;color:var(--text3)">CA</div><div style="font-size:15px;font-weight:600">${p.ac||10}</div></div></div>
     </div>`:''}
-    ${canSee('competences')?`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px">
+    ${canSee('competences')?`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:10px;margin-bottom:8px">
       <div class="fl mb6">Caractéristiques</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">${(p.abilities||[]).map((v,i)=>`<div style="text-align:center"><div style="font-size:13px;color:var(--text3)">${['FOR','DEX','CON','INT','SAG','CHA'][i]}</div><div style="font-size:22px;font-weight:600">${v}</div></div>`).join('')}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">${(p.abilities||[]).map((v,i)=>`<div style="text-align:center"><div style="font-size:13px;color:var(--text3)">${['FOR','DEX','CON','INT','SAG','CHA'][i]}</div><div style="font-size:16px;font-weight:600">${v}</div></div>`).join('')}</div>
     </div>`:''}
-    ${canSee('historique')&&p.backstory?`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px"><div class="fl mb6">Backstory</div><div style="font-size:18px;color:var(--text2);white-space:pre-wrap">${esc(p.backstory)}</div></div>`:''}
-    ${(isMJ2||isOwn)&&p.secrets?`<div style="background:rgba(200,168,75,.06);border:1px solid rgba(200,168,75,.3);border-radius:8px;padding:10px;margin-bottom:8px"><div class="fl mb6" style="color:var(--cp)">🔐 Secrets</div><div style="font-size:18px;color:var(--text2);white-space:pre-wrap">${esc(p.secrets)}</div></div>`:''}
+    ${canSee('historique')&&p.backstory?`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:10px;margin-bottom:8px"><div class="fl mb6">Backstory</div><div style="font-size:13px;color:var(--text2);white-space:pre-wrap">${esc(p.backstory)}</div></div>`:''}
+    ${(isMJ2||isOwn)&&p.secrets?`<div style="background:rgba(200,168,75,.06);border:1px solid rgba(200,168,75,.3);border-radius:2px;padding:10px;margin-bottom:8px"><div class="fl mb6" style="color:var(--cp)">🔐 Secrets</div><div style="font-size:13px;color:var(--text2);white-space:pre-wrap">${esc(p.secrets)}</div></div>`:''}
     </div>
     <div style="display:flex;justify-content:flex-end;margin-top:8px">
     </div>`);

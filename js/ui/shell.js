@@ -59,7 +59,7 @@ function _dsShareHTML(s,idx,mjMode){
   const ic=s.type==='artefact'?'🗡':'🗝';
   const chip=s.type==='artefact'?'<span class="ds-chip seal" style="font-size:10px;padding:1px 6px">Artefact</span>':'<span class="ds-chip" style="font-size:10px;padding:1px 6px">Objet de quête</span>';
   return`<div class="ds-item ${s.type==='artefact'?'artefact':''}"><span class="ic">${ic}</span>
-    <div style="flex:1;min-width:0"><div style="font-family:var(--ds-disp);font-size:14px;font-weight:700">${esc(s.title||'?')} ${chip}</div>
+    <div style="flex:1;min-width:0"><div style="font-family:var(--ds-disp);font-size:11.5px;font-weight:700">${esc(s.title||'?')} ${chip}</div>
     ${s.text?`<div class="ds-note">${esc(s.text)}</div>`:''}</div>${del}</div>`;
 }
 function _dsRenderGroup(){
@@ -83,7 +83,7 @@ function _dsRenderGroup(){
     return`<div class="ds-corners" style="margin-bottom:10px;cursor:${isOwn?'default':'pointer'}" ${isOwn?'':`onclick="_showHudDetail('${pp.uid}')"`}><i class="cx"></i>
       <div style="display:flex;gap:9px;align-items:center">
         ${portrait?`<img src="${portrait}" style="width:42px;height:42px;object-fit:cover;border:1px solid var(--ds-acc);flex:none">`
-          :`<span style="width:42px;height:42px;border:1px solid var(--ds-acc);background:var(--ds-card2);display:grid;place-items:center;font-size:21px;flex:none">${pp.avatar||'⚔'}</span>`}
+          :`<span style="width:42px;height:42px;border:1px solid var(--ds-acc);background:var(--ds-card2);display:grid;place-items:center;font-size:15px;flex:none">${pp.avatar||'⚔'}</span>`}
         <div style="flex:1;min-width:0">
           <div style="font-family:var(--ds-disp);font-size:14.5px;color:var(--ds-ink)"><b>${esc(p.charName||pp.playerName||'?')}</b>
             <span class="ds-note" style="font-size:11px">${isOwn?'Moi':esc(pp.playerName||'')}${cls?' · '+esc(cls):''}</span></div>
@@ -117,8 +117,8 @@ function _dsBuildNav(){
     `<button class="mode-btn mode-hub" onclick="_dsCloseGroup();showHub()"><span class="mode-ico">🧭</span><span class="mode-lbl">Tables</span></button>`+
     `<button class="mode-btn mode-char" onclick="_dsCloseGroup();_navGoChar()"><span class="mode-ico mode-char-ico">🧙</span><span class="mode-lbl mode-char-lbl">Personnage</span></button>`+
     `<button class="mode-btn mode-group" onclick="_dsNavGoGroup()" style="position:relative"><span class="mode-ico">👥</span><span class="mode-lbl">Groupe</span>`+
-    `<span id="dsNavTurn" class="ds-navbdg" style="display:none;position:absolute;top:2px;right:14px;min-width:16px;height:16px;border-radius:50%;background:#6d28d9;color:#fff;font-size:11px;font-weight:700;display:none;align-items:center;justify-content:center;animation:combatPulse 1.6s ease-in-out infinite">⚡</span>`+
-    `<span id="dsNavDanger" style="display:none;position:absolute;top:2px;left:14px;min-width:16px;height:16px;border-radius:50%;background:#e53935;color:#fff;font-size:10px;font-weight:700;align-items:center;justify-content:center"></span>`+
+    `<span id="dsNavTurn" class="ds-navbdg" style="display:none;position:absolute;top:2px;right:14px;min-width:16px;height:16px;border-radius:50%;background:var(--arcane);color:#fff;font-size:11px;font-weight:700;display:none;align-items:center;justify-content:center;animation:combatPulse 1.6s ease-in-out infinite">⚡</span>`+
+    `<span id="dsNavDanger" style="display:none;position:absolute;top:2px;left:14px;min-width:16px;height:16px;border-radius:50%;background:var(--danger);color:#fff;font-size:10px;font-weight:700;align-items:center;justify-content:center"></span>`+
     `</button>`;
 }
 // Surcharge de core.js : gère les 3 items + masque Groupe côté MJ.

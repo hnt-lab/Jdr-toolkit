@@ -13,7 +13,7 @@ function tabCompetences(p){
   const currentCount=Object.values(p.skillProf||{}).filter(v=>v>0).length;
   return`<div class="g2" style="gap:10px">
   <div><div class="panel mb10">
-    <div class="pt" style="display:flex;align-items:center;justify-content:space-between"><span>Compétences</span><span style="font-size:17px;color:var(--text3)">${currentCount}/${maxSkills} maîtrisées</span></div>
+    <div class="pt" style="display:flex;align-items:center;justify-content:space-between"><span>Compétences</span><span style="font-size:13px;color:var(--text3)">${currentCount}/${maxSkills} maîtrisées</span></div>
     ${SKILLS.map(sk=>{
       const prof=(p.skillProf||{})[sk.name]||0;
       const isLocked=(p.skillsLocked||{})[sk.name];
@@ -26,10 +26,10 @@ function tabCompetences(p){
         <span class="sk-n${classSkill?' cs':''}">${sk.name}</span>
         <span class="sk-ab">${ABILITIES_SH[sk.ab]}</span>
         <span class="sk-v">${fmt(bonus)}</span>
-        <span title="Lancer ${sk.name}" onclick="event.stopPropagation();diceRoll('d20','${sk.name}',${bonus},'skill')" style="cursor:pointer;font-size:17px;color:var(--text3);padding-left:8px">🎲</span>
+        <span title="Lancer ${sk.name}" onclick="event.stopPropagation();diceRoll('d20','${sk.name}',${bonus},'skill')" style="cursor:pointer;font-size:13px;color:var(--text3);padding-left:8px">🎲</span>
       </div>`;
     }).join('')}
-    <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);font-size:18px;color:var(--text2)">Perception passive : <strong style="color:var(--cp)">${passive}</strong></div>
+    <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);font-size:13px;color:var(--text2)">Perception passive : <strong style="color:var(--cp)">${passive}</strong></div>
   </div></div>
   <div>
     <div class="panel mb10"><div class="pt" style="display:flex;align-items:center;justify-content:space-between"><span>Capacités & traits</span>${isMJ()?`<button class="btn bsm" onclick="openFeatSearch()">+ Ajouter</button>`:''}</div>
@@ -50,7 +50,7 @@ function tabCompetences(p){
           if((f.name.startsWith('Forme sauvage')||f.name.startsWith('Forme sauvage améliorée'))&&druLvl<2)return false;
           return true;
         });
-        if(!displayFeats.length)return`<div style="font-size:18px;color:var(--text3);font-style:italic">Aucune capacité passive.</div>`;
+        if(!displayFeats.length)return`<div style="font-size:13px;color:var(--text3);font-style:italic">Aucune capacité passive.</div>`;
 
         // Calcul du contexte Forme sauvage pour les Druides
         const fsCrMax=druLvl>=6?String(Math.floor(druLvl/3)):druLvl>=4?'1/2':'1/4';
@@ -92,14 +92,14 @@ function tabCompetences(p){
         };
         const _featColor=(f)=>{
           const nm=(f.name||'').toLowerCase();
-          if(nm.includes('réaction')||nm.includes('représailles'))return'#9c27b0';
-          if(nm.includes('action bonus')||nm.includes('frénésie'))return'#ff9800';
+          if(nm.includes('réaction')||nm.includes('représailles'))return'var(--arcane)';
+          if(nm.includes('action bonus')||nm.includes('frénésie'))return'var(--warn)';
           return'var(--cp)';
         };
         const _featBadge=(f)=>{
           const nm=(f.name||'').toLowerCase();
-          if(nm.includes('réaction')||nm.includes('représailles'))return`<span style="font-size:13px;color:#9c27b0;border:1px solid rgba(156,39,176,.4);border-radius:8px;padding:1px 5px">↪ Réaction</span>`;
-          if(nm.includes('action bonus'))return`<span style="font-size:13px;color:#ff9800;border:1px solid rgba(255,152,0,.4);border-radius:8px;padding:1px 5px">🔸 Bonus</span>`;
+          if(nm.includes('réaction')||nm.includes('représailles'))return`<span style="font-size:13px;color:var(--arcane);border:1px solid rgba(156,39,176,.4);border-radius:2px;padding:1px 5px">↪ Réaction</span>`;
+          if(nm.includes('action bonus'))return`<span style="font-size:13px;color:var(--warn);border:1px solid rgba(255,152,0,.4);border-radius:2px;padding:1px 5px">🔸 Bonus</span>`;
           return'';
         };
 
@@ -112,22 +112,22 @@ function tabCompetences(p){
           const fColor=_featColor(f);const fIcon=_featIcon(f);const fBadge=_featBadge(f);
           return`<div class="sort-row">
             <div class="sort-head" onclick="document.getElementById('${fid}').classList.toggle('open')">
-              <span style="font-size:21px;margin-right:6px;color:${fColor}">${fIcon}</span>
+              <span style="font-size:15px;margin-right:6px;color:${fColor}">${fIcon}</span>
               <div style="flex:1">
-                <div style="font-size:18px;font-weight:600;color:${fColor}">${esc(f.name)}</div>
-                ${f.classe?`<div style="font-size:15px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:1px">${esc(f.classe)}</div>`:''}
+                <div style="font-size:13px;font-weight:600;color:${fColor}">${esc(f.name)}</div>
+                ${f.classe?`<div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:1px">${esc(f.classe)}</div>`:''}
               </div>
               ${fBadge?`<span style="margin-right:6px">${fBadge}</span>`:''}
-              ${isFormeSauvage&&druLvl>=2?druLvl>=20?`<span style="font-size:17px;color:var(--cp);margin-right:8px">∞</span>`:`<div style="display:flex;gap:3px;align-items:center;margin-right:8px">
+              ${isFormeSauvage&&druLvl>=2?druLvl>=20?`<span style="font-size:13px;color:var(--cp);margin-right:8px">∞</span>`:`<div style="display:flex;gap:3px;align-items:center;margin-right:8px">
                 ${Array.from({length:2},(_,fs)=>`<span class="slot-bubble${fs<fsUsed?'':' used'}" onclick="event.stopPropagation();useCombatCharge('Forme sauvage',2)"></span>`).join('')}
               </div>`:''}
-              <span style="color:var(--text3);font-size:17px;margin-right:8px">▾</span>
-              ${isMJ()?`<span onclick="event.stopPropagation();removeFeat(${realIdx})" style="cursor:pointer;color:var(--text3);font-size:21px">×</span>`:''}
+              <span style="color:var(--text3);font-size:13px;margin-right:8px">▾</span>
+              ${isMJ()?`<span onclick="event.stopPropagation();removeFeat(${realIdx})" style="cursor:pointer;color:var(--text3);font-size:15px">×</span>`:''}
             </div>
             <div class="sort-body" id="${fid}">
               <p>${esc(desc||'Consulter aidedd.org/regles/classes/ pour les détails.')}</p>
-              ${isFormeSauvage&&druLvl>=2?`<div style="margin-top:8px;padding:6px 8px;background:var(--surface3);border-radius:6px;font-size:18px">
-                <div style="color:#4caf50;margin-bottom:4px">🐺 CR max actuel : <strong>${fsCrMax}</strong> — ${fsVolNage}</div>
+              ${isFormeSauvage&&druLvl>=2?`<div style="margin-top:8px;padding:6px 8px;background:var(--surface3);border-radius:2px;font-size:13px">
+                <div style="color:var(--good);margin-bottom:4px">🐺 CR max actuel : <strong>${fsCrMax}</strong> — ${fsVolNage}</div>
                 ${druLvl>=20?`<div style="color:var(--cp);font-weight:600">✓ Archidruide — Utilisations illimitées</div>`:
                 `<div style="display:flex;align-items:center;gap:8px">
                   <div style="display:flex;gap:4px">${Array.from({length:2},(_,fs)=>`<span class="slot-bubble${fs<fsUsed?'':' used'}" onclick="useCombatCharge('Forme sauvage',2)" style="cursor:pointer"></span>`).join('')}</div>
@@ -142,19 +142,19 @@ function tabCompetences(p){
         // Fix 19 — Puissance indomptable enrichie
         const puissIndomHtml=showPuissIndom?`<div class="sort-row">
           <div class="sort-head" onclick="this.nextElementSibling.classList.toggle('open')">
-            <span style="font-size:21px;margin-right:6px;color:#ff9800">💪</span>
+            <span style="font-size:15px;margin-right:6px;color:var(--warn)">💪</span>
             <div style="flex:1">
-              <div style="font-size:18px;font-weight:600;color:#ff9800">Puissance indomptable</div>
-              <div style="font-size:15px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:1px">Barbare</div>
+              <div style="font-size:13px;font-weight:600;color:var(--warn)">Puissance indomptable</div>
+              <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:1px">Barbare</div>
             </div>
-            <span style="font-size:15px;color:#ff9800;border:1px solid rgba(255,152,0,.4);border-radius:8px;padding:1px 6px;margin-right:6px">Actif — min ${forScore}</span>
-            <span style="color:var(--text3);font-size:17px;margin-right:8px">▾</span>
+            <span style="font-size:12px;color:var(--warn);border:1px solid rgba(255,152,0,.4);border-radius:2px;padding:1px 6px;margin-right:6px">Actif — min ${forScore}</span>
+            <span style="color:var(--text3);font-size:13px;margin-right:8px">▾</span>
           </div>
           <div class="sort-body">
             <p>Si ton résultat brut d'un jet de Force est inférieur à ta valeur de Force (${forScore}), la valeur est utilisée à la place.</p>
-            <div style="margin-top:6px;padding:6px 8px;background:rgba(255,152,0,.08);border-radius:6px;border:1px solid rgba(255,152,0,.3)">
-              <div style="font-size:15px;color:#ff9800;font-weight:600">Valeur minimum appliquée : ${forScore}</div>
-              <div style="font-size:15px;color:var(--text3)">Appliqué automatiquement dans tous tes jets FOR via le lanceur de dés.</div>
+            <div style="margin-top:6px;padding:6px 8px;background:rgba(255,152,0,.08);border-radius:2px;border:1px solid rgba(255,152,0,.3)">
+              <div style="font-size:12px;color:var(--warn);font-weight:600">Valeur minimum appliquée : ${forScore}</div>
+              <div style="font-size:12px;color:var(--text3)">Appliqué automatiquement dans tous tes jets FOR via le lanceur de dés.</div>
             </div>
           </div>
         </div>`:'';
@@ -162,8 +162,8 @@ function tabCompetences(p){
         return featItems.join('')+puissIndomHtml;
       })()}
     </div>
-    ${rd?`<div class="panel"><div class="pt">Traits raciaux</div><div style="font-size:18px;color:var(--text2);line-height:1.6">${esc(rd.traits)}</div>${_isHalfling(p)?`<div style="margin-top:8px;padding:6px 10px;background:rgba(141,110,99,.12);border-radius:6px;display:flex;align-items:center;gap:8px"><span style="font-size:22px;color:#8d6e63;font-weight:700">∞</span><div><div style="font-size:18px;font-weight:600;color:#8d6e63">Chanceux — Relances illimitées</div><div style="font-size:17px;color:var(--text3)">Chaque dé qui affiche 1 (attaque, JS, carac.) déclenche un popup de relance. Fonctionne même avec avantage.</div></div></div>`:''}${p.race==='Demi-Orc'?`<div style="margin-top:8px;padding:6px 10px;background:rgba(97,97,97,.1);border-radius:6px;font-size:17px;color:var(--text2)">🧟 <strong>Endurance implacable</strong> — 1×/repos long : tomber à 1 PV au lieu de 0 (popup automatique).<br>⚔ <strong>Attaques sauvages</strong> — +1 dé de dégâts aux critiques au corps-à-corps (calculé automatiquement).</div>`:''}${p.race==='Tieffelin'?`<div style="margin-top:8px;padding:6px 10px;background:rgba(183,28,28,.08);border-radius:6px;font-size:17px;color:var(--text2)">🔥 <strong>Sorts infernaux</strong> — Thaumaturgie ∞ · Bénédiction infernale 1×/repos long (niv.3+) · Ténèbres 1×/repos long (niv.5+). Panneau dans l\'onglet Combat.</div>`:''}${p.race==='Halfelin pied-léger'||p.race==='Halfelin robuste'?`<div style="margin-top:6px;font-size:17px;color:var(--text3);padding:4px 6px;background:var(--surface2);border-radius:4px">🛡️ <strong>Brave</strong> — avantage aux JS contre la peur. Utilisez le bouton avantage manuellement lors de ces jets.</div>`:''}
-<div style="font-size:17px;color:var(--text2);margin-top:8px"><span style="color:var(--text3)">Vitesse :</span> ${rd.speed}m • <span style="color:var(--text3)">Langues :</span> ${esc(rd.languages)}</div></div>`:''}
+    ${rd?`<div class="panel"><div class="pt">Traits raciaux</div><div style="font-size:13px;color:var(--text2);line-height:1.6">${esc(rd.traits)}</div>${_isHalfling(p)?`<div style="margin-top:8px;padding:6px 10px;background:rgba(141,110,99,.12);border-radius:2px;display:flex;align-items:center;gap:8px"><span style="font-size:16px;color:#8d6e63;font-weight:700">∞</span><div><div style="font-size:13px;font-weight:600;color:#8d6e63">Chanceux — Relances illimitées</div><div style="font-size:13px;color:var(--text3)">Chaque dé qui affiche 1 (attaque, JS, carac.) déclenche un popup de relance. Fonctionne même avec avantage.</div></div></div>`:''}${p.race==='Demi-Orc'?`<div style="margin-top:8px;padding:6px 10px;background:rgba(97,97,97,.1);border-radius:2px;font-size:13px;color:var(--text2)">🧟 <strong>Endurance implacable</strong> — 1×/repos long : tomber à 1 PV au lieu de 0 (popup automatique).<br>⚔ <strong>Attaques sauvages</strong> — +1 dé de dégâts aux critiques au corps-à-corps (calculé automatiquement).</div>`:''}${p.race==='Tieffelin'?`<div style="margin-top:8px;padding:6px 10px;background:rgba(183,28,28,.08);border-radius:2px;font-size:13px;color:var(--text2)">🔥 <strong>Sorts infernaux</strong> — Thaumaturgie ∞ · Bénédiction infernale 1×/repos long (niv.3+) · Ténèbres 1×/repos long (niv.5+). Panneau dans l\'onglet Combat.</div>`:''}${p.race==='Halfelin pied-léger'||p.race==='Halfelin robuste'?`<div style="margin-top:6px;font-size:13px;color:var(--text3);padding:4px 6px;background:var(--surface2);border-radius:2px">🛡️ <strong>Brave</strong> — avantage aux JS contre la peur. Utilisez le bouton avantage manuellement lors de ces jets.</div>`:''}
+<div style="font-size:13px;color:var(--text2);margin-top:8px"><span style="color:var(--text3)">Vitesse :</span> ${rd.speed}m • <span style="color:var(--text3)">Langues :</span> ${esc(rd.languages)}</div></div>`:''}
   </div></div>`;
 }
 
@@ -194,14 +194,14 @@ function cycleSkillIfAllowed(name,current,maxSkills){
 function openFeatSearch(){openModal(`<div class="pt">Ajouter une capacité</div>
 <input class="fi" id="featQ" placeholder="🔍 Chercher dans les capacités SRD..." oninput="filterFeats(this.value)" style="margin-bottom:8px">
 <div id="featList">${renderFeatList('')}</div>
-<div style="margin-top:12px;padding:10px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">
-  <div style="font-size:18px;font-weight:600;color:var(--cp);margin-bottom:8px">✨ Capacité personnalisée (univers alternatif)</div>
+<div style="margin-top:12px;padding:10px;background:var(--surface2);border-radius:2px;border:1px solid var(--border)">
+  <div style="font-size:13px;font-weight:600;color:var(--cp);margin-bottom:8px">✨ Capacité personnalisée (univers alternatif)</div>
   <input class="fi" id="featCustomName" placeholder="Nom de la capacité" style="margin-bottom:6px">
   <textarea class="fi" id="featCustomDesc" rows="2" placeholder="Description de la capacité..." style="resize:vertical;margin-bottom:6px"></textarea>
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px">
-    <div><div style="font-size:15px;color:var(--text3);margin-bottom:3px">Charges (0 = passif)</div><input class="fi" id="featCustomCharges" type="number" min="0" value="0" placeholder="0"></div>
-    <div><div style="font-size:15px;color:var(--text3);margin-bottom:3px">Récupération</div><select class="fi" id="featCustomRecovery"><option value="passive">Passif</option><option value="short">Repos court</option><option value="long">Repos long</option></select></div>
-    <div><div style="font-size:15px;color:var(--text3);margin-bottom:3px">Dé (ex : 2d6+3)</div><input class="fi" id="featCustomDice" placeholder="2d6+3"></div>
+    <div><div style="font-size:12px;color:var(--text3);margin-bottom:3px">Charges (0 = passif)</div><input class="fi" id="featCustomCharges" type="number" min="0" value="0" placeholder="0"></div>
+    <div><div style="font-size:12px;color:var(--text3);margin-bottom:3px">Récupération</div><select class="fi" id="featCustomRecovery"><option value="passive">Passif</option><option value="short">Repos court</option><option value="long">Repos long</option></select></div>
+    <div><div style="font-size:12px;color:var(--text3);margin-bottom:3px">Dé (ex : 2d6+3)</div><input class="fi" id="featCustomDice" placeholder="2d6+3"></div>
   </div>
   <button class="btn bac bsm" style="width:100%" onclick="addCustomCombatFeat()">+ Ajouter cette capacité</button>
 </div>`);}
@@ -215,7 +215,7 @@ const FEATS_SRD=[
   {name:"Conduit divin",classe:"Clerc/Paladin",desc:"Effets cumulables, pas les utilisations."},
   {name:"Métamagie",classe:"Ensorceleur",desc:"Dépense des points de sorcellerie pour modifier tes sorts."},
 ];
-function renderFeatList(q){return FEATS_SRD.filter(f=>!q||f.name.toLowerCase().includes(q.toLowerCase())).map(f=>`<div class="aci" onclick="addFeat('${jsq(f.name)}','${jsq(f.desc)}','${jsq(f.classe)}')"><div class="ain">${esc(f.name)}</div><div class="ais">${esc(f.desc.slice(0,80))}…</div></div>`).join('')||'<div style="color:var(--text3);font-size:18px;padding:8px">Aucun résultat.</div>';}
+function renderFeatList(q){return FEATS_SRD.filter(f=>!q||f.name.toLowerCase().includes(q.toLowerCase())).map(f=>`<div class="aci" onclick="addFeat('${jsq(f.name)}','${jsq(f.desc)}','${jsq(f.classe)}')"><div class="ain">${esc(f.name)}</div><div class="ais">${esc(f.desc.slice(0,80))}…</div></div>`).join('')||'<div style="color:var(--text3);font-size:13px;padding:8px">Aucun résultat.</div>';}
 function filterFeats(q){const el=document.getElementById('featList');if(el)el.innerHTML=renderFeatList(q);}
 function addFeat(name,desc,classe){P().features.push({name,desc,classe});closeModal();render();}
 function addCustomFeat(){const n=document.getElementById('featCustomName')?.value;const d=document.getElementById('featCustomDesc')?.value;if(!n)return;P().features.push({name:n,desc:d||'',classe:''});closeModal();render();}

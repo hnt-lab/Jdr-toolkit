@@ -4,7 +4,7 @@ function _npcIsMonster(n){return ['Monstre','Boss'].includes(n&&n.type);}
 function mjSetNPCFilter(f){_mjNPCFilter=f;renderMJContent();}
 function mjTabPNJ(){
   const sel=_mjSelectedNPC;
-  const detail=sel!=null&&_mjNPCs[sel]?mjNPCDetail(_mjNPCs[sel],sel):'<div style="color:var(--text3);font-size:18px;font-style:italic;text-align:center;padding:20px">Sélectionnez un PNJ ou créez-en un nouveau.</div>';
+  const detail=sel!=null&&_mjNPCs[sel]?mjNPCDetail(_mjNPCs[sel],sel):'<div style="color:var(--text3);font-size:13px;font-style:italic;text-align:center;padding:20px">Sélectionnez un PNJ ou créez-en un nouveau.</div>';
   const nbMonstres=_mjNPCs.filter(_npcIsMonster).length;
   const nbPNJ=_mjNPCs.length-nbMonstres;
   const _matchFilter=n=>_mjNPCFilter==='all'||(_mjNPCFilter==='monster'?_npcIsMonster(n):!_npcIsMonster(n));
@@ -14,15 +14,15 @@ function mjTabPNJ(){
   const list=sortedNPCs.length?sortedNPCs.map(({n,i})=>`<div class="pnj-card${i===sel?' pnj-selected':''}" onclick="mjSelectNPC(${i})">
     <div style="display:flex;align-items:center;justify-content:space-between">
       <div>
-        <div style="font-size:18px;font-weight:600;color:var(--text)">${esc(n.name||'?')}</div>
-        <div style="font-size:17px;color:var(--text3)">${esc(n.type||'PNJ')} ${n.cr?'— CR '+n.cr:''} — PV ${n.hp||0} — CA ${n.ac||0}</div>
+        <div style="font-size:13px;font-weight:600;color:var(--text)">${esc(n.name||'?')}</div>
+        <div style="font-size:13px;color:var(--text3)">${esc(n.type||'PNJ')} ${n.cr?'— CR '+n.cr:''} — PV ${n.hp||0} — CA ${n.ac||0}</div>
       </div>
       <div style="display:flex;gap:4px">
         <button class="btn bsm bprimary" onclick="event.stopPropagation();mjAddNPCToCombat(${i})">⚡</button>
-        <button class="btn bsm" style="color:#e53935;border-color:#e53935" onclick="event.stopPropagation();mjDeleteNPC(${i})">✕</button>
+        <button class="btn bsm" style="color:var(--danger);border-color:var(--danger)" onclick="event.stopPropagation();mjDeleteNPC(${i})">✕</button>
       </div>
     </div>
-  </div>`).join(''):`<div style="color:var(--text3);font-size:18px;font-style:italic;padding:8px 0">${_mjNPCs.length?'Aucune entrée dans cette catégorie.':'Aucun PNJ sauvegardé.'}</div>`;
+  </div>`).join(''):`<div style="color:var(--text3);font-size:13px;font-style:italic;padding:8px 0">${_mjNPCs.length?'Aucune entrée dans cette catégorie.':'Aucun PNJ sauvegardé.'}</div>`;
 
   return`<div class="md-2col">
     <div class="md-list">
@@ -30,7 +30,7 @@ function mjTabPNJ(){
         <div class="pt" style="margin-bottom:0;padding-bottom:0;border-bottom:none">PNJ sauvegardés</div>
         <div style="display:flex;gap:4px">
           <button class="btn bsm bprimary" onclick="mjNewNPC()">+ PNJ</button>
-          <button class="btn bsm" style="color:#9c27b0;border-color:rgba(156,39,176,.5)" onclick="mjOpenSidekickForm()">🤝 Comparse</button>
+          <button class="btn bsm" style="color:var(--arcane);border-color:rgba(156,39,176,.5)" onclick="mjOpenSidekickForm()">🤝 Comparse</button>
         </div>
       </div>
       ${filterBar}
@@ -46,31 +46,31 @@ function mjNPCDetail(n,i){
   const ab=n.abilities||[10,10,10,10,10,10];
   const statLabels=['FOR','DEX','CON','INT','SAG','CHA'];
   const abHtml=`<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-bottom:10px">
-    ${statLabels.map((l,idx)=>{const val=ab[idx]||10;const mod=Math.floor((val-10)/2);return`<div style="background:var(--surface2);border-radius:6px;padding:5px;text-align:center"><div style="font-size:13px;color:var(--text3);letter-spacing:.05em">${l}</div><div style="font-size:19px;font-weight:700">${val}</div><div style="font-size:15px;color:var(--cp)">${mod>=0?'+'+mod:mod}</div></div>`;}).join('')}
+    ${statLabels.map((l,idx)=>{const val=ab[idx]||10;const mod=Math.floor((val-10)/2);return`<div style="background:var(--surface2);border-radius:2px;padding:5px;text-align:center"><div style="font-size:13px;color:var(--text3);letter-spacing:.05em">${l}</div><div style="font-size:14px;font-weight:700">${val}</div><div style="font-size:12px;color:var(--cp)">${mod>=0?'+'+mod:mod}</div></div>`;}).join('')}
   </div>`;
   const attacks=Array.isArray(n.attacks)?n.attacks:[];
   const spells=Array.isArray(n.spells)?n.spells:[];
   const traits=Array.isArray(n.traits)?n.traits:[];
-  const attHtml=attacks.length?`<div style="margin-bottom:8px"><div class="fl mb6">⚔ Attaques</div>${attacks.map(a=>`<div style="font-size:18px;padding:5px 8px;background:var(--surface2);border-radius:6px;margin-bottom:4px"><span style="font-weight:600">${esc(a.name)}</span><span style="color:var(--text3)"> · +${a.atkBonus||0} · ${a.dmgDice||'1d6'}${a.dmgBonus?'+'+(a.dmgBonus):''}${a.dmgType?' '+esc(a.dmgType):''}${a.range?' · '+esc(a.range):''}</span></div>`).join('')}</div>`:'';
-  const spHtml=spells.length?`<div style="margin-bottom:8px"><div class="fl mb6">✦ Sorts & Pouvoirs</div>${spells.map(s=>`<div style="font-size:18px;padding:5px 8px;background:var(--surface2);border-radius:6px;margin-bottom:4px"><span style="font-weight:600">${esc(s.name)}</span>${s.level?` <span style="color:var(--text3)">Niv.${s.level}</span>`:''}${s.saveStat&&s.saveDC?` <span style="color:var(--text3)">· JS ${esc(s.saveStat)} DD${s.saveDC}</span>`:''}${s.dmgDice?` <span style="color:var(--text3)">· ${esc(s.dmgDice)}${s.dmgType?' '+esc(s.dmgType):''}</span>`:''}${s.desc?`<div style="color:var(--text2);font-size:17px;margin-top:2px">${esc(s.desc)}</div>`:''}</div>`).join('')}</div>`:'';
-  const trHtml=traits.length?`<div style="margin-bottom:8px"><div class="fl mb6">📜 Traits & Capacités</div>${traits.map(t=>`<div style="font-size:18px;padding:5px 8px;background:var(--surface2);border-radius:6px;margin-bottom:4px"><div style="font-weight:600">${esc(t.name)}</div>${t.desc?`<div style="color:var(--text2);font-size:17px;margin-top:2px">${esc(t.desc)}</div>`:''}</div>`).join('')}</div>`:'';
-  const oldAttHtml=typeof n.attacks==='string'&&n.attacks?`<div style="margin-bottom:8px"><div class="fl mb6">Attaques</div><div style="font-size:18px;color:var(--text2);background:var(--surface2);border-radius:6px;padding:8px;white-space:pre-wrap">${esc(n.attacks)}</div></div>`:'';
+  const attHtml=attacks.length?`<div style="margin-bottom:8px"><div class="fl mb6">⚔ Attaques</div>${attacks.map(a=>`<div style="font-size:13px;padding:5px 8px;background:var(--surface2);border-radius:2px;margin-bottom:4px"><span style="font-weight:600">${esc(a.name)}</span><span style="color:var(--text3)"> · +${a.atkBonus||0} · ${a.dmgDice||'1d6'}${a.dmgBonus?'+'+(a.dmgBonus):''}${a.dmgType?' '+esc(a.dmgType):''}${a.range?' · '+esc(a.range):''}</span></div>`).join('')}</div>`:'';
+  const spHtml=spells.length?`<div style="margin-bottom:8px"><div class="fl mb6">✦ Sorts & Pouvoirs</div>${spells.map(s=>`<div style="font-size:13px;padding:5px 8px;background:var(--surface2);border-radius:2px;margin-bottom:4px"><span style="font-weight:600">${esc(s.name)}</span>${s.level?` <span style="color:var(--text3)">Niv.${s.level}</span>`:''}${s.saveStat&&s.saveDC?` <span style="color:var(--text3)">· JS ${esc(s.saveStat)} DD${s.saveDC}</span>`:''}${s.dmgDice?` <span style="color:var(--text3)">· ${esc(s.dmgDice)}${s.dmgType?' '+esc(s.dmgType):''}</span>`:''}${s.desc?`<div style="color:var(--text2);font-size:13px;margin-top:2px">${esc(s.desc)}</div>`:''}</div>`).join('')}</div>`:'';
+  const trHtml=traits.length?`<div style="margin-bottom:8px"><div class="fl mb6">📜 Traits & Capacités</div>${traits.map(t=>`<div style="font-size:13px;padding:5px 8px;background:var(--surface2);border-radius:2px;margin-bottom:4px"><div style="font-weight:600">${esc(t.name)}</div>${t.desc?`<div style="color:var(--text2);font-size:13px;margin-top:2px">${esc(t.desc)}</div>`:''}</div>`).join('')}</div>`:'';
+  const oldAttHtml=typeof n.attacks==='string'&&n.attacks?`<div style="margin-bottom:8px"><div class="fl mb6">Attaques</div><div style="font-size:13px;color:var(--text2);background:var(--surface2);border-radius:2px;padding:8px;white-space:pre-wrap">${esc(n.attacks)}</div></div>`:'';
   return`<div class="panel">
-    <div class="pt">${esc(n.name||'?')} <span style="font-size:17px;color:var(--text3);font-family:var(--B)">${esc(n.type||'PNJ')}</span></div>
+    <div class="pt">${esc(n.name||'?')} <span style="font-size:13px;color:var(--text3);font-family:var(--B)">${esc(n.type||'PNJ')}</span></div>
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
-      ${n.cr?`<div style="background:var(--surface2);border-radius:6px;padding:6px 10px;text-align:center;min-width:50px"><div style="font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">Difficulté</div><div style="font-size:21px;font-weight:600;color:var(--cp)">${esc(n.cr)}</div></div>`:''}
-      <div style="background:var(--surface2);border-radius:6px;padding:6px 10px;text-align:center;min-width:50px"><div style="font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">PV</div><div style="font-size:21px;font-weight:600;color:#4caf50">${n.hp||0}</div></div>
-      <div style="background:var(--surface2);border-radius:6px;padding:6px 10px;text-align:center;min-width:50px"><div style="font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">CA</div><div style="font-size:21px;font-weight:600">${n.ac||0}</div></div>
-      ${n.speed?`<div style="background:var(--surface2);border-radius:6px;padding:6px 10px;text-align:center;min-width:50px"><div style="font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">Vitesse</div><div style="font-size:18px;font-weight:600">${esc(n.speed)}</div></div>`:''}
+      ${n.cr?`<div style="background:var(--surface2);border-radius:2px;padding:6px 10px;text-align:center;min-width:50px"><div style="font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">Difficulté</div><div style="font-size:15px;font-weight:600;color:var(--cp)">${esc(n.cr)}</div></div>`:''}
+      <div style="background:var(--surface2);border-radius:2px;padding:6px 10px;text-align:center;min-width:50px"><div style="font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">PV</div><div style="font-size:15px;font-weight:600;color:var(--good)">${n.hp||0}</div></div>
+      <div style="background:var(--surface2);border-radius:2px;padding:6px 10px;text-align:center;min-width:50px"><div style="font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">CA</div><div style="font-size:15px;font-weight:600">${n.ac||0}</div></div>
+      ${n.speed?`<div style="background:var(--surface2);border-radius:2px;padding:6px 10px;text-align:center;min-width:50px"><div style="font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">Vitesse</div><div style="font-size:13px;font-weight:600">${esc(n.speed)}</div></div>`:''}
     </div>
     ${abHtml}${oldAttHtml}${attHtml}${spHtml}${trHtml}
-    ${n.notes?`<div style="margin-bottom:10px"><div class="fl mb6">Notes</div><div style="font-size:18px;color:var(--text2);white-space:pre-wrap;background:var(--surface2);border-radius:6px;padding:8px">${esc(n.notes)}</div></div>`:''}
+    ${n.notes?`<div style="margin-bottom:10px"><div class="fl mb6">Notes</div><div style="font-size:13px;color:var(--text2);white-space:pre-wrap;background:var(--surface2);border-radius:2px;padding:8px">${esc(n.notes)}</div></div>`:''}
     <div style="display:flex;gap:6px;flex-wrap:wrap">
       <button class="btn bsm bprimary" onclick="mjAddNPCToCombat(${i})">⚡ Ajouter au combat</button>
       <button class="btn bsm" onclick="mjEditNPC(${i})">✏ Modifier</button>
       <button class="btn bsm" onclick="mjDuplicateNPC(${i})">📋 Dupliquer</button>
       <button class="btn bsm" title="Enregistrer dans un compendium" onclick="mjNpcToPack(${i})">📚 Compendium</button>
-      <button class="btn bsm" style="color:#e53935;border-color:#e53935" onclick="mjDeleteNPC(${i})">🗑 Supprimer</button>
+      <button class="btn bsm" style="color:var(--danger);border-color:var(--danger)" onclick="mjDeleteNPC(${i})">🗑 Supprimer</button>
     </div>
   </div>`;
 }
@@ -125,28 +125,28 @@ function mjOpenNPCForm(editIdx){
         </select>
       </div>
     </div>
-    <div id="pnj_cr_preview" style="font-size:17px;color:var(--text3);text-align:right;margin-bottom:8px;padding-right:2px"></div>
+    <div id="pnj_cr_preview" style="font-size:13px;color:var(--text3);text-align:right;margin-bottom:8px;padding-right:2px"></div>
     <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:16px">
       ${statLabels.map((l,idx)=>`<div>
-        <div style="font-size:15px;color:var(--text3);text-align:center;margin-bottom:3px">${l}</div>
+        <div style="font-size:12px;color:var(--text3);text-align:center;margin-bottom:3px">${l}</div>
         <input class="fi" id="pnj_ab${idx}" type="number" min="1" max="30" value="${ab[idx]||10}" style="text-align:center;padding:6px 4px">
       </div>`).join('')}
     </div>
     <div style="border-top:1px solid var(--border);padding-top:12px;margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <div style="font-size:18px;font-weight:700;color:var(--text2)">⚔ Attaques</div>
+        <div style="font-size:13px;font-weight:700;color:var(--text2)">⚔ Attaques</div>
         <button class="btn bsm" onclick="mjToggleMonsterSubForm('mAttForm')">+ Ajouter</button>
       </div>
-      <div id="mAttForm" style="display:none;background:var(--surface2);border-radius:8px;padding:10px;margin-bottom:8px">
+      <div id="mAttForm" style="display:none;background:var(--surface2);border-radius:2px;padding:10px;margin-bottom:8px">
         <input class="fi" id="mAtt_name" placeholder="Nom (ex: Cimeterre, Arc court...)" style="margin-bottom:6px">
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px">
-          <div><div style="font-size:15px;color:var(--text3);margin-bottom:3px">Bonus attaque</div><input class="fi" id="mAtt_bonus" type="number" value="0"></div>
-          <div><div style="font-size:15px;color:var(--text3);margin-bottom:3px">Dés de dégâts</div><input class="fi" id="mAtt_dice" placeholder="1d6" value="1d6"></div>
-          <div><div style="font-size:15px;color:var(--text3);margin-bottom:3px">Bonus dégâts</div><input class="fi" id="mAtt_dmgBonus" type="number" value="0"></div>
+          <div><div style="font-size:12px;color:var(--text3);margin-bottom:3px">Bonus attaque</div><input class="fi" id="mAtt_bonus" type="number" value="0"></div>
+          <div><div style="font-size:12px;color:var(--text3);margin-bottom:3px">Dés de dégâts</div><input class="fi" id="mAtt_dice" placeholder="1d6" value="1d6"></div>
+          <div><div style="font-size:12px;color:var(--text3);margin-bottom:3px">Bonus dégâts</div><input class="fi" id="mAtt_dmgBonus" type="number" value="0"></div>
         </div>
         <div class="g2" style="gap:6px;margin-bottom:8px">
-          <div><div style="font-size:15px;color:var(--text3);margin-bottom:3px">Type de dégâts</div><input class="fi" id="mAtt_type" placeholder="tranchant, feu..."></div>
-          <div><div style="font-size:15px;color:var(--text3);margin-bottom:3px">Portée (optionnel)</div><input class="fi" id="mAtt_range" placeholder="1.5m / 18/72m"></div>
+          <div><div style="font-size:12px;color:var(--text3);margin-bottom:3px">Type de dégâts</div><input class="fi" id="mAtt_type" placeholder="tranchant, feu..."></div>
+          <div><div style="font-size:12px;color:var(--text3);margin-bottom:3px">Portée (optionnel)</div><input class="fi" id="mAtt_range" placeholder="1.5m / 18/72m"></div>
         </div>
         <button class="btn bac bsm" style="width:100%" onclick="mjConfirmAddFormAttack()">✓ Confirmer cette attaque</button>
       </div>
@@ -154,41 +154,41 @@ function mjOpenNPCForm(editIdx){
     </div>
     <div style="border-top:1px solid var(--border);padding-top:12px;margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <div style="font-size:18px;font-weight:700;color:var(--text2)">✦ Sorts & Pouvoirs</div>
+        <div style="font-size:13px;font-weight:700;color:var(--text2)">✦ Sorts & Pouvoirs</div>
         <button class="btn bsm" onclick="mjToggleMonsterSubForm('mSpForm')">+ Ajouter</button>
       </div>
-      <div id="mSpForm" style="display:none;background:var(--surface2);border-radius:8px;padding:10px;margin-bottom:8px">
+      <div id="mSpForm" style="display:none;background:var(--surface2);border-radius:2px;padding:10px;margin-bottom:8px">
         <div style="position:relative;margin-bottom:8px">
           <input class="fi" id="mjSpSearchQ" placeholder="🔍 Chercher dans le compendium..." oninput="_mjSpellSearch(this.value)" onfocus="_mjSpellSearch(this.value)" autocomplete="off" onblur="setTimeout(()=>{const r=document.getElementById('mjSpSearchRes');if(r)r.style.display='none';},150)">
           <div id="mjSpSearchRes" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:200;background:var(--surface);border:1px solid rgba(200,168,75,.4);border-radius:0 0 6px 6px;max-height:200px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,.5)"></div>
         </div>
         <input class="fi" id="mSp_name" placeholder="Nom du sort (ex: Boule de feu)" style="margin-bottom:6px">
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px">
-          <div><div style="font-size:15px;color:var(--text3);margin-bottom:3px">Niveau sort</div><input class="fi" id="mSp_level" type="number" value="1" min="0" max="9"></div>
-          <div><div style="font-size:15px;color:var(--text3);margin-bottom:3px">Stat sauvegarde</div><input class="fi" id="mSp_saveStat" placeholder="DEX, CON..."></div>
-          <div><div style="font-size:15px;color:var(--text3);margin-bottom:3px">DD sauvegarde</div><input class="fi" id="mSp_saveDC" type="number" value="13" min="0"></div>
+          <div><div style="font-size:12px;color:var(--text3);margin-bottom:3px">Niveau sort</div><input class="fi" id="mSp_level" type="number" value="1" min="0" max="9"></div>
+          <div><div style="font-size:12px;color:var(--text3);margin-bottom:3px">Stat sauvegarde</div><input class="fi" id="mSp_saveStat" placeholder="DEX, CON..."></div>
+          <div><div style="font-size:12px;color:var(--text3);margin-bottom:3px">DD sauvegarde</div><input class="fi" id="mSp_saveDC" type="number" value="13" min="0"></div>
         </div>
         <div class="g2" style="gap:6px;margin-bottom:6px">
-          <div><div style="font-size:15px;color:var(--text3);margin-bottom:3px">Dés de dégâts</div><input class="fi" id="mSp_dice" placeholder="8d6, 2d8..."></div>
-          <div><div style="font-size:15px;color:var(--text3);margin-bottom:3px">Type de dégâts</div><input class="fi" id="mSp_type" placeholder="feu, foudre..."></div>
+          <div><div style="font-size:12px;color:var(--text3);margin-bottom:3px">Dés de dégâts</div><input class="fi" id="mSp_dice" placeholder="8d6, 2d8..."></div>
+          <div><div style="font-size:12px;color:var(--text3);margin-bottom:3px">Type de dégâts</div><input class="fi" id="mSp_type" placeholder="feu, foudre..."></div>
         </div>
-        <div><div style="font-size:15px;color:var(--text3);margin-bottom:3px">Description (optionnel)</div><textarea class="fi" id="mSp_desc" rows="2" placeholder="Zone 6m, chaque créature doit réussir un JS..." style="resize:vertical;margin-bottom:8px"></textarea></div>
+        <div><div style="font-size:12px;color:var(--text3);margin-bottom:3px">Description (optionnel)</div><textarea class="fi" id="mSp_desc" rows="2" placeholder="Zone 6m, chaque créature doit réussir un JS..." style="resize:vertical;margin-bottom:8px"></textarea></div>
         <button class="btn bac bsm" style="width:100%" onclick="mjConfirmAddFormSpell()">✓ Confirmer ce sort</button>
       </div>
       <div id="mAdd_spellsList"></div>
     </div>
     <div style="border-top:1px solid var(--border);padding-top:12px;margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <div style="font-size:18px;font-weight:700;color:var(--text2)">📜 Traits & Capacités passives</div>
+        <div style="font-size:13px;font-weight:700;color:var(--text2)">📜 Traits & Capacités passives</div>
         <button class="btn bsm" onclick="mjToggleMonsterSubForm('mTrForm')">+ Ajouter</button>
       </div>
-      <div id="mTrForm" style="display:none;background:var(--surface2);border-radius:8px;padding:10px;margin-bottom:8px">
+      <div id="mTrForm" style="display:none;background:var(--surface2);border-radius:2px;padding:10px;margin-bottom:8px">
         <input class="fi" id="mTr_name" placeholder="Nom (ex: Vision dans le noir, Résistance au feu...)" style="margin-bottom:6px">
         <textarea class="fi" id="mTr_desc" rows="2" placeholder="Description du trait ou de la capacité..." style="resize:vertical;margin-bottom:6px"></textarea>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px">
-          <div><div style="font-size:15px;color:var(--text3);margin-bottom:3px">Charges (0=passif)</div><input class="fi" id="mTr_uses" type="number" min="0" value="0"></div>
-          <div><div style="font-size:15px;color:var(--text3);margin-bottom:3px">Récupération</div><select class="fi" id="mTr_recovery"><option value="passive">Passif</option><option value="short">Repos court</option><option value="long">Repos long</option></select></div>
-          <div><div style="font-size:15px;color:var(--text3);margin-bottom:3px">Dé (ex: 2d6+3)</div><input class="fi" id="mTr_dice" placeholder="2d6+3"></div>
+          <div><div style="font-size:12px;color:var(--text3);margin-bottom:3px">Charges (0=passif)</div><input class="fi" id="mTr_uses" type="number" min="0" value="0"></div>
+          <div><div style="font-size:12px;color:var(--text3);margin-bottom:3px">Récupération</div><select class="fi" id="mTr_recovery"><option value="passive">Passif</option><option value="short">Repos court</option><option value="long">Repos long</option></select></div>
+          <div><div style="font-size:12px;color:var(--text3);margin-bottom:3px">Dé (ex: 2d6+3)</div><input class="fi" id="mTr_dice" placeholder="2d6+3"></div>
         </div>
         <button class="btn bac bsm" style="width:100%" onclick="mjConfirmAddFormTrait()">✓ Confirmer ce trait</button>
       </div>
@@ -219,7 +219,7 @@ function mjUpdateCRPreview(){
 
 function mjOpenSidekickForm(){
   openModal(`<div class="pt">🤝 Créer un comparse</div>
-    <div style="font-size:18px;color:var(--text3);margin-bottom:12px">Un comparse gagne des niveaux avec le groupe. Ses stats s'auto-remplissent.</div>
+    <div style="font-size:13px;color:var(--text3);margin-bottom:12px">Un comparse gagne des niveaux avec le groupe. Ses stats s'auto-remplissent.</div>
     <div class="fl mb6">Nom</div>
     <input class="fi" id="sk_name" placeholder="Nom du comparse..." style="margin-bottom:10px" autofocus>
     <div class="g2" style="gap:8px;margin-bottom:8px">
@@ -241,7 +241,7 @@ function mjOpenSidekickForm(){
     <select class="fi" id="sk_level" onchange="mjUpdateSidekickPreview()" style="margin-bottom:10px">
       ${[1,2,3,4,5,6].map(l=>`<option value="${l}">Niveau ${l}</option>`).join('')}
     </select>
-    <div id="sk_preview" style="background:var(--surface2);border-radius:8px;padding:10px;margin-bottom:16px;font-size:18px;color:var(--text2);min-height:60px"></div>
+    <div id="sk_preview" style="background:var(--surface2);border-radius:2px;padding:10px;margin-bottom:16px;font-size:13px;color:var(--text2);min-height:60px"></div>
     <div style="display:flex;gap:8px">
       <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
       <button class="btn bac" style="flex:2" onclick="mjCreateSidekick()">🤝 Créer ce comparse</button>
@@ -269,7 +269,7 @@ function mjUpdateSidekickPreview(){
   const hd=type==='caster'?SK.caster.hd[lv-1]:sk.hd[lv-1];
   const abilities=type==='caster'?SK.caster[sub]:sk.ab;
   prev.innerHTML=`<div style="font-weight:600;color:var(--cp);margin-bottom:6px">${sk.label||'Incantateur'} — Niveau ${lv} · PV max <strong>${hp}</strong> (${hd})</div>
-    <ul style="margin:0;padding-left:14px;font-size:17px;line-height:1.7">${abilities.slice(0,lv).map(a=>`<li>${a}</li>`).join('')}</ul>`;
+    <ul style="margin:0;padding-left:14px;font-size:13px;line-height:1.7">${abilities.slice(0,lv).map(a=>`<li>${a}</li>`).join('')}</ul>`;
 }
 
 async function mjCreateSidekick(){

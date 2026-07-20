@@ -740,14 +740,14 @@ function openTabOrderSettings(){
   };
   const rows=p.tabOrder.map((id,i)=>{
     const isFirst=i===0;const isLast=i===p.tabOrder.length-1;
-    return`<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;margin-bottom:5px">
-      <span style="font-size:19px;flex:1">${LABELS[id]||id}</span>
-      <button onclick="_tabOrderMove('${id}',-1)" ${isFirst?'disabled':''} style="background:none;border:1px solid var(--border);color:var(--text);border-radius:5px;padding:3px 9px;cursor:pointer;font-size:19px;opacity:${isFirst?.3:1}">↑</button>
-      <button onclick="_tabOrderMove('${id}',1)" ${isLast?'disabled':''} style="background:none;border:1px solid var(--border);color:var(--text);border-radius:5px;padding:3px 9px;cursor:pointer;font-size:19px;opacity:${isLast?.3:1}">↓</button>
+    return`<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;margin-bottom:5px">
+      <span style="font-size:14px;flex:1">${LABELS[id]||id}</span>
+      <button onclick="_tabOrderMove('${id}',-1)" ${isFirst?'disabled':''} style="background:none;border:1px solid var(--border);color:var(--text);border-radius:2px;padding:3px 9px;cursor:pointer;font-size:14px;opacity:${isFirst?.3:1}">↑</button>
+      <button onclick="_tabOrderMove('${id}',1)" ${isLast?'disabled':''} style="background:none;border:1px solid var(--border);color:var(--text);border-radius:2px;padding:3px 9px;cursor:pointer;font-size:14px;opacity:${isLast?.3:1}">↓</button>
     </div>`;
   }).join('');
   openModal(`<div class="pt">↕ Réorganiser les onglets</div>
-    <p style="font-size:18px;color:var(--text3);margin-bottom:12px">Déplace les onglets pour les mettre dans l'ordre qui te convient. La modification est sauvegardée avec ta fiche.</p>
+    <p style="font-size:13px;color:var(--text3);margin-bottom:12px">Déplace les onglets pour les mettre dans l'ordre qui te convient. La modification est sauvegardée avec ta fiche.</p>
     ${rows}
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;gap:8px">
       <button class="btn bsm" style="color:var(--text3)" onclick="_tabOrderReset()">↺ Ordre par défaut</button>
@@ -821,8 +821,8 @@ function confirmAddPlayer(){
 function deletePlayer(){
   if(state.players.length<=1){showToast('Impossible de supprimer le dernier joueur.');return;}
   const nom=P().charName||P().name;
-  openModal(`<div class="pt" style="color:#e53935">🗑 Supprimer</div>
-    <p style="font-size:18px;color:var(--text2);margin-bottom:12px">Tape <strong style="color:var(--cp)">${esc(nom)}</strong> pour confirmer :</p>
+  openModal(`<div class="pt" style="color:var(--danger)">🗑 Supprimer</div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:12px">Tape <strong style="color:var(--cp)">${esc(nom)}</strong> pour confirmer :</p>
     <input class="fi" id="deleteConfirmInput" placeholder="${esc(nom)}" style="margin-bottom:12px">
     <div style="display:flex;gap:8px">
       <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
@@ -850,26 +850,26 @@ function tabCreation(){
   const cur=labels[CS.step-1];
   const stepIdx=steps.indexOf(cur);
   const progress=`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:18px">
-    ${steps.map((s,i)=>`<span class="cp-step${i<stepIdx?' done':i===stepIdx?' active':''}">${i<stepIdx?'✓ ':''+(i+1)+'. '}${s}</span>${i<steps.length-1?'<span style="color:var(--text3);font-size:15px;align-self:center">›</span>':''}`).join('')}
+    ${steps.map((s,i)=>`<span class="cp-step${i<stepIdx?' done':i===stepIdx?' active':''}">${i<stepIdx?'✓ ':''+(i+1)+'. '}${s}</span>${i<steps.length-1?'<span style="color:var(--text3);font-size:12px;align-self:center">›</span>':''}`).join('')}
   </div>`;
   const map={1:creStep1,2:creStep2,3:creStep3,4:creStep4,5:creStep5,6:()=>{const cd=SRD.classes.find(c=>c.name===CS.classe);return cd&&cd.spellcaster&&cd.startSpells>0?creStep6Sorts():creStep7();},7:()=>{const cd=SRD.classes.find(c=>c.name===CS.classe);return cd&&cd.spellcaster&&cd.startSpells>0?creStep7():creStep8();},8:creStep8};
-  return`<div class="creation-wrap"><div class="panel"><div class="pt" style="font-size:21px">🧙 Création du personnage</div>${progress}${(map[CS.step]||creStep1)()}</div></div>`;
+  return`<div class="creation-wrap"><div class="panel"><div class="pt" style="font-size:15px">🧙 Création du personnage</div>${progress}${(map[CS.step]||creStep1)()}</div></div>`;
 }
 
 function creStep1(){
   const isDragonide = !!CS.race&&CS.race.startsWith('Dragonide');
   const canContinue = CS.race && (!isDragonide || CS.draconicAncestry);
-  return`<div><p style="font-size:18px;color:var(--text2);margin-bottom:12px">Choisis la race de ton personnage.</p>
-    <div class="crd-grid">${SRD.races.map(r=>{const b=r.allBonus?`+${r.allBonus} à tout`:r.bonuses.map((v,i)=>v?`+${v} ${ABILITIES_SH[i]}`:'').filter(Boolean).join(', ');return`<div class="crd${CS.race===r.name?' selected':''}" onclick="CS.race='${jsq(r.name)}';CS.draconicAncestry=null;CS.flexSet=0;CS.flexChoices=[];renderTab()"><h3>${esc(r.name)}</h3><p>${esc(r.traits.slice(0,65))}…</p><span class="tag">🏃 ${r.speed}m</span><span class="tag" style="color:#4caf50">${b}</span></div>`;}).join('')}</div>
-    ${CS.race?`<div style="margin-top:12px;padding:10px;background:var(--surface2);border-radius:8px"><div style="font-size:18px;font-weight:600;color:var(--cp)">${esc(CS.race)}</div><div style="font-size:18px;color:var(--text2);margin-top:4px">${esc((SRD.races.find(r=>r.name===CS.race)||{}).traits||'')}</div></div>`:''}
+  return`<div><p style="font-size:13px;color:var(--text2);margin-bottom:12px">Choisis la race de ton personnage.</p>
+    <div class="crd-grid">${SRD.races.map(r=>{const b=r.allBonus?`+${r.allBonus} à tout`:r.bonuses.map((v,i)=>v?`+${v} ${ABILITIES_SH[i]}`:'').filter(Boolean).join(', ');return`<div class="crd${CS.race===r.name?' selected':''}" onclick="CS.race='${jsq(r.name)}';CS.draconicAncestry=null;CS.flexSet=0;CS.flexChoices=[];renderTab()"><h3>${esc(r.name)}</h3><p>${esc(r.traits.slice(0,65))}…</p><span class="tag">🏃 ${r.speed}m</span><span class="tag" style="color:var(--good)">${b}</span></div>`;}).join('')}</div>
+    ${CS.race?`<div style="margin-top:12px;padding:10px;background:var(--surface2);border-radius:2px"><div style="font-size:13px;font-weight:600;color:var(--cp)">${esc(CS.race)}</div><div style="font-size:13px;color:var(--text2);margin-top:4px">${esc((SRD.races.find(r=>r.name===CS.race)||{}).traits||'')}</div></div>`:''}
     ${isDragonide?`<div style="margin-top:12px">
-      <div style="font-size:18px;font-weight:600;color:var(--cp);margin-bottom:8px">🐉 Choisis ton ascendance draconique <span style="color:#e53935">*</span></div>
+      <div style="font-size:13px;font-weight:600;color:var(--cp);margin-bottom:8px">🐉 Choisis ton ascendance draconique <span style="color:var(--danger)">*</span></div>
       <div class="crd-grid">${SRD.draconicAncestries.map(a=>`<div class="crd${CS.draconicAncestry===a.name?' selected':''}" onclick="CS.draconicAncestry='${jsq(a.name)}';renderTab()">
         <h3>${a.icon} ${esc(a.name)}</h3>
-        <p style="font-size:17px">${esc(a.damage)}</p>
-        <span class="tag" style="font-size:15px">${esc(a.shape)}</span>
+        <p style="font-size:13px">${esc(a.damage)}</p>
+        <span class="tag" style="font-size:12px">${esc(a.shape)}</span>
       </div>`).join('')}</div>
-      ${CS.draconicAncestry?`<div style="margin-top:8px;padding:8px;background:var(--surface2);border-radius:6px;font-size:18px;color:#4caf50">✓ Dragon <strong>${esc(CS.draconicAncestry)}</strong> — Souffle : ${esc((SRD.draconicAncestries.find(a=>a.name===CS.draconicAncestry)||{}).damage||'')} (${esc((SRD.draconicAncestries.find(a=>a.name===CS.draconicAncestry)||{}).shape||'')})</div>`:``}
+      ${CS.draconicAncestry?`<div style="margin-top:8px;padding:8px;background:var(--surface2);border-radius:2px;font-size:13px;color:var(--good)">✓ Dragon <strong>${esc(CS.draconicAncestry)}</strong> — Souffle : ${esc((SRD.draconicAncestries.find(a=>a.name===CS.draconicAncestry)||{}).damage||'')} (${esc((SRD.draconicAncestries.find(a=>a.name===CS.draconicAncestry)||{}).shape||'')})</div>`:``}
     </div>`:''}
     ${CS.race?`<button class="btn bac" style="margin-top:12px;width:100%" onclick="CS.step=2;renderTab()" ${canContinue?'':'disabled'}>Continuer → Classe</button>`:''}
   </div>`;
@@ -882,15 +882,15 @@ function creStep2(){
   const hasStyle=cdLu&&cdLu.styleLevel===1;
   const styles=hasStyle?(cdLu.combatStyles||[]):[];
   const canContinue=CS.classe&&(!hasArchetype||CS.archetype)&&(!hasStyle||CS.combatStyle);
-  return`<div><p style="font-size:18px;color:var(--text2);margin-bottom:12px">Choisis la classe de ton personnage.</p>
-    <div class="crd-grid">${SRD.classes.map(c=>`<div class="crd${CS.classe===c.name?' selected':''}" onclick="CS.classe='${jsq(c.name)}';CS.archetype=null;CS.combatStyle=null;renderTab()"><h3>${esc(c.name)}</h3><p>${c.hd}${c.spellcaster?' • ✦ sorts':''}</p><span class="tag">JS: ${c.saves.join(', ')}</span><span class="tag" style="color:var(--cp)">${c.skillCount} comp.</span><span class="tag" style="color:#ffd54f">★ ${(c.primaryStats||[]).join(', ')}</span></div>`).join('')}</div>
-    ${CS.classe?`<div style="margin-top:12px;padding:10px;background:var(--surface2);border-radius:8px">${(()=>{const c=SRD.classes.find(cl=>cl.name===CS.classe);return c?`<div style="font-size:18px;font-weight:600;color:var(--cp)">${esc(c.name)}</div><div style="font-size:18px;color:var(--text2);margin-top:4px">Armures: ${esc(c.armor)} • Armes: ${esc(c.weapons)}</div>`:''})()}</div>
-    ${hasArchetype?`<div style="margin-top:12px"><div style="font-size:18px;font-weight:600;color:var(--cp);margin-bottom:8px">${CS.classe==='Ensorceleur'?'🔮 Choisis ton Lignée draconique':'🌑 Choisis ton Mécène d\'Outremonde'} <span style="color:#e53935">*</span></div>
+  return`<div><p style="font-size:13px;color:var(--text2);margin-bottom:12px">Choisis la classe de ton personnage.</p>
+    <div class="crd-grid">${SRD.classes.map(c=>`<div class="crd${CS.classe===c.name?' selected':''}" onclick="CS.classe='${jsq(c.name)}';CS.archetype=null;CS.combatStyle=null;renderTab()"><h3>${esc(c.name)}</h3><p>${c.hd}${c.spellcaster?' • ✦ sorts':''}</p><span class="tag">JS: ${c.saves.join(', ')}</span><span class="tag" style="color:var(--cp)">${c.skillCount} comp.</span><span class="tag" style="color:var(--cp)">★ ${(c.primaryStats||[]).join(', ')}</span></div>`).join('')}</div>
+    ${CS.classe?`<div style="margin-top:12px;padding:10px;background:var(--surface2);border-radius:2px">${(()=>{const c=SRD.classes.find(cl=>cl.name===CS.classe);return c?`<div style="font-size:13px;font-weight:600;color:var(--cp)">${esc(c.name)}</div><div style="font-size:13px;color:var(--text2);margin-top:4px">Armures: ${esc(c.armor)} • Armes: ${esc(c.weapons)}</div>`:''})()}</div>
+    ${hasArchetype?`<div style="margin-top:12px"><div style="font-size:13px;font-weight:600;color:var(--cp);margin-bottom:8px">${CS.classe==='Ensorceleur'?'🔮 Choisis ton Lignée draconique':'🌑 Choisis ton Mécène d\'Outremonde'} <span style="color:var(--danger)">*</span></div>
       <div class="crd-grid">${archetypes.map(a=>`<div class="crd${CS.archetype===a.name?' selected':''}" onclick="CS.archetype='${a.name.replace(/'/g,"\\'").replace(/"/g,'&quot;')}';renderTab()"><h3>${a.icon||''} ${esc(a.name)}</h3><p>${esc(a.desc.slice(0,80))}…</p></div>`).join('')}</div>
-      ${CS.archetype?`<div style="margin-top:8px;padding:8px;background:var(--surface2);border-radius:6px;font-size:18px;color:#4caf50">✓ ${esc(CS.archetype)} sélectionné</div>`:''}</div>`:''}
-    ${hasStyle?`<div style="margin-top:12px"><div style="font-size:18px;font-weight:600;color:var(--cp);margin-bottom:8px">⚔ Choisis ton style de combat <span style="color:#e53935">*</span></div>
+      ${CS.archetype?`<div style="margin-top:8px;padding:8px;background:var(--surface2);border-radius:2px;font-size:13px;color:var(--good)">✓ ${esc(CS.archetype)} sélectionné</div>`:''}</div>`:''}
+    ${hasStyle?`<div style="margin-top:12px"><div style="font-size:13px;font-weight:600;color:var(--cp);margin-bottom:8px">⚔ Choisis ton style de combat <span style="color:var(--danger)">*</span></div>
       <div class="crd-grid">${styles.map(s=>`<div class="crd${CS.combatStyle===s.name?' selected':''}" onclick="CS.combatStyle='${jsq(s.name)}';renderTab()"><h3>${esc(s.name)}</h3><p>${esc(s.desc)}</p></div>`).join('')}</div>
-      ${CS.combatStyle?`<div style="margin-top:8px;padding:8px;background:var(--surface2);border-radius:6px;font-size:18px;color:#4caf50">✓ Style : ${esc(CS.combatStyle)}</div>`:''}</div>`:''}
+      ${CS.combatStyle?`<div style="margin-top:8px;padding:8px;background:var(--surface2);border-radius:2px;font-size:13px;color:var(--good)">✓ Style : ${esc(CS.combatStyle)}</div>`:''}</div>`:''}
     <div style="display:flex;gap:8px;margin-top:12px"><button class="btn" style="flex:1" onclick="CS.step=1;renderTab()">← Retour</button><button class="btn bac" style="flex:2" onclick="CS.step=3;renderTab()" ${canContinue?'':'disabled'}>Continuer → Stats</button></div>`:`<button class="btn" style="margin-top:12px" onclick="CS.step=1;renderTab()">← Retour</button>`}
   </div>`;
 }
@@ -909,22 +909,22 @@ function creStep3(){
   const hpTotal=(cd?cd.hdVal:8)+mod(finals[2]);
   return`<div>
     <div style="display:flex;gap:8px;margin-bottom:14px"><button class="smb${CS.statMethod==='pointbuy'?' on':''}" onclick="CS.statMethod='pointbuy';renderTab()">🪙 Achat de points</button><button class="smb${CS.statMethod==='dice'?' on':''}" onclick="CS.statMethod='dice';renderTab()">🎲 Lancer les dés</button></div>
-    ${CS.statMethod==='pointbuy'?`<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:8px;background:var(--surface2);border-radius:8px"><span style="font-size:18px;color:var(--text2)">Points restants :</span><span style="font-size:20px;font-weight:700;color:${rem<0?'#e53935':'var(--cp)'}">${rem}</span><span style="font-size:17px;color:var(--text3)">/ 27 • valeurs 8–15</span></div>`:''}
-    ${CS.statMethod==='dice'?`<div style="margin-bottom:12px"><button class="btn bac" onclick="CS.diceRolls=ABILITIES.map(()=>{const d=[1,2,3,4].map(()=>Math.ceil(Math.random()*6));d.sort((a,b)=>b-a);return d[0]+d[1]+d[2];});renderTab()">🎲 Lancer les 6 dés (4d6 garde 3)</button>${CS.diceRolls?`<span style="margin-left:10px;font-size:18px;color:var(--cp)">${CS.diceRolls.join(' — ')}</span>`:''}</div>`:''}
+    ${CS.statMethod==='pointbuy'?`<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:8px;background:var(--surface2);border-radius:2px"><span style="font-size:13px;color:var(--text2)">Points restants :</span><span style="font-size:15px;font-weight:700;color:${rem<0?'var(--danger)':'var(--cp)'}">${rem}</span><span style="font-size:13px;color:var(--text3)">/ 27 • valeurs 8–15</span></div>`:''}
+    ${CS.statMethod==='dice'?`<div style="margin-bottom:12px"><button class="btn bac" onclick="CS.diceRolls=ABILITIES.map(()=>{const d=[1,2,3,4].map(()=>Math.ceil(Math.random()*6));d.sort((a,b)=>b-a);return d[0]+d[1]+d[2];});renderTab()">🎲 Lancer les 6 dés (4d6 garde 3)</button>${CS.diceRolls?`<span style="margin-left:10px;font-size:13px;color:var(--cp)">${CS.diceRolls.join(' — ')}</span>`:''}</div>`:''}
     ${ABILITIES.map((ab,i)=>{const v=CS.statMethod==='dice'&&CS.diceRolls?CS.diceRolls[i]:CS.baseStats[i];const fx=flexSet?flexSet.reduce((a,val,k)=>a+(CS.flexChoices[k]===i?val:0),0):0;const rb=(rd?(rd.allBonus||rd.bonuses[i]||0):0)+fx;const final=v+rb;const canInc=CS.statMethod==='pointbuy'&&v<15&&rem>=(POINT_BUY_COST[v+1]||99)-POINT_BUY_COST[v];const canDec=CS.statMethod==='pointbuy'&&v>8;const isPrio=cd&&cd.primaryStats&&cd.primaryStats.includes(ABILITIES_SH[i]);
-    return`<div class="stat-row"><span class="stat-row-name">${ab}${isPrio?` <span style="color:#ffd54f;font-size:15px">★</span>`:''}</span>${CS.statMethod==='pointbuy'?`<div class="stat-ctrl"><button onclick="creStatDec(${i})" ${canDec?'':'disabled'}>−</button><span class="stat-val">${v}</span><button onclick="creStatInc(${i})" ${canInc?'':'disabled'}>+</button></div>`:`<span class="stat-val" style="margin:0 8px">${v}</span>`}<span style="font-size:18px;color:var(--cp);width:28px">${fmt(mod(v))}</span>${rb?`<span style="font-size:17px;color:#4caf50;width:50px">+${rb} race</span>`:`<span style="width:50px"></span>`}<span style="font-size:17px;color:var(--text3)">→</span><span style="font-size:22px;font-weight:700;color:var(--cp);width:28px;text-align:center">${final}</span><span style="font-size:18px;color:var(--text2)">${fmt(mod(final))}</span></div>`;}).join('')}
-    ${flexSet?`<div style="margin-top:12px;padding:10px;background:var(--surface2);border:1px solid var(--cp);border-radius:8px">
-      <div style="font-size:18px;font-weight:600;color:var(--cp);margin-bottom:6px">🧬 Bonus raciaux au choix</div>
+    return`<div class="stat-row"><span class="stat-row-name">${ab}${isPrio?` <span style="color:var(--cp);font-size:12px">★</span>`:''}</span>${CS.statMethod==='pointbuy'?`<div class="stat-ctrl"><button onclick="creStatDec(${i})" ${canDec?'':'disabled'}>−</button><span class="stat-val">${v}</span><button onclick="creStatInc(${i})" ${canInc?'':'disabled'}>+</button></div>`:`<span class="stat-val" style="margin:0 8px">${v}</span>`}<span style="font-size:13px;color:var(--cp);width:28px">${fmt(mod(v))}</span>${rb?`<span style="font-size:13px;color:var(--good);width:50px">+${rb} race</span>`:`<span style="width:50px"></span>`}<span style="font-size:13px;color:var(--text3)">→</span><span style="font-size:16px;font-weight:700;color:var(--cp);width:28px;text-align:center">${final}</span><span style="font-size:13px;color:var(--text2)">${fmt(mod(final))}</span></div>`;}).join('')}
+    ${flexSet?`<div style="margin-top:12px;padding:10px;background:var(--surface2);border:1px solid var(--cp);border-radius:2px">
+      <div style="font-size:13px;font-weight:600;color:var(--cp);margin-bottom:6px">🧬 Bonus raciaux au choix</div>
       ${flexSets.length>1?`<div style="display:flex;gap:6px;margin-bottom:8px">${flexSets.map((s,k)=>`<button class="smb${k===(CS.flexSet||0)?' on':''}" onclick="CS.flexSet=${k};CS.flexChoices=[];renderTab()">${s.map(v=>'+'+v).join(' / ')}</button>`).join('')}</div>`:''}
       ${flexSet.map((val,k)=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-        <span style="font-size:19px;font-weight:700;color:#4caf50;width:34px">+${val}</span>
+        <span style="font-size:14px;font-weight:700;color:var(--good);width:34px">+${val}</span>
         <select class="fi" style="flex:1;margin:0" onchange="CS.flexChoices[${k}]=this.value===''?null:parseInt(this.value);renderTab()">
           <option value="">— choisir une caractéristique —</option>
           ${ABILITIES.map((ab,i)=>{const fixed=!!(rd&&(rd.allBonus||(rd.bonuses&&rd.bonuses[i]>0)));const taken=CS.flexChoices.some((c,kk)=>kk!==k&&c===i);if(fixed||taken)return'';return`<option value="${i}"${CS.flexChoices[k]===i?' selected':''}>${ab}</option>`;}).join('')}
         </select></div>`).join('')}
-      ${flexIncomplete?`<div style="font-size:16px;color:#ff9800">⚠ Choisis ${flexSet.length>1?'toutes tes caractéristiques bonus':'ta caractéristique bonus'} pour continuer.</div>`:''}
+      ${flexIncomplete?`<div style="font-size:12.5px;color:var(--warn)">⚠ Choisis ${flexSet.length>1?'toutes tes caractéristiques bonus':'ta caractéristique bonus'} pour continuer.</div>`:''}
     </div>`:''}
-    <div style="margin-top:10px;padding:8px;background:var(--surface2);border-radius:8px;font-size:18px;color:var(--text2)">PV de départ estimés : <strong style="color:var(--cp)">${hpTotal}</strong></div>
+    <div style="margin-top:10px;padding:8px;background:var(--surface2);border-radius:2px;font-size:13px;color:var(--text2)">PV de départ estimés : <strong style="color:var(--cp)">${hpTotal}</strong></div>
     <div style="display:flex;gap:8px;margin-top:12px"><button class="btn" style="flex:1" onclick="CS.step=2;renderTab()">← Retour</button><button class="btn bac" style="flex:2" onclick="CS.step=4;renderTab()" ${(CS.statMethod==='dice'&&!CS.diceRolls)||flexIncomplete?'disabled':''}>Continuer → Historique</button></div>
   </div>`;
 }
@@ -933,11 +933,11 @@ function creStatDec(i){if(CS.baseStats[i]<=8)return;CS.baseStats[i]--;renderTab(
 
 function creStep4(){
   const bg=CS.background?BACKGROUNDS.find(b=>b.name===CS.background):null;
-  return`<div><p style="font-size:18px;color:var(--text2);margin-bottom:12px">L'historique t'accorde 2 compétences et des maîtrises d'outils/langues.</p>
+  return`<div><p style="font-size:13px;color:var(--text2);margin-bottom:12px">L'historique t'accorde 2 compétences et des maîtrises d'outils/langues.</p>
     <div class="fl mb6">Cherche ou clique</div>
     <div class="acw mb10"><input class="fi" id="bgInputCre" placeholder="Historique..." value="${esc(CS.background||'')}" oninput="if(!BACKGROUNDS_DB)loadBackgroundsDB(()=>searchCreBG(this.value));else searchCreBG(this.value)" autocomplete="off"><div class="acd" id="bgDropCre"></div></div>
-    <div class="crd-grid" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr))">${BACKGROUNDS.map(b=>`<div class="crd${CS.background===b.name?' selected':''}" onclick="CS.background='${jsq(b.name)}';document.getElementById('bgInputCre').value='${jsq(b.name)}';document.getElementById('bgDropCre').style.display='none';renderTab()"><h3 style="font-size:17px">${esc(b.name)}</h3><p>${esc(b.skills.join(', '))}</p>${b.tools?`<span class="tag">${esc(b.tools.slice(0,20))}</span>`:''}${b.langs?`<span class="tag">+${b.langs} langue${b.langs>1?'s':''}</span>`:''}</div>`).join('')}</div>
-    ${bg?`<div style="margin-top:12px;padding:12px;background:var(--surface2);border-radius:8px"><div style="font-size:18px;font-weight:600;color:var(--cp)">${esc(bg.name)}</div><div style="font-size:18px;color:var(--text2);margin-bottom:4px">${esc(bg.desc)}</div><div style="font-size:18px;color:#4caf50">Compétences : ${bg.skills.join(', ')}</div>${bg.tools?`<div style="font-size:18px;color:var(--text2);margin-top:2px">Outils : ${esc(bg.tools)}</div>`:''}${bg.langs?`<div style="font-size:18px;color:var(--text2);margin-top:2px">Langues supplémentaires : ${bg.langs}</div>`:''}</div>
+    <div class="crd-grid" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr))">${BACKGROUNDS.map(b=>`<div class="crd${CS.background===b.name?' selected':''}" onclick="CS.background='${jsq(b.name)}';document.getElementById('bgInputCre').value='${jsq(b.name)}';document.getElementById('bgDropCre').style.display='none';renderTab()"><h3 style="font-size:13px">${esc(b.name)}</h3><p>${esc(b.skills.join(', '))}</p>${b.tools?`<span class="tag">${esc(b.tools.slice(0,20))}</span>`:''}${b.langs?`<span class="tag">+${b.langs} langue${b.langs>1?'s':''}</span>`:''}</div>`).join('')}</div>
+    ${bg?`<div style="margin-top:12px;padding:12px;background:var(--surface2);border-radius:2px"><div style="font-size:13px;font-weight:600;color:var(--cp)">${esc(bg.name)}</div><div style="font-size:13px;color:var(--text2);margin-bottom:4px">${esc(bg.desc)}</div><div style="font-size:13px;color:var(--good)">Compétences : ${bg.skills.join(', ')}</div>${bg.tools?`<div style="font-size:13px;color:var(--text2);margin-top:2px">Outils : ${esc(bg.tools)}</div>`:''}${bg.langs?`<div style="font-size:13px;color:var(--text2);margin-top:2px">Langues supplémentaires : ${bg.langs}</div>`:''}</div>
     <div style="display:flex;gap:8px;margin-top:12px"><button class="btn" style="flex:1" onclick="CS.step=3;renderTab()">← Retour</button><button class="btn bac" style="flex:2" onclick="CS.selectedSkills=[];CS.step=5;renderTab()">Continuer → Compétences</button></div>`:`<button class="btn" style="margin-top:12px" onclick="CS.step=3;renderTab()">← Retour</button>`}
   </div>`;
 }
@@ -960,7 +960,7 @@ function searchCreBG(q){
   if(!res.length){drop.style.display='none';return;}
   window._creSearchResults=res;
   drop.style.display='block';
-  drop.innerHTML=res.map((b,i)=>`<div class="aci" onmousedown="event.preventDefault();_selectCreBGIdx(${i})"><div class="ain">${esc(b.name)}${b._comp?' <span style="font-size:15px;color:var(--text3)">[Compendium]</span>':''}</div><div class="ais">${esc(b.skills.join(', '))||'—'} — ${esc(b.desc||'')}</div></div>`).join('');
+  drop.innerHTML=res.map((b,i)=>`<div class="aci" onmousedown="event.preventDefault();_selectCreBGIdx(${i})"><div class="ain">${esc(b.name)}${b._comp?' <span style="font-size:12px;color:var(--text3)">[Compendium]</span>':''}</div><div class="ais">${esc(b.skills.join(', '))||'—'} — ${esc(b.desc||'')}</div></div>`).join('');
 }
 function _selectCreBGIdx(i){const b=window._creSearchResults&&window._creSearchResults[i];if(b)_selectCreBG(b);}
 function _selectCreBG(b){
@@ -976,11 +976,11 @@ function creStep5(){
   const bg=BACKGROUNDS.find(b=>b.name===CS.background);const bgSk=bg?bg.skills:[];
   const max=cd.skillCount;const sel=CS.selectedSkills;
   return`<div>
-    <p style="font-size:18px;color:var(--text2);margin-bottom:8px">Choisis <strong style="color:var(--cp)">${max} compétences</strong> parmi celles de la classe ${esc(CS.classe)}.</p>
-    ${bgSk.length?`<div style="padding:8px 10px;background:rgba(76,175,80,.1);border:1px solid #4caf50;border-radius:6px;margin-bottom:10px;font-size:18px;color:#4caf50">✓ Via l'historique <strong>${esc(CS.background)}</strong> : ${bgSk.join(', ')}</div>`:''}
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:6px 10px;background:var(--surface2);border-radius:6px"><span style="font-size:18px;color:var(--text2)">Sélectionnées :</span><span style="font-size:25px;font-weight:700;color:var(--cp)">${sel.length}/${max}</span></div>
-    ${cd.skills.map(sk=>{const isBg=bgSk.includes(sk);const isSel=sel.includes(sk);const dis=!isSel&&sel.length>=max;return`<div class="sk-choice${isBg?' from-bg':isSel?' selected':dis?' disabled':''}" onclick="${dis&&!isBg?'':'creToggleSkill(\''+sk+'\')'}"><span class="sk-dot${isBg||isSel?' p':''}"></span><span style="flex:1;font-size:18px">${esc(sk)}${isBg?' <span style="font-size:15px;color:#4caf50">(historique)</span>':''}</span>${isBg?`<span style="font-size:17px;color:#4caf50">✓</span>`:isSel?`<span style="color:var(--cp)">✓</span>`:''}</div>`;}).join('')}
-    <div style="margin-top:12px;padding:10px;background:var(--surface2);border-radius:8px"><div style="font-size:17px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Maîtrises</div><div style="font-size:18px;color:var(--text2)">Armures : ${esc(cd.armor)} • Armes : ${esc(cd.weapons)}</div><div style="font-size:18px;color:var(--text2);margin-top:2px">Sauvegardes : ${cd.saves.join(', ')}</div></div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:8px">Choisis <strong style="color:var(--cp)">${max} compétences</strong> parmi celles de la classe ${esc(CS.classe)}.</p>
+    ${bgSk.length?`<div style="padding:8px 10px;background:rgba(76,175,80,.1);border:1px solid var(--good);border-radius:2px;margin-bottom:10px;font-size:13px;color:var(--good)">✓ Via l'historique <strong>${esc(CS.background)}</strong> : ${bgSk.join(', ')}</div>`:''}
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:6px 10px;background:var(--surface2);border-radius:2px"><span style="font-size:13px;color:var(--text2)">Sélectionnées :</span><span style="font-size:18px;font-weight:700;color:var(--cp)">${sel.length}/${max}</span></div>
+    ${cd.skills.map(sk=>{const isBg=bgSk.includes(sk);const isSel=sel.includes(sk);const dis=!isSel&&sel.length>=max;return`<div class="sk-choice${isBg?' from-bg':isSel?' selected':dis?' disabled':''}" onclick="${dis&&!isBg?'':'creToggleSkill(\''+sk+'\')'}"><span class="sk-dot${isBg||isSel?' p':''}"></span><span style="flex:1;font-size:13px">${esc(sk)}${isBg?' <span style="font-size:12px;color:var(--good)">(historique)</span>':''}</span>${isBg?`<span style="font-size:13px;color:var(--good)">✓</span>`:isSel?`<span style="color:var(--cp)">✓</span>`:''}</div>`;}).join('')}
+    <div style="margin-top:12px;padding:10px;background:var(--surface2);border-radius:2px"><div style="font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Maîtrises</div><div style="font-size:13px;color:var(--text2)">Armures : ${esc(cd.armor)} • Armes : ${esc(cd.weapons)}</div><div style="font-size:13px;color:var(--text2);margin-top:2px">Sauvegardes : ${cd.saves.join(', ')}</div></div>
     <div style="display:flex;gap:8px;margin-top:12px"><button class="btn" style="flex:1" onclick="CS.step=4;renderTab()">← Retour</button><button class="btn bac" style="flex:2" onclick="creGoNext5()" ${sel.length===max?'':'disabled'}>Continuer →</button></div>
   </div>`;
 }
@@ -995,15 +995,15 @@ function creStep6Sorts(){
   const selL1=sel.filter(s=>{const sp=findSpellData(s);return sp&&sp.level===1;});
   const l1Max=max-cantripCount;
   return`<div>
-    <p style="font-size:18px;color:var(--text2);margin-bottom:12px">Choisis tes sorts de départ pour ${esc(CS.classe)}.</p>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:12px">Choisis tes sorts de départ pour ${esc(CS.classe)}.</p>
     <div style="display:flex;gap:10px;margin-bottom:12px">
-      <div style="flex:1;padding:8px;background:var(--surface2);border-radius:8px;text-align:center"><div style="font-size:17px;color:var(--text3)">Sorts mineurs</div><div style="font-size:20px;font-weight:700;color:var(--cp)">${selC.length}/${cantripCount}</div></div>
-      <div style="flex:1;padding:8px;background:var(--surface2);border-radius:8px;text-align:center"><div style="font-size:17px;color:var(--text3)">Sorts niv.1</div><div style="font-size:20px;font-weight:700;color:var(--cp)">${selL1.length}/${l1Max}</div></div>
+      <div style="flex:1;padding:8px;background:var(--surface2);border-radius:2px;text-align:center"><div style="font-size:13px;color:var(--text3)">Sorts mineurs</div><div style="font-size:15px;font-weight:700;color:var(--cp)">${selC.length}/${cantripCount}</div></div>
+      <div style="flex:1;padding:8px;background:var(--surface2);border-radius:2px;text-align:center"><div style="font-size:13px;color:var(--text3)">Sorts niv.1</div><div style="font-size:15px;font-weight:700;color:var(--cp)">${selL1.length}/${l1Max}</div></div>
     </div>
-    <div style="font-size:18px;font-weight:600;color:var(--cp);margin-bottom:6px">Sorts mineurs</div>
-    ${(SPELLS_DB||SRD.spells).filter(s=>s.level===0&&(!SPELLS_DB||(s.classes||[]).includes(CS.classe||''))).map(s=>{const isSel=sel.includes(s.name);const dis=!isSel&&selC.length>=cantripCount;return`<div class="sk-choice${isSel?' selected':dis?' disabled':''}" onclick="${dis?'':'creToggleSpell(\''+jsq(s.name)+'\')'}"><span class="sk-dot${isSel?' p':''}"></span><span style="flex:1;font-size:18px">${esc(s.name)}</span><span style="font-size:17px;color:var(--text3)">${esc(s.school)} • ${esc(s.castTime)}</span>${isSel?`<span style="color:var(--cp)">✓</span>`:''}<span onclick="event.stopPropagation();creToggleSpellDesc('${jsq(s.name)}')" style="cursor:pointer;color:var(--cp);font-size:18px;padding:0 6px" title="Voir la description">ⓘ</span></div><div id="cresp_${s.name.replace(/[^a-zA-Z0-9]/g,'_')}" style="display:none;font-size:17px;color:var(--text2);background:var(--surface2);border-radius:6px;padding:6px 8px;margin:2px 0 6px;line-height:1.5">${esc(s.desc||'—')}</div>`;}).join('')}
-    <div style="font-size:18px;font-weight:600;color:var(--cp);margin:10px 0 6px">Sorts de niveau 1</div>
-    ${getSpellsDB().filter(s=>s.level===1&&(!SPELLS_DB||(s.classes||[]).includes(CS.classe||''))).map(s=>{const isSel=sel.includes(s.name);const dis=!isSel&&selL1.length>=l1Max;return`<div class="sk-choice${isSel?' selected':dis?' disabled':''}" onclick="${dis?'':'creToggleSpell(\''+jsq(s.name)+'\')'}"><span class="sk-dot${isSel?' p':''}"></span><span style="flex:1;font-size:18px">${esc(s.name)}</span><span style="font-size:17px;color:var(--text3)">${esc(s.school)}${s.damage?' • '+esc(s.damage):''}</span>${isSel?`<span style="color:var(--cp)">✓</span>`:''}<span onclick="event.stopPropagation();creToggleSpellDesc('${jsq(s.name)}')" style="cursor:pointer;color:var(--cp);font-size:18px;padding:0 6px" title="Voir la description">ⓘ</span></div><div id="cresp_${s.name.replace(/[^a-zA-Z0-9]/g,'_')}" style="display:none;font-size:17px;color:var(--text2);background:var(--surface2);border-radius:6px;padding:6px 8px;margin:2px 0 6px;line-height:1.5">${esc(s.desc||'—')}</div>`;}).join('')}
+    <div style="font-size:13px;font-weight:600;color:var(--cp);margin-bottom:6px">Sorts mineurs</div>
+    ${(SPELLS_DB||SRD.spells).filter(s=>s.level===0&&(!SPELLS_DB||(s.classes||[]).includes(CS.classe||''))).map(s=>{const isSel=sel.includes(s.name);const dis=!isSel&&selC.length>=cantripCount;return`<div class="sk-choice${isSel?' selected':dis?' disabled':''}" onclick="${dis?'':'creToggleSpell(\''+jsq(s.name)+'\')'}"><span class="sk-dot${isSel?' p':''}"></span><span style="flex:1;font-size:13px">${esc(s.name)}</span><span style="font-size:13px;color:var(--text3)">${esc(s.school)} • ${esc(s.castTime)}</span>${isSel?`<span style="color:var(--cp)">✓</span>`:''}<span onclick="event.stopPropagation();creToggleSpellDesc('${jsq(s.name)}')" style="cursor:pointer;color:var(--cp);font-size:13px;padding:0 6px" title="Voir la description">ⓘ</span></div><div id="cresp_${s.name.replace(/[^a-zA-Z0-9]/g,'_')}" style="display:none;font-size:13px;color:var(--text2);background:var(--surface2);border-radius:2px;padding:6px 8px;margin:2px 0 6px;line-height:1.5">${esc(s.desc||'—')}</div>`;}).join('')}
+    <div style="font-size:13px;font-weight:600;color:var(--cp);margin:10px 0 6px">Sorts de niveau 1</div>
+    ${getSpellsDB().filter(s=>s.level===1&&(!SPELLS_DB||(s.classes||[]).includes(CS.classe||''))).map(s=>{const isSel=sel.includes(s.name);const dis=!isSel&&selL1.length>=l1Max;return`<div class="sk-choice${isSel?' selected':dis?' disabled':''}" onclick="${dis?'':'creToggleSpell(\''+jsq(s.name)+'\')'}"><span class="sk-dot${isSel?' p':''}"></span><span style="flex:1;font-size:13px">${esc(s.name)}</span><span style="font-size:13px;color:var(--text3)">${esc(s.school)}${s.damage?' • '+esc(s.damage):''}</span>${isSel?`<span style="color:var(--cp)">✓</span>`:''}<span onclick="event.stopPropagation();creToggleSpellDesc('${jsq(s.name)}')" style="cursor:pointer;color:var(--cp);font-size:13px;padding:0 6px" title="Voir la description">ⓘ</span></div><div id="cresp_${s.name.replace(/[^a-zA-Z0-9]/g,'_')}" style="display:none;font-size:13px;color:var(--text2);background:var(--surface2);border-radius:2px;padding:6px 8px;margin:2px 0 6px;line-height:1.5">${esc(s.desc||'—')}</div>`;}).join('')}
     <div style="display:flex;gap:8px;margin-top:12px"><button class="btn" style="flex:1" onclick="CS.step=5;renderTab()">← Retour</button><button class="btn bac" style="flex:2" onclick="CS.step=7;renderTab()" ${selC.length>=cantripCount&&selL1.length>=l1Max?'':'disabled'}>Continuer → Équipement</button></div>
   </div>`;
 }
@@ -1047,25 +1047,25 @@ function creStep7(){
   const prevStep=(()=>{return cd&&cd.spellcaster&&cd.startSpells>0?6:5;})();
   return`<div>
     <div style="display:flex;gap:6px;margin-bottom:12px">
-      <button class="btn${!CS.goldMode?' bac':''}" style="flex:1;font-size:18px" onclick="CS.goldMode=false;renderTab()">🎒 Équipement standard</button>
-      <button class="btn${CS.goldMode?' bac':''}" style="flex:1;font-size:18px" onclick="CS.goldMode=true;renderTab()">💰 Pièces d'or</button>
+      <button class="btn${!CS.goldMode?' bac':''}" style="flex:1;font-size:13px" onclick="CS.goldMode=false;renderTab()">🎒 Équipement standard</button>
+      <button class="btn${CS.goldMode?' bac':''}" style="flex:1;font-size:13px" onclick="CS.goldMode=true;renderTab()">💰 Pièces d'or</button>
     </div>
     ${!CS.goldMode?`
-      <p style="font-size:18px;color:var(--text2);margin-bottom:12px">Choisis ton équipement de départ.</p>
-      ${cd.equipment.map((opt,i)=>`<div class="eq-opt${CS.equipChoice===i?' selected':''}" onclick="CS.equipChoice=${i};renderTab()"><div style="font-size:18px;font-weight:600;color:var(--cp);margin-bottom:6px">Option ${String.fromCharCode(65+i)} ${CS.equipChoice===i?'✓':''}</div><div style="display:flex;flex-wrap:wrap;gap:4px">${opt.map(item=>`<span style="background:var(--surface3);border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:18px;color:var(--text2)">${esc(item.name)}</span>`).join('')}</div></div>`).join('')}
+      <p style="font-size:13px;color:var(--text2);margin-bottom:12px">Choisis ton équipement de départ.</p>
+      ${cd.equipment.map((opt,i)=>`<div class="eq-opt${CS.equipChoice===i?' selected':''}" onclick="CS.equipChoice=${i};renderTab()"><div style="font-size:13px;font-weight:600;color:var(--cp);margin-bottom:6px">Option ${String.fromCharCode(65+i)} ${CS.equipChoice===i?'✓':''}</div><div style="display:flex;flex-wrap:wrap;gap:4px">${opt.map(item=>`<span style="background:var(--surface3);border:1px solid var(--border);border-radius:2px;padding:3px 8px;font-size:13px;color:var(--text2)">${esc(item.name)}</span>`).join('')}</div></div>`).join('')}
     `:`
-      <div style="background:var(--surface2);border-radius:8px;padding:14px;text-align:center">
-        <div style="font-size:18px;color:var(--text2);margin-bottom:10px">Au lieu de l'équipement standard, lance les dés et dépense librement vos pièces.</div>
-        <div style="font-size:22px;font-weight:700;color:var(--cp);margin-bottom:10px">${goldFormula}</div>
+      <div style="background:var(--surface2);border-radius:2px;padding:14px;text-align:center">
+        <div style="font-size:13px;color:var(--text2);margin-bottom:10px">Au lieu de l'équipement standard, lance les dés et dépense librement vos pièces.</div>
+        <div style="font-size:16px;font-weight:700;color:var(--cp);margin-bottom:10px">${goldFormula}</div>
         <button class="btn bac" onclick="rollStartGold()" style="margin-bottom:10px">🎲 Lancer les dés</button>
-        ${CS.rolledGold>0?`<div style="font-size:25px;font-weight:700;color:#ffd700">Résultat : ${CS.rolledGold} po</div>`:'<div style="font-size:18px;color:var(--text3)">Lance les dés pour obtenir tes pièces d\'or de départ.</div>'}
+        ${CS.rolledGold>0?`<div style="font-size:18px;font-weight:700;color:#ffd700">Résultat : ${CS.rolledGold} po</div>`:'<div style="font-size:13px;color:var(--text3)">Lance les dés pour obtenir tes pièces d\'or de départ.</div>'}
       </div>
       ${CS.rolledGold>0?(()=>{const cat=_creCatalog();const left=_creGoldLeft();const groups={};cat.forEach((c,i)=>{(groups[c.cat]=groups[c.cat]||[]).push({c,i});});
         return`<div style="text-align:left;margin-top:12px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-size:18px;font-weight:600;color:var(--cp)">🛒 Boutique (facultatif)</div><div style="font-size:20px;font-weight:700;color:#ffd700">Reste : ${left} po</div></div>
-          ${(CS.bought&&CS.bought.length)?`<div style="margin-bottom:8px;padding:8px;background:var(--surface3);border-radius:8px"><div style="font-size:16px;color:var(--text3);margin-bottom:4px">Panier :</div>${CS.bought.map((b,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;font-size:17px;margin-bottom:2px"><span>${esc(b.name)}${b.qty>1?' ×'+b.qty:''} <span style="color:var(--text3)">(${esc(b.price)})</span></span><button class="btn bsm" style="color:#e53935" onclick="creUnbuy(${i})">✕</button></div>`).join('')}</div>`:''}
-          <div style="max-height:260px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:6px">
-            ${Object.keys(groups).map(g=>`<div style="font-size:16px;color:var(--cp);margin:6px 0 4px">${g}</div>`+groups[g].map(({c,i})=>`<div style="display:flex;justify-content:space-between;align-items:center;font-size:17px;padding:3px 4px;border-bottom:1px solid var(--surface3)"><span style="flex:1;min-width:0">${esc(c.name)}${c.qty>1?' ×'+c.qty:''} <span style="color:var(--text3);font-size:15px">${esc((c.desc||'').slice(0,42))}</span></span><span style="color:#ffd700;white-space:nowrap;margin:0 8px">${esc(c.price)}</span><button class="btn bsm" onclick="creBuy(${i})" ${left<c.v?'disabled':''}>＋</button></div>`).join('')).join('')}
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-size:13px;font-weight:600;color:var(--cp)">🛒 Boutique (facultatif)</div><div style="font-size:15px;font-weight:700;color:#ffd700">Reste : ${left} po</div></div>
+          ${(CS.bought&&CS.bought.length)?`<div style="margin-bottom:8px;padding:8px;background:var(--surface3);border-radius:2px"><div style="font-size:12.5px;color:var(--text3);margin-bottom:4px">Panier :</div>${CS.bought.map((b,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:2px"><span>${esc(b.name)}${b.qty>1?' ×'+b.qty:''} <span style="color:var(--text3)">(${esc(b.price)})</span></span><button class="btn bsm" style="color:var(--danger)" onclick="creUnbuy(${i})">✕</button></div>`).join('')}</div>`:''}
+          <div style="max-height:260px;overflow-y:auto;border:1px solid var(--border);border-radius:2px;padding:6px">
+            ${Object.keys(groups).map(g=>`<div style="font-size:12.5px;color:var(--cp);margin:6px 0 4px">${g}</div>`+groups[g].map(({c,i})=>`<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:3px 4px;border-bottom:1px solid var(--surface3)"><span style="flex:1;min-width:0">${esc(c.name)}${c.qty>1?' ×'+c.qty:''} <span style="color:var(--text3);font-size:12px">${esc((c.desc||'').slice(0,42))}</span></span><span style="color:#ffd700;white-space:nowrap;margin:0 8px">${esc(c.price)}</span><button class="btn bsm" onclick="creBuy(${i})" ${left<c.v?'disabled':''}>＋</button></div>`).join('')).join('')}
           </div>
         </div>`;})():''}
     `}
@@ -1079,17 +1079,17 @@ function creStep8(){
   const finals=getFinalStats(base,CS.race,CS.flexChoices,CS.flexSet);const hpMax=(cd?cd.hdVal:8)+mod(finals[2]);
   const allSk=[...new Set([...(bg?bg.skills:[]),...CS.selectedSkills])];
   return`<div>
-    <p style="font-size:18px;color:var(--text2);margin-bottom:14px">Finalise ton personnage. <strong style="color:var(--cp)">Les stats seront verrouillées.</strong></p>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:14px">Finalise ton personnage. <strong style="color:var(--cp)">Les stats seront verrouillées.</strong></p>
     <div class="g2" style="gap:10px;margin-bottom:14px">
       <div><div class="fl mb6">Nom *</div><input class="fi mb6" id="recapName" placeholder="Requis..." value="${esc(CS.charName)}" oninput="CS.charName=this.value;document.getElementById('confirmCreBtn').disabled=!this.value.trim()">
       <div class="fl mb6">Alignement</div><select class="fi" onchange="CS.alignment=this.value"><option value="">— Choisir —</option>${ALIGNMENTS.map(a=>`<option ${CS.alignment===a?'selected':''}>${a}</option>`).join('')}</select></div>
-      <div style="background:var(--surface2);border-radius:8px;padding:10px"><div style="font-size:18px;font-weight:600;color:var(--cp);margin-bottom:6px">Résumé</div>
+      <div style="background:var(--surface2);border-radius:2px;padding:10px"><div style="font-size:13px;font-weight:600;color:var(--cp);margin-bottom:6px">Résumé</div>
         ${[['Race',CS.race],['Classe',CS.classe],['Historique',CS.background],['PV max',''+hpMax],['Compétences',''+allSk.length],...(CS.selectedSpells.length?[['Sorts',''+CS.selectedSpells.length]]:[])].map(([k,v])=>`<div class="recap-stat"><span>${k}</span><span style="color:var(--cp)">${esc(v||'—')}</span></div>`).join('')}
       </div>
     </div>
-    <div style="background:var(--surface2);border-radius:8px;padding:10px;margin-bottom:14px">
-      <div style="font-size:18px;font-weight:600;color:var(--cp);margin-bottom:6px">Statistiques finales</div>
-      <div class="g6">${ABILITIES.map((ab,i)=>`<div class="sb hi"><div class="sn">${ABILITIES_SH[i]}</div><div style="font-size:20px;font-weight:700">${finals[i]}</div><div class="sm">${fmt(mod(finals[i]))}</div></div>`).join('')}</div>
+    <div style="background:var(--surface2);border-radius:2px;padding:10px;margin-bottom:14px">
+      <div style="font-size:13px;font-weight:600;color:var(--cp);margin-bottom:6px">Statistiques finales</div>
+      <div class="g6">${ABILITIES.map((ab,i)=>`<div class="sb hi"><div class="sn">${ABILITIES_SH[i]}</div><div style="font-size:15px;font-weight:700">${finals[i]}</div><div class="sm">${fmt(mod(finals[i]))}</div></div>`).join('')}</div>
     </div>
     <div style="display:flex;gap:8px"><button class="btn" style="flex:1" onclick="CS.step=7;renderTab()">← Retour</button><button class="btn bac" style="flex:2" id="confirmCreBtn" onclick="confirmCreation()" ${CS.charName.trim()?'':'disabled'}>✓ Confirmer la création</button></div>
   </div>`;
