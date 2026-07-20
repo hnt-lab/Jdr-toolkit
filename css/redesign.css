@@ -122,14 +122,10 @@
   /* Panneau Groupe : un peu plus grand et décalé pour ne pas être collé au bord */
   #partyHudPanel{min-width:300px!important;font-size:13px!important}
 }
-/* Barre de navigation par modes (Hub · Personnage/MJ) — pill flottante */
-#modeNav{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:860;display:flex;gap:4px;background:linear-gradient(180deg,var(--leather),var(--leather2));border:1px solid var(--brass);border-radius:2px;padding:5px;box-shadow:0 4px 20px rgba(0,0,0,.55)}
-.mode-btn{display:flex;align-items:center;gap:7px;padding:9px 18px;border:none;background:transparent;color:var(--brass-hi);font-family:var(--F);font-size:12.5px;border-radius:2px;cursor:pointer;transition:all .15s;white-space:nowrap}
-.mode-btn .mode-ico{font-size:15px;line-height:1}
-.mode-btn.on{background:var(--brass);color:var(--leather);font-weight:700}
-.mode-btn:not(.on):hover{background:rgba(255,255,255,.08);color:#fff}
-.mode-btn.disabled{opacity:.4;cursor:not-allowed}
-@media(max-width:560px){ #modeNav{bottom:14px} .mode-btn{padding:8px 13px;font-size:11.5px} .mode-btn .mode-ico{font-size:13px} }
+/* Barre de navigation par modes — BANDEAU PLEIN-LARGEUR EN BAS (maquette .norg-nav).
+   Le positionnement/fond viennent de .norg-nav (css/maquette.css) ; ici on ne garde
+   que les états des boutons. Plus de pilule flottante centrée. */
+.mode-btn.disabled{opacity:.4;cursor:not-allowed;pointer-events:none}
 
 /* ── DESKTOP : nav [Hub / Personnage] INTÉGRÉE dans l'en-tête (choix user 2026-06-15) ──
    #modeNav est déplacé en JS dans l'en-tête actif (_placeModeNavDesktop) et reçoit

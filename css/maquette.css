@@ -172,6 +172,9 @@
 .norg-nav .flat{font-size:10.5px;color:var(--brass-hi);opacity:.7;text-align:center;min-width:72px;
   line-height:1.3;background:none;border:none;cursor:pointer;padding:4px 6px}
 .norg-nav .flat.on{opacity:1;font-weight:700;background:var(--brass-trim);color:var(--leather);border-radius:2px}
+.norg-nav .flat .mode-ico{font-size:17px;line-height:1.4}
+.norg-nav .flat .mode-lbl{font-size:11px;letter-spacing:.03em}
+.norg-nav .flat.disabled{opacity:.4;pointer-events:none}
 
 /* ══════════ PONT DE CLASSES ══════════
    Les classes historiques de l'app rendues avec les SPECS EXACTES des composants
@@ -214,27 +217,30 @@ body.ds-lefty .norg-rail button.on{margin-left:-4px;margin-right:0;left:0;border
 body.ds-lefty .norg-scroll{border-right:none;border-left:1px solid var(--acc-strong)}
 body.ds-lefty .norg-nav{padding:7px 10px calc(7px + env(safe-area-inset-bottom)) 76px}
 
-/* ── DESKTOP (théorisation validée) : charRail À GAUCHE | contenu 2 colonnes |
-      rail à libellés À DROITE. L'en-tête et les vitals redeviennent STATIQUES
-      dans la colonne de gauche (le fixe est une disposition mobile). ── */
+/* ── DESKTOP (théorisation validée) : charRail À GAUCHE (barre fixe) |
+      contenu 2 colonnes | rail à libellés À DROITE (barre fixe).
+      ⚠ On ne touche JAMAIS au `display` de #app (le JS le pilote pour montrer/
+      cacher les écrans) : les deux barres sont FIXES, le contenu a des marges. ── */
 @media(min-width:900px){
-  #app{display:grid!important;grid-template-columns:300px minmax(0,1fr);gap:18px;align-items:start;
-    padding:16px 168px 96px 16px!important;max-width:1400px;margin:0 auto}
-  #app>#charRail{grid-column:1;position:sticky;top:16px;align-self:start}
-  #app>#tabContent{grid-column:2}
-  #app>.pbar,#app>#combatTurnBanner{grid-column:1/-1}
-  #charRail .norg-head,#charRail .norg-vitals{position:static;left:auto;right:auto;top:auto}
-  #charRail .norg-head{border-bottom:2px solid var(--brass-trim)}
-  #charRail .norg-vitals{padding-left:10px;flex-wrap:wrap}
-  /* Contenu : 2 colonnes de catégories (déplaçables) */
+  /* colonne d'identité gauche = barre fixe pleine hauteur */
+  #charRail{position:fixed;left:0;top:0;bottom:0;width:290px;z-index:840;overflow-y:auto;
+    background:var(--page);border-right:1px solid var(--acc-strong);padding:0}
+  #charRail .norg-head{position:static;border-bottom:2px solid var(--brass-trim)}
+  #charRail .norg-vitals{position:static;padding:8px 10px;flex-wrap:wrap}
+  /* le contenu vit ENTRE les deux barres fixes (padding, pas de grille sur #app) */
+  #app{padding:16px 168px 96px 306px!important}
+  #tabContent{max-width:none}
+  /* 2 colonnes de catégories */
   .norg-panel{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
-  /* Rail élargi avec libellés */
-  .norg-rail{width:150px;top:16px}
+  /* rail droit élargi, à libellés */
+  .norg-rail{width:150px;top:0;bottom:0}
   .norg-rail button{width:140px;justify-content:flex-start;gap:8px;padding:0 10px;font-family:var(--f-disp)}
   .norg-rail button.on{width:151px}
   .norg-rail .tl{display:inline;font-size:13px}
-  body.ds-lefty #app{padding-left:168px!important;padding-right:16px!important}
-  /* MJ : même grammaire, sans colonne d'identité */
-  #mjScreen{padding:70px 168px 96px 16px!important;max-width:1400px;margin:0 auto}
+  /* gaucher : identité à droite, rail à gauche */
+  body.ds-lefty #charRail{left:auto;right:0;border-right:none;border-left:1px solid var(--acc-strong)}
+  body.ds-lefty #app{padding-left:168px!important;padding-right:306px!important}
+  /* MJ : pas de colonne d'identité, juste contenu + rail droit */
+  #mjScreen{padding:16px 168px 96px 16px!important}
   body.ds-lefty #mjScreen{padding-left:168px!important;padding-right:16px!important}
 }
