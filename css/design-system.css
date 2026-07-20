@@ -326,70 +326,32 @@
 #partyHudBtn{display:none!important}
 @media(max-width:640px){ #modeNav{padding-left:12px!important} }
 
-/* ── 18 · FICHE — rail d'onglets VERTICAL à droite (P2, 6 onglets) ───── */
-.tab-scroller{position:fixed!important;right:0!important;left:auto!important;top:60px!important;
-  bottom:calc(72px + env(safe-area-inset-bottom))!important;width:52px!important;z-index:830;
-  background:color-mix(in srgb,var(--ds-leather) 14%,var(--ds-page));padding:8px 4px 8px 0;overflow:visible}
-#tabBar{display:flex!important;flex-direction:column!important;gap:6px;height:100%;
-  overflow-y:auto;overflow-x:visible!important;background:transparent!important;border:none!important;padding:0!important}
+/* ── 18 · RAIL — DÉPLACÉ dans maquette.css (.norg-rail, structure §03) ───
+   Ne restent ici que les neutralisations de l'ancien emballage. */
+.tab-scroller{display:contents!important} /* l'emballage historique ne crée plus de boîte */
 .tab-arrow{display:none!important}
-#tabBar .tab{width:42px;min-height:44px;margin-left:auto;flex:none;
-  border:1px solid var(--ds-line)!important;background:var(--ds-card)!important;color:var(--ds-ink)!important;
-  opacity:.75;border-radius:0!important;padding:0!important;display:flex;align-items:center;justify-content:center;font-size:17px}
-#tabBar .tab .tl{display:none}
-#tabBar .tab.on{opacity:1;width:53px;margin-left:0;position:relative;left:-1px;
-  border-color:var(--ds-acc-strong)!important;border-left:none!important;background:var(--ds-page)!important;font-size:19px;box-shadow:none!important}
-#tabBar .tab.lvlup{border-color:var(--ds-brass-hi)!important;color:var(--ds-acc-strong)!important;animation:dsLvl 1.8s ease-in-out infinite}
-#tabBar .tab.tab-foot{opacity:.6;min-height:34px;font-size:13px}
-/* Confidentialité + Réorganiser : juste SOUS les onglets (petit écart, pas collés en bas) */
-#tabBar button.tab-foot:nth-last-child(2){margin-top:10px}
-/* FUSION intercalaire : la page porte un filet côté rail ; l'onglet actif (fond page,
-   sans bord côté page, débordant) recouvre le filet → onglet et page ne font qu'un. */
-#tabContent,#mjTabContent{border-right:1px solid var(--ds-acc-strong);min-height:70vh}
-.ds-lefty #tabContent,.ds-lefty #mjTabContent{border-right:none;border-left:1px solid var(--ds-acc-strong)}
-/* La marge latérale du rail est portée par l'ÉCRAN ENTIER (#app/#mjScreen) :
-   AUCUN contenu (charRail, cartes larges, panneaux MJ) ne peut glisser sous le rail. */
-#app,#mjScreen{padding-right:58px!important;min-height:100vh;overflow-x:hidden}
+/* DÉCALAGES DU CONTENU (la coque est fixe : en-tête + rail + nav) */
+#app{padding:var(--head-h,84px) 58px 96px 10px!important;min-height:100vh;overflow-x:hidden;background:var(--ds-page)!important}
+#mjScreen{padding:56px 58px 96px 10px!important;min-height:100vh;overflow-x:hidden}
 #hubScreen{min-height:100vh}
+body.ds-lefty #app{padding-right:10px!important;padding-left:58px!important}
+body.ds-lefty #mjScreen{padding-right:10px!important;padding-left:58px!important}
 @media(min-width:900px){
-  .tab-scroller{width:150px!important}
-  #tabBar .tab{width:140px;justify-content:flex-start;gap:8px;padding:0 10px!important}
-  #tabBar .tab .tl{display:inline;font-size:13px;font-family:var(--ds-disp)}
-  #tabBar .tab.on{width:151px}
-  #app,#mjScreen{padding-right:162px!important}
+  #app{padding-right:162px!important}
+  #mjScreen{padding-right:162px!important}
+  body.ds-lefty #app,body.ds-lefty #mjScreen{padding-left:162px!important;padding-right:10px!important}
 }
-/* Gaucher : rail à gauche */
-.ds-lefty .tab-scroller{right:auto!important;left:0!important;padding:8px 0 8px 4px}
-.ds-lefty #tabBar .tab{margin-left:0;margin-right:auto}
-.ds-lefty #tabBar .tab.on{left:1px;border-left:1px solid var(--ds-acc-strong)!important;border-right:none!important}
-.ds-lefty #app,.ds-lefty #mjScreen{padding-right:0!important;padding-left:58px!important}
-@media(min-width:900px){.ds-lefty #app,.ds-lefty #mjScreen{padding-left:162px!important;padding-right:0!important}}
-/* Fond de la fiche : parchemin uni (même règle que le hub) */
-#app{background:var(--ds-page)!important}
 #app.tavern-bg::before,#app.tavern-bg::after{display:none!important}
-/* Les onglets ne sont plus une barre en haut : le padding-top mobile revient à l'en-tête seul (56px+8) */
-@media(max-width:640px){#app{padding-top:64px!important}}
-/* Dé SERTI DANS LE BANDEAU à droite (rapport 2026-07-19, screen de réf) —
-   la nav réserve la gouttière, les boutons se redimensionnent, inversé en gaucher */
+/* Dé serti dans le bandeau, à droite (inversé en gaucher) */
 @media(max-width:899px){
   #diceFloat{bottom:calc(env(safe-area-inset-bottom) + 7px)!important;right:10px!important}
-  #modeNav{padding-right:84px!important;padding-left:12px!important}
-  body.ds-lefty #modeNav{padding-right:12px!important;padding-left:84px!important}
   .ds-dsock{bottom:calc(env(safe-area-inset-bottom) + 1px);right:6px}
   .ds-lefty .ds-dsock{right:auto;left:6px}
 }
 @media(min-width:900px){#diceFloat{bottom:88px!important}}
 
-/* ── 19 · charRail restylé ds (aucun JS modifié — hooks de classes) ──── */
+/* ── 19 · Caractéristiques (dans l'onglet Personnage) ─────────────────── */
 #charRail{background:transparent!important;border:none!important;box-shadow:none!important;padding:0!important}
-.rail-id{background:linear-gradient(180deg,var(--ds-leather),var(--ds-leather2))!important;border:none!important;
-  border-bottom:2px solid var(--ds-brass)!important;padding:10px 12px!important;border-radius:0!important}
-.rail-name{font-family:var(--ds-disp)!important;color:var(--ds-brass-hi)!important}
-.rail-sub,.rail-sub2{color:var(--ds-brass-hi)!important;opacity:.72}
-.rail-portrait{border:2px solid var(--cls-c,var(--ds-brass))!important;border-radius:0!important;cursor:pointer}
-.rail-vitals{background:var(--ds-card2)!important;border:1px solid var(--ds-line)!important;border-top:none!important;
-  border-bottom:2px solid var(--ds-acc)!important;padding:10px!important;border-radius:0!important}
-.rail-hp-top{color:var(--ds-soft)!important}
 /* Jauge PV vitrée (le remplissage garde sa couleur d'état inline) */
 .hp-bar-hero{height:16px!important;background:var(--ds-card2)!important;border:1px solid var(--ds-acc-strong)!important;
   border-radius:0!important;box-shadow:inset 0 0 5px rgba(0,0,0,.28),0 0 10px var(--ds-glow)!important;position:relative;cursor:pointer;overflow:hidden}
@@ -412,8 +374,6 @@
   color:var(--ds-acc-strong)!important;border-bottom:1px solid var(--ds-line)!important;padding-bottom:3px}
 .rail-sec{background:transparent!important;border:none!important}
 .rail-caracs{gap:5px!important}
-/* Mobile : les VITALS restent ANCRÉES sous l'en-tête pendant le scroll */
-@media(max-width:899px){.rail-vitals{position:sticky;top:56px;z-index:820}}
 
 /* ── 20 · PAGE GROUPE (overlay P3) ───────────────────────────────────── */
 #dsGroupPage{position:fixed;left:0;right:0;bottom:0;top:56px;z-index:840;display:none;background:var(--ds-page)}
@@ -471,35 +431,18 @@ body.ds-lefty #diceFloat{right:auto!important;left:13px!important}
   .ds-lefty #tabBar .tab.on,.ds-lefty #mjTabBar .mj-tab.on{left:1px;width:61px!important}
 }
 
-/* Chrome compact mobile (proportions maquette) */
+/* Chrome compact mobile */
 @media(max-width:899px){
   .nav-avatar{width:30px!important;height:30px!important;font-size:15px!important}
-  #app,#mjScreen,#hubScreen{padding-top:48px!important}
-  .tab-scroller{top:46px!important}
-  @supports (position:sticky){.rail-vitals{top:44px}}
+  #hubScreen{padding-top:48px!important}
   #diceFloat{width:56px!important;height:56px!important;font-size:25px!important}
 }
 
-/* ── EN-TÊTE TRANSFORMÉ (fiche) : le bandeau perso REMPLACE la barre générique ── */
-#app .hdr{display:none!important} /* plus de « La Boîte à Outils » sur la fiche (maquette) */
-.rail-gear{width:30px;height:30px;flex:none;border:1.5px solid var(--brass-hi);border-radius:50%;
-  background:transparent;color:var(--brass-hi);font-size:14px;cursor:pointer;display:grid;place-items:center;padding:0}
-.rail-id{position:relative;display:flex;align-items:center;gap:9px}
-.rail-id .rail-id-txt{flex:1;min-width:0}
-@media(max-width:899px){
-  /* bandeau + vitals FIXES en haut (hauteur calée en JS via --fiche-head) */
-  #charRail{position:fixed!important;top:0;left:0;right:0;z-index:848;
-    background:linear-gradient(180deg,var(--leather),var(--leather2));border-bottom:2px solid var(--brass)}
-  #app{padding-top:var(--fiche-head,84px)!important}
-  .tab-scroller{top:var(--fiche-head,84px)!important}
-  .rail-vitals{position:static!important} /* elles sont déjà dans le bloc fixe */
-}
-
-/* ── IDENTITÉ DE CLASSE sur la fiche (--cls posé par #app.th-<Classe>) ── */
-/* Style « Par le motif » par défaut : liseré du portrait + accent d'onglet actif teintés classe. */
-#app .rail-portrait{border-color:var(--cls)!important}
-#app #tabBar .tab.on{border-color:var(--cls)!important}
-#app .pt{border-bottom-color:color-mix(in srgb,var(--cls) 55%,var(--cp))}
+/* ── IDENTITÉ DE CLASSE sur la fiche (--cls posé par #app.th-<Classe>) ──
+   Style « Par le motif » : liseré du portrait + onglet actif + souligné teintés classe. */
+#app .norg-head .pp{border-color:var(--cls)!important}
+#app .norg-rail button.on{border-color:var(--cls)!important}
+#app .g-title,#app .pt{border-bottom-color:color-mix(in srgb,var(--cls) 55%,var(--cp))}
 
 /* Accessibilité */
 @media(prefers-reduced-motion:reduce){

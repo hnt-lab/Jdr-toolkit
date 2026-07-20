@@ -7,3 +7,4 @@
 @import url('./components.css');
 @import url('./redesign.css');
 @import url('./design-system.css'); /* composants ds-* des nouveaux écrans + structurel */
+@import url('./maquette.css');      /* ⭐ RÉFÉRENCE VISUELLE : CSS de la maquette porté verbatim */

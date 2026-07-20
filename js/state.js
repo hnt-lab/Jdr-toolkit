@@ -783,12 +783,12 @@ function renderTab(){
   if(FUSED[state.activeTab]){
     const parts=state.activeTab==='historique'?[['xp','⭐ Progression & XP'],['historique','📖 Historique du personnage']]:FUSED[state.activeTab];
     const _fc=id=>{try{return localStorage.getItem('fold_'+id)==='1'}catch(e){return false}}; // état plié MÉMORISÉ
-    el.innerHTML=parts.map(([id,lbl])=>`<div class="ds-fold${_fc(id)?' closed':''}" data-fuse="${id}">
+    el.innerHTML='<div class="norg-panel">'+parts.map(([id,lbl])=>`<div class="g-fold${_fc(id)?' closed':''}" data-fuse="${id}">
       <div class="fh" onclick="this.parentElement.classList.toggle('closed');try{localStorage.setItem('fold_'+this.parentElement.dataset.fuse,this.parentElement.classList.contains('closed')?'1':'0')}catch(e){}"><span class="grip">⠿</span>${lbl}<span class="chev">▼</span></div>
       <div class="fb">${(map[id]||(()=>''))(p)}</div>
-    </div>`).join('');
+    </div>`).join('')+'</div>';
   }else{
-    el.innerHTML=(map[state.activeTab]||tabPerso)(p);
+    el.innerHTML='<div class="norg-panel">'+(map[state.activeTab]||tabPerso)(p)+'</div>';
   }
   if(state.activeTab==='levelup'&&typeof _ctaScrollGlow==='function')setTimeout(_ctaScrollGlow,40); // scroll+glow bouton continuer au LU
   _enableTabDrag();applyAllSectionOrders(); // synchrone : pas de fenêtre où les attributs de drag manquent

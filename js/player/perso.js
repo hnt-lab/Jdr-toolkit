@@ -41,25 +41,25 @@ function renderCharRail(p){
   const spdVal=ws?.active?ws.beast.speed:(_spd+' m');
   const caVal=ws?.active?ws.beast.ac:caDisplay;
   const initVal=ws?.active?fmt(Math.floor((ws.beast.ab[1]-10)/2)):fmt(dexM);
+  // Structure MAQUETTE §03 : .norg-head (portrait + nom + ⚙) puis .norg-vitals (CA · PV · Init · Vitesse).
+  // Le retour aux Tables se fait par la nav du bas — pas de bouton redondant ici.
+  const hpCls=ws?.active?'':(pct<=25?' low':(pct<=50?' mid':''));
   return `
-    <div class="rail-id">
-      ${p.portrait?`<img class="rail-portrait" src="${p.portrait}" onclick="document.getElementById('portInput')?.click()">`:`<div class="rail-portrait rail-portrait-ph" onclick="document.getElementById('portInput')?.click()">🧑</div>`}
+    <div class="norg-head">
+      <span class="pp" onclick="document.getElementById('portInput')?.click()" title="Changer le portrait">${p.portrait?`<img src="${p.portrait}" alt="">`:'🧑'}</span>
       <input type="file" id="portInput" accept="image/jpeg,image/png" style="display:none" onchange="uploadPortrait(this)">
-      <div class="rail-id-txt" style="min-width:0">
-        <div class="rail-name">${esc(p.charName||'Personnage')}${ws?.active?' 🐺':''}<span id="playerSyncDot" class="sync-dot" title="Mis à jour en temps réel"></span></div>
-        <div class="rail-sub">${esc(p.race||'')}${cls?' · '+esc(cls):''}${align?' · '+esc(align):''}</div>
+      <div style="min-width:0;flex:1">
+        <div class="nm">${esc(p.charName||'Personnage')}${ws?.active?' 🐺':''}<span id="playerSyncDot" class="sync-dot" title="Mis à jour en temps réel"></span></div>
+        <div class="cl">${esc(p.race||'')}${cls?' · '+esc(cls):''}${align?' · '+esc(align):''}</div>
       </div>
-      <button class="rail-gear" onclick="showHub()" title="Retour aux tables">🧭</button>
-      <button class="rail-gear" onclick="openUserSettings()" title="Profil & options">⚙</button>
+      <button class="opt" onclick="openUserSettings()" title="Profil &amp; options">⚙</button>
     </div>
-    <div class="rail-vitals">
-      <div class="dsv-row">
-        <span class="dsv-stat" title="Classe d'armure">🛡 <b>${caVal}</b></span>
-        <div class="hp-bar hp-bar-hero" onclick="openHpModal()" title="Dégâts / Soins"><div class="hp-fill" style="width:${pct}%;background:${ws?.active?'var(--good)':hpColor}"></div><span class="dsv-hp">${barText}</span></div>
-        <span class="dsv-stat" title="Initiative">⚡ <b>${initVal}</b></span>
-        <span class="dsv-stat" title="Vitesse">👣 <b>${spdVal}</b></span>
-      </div>
-      ${hpExtra}
+    <div class="norg-vitals">
+      <span class="vs" title="Classe d'armure">🛡 <b>${caVal}</b></span>
+      <div class="g-hp${hpCls}" onclick="openHpModal()" title="Dégâts / Soins"><i style="width:${pct}%"></i><span class="vv">${barText}</span></div>
+      <span class="vs" title="Initiative">⚡ <b>${initVal}</b></span>
+      <span class="vs" title="Vitesse">👣 <b>${spdVal}</b></span>
+      ${hpExtra?`<div class="norg-xtra">${hpExtra}</div>`:''}
     </div>
     `;
 }

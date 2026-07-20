@@ -164,19 +164,16 @@
     <span id="mjHdrCamp" style="font-size:12px;color:var(--text2);flex:1;margin:0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span>
     <button class="nav-avatar" id="mjUserBtn" onclick="openUserSettings()" title="Profil &amp; Déconnexion" style="flex-shrink:0">👤</button>
   </div>
-  <div class="mj-tabs" id="mjTabBar"></div>
-  <div id="mjTabContent"></div>
+  <div class="norg-rail" id="mjTabBar"></div><!-- rail d'onglets fixe -->
+  <div id="mjTabContent" class="norg-scroll"></div><!-- la page (fusionne avec l'onglet actif) -->
 </div>
 
 <!-- APPLICATION PRINCIPALE -->
 <div id="app" style="display:none">
-  <div class="hdr">
-    <span class="hub-hdr-title hdr-home" onclick="showHub()" title="Retour au Hub" style="cursor:pointer;flex-shrink:0"><img src="img/logo.png" class="hdr-logo" alt=""> <span class="hdr-home-txt">La Boîte à Outils</span></span>
-    <span class="hdr-char" id="hdrChar" style="flex:1;text-align:center;display:flex;align-items:center;justify-content:center;gap:5px">Fiche de personnage<span id="playerSyncDot" class="sync-dot" title="Mis à jour en temps réel"></span></span>
-    <span id="hdrUser" style="display:none"></span>
-    <button class="btn bsm" id="mjBtn" onclick="toggleMJ()" style="border-color:var(--cp);color:var(--cp);flex-shrink:0">🎲 MJ</button>
-    <button class="nav-avatar" id="ficheUserBtn" onclick="openUserSettings()" title="Profil &amp; Déconnexion" style="flex-shrink:0">👤</button>
-  </div>
+  <!-- L'EN-TÊTE de la fiche = le bandeau perso (.norg-head + .norg-vitals), rendu par renderCharRail
+       dans #charRail — conforme à la maquette §03. Plus de barre générique ici. -->
+  <span id="hdrChar" style="display:none"></span><span id="hdrUser" style="display:none"></span>
+  <button id="mjBtn" onclick="toggleMJ()" style="display:none">MJ</button>
   <!-- BANNIÈRE TOUR DE COMBAT -->
   <div id="combatTurnBanner">
     <div>
@@ -186,13 +183,9 @@
     <button class="btn bsm" style="background:rgba(255,255,255,.15);color:white;border-color:rgba(255,255,255,.5);font-weight:600;flex-shrink:0" onclick="playerEndTurn()">⏩ Fin de tour</button>
   </div>
   <div class="pbar" id="playerBar"></div>
-  <div class="fiche-2col">
-    <aside class="char-rail" id="charRail"></aside>
-    <div class="fiche-main">
-      <div class="tabs" id="tabBar"></div>
-      <div id="tabContent"></div>
-    </div>
-  </div>
+  <aside id="charRail"></aside><!-- .norg-head + .norg-vitals (fixes) -->
+  <div class="norg-rail" id="tabBar"></div><!-- rail d'onglets fixe -->
+  <div id="tabContent" class="norg-scroll"></div><!-- la page (fusionne avec l'onglet actif) -->
 </div>
 <!-- POPUP COMBAT DÉBUT/FIN/TOUR -->
 <div id="combatPopup" onclick="this.className=''">

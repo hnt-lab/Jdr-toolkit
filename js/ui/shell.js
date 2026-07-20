@@ -113,10 +113,11 @@ function _dsBuildNav(){
   const nav=document.getElementById('modeNav');if(!nav)return;
   if(nav.dataset.ds3)return; // déjà construit
   nav.dataset.ds3='1';
+  nav.classList.add('norg-nav'); // structure maquette
   nav.innerHTML=
-    `<button class="mode-btn mode-hub" onclick="_dsCloseGroup();showHub()"><span class="mode-ico">🧭</span><span class="mode-lbl">Tables</span></button>`+
-    `<button class="mode-btn mode-char" onclick="_dsCloseGroup();_navGoChar()"><span class="mode-ico mode-char-ico">🧙</span><span class="mode-lbl mode-char-lbl">Personnage</span></button>`+
-    `<button class="mode-btn mode-group" onclick="_dsNavGoGroup()" style="position:relative"><span class="mode-ico">👥</span><span class="mode-lbl">Groupe</span>`+
+    `<button class="flat mode-btn mode-hub" onclick="_dsCloseGroup();showHub()"><span class="mode-ico">🧭</span><br><span class="mode-lbl">Tables</span></button>`+
+    `<button class="flat mode-btn mode-char" onclick="_dsCloseGroup();_navGoChar()"><span class="mode-ico mode-char-ico">🧙</span><br><span class="mode-lbl mode-char-lbl">Personnage</span></button>`+
+    `<button class="flat mode-btn mode-group" onclick="_dsNavGoGroup()" style="position:relative"><span class="mode-ico">👥</span><br><span class="mode-lbl">Groupe</span>`+
     `<span id="dsNavTurn" class="ds-navbdg" style="display:none;position:absolute;top:2px;right:14px;min-width:16px;height:16px;border-radius:50%;background:var(--arcane);color:#fff;font-size:11px;font-weight:700;display:none;align-items:center;justify-content:center;animation:combatPulse 1.6s ease-in-out infinite">⚡</span>`+
     `<span id="dsNavDanger" style="display:none;position:absolute;top:2px;left:14px;min-width:16px;height:16px;border-radius:50%;background:var(--danger);color:#fff;font-size:10px;font-weight:700;align-items:center;justify-content:center"></span>`+
     `</button>`;
@@ -282,10 +283,13 @@ if(typeof showToast==='function'){
 // Robuste aux variations (bouclier, jets de mort, inputs MJ) : mesure réelle → --fiche-head.
 function _dsSyncFicheHead(){
   try{
-    const cr=document.getElementById('charRail');
-    if(!cr||window.innerWidth>=900){document.documentElement.style.removeProperty('--fiche-head');return;}
-    const h=cr.offsetHeight;
-    if(h>0)document.documentElement.style.setProperty('--fiche-head',(h+4)+'px');
+    const head=document.querySelector('#charRail .norg-head');
+    const vit=document.querySelector('#charRail .norg-vitals');
+    if(!head)return;
+    const hh=head.offsetHeight;
+    if(vit)vit.style.top=hh+'px';                       // les vitals se posent sous le bandeau
+    const total=hh+(vit?vit.offsetHeight:0);
+    if(total>0)document.documentElement.style.setProperty('--head-h',total+'px');
   }catch(e){}
 }
 if(typeof render==='function'){
