@@ -214,10 +214,27 @@ body.ds-lefty .norg-rail button.on{margin-left:-4px;margin-right:0;left:0;border
 body.ds-lefty .norg-scroll{border-right:none;border-left:1px solid var(--acc-strong)}
 body.ds-lefty .norg-nav{padding:7px 10px calc(7px + env(safe-area-inset-bottom)) 76px}
 
-/* ── DESKTOP : rail élargi avec libellés (décision théorisation) ── */
+/* ── DESKTOP (théorisation validée) : charRail À GAUCHE | contenu 2 colonnes |
+      rail à libellés À DROITE. L'en-tête et les vitals redeviennent STATIQUES
+      dans la colonne de gauche (le fixe est une disposition mobile). ── */
 @media(min-width:900px){
-  .norg-rail{width:150px}
+  #app{display:grid!important;grid-template-columns:300px minmax(0,1fr);gap:18px;align-items:start;
+    padding:16px 168px 96px 16px!important;max-width:1400px;margin:0 auto}
+  #app>#charRail{grid-column:1;position:sticky;top:16px;align-self:start}
+  #app>#tabContent{grid-column:2}
+  #app>.pbar,#app>#combatTurnBanner{grid-column:1/-1}
+  #charRail .norg-head,#charRail .norg-vitals{position:static;left:auto;right:auto;top:auto}
+  #charRail .norg-head{border-bottom:2px solid var(--brass-trim)}
+  #charRail .norg-vitals{padding-left:10px;flex-wrap:wrap}
+  /* Contenu : 2 colonnes de catégories (déplaçables) */
+  .norg-panel{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+  /* Rail élargi avec libellés */
+  .norg-rail{width:150px;top:16px}
   .norg-rail button{width:140px;justify-content:flex-start;gap:8px;padding:0 10px;font-family:var(--f-disp)}
   .norg-rail button.on{width:151px}
   .norg-rail .tl{display:inline;font-size:13px}
+  body.ds-lefty #app{padding-left:168px!important;padding-right:16px!important}
+  /* MJ : même grammaire, sans colonne d'identité */
+  #mjScreen{padding:70px 168px 96px 16px!important;max-width:1400px;margin:0 auto}
+  body.ds-lefty #mjScreen{padding-left:168px!important;padding-right:16px!important}
 }

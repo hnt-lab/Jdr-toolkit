@@ -279,6 +279,14 @@ if(typeof showToast==='function'){
   };
 }
 
+// La nav reste le BANDEAU DU BAS sur tous les écrans (maquette) — on annule le
+// déplacement dans l'en-tête hérité de juin 2026 (_placeModeNavDesktop).
+function _placeModeNavDesktop(){
+  const nav=document.getElementById('modeNav');if(!nav)return;
+  nav.classList.remove('modeNav-inHeader');
+  if(nav.parentElement!==document.body)document.body.appendChild(nav);
+}
+
 // ── EN-TÊTE FICHE : cale la hauteur du bandeau fixe (bandeau+vitals) sur mobile ──
 // Robuste aux variations (bouclier, jets de mort, inputs MJ) : mesure réelle → --fiche-head.
 function _dsSyncFicheHead(){

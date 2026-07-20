@@ -258,33 +258,12 @@
   .mode-btn .mode-ico{font-size:16px}
   .mode-btn .mode-lbl{font-size:12px;letter-spacing:.03em}
 
-  /* 2. EN-TÊTE fixé en haut + barre d'onglets fixée JUSTE EN DESSOUS
-        (user 2026-06-15 : onglets de la fiche en HAUT sur mobile, plus en bas).
-        On fixe aussi l'en-tête, sinon la barre d'onglets recouvrirait le logo. */
-  .hdr,.mj-hdr{
-    position:fixed;top:0;left:0;right:0;z-index:846;height:56px;min-height:0;margin:0;
-    padding-top:6px!important;padding-bottom:6px!important;align-items:center;
-    border-radius:0;border-top:0;border-bottom:1px solid rgba(200,168,75,.25);
-  }
-  .tab-scroller{
-    position:fixed;top:56px;left:0;right:0;bottom:auto;
-    z-index:845;margin:0;max-width:none;
-    background:rgba(11,8,4,.97);
-    border-top:1px solid var(--cp);border-bottom:1px solid #000;
-    box-shadow:0 3px 10px rgba(0,0,0,.45);
-    -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);
-  }
-  #tabBar,#mjTabBar{
-    position:static!important;left:auto;right:auto;bottom:auto;top:auto;
-    margin:0;max-width:none;border:none;box-shadow:none;border-radius:0;
-    background:transparent;padding:7px 42px;       /* 42px = place pour les flèches */
-  }
-  .tab-arrow{width:42px}
-
-  /* 3. Marges : HAUT = en-tête (56px) + barre d'onglets (~46px) fixes ;
-        BAS = bandeau de modes (les onglets ne sont plus en bas). */
-  #app,#mjScreen{padding-top:102px}
-  #app,#mjTabContent{padding-bottom:calc(80px + env(safe-area-inset-bottom))}
+  /* 2. OBSOLÈTE — supprimé 2026-07-20.
+        Ce bloc (chantier « onglets en HAUT sur mobile », juin 2026) fixait la barre
+        d'onglets en haut et forçait #tabBar en position:static!important.
+        Un sélecteur d'ID + !important qui battait TOUT : c'était la cause réelle du
+        rail cassé. Les onglets sont désormais un RAIL VERTICAL (.norg-rail, maquette
+        §03) et l'en-tête est le bandeau perso — cf. css/maquette.css. */
   #hubScreen{padding-bottom:calc(82px + env(safe-area-inset-bottom))}
 
   /* 4. GROS FABs ENCASTRÉS dans les creux (64px, centrés sur le bandeau ~66px).
