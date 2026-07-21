@@ -27,8 +27,23 @@ const campaignService = {
     return fbDb.collection('tables').where('mjId', '==', uid).get();
   },
 
-  getTableByInviteCode(code) {
-    return fbDb.collection('tables').where('inviteCode', '==', code).limit(1).get();
+  // ─── CODES D'INVITATION (collection dédiée) ───
+  // ⚠️ SÉCURITÉ : le code NE DOIT PAS être cherché par requête sur 'tables'.
+  // Cela exigeait que /tables soit lisible par tous → n'importe quel compte
+  // pouvait lister toutes les tables et récupérer tous les codes.
+  // Désormais : 'inviteCodes/{CODE}' → { tableId, mjId }. Ce document ne
+  // révèle rien d'autre que l'existence du code, et /tables est fermé aux
+  // seuls membres.
+  registerInviteCode(code, tableId, mjId) {
+    return fbDb.collection('inviteCodes').doc(code).set({ tableId, mjId });
+  },
+
+  releaseInviteCode(code) {
+    return fbDb.collection('inviteCodes').doc(code).delete();
+  },
+
+  resolveInviteCode(code) {
+    return fbDb.collection('inviteCodes').doc(code).get();
   },
 
   // Ajoute un membre à une table (sur le document retourné par une query)

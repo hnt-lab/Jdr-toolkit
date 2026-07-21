@@ -79,6 +79,14 @@ async function renderHub(){
         }catch(e){}
       }
     }
+    // MIGRATION AUTOMATIQUE — les tables créées avant l'index des codes n'ont
+    // pas leur document 'inviteCodes/{CODE}'. Le MJ le recrée en arrivant au Hub
+    // (lui seul en a le droit). Sans ça, leur code deviendrait inutilisable.
+    for(const t of tablesWithCamps){
+      if(t.mjId===currentUser.uid&&t.inviteCode){
+        campaignService.registerInviteCode(t.inviteCode,t.id,currentUser.uid).catch(()=>{});
+      }
+    }
     _hubCache=tablesWithCamps;
     const mjBadge=document.getElementById('hubMJBadge');
     if(mjBadge) mjBadge.style.display='none';
@@ -302,7 +310,7 @@ async function confirmCreateTable(){
   const requiredPacks = typeof compReadTableSelection==='function' ? compReadTableSelection() : {};
   const inviteCode=genCode();
   try{
-    await fbDb.collection('tables').add({
+    const ref=await fbDb.collection('tables').add({
       name,mjId:currentUser.uid,mjName:currentUserData.displayName,mjAvatar:currentUserData.avatar||'🎲',
       inviteCode,memberIds:[currentUser.uid],
       memberNames:{[currentUser.uid]:currentUserData.displayName},
@@ -310,6 +318,8 @@ async function confirmCreateTable(){
       requiredPacks,
       createdAt:firebase.firestore.FieldValue.serverTimestamp()
     });
+    // Index du code d'invitation (seule porte d'entrée publique — cf. campaign-service)
+    await campaignService.registerInviteCode(inviteCode,ref.id,currentUser.uid);
     closeModal();showToast('✅ Table "'+name+'" créée !');renderHub();
   }catch(e){showToast('❌ Une erreur est survenue, réessaie.');}
 }
@@ -483,18 +493,20 @@ async function confirmJoinTable(){
 }
 async function doJoinTable(code){
   try{
-    const snap=await fbDb.collection('tables').where('inviteCode','==',code).limit(1).get();
-    if(snap.empty){showToast('❌ Code invalide.');return;}
-    const tableDoc=snap.docs[0];
-    if(tableDoc.data().mjId===currentUser.uid){showToast('Vous êtes déjà le MJ de cette table.');closeModal();return;}
-    const members=tableDoc.data().memberIds||[];
-    if(members.includes(currentUser.uid)){showToast('Vous êtes déjà dans cette table.');closeModal();return;}
-    await tableDoc.ref.update({
+    // On résout le code via l'index dédié : la table elle-même n'est PAS
+    // lisible tant qu'on n'en est pas membre (cf. règles Firestore).
+    const idx=await campaignService.resolveInviteCode(code);
+    if(!idx.exists){showToast('❌ Code invalide.');return;}
+    const {tableId,mjId}=idx.data();
+    if(mjId===currentUser.uid){showToast('Vous êtes déjà le MJ de cette table.');closeModal();return;}
+    // Écriture « à l'aveugle » : arrayUnion est idempotent, et la règle
+    // n'autorise à s'ajouter QUE soi-même.
+    await fbDb.collection('tables').doc(tableId).update({
       memberIds:firebase.firestore.FieldValue.arrayUnion(currentUser.uid),
       ['memberNames.'+currentUser.uid]:currentUserData.displayName,
       ['memberAvatars.'+currentUser.uid]:currentUserData.avatar||'⚔'
     });
-    closeModal();showToast('✅ Vous avez rejoint la table "'+tableDoc.data().name+'" !');
+    closeModal();showToast('✅ Vous avez rejoint la table !');
     // Nettoie le paramètre URL
     window.history.replaceState({},'',window.location.pathname);
     renderHub();
