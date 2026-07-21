@@ -197,7 +197,15 @@
   </div>
 </div>
 <div id="modal"></div>
-<!-- Barre de navigation par modes (Hub · Personnage/MJ) — affichée une fois connecté -->
+<!-- BARRE DU HAUT — DESKTOP UNIQUEMENT (logo · nav modes · avatar profil).
+     La nav (#modeNav) y est déplacée par _placeModeNavDesktop sur desktop ;
+     sur mobile #dtopbar est masquée et #modeNav reste le bandeau du bas. -->
+<header id="dtopbar" style="display:none">
+  <span class="dt-logo" onclick="_dsCloseGroup&&_dsCloseGroup();showHub()" title="Tables"><img src="img/logo.png" class="hdr-logo" alt=""> <span>La Boîte à Outils</span></span>
+  <div id="dtopbarNav"></div>
+  <button class="dt-avatar" id="dtopAvatar" onclick="openUserSettings()" title="Profil &amp; options">👤</button>
+</header>
+<!-- Barre de navigation par modes (Tables · Personnage/MJ · Groupe) — affichée une fois connecté -->
 <div id="modeNav" style="display:none">
   <button class="mode-btn mode-hub" onclick="showHub()" title="Hub"><span class="mode-ico">🏠</span><span class="mode-lbl">Hub</span></button>
   <button class="mode-btn mode-char" onclick="_navGoChar()" title="Personnage / MJ"><span class="mode-ico mode-char-ico">🧙</span><span class="mode-lbl mode-char-lbl">Personnage</span></button>

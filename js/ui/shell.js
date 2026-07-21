@@ -279,13 +279,28 @@ if(typeof showToast==='function'){
   };
 }
 
-// La nav reste le BANDEAU DU BAS sur tous les écrans (maquette) — on annule le
-// déplacement dans l'en-tête hérité de juin 2026 (_placeModeNavDesktop).
+// DEUX COQUES : mobile = nav = bandeau du BAS · desktop = nav dans la BARRE DU HAUT
+// (cahier des charges : « Desktop = top bar ; mobile = bottom bar »).
 function _placeModeNavDesktop(){
-  const nav=document.getElementById('modeNav');if(!nav)return;
-  nav.classList.remove('modeNav-inHeader');
-  if(nav.parentElement!==document.body)document.body.appendChild(nav);
+  const nav=document.getElementById('modeNav');
+  const top=document.getElementById('dtopbar');
+  const slot=document.getElementById('dtopbarNav');
+  if(!nav)return;
+  const desktop=window.innerWidth>=900;
+  const connected=typeof currentUser!=='undefined'&&currentUser;
+  if(desktop){
+    if(slot&&nav.parentElement!==slot)slot.appendChild(nav);
+    nav.classList.add('nav-top');nav.classList.remove('norg-nav');
+    if(top)top.style.display=connected?'flex':'none';
+    const av=document.getElementById('dtopAvatar');
+    if(av&&typeof currentUserData!=='undefined'&&currentUserData&&currentUserData.avatar)av.textContent=currentUserData.avatar;
+  }else{
+    if(nav.parentElement!==document.body)document.body.appendChild(nav);
+    nav.classList.remove('nav-top');nav.classList.add('norg-nav');
+    if(top)top.style.display='none';
+  }
 }
+window.addEventListener('resize',_placeModeNavDesktop);
 
 // ── EN-TÊTE FICHE : cale la hauteur du bandeau fixe (bandeau+vitals) sur mobile ──
 // Robuste aux variations (bouclier, jets de mort, inputs MJ) : mesure réelle → --fiche-head.

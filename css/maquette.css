@@ -219,33 +219,76 @@ body.ds-lefty .norg-nav{padding:7px 10px calc(7px + env(safe-area-inset-bottom))
 
 /* Caracs : dans l'onglet Personnage sur MOBILE, dans le charRail sur DESKTOP */
 .rail-body{display:none}
-/* ── DESKTOP (théorisation validée) : charRail À GAUCHE (identité + vitals + caracs)
-      | contenu 2 colonnes | rail à libellés À DROITE. Le tout CENTRÉ dans 1400px
-      (les barres fixes se calent sur les bords du cadre, pas de l'écran).
-      ⚠ On ne touche JAMAIS au `display` de #app (le JS le pilote). ── */
+
+/* ═══════════════════════════════════════════════════════════════════════
+   DESKTOP — COQUE DISTINCTE (cahier des charges : « Desktop = top bar »).
+   Du mobile on ne garde QUE l'aspect des div (g-card…) : la coque est autre.
+   • BARRE DU HAUT : logo · nav modes (pills) · avatar profil
+   • FICHE : charRail GAUCHE (300px, sticky) | zone principale avec ONGLETS
+     HORIZONTAUX (intercalaires) + contenu 2 colonnes
+   • tout centré dans un cadre de 1400px
+   ═══════════════════════════════════════════════════════════════════════ */
 @media(min-width:900px){
-  .caracs-intab{display:none}      /* les caracs vivent dans le charRail */
-  .rail-body{display:block;padding:0 10px 12px}
-  /* colonne d'identité gauche = barre fixe, calée sur le bord du cadre 1400 */
-  #charRail{position:fixed;left:max(0px,calc(50% - 700px));top:0;bottom:0;width:290px;z-index:840;
+  /* La nav du bas et le dé serti (mobile) disparaissent */
+  body:not(.ds-mobile) #diceFloat{bottom:88px!important;right:24px!important}
+
+  /* ── BARRE DU HAUT ── */
+  #dtopbar{position:fixed;top:0;left:0;right:0;height:54px;z-index:860;display:flex;align-items:center;gap:16px;
+    padding:0 max(16px,calc(50% - 700px));
+    background:linear-gradient(180deg,var(--leather),var(--leather2));border-bottom:2px solid var(--brass-trim);
+    box-shadow:0 2px 10px rgba(0,0,0,.4)}
+  .dt-logo{display:flex;align-items:center;gap:8px;color:var(--brass-hi);font-family:var(--f-disp);font-size:16px;
+    letter-spacing:.05em;cursor:pointer;white-space:nowrap}
+  .dt-logo .hdr-logo{width:26px;height:26px}
+  .dt-avatar{margin-left:auto;width:34px;height:34px;border-radius:50%;border:1.5px solid var(--brass-hi);
+    background:transparent;color:var(--brass-hi);font-size:16px;cursor:pointer;display:grid;place-items:center;flex:none}
+  /* nav modes en pills, centrée dans la barre */
+  #modeNav.nav-top{position:static;display:flex;gap:6px;background:none;border:none;box-shadow:none;padding:0;
+    min-height:0;margin:0 auto}
+  #modeNav.nav-top .flat,#modeNav.nav-top .mode-btn{display:flex;flex-direction:row;align-items:center;gap:7px;
+    background:none;border:1px solid transparent;color:var(--brass-hi);font-family:var(--f-disp);font-size:13px;
+    padding:7px 16px;min-width:0;min-height:0;cursor:pointer;white-space:nowrap;border-radius:2px}
+  #modeNav.nav-top .flat br{display:none}
+  #modeNav.nav-top .flat .mode-ico{font-size:15px}
+  #modeNav.nav-top .flat.on,#modeNav.nav-top .mode-btn.on{background:var(--brass-trim);color:var(--leather);font-weight:700}
+
+  /* ── FICHE : charRail gauche (sticky) + zone principale (tabs H + contenu) ── */
+  #app{padding:66px max(16px,calc(50% - 700px)) 40px calc(max(16px,50% - 700px) + 306px)!important}
+  #charRail{position:fixed;top:54px;bottom:0;width:290px;left:max(16px,calc(50% - 700px));z-index:840;
     overflow-y:auto;background:var(--page);border-right:1px solid var(--acc-strong);padding:0}
   #charRail .norg-head{position:static;border-bottom:2px solid var(--brass-trim)}
   #charRail .norg-vitals{position:static;padding:8px 10px;flex-wrap:wrap}
   #charRail .rail-caracs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px}
-  /* contenu entre les deux barres (marges = gouttière du cadre + largeur des barres) */
-  #app{padding:16px calc(max(0px,50% - 700px) + 168px) 96px calc(max(0px,50% - 700px) + 306px)!important}
-  #tabContent{max-width:none}
+  .caracs-intab{display:none}
+  .rail-body{display:block;padding:0 10px 12px}
+
+  /* ── ONGLETS HORIZONTAUX (intercalaires, verbatim maquette .g-tab) ── */
+  #tabBar,#mjTabBar{position:fixed;top:54px;left:calc(max(16px,50% - 700px) + 306px);right:max(16px,calc(50% - 700px));
+    z-index:835;height:auto;width:auto;flex-direction:row!important;align-items:flex-end;gap:4px;overflow:visible;
+    padding:8px 4px 0;background:linear-gradient(180deg,var(--leather),var(--leather2))}
+  #mjTabBar{left:max(16px,calc(50% - 700px))} /* MJ : pas de charRail */
+  #tabBar button,#mjTabBar button{width:auto!important;height:auto;min-height:0;left:auto!important;margin:0!important;
+    flex:0 0 auto;flex-direction:row;justify-content:center;gap:6px;font-family:var(--f-disp);font-size:12.5px;
+    padding:7px 14px 6px!important;background:color-mix(in srgb,var(--card) 55%,var(--leather))!important;
+    color:color-mix(in srgb,var(--ink) 55%,var(--leather))!important;border:1px solid var(--brass-trim)!important;
+    border-bottom:none!important;border-radius:5px 5px 0 0!important;opacity:1!important}
+  #tabBar button .tl,#mjTabBar button .tl{display:inline!important;font-size:12.5px}
+  #tabBar button.on,#mjTabBar button.on{position:relative;z-index:2;background:var(--page)!important;color:var(--ink)!important;
+    font-weight:700;padding-top:9px!important;border-color:var(--acc-strong)!important;width:auto!important}
+  #tabBar button.on::after,#mjTabBar button.on::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--page)}
+  #tabBar .tab-foot,#mjTabBar .tab-foot{opacity:.65!important}
+  #tabBar button.tab-foot:nth-last-child(2){margin-left:auto!important}
+  /* la page porte le filet du haut, l'onglet actif le recouvre */
+  #tabContent,#mjTabContent{border-top:2px solid var(--acc-strong);border-right:none;max-width:none;min-height:60vh}
+  /* MJ : la zone principale démarre à gauche (pas de charRail) */
+  #mjScreen{padding:104px max(16px,calc(50% - 700px)) 40px max(16px,calc(50% - 700px))!important}
+  /* décale le contenu sous les onglets horizontaux (hauteur ~44px) */
+  #tabContent{margin-top:44px}#mjTabContent{margin-top:44px}
+  /* Contenu : 2 colonnes de catégories */
   .norg-panel{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
-  /* rail droit élargi, à libellés, calé sur le bord du cadre */
-  .norg-rail{width:150px;top:0;bottom:0;right:max(0px,calc(50% - 700px))}
-  .norg-rail button{width:140px;justify-content:flex-start;gap:8px;padding:0 10px;font-family:var(--f-disp)}
-  .norg-rail button.on{width:151px}
-  .norg-rail .tl{display:inline;font-size:13px}
-  /* gaucher : identité à droite, rail à gauche */
-  body.ds-lefty #charRail{left:auto;right:max(0px,calc(50% - 700px));border-right:none;border-left:1px solid var(--acc-strong)}
-  body.ds-lefty .norg-rail{right:auto;left:max(0px,calc(50% - 700px))}
-  body.ds-lefty #app{padding-left:calc(max(0px,50% - 700px) + 168px)!important;padding-right:calc(max(0px,50% - 700px) + 306px)!important}
-  /* MJ : pas de colonne d'identité, contenu + rail droit, centré 1400 */
-  #mjScreen{padding:16px calc(max(0px,50% - 700px) + 168px) 96px calc(max(0px,50% - 700px) + 16px)!important}
-  body.ds-lefty #mjScreen{padding-left:calc(max(0px,50% - 700px) + 168px)!important;padding-right:calc(max(0px,50% - 700px) + 16px)!important}
+
+  /* ── GAUCHER : charRail à droite, onglets décalés à gauche ── */
+  body.ds-lefty #app{padding-left:max(16px,calc(50% - 700px))!important;padding-right:calc(max(16px,50% - 700px) + 306px)!important}
+  body.ds-lefty #charRail{left:auto;right:max(16px,calc(50% - 700px));border-right:none;border-left:1px solid var(--acc-strong)}
+  body.ds-lefty #tabBar{left:max(16px,calc(50% - 700px));right:calc(max(16px,50% - 700px) + 306px)}
 }
