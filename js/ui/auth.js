@@ -38,7 +38,10 @@ async function doRegister(){
   if(pw.length<6){showAuthError('Mot de passe : 6 caractères minimum.');return;}
   try{
     const cred=await authService.register(email,pw);
-    await userService.createUser(cred.user.uid,{displayName:name,avatar:selectedAvatar,email,charLib:{}});
+    // ⚠️ PAS d'email ici : le document users/{uid} est LISIBLE par tout compte
+    // connecté (l'app y lit le pseudo et l'avatar des autres joueurs). L'email
+    // reste dans Firebase Auth, accessible au seul intéressé via currentUser.email.
+    await userService.createUser(cred.user.uid,{displayName:name,avatar:selectedAvatar,charLib:{}});
     await authService.updateProfile({displayName:name});
     authService.sendEmailVerification().catch(()=>{});
     showToast('📧 Un email de vérification a été envoyé à '+email);
