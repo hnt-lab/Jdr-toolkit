@@ -253,7 +253,7 @@ body.ds-lefty .norg-nav{padding:7px 10px calc(7px + env(safe-area-inset-bottom))
   #modeNav.nav-top .flat.on,#modeNav.nav-top .mode-btn.on{background:var(--brass-trim);color:var(--leather);font-weight:700}
 
   /* ── FICHE : charRail gauche (sticky) + zone principale (tabs H + contenu) ── */
-  #app{padding:66px max(16px,calc(50% - 700px)) 40px calc(max(16px,50% - 700px) + 306px)!important}
+  #app{padding:102px max(16px,calc(50% - 700px)) 40px calc(max(16px,50% - 700px) + 306px)!important}
   #charRail{position:fixed;top:54px;bottom:0;width:290px;left:max(16px,calc(50% - 700px));z-index:840;
     overflow-y:auto;background:var(--page);border-right:1px solid var(--acc-strong);padding:0}
   #charRail .norg-head{position:static;border-bottom:2px solid var(--brass-trim)}
@@ -263,8 +263,11 @@ body.ds-lefty .norg-nav{padding:7px 10px calc(7px + env(safe-area-inset-bottom))
   .rail-body{display:block;padding:0 10px 12px}
 
   /* ── ONGLETS HORIZONTAUX (intercalaires, verbatim maquette .g-tab) ── */
-  #tabBar,#mjTabBar{position:fixed;top:54px;left:calc(max(16px,50% - 700px) + 306px);right:max(16px,calc(50% - 700px));
-    z-index:835;height:auto;width:auto;flex-direction:row!important;align-items:flex-end;gap:4px;overflow:visible;
+  /* ⚠ bottom:auto OBLIGATOIRE — sinon le `bottom` du rail mobile étire la barre
+     sur toute la hauteur (fond cuir plein écran + onglets tombés en bas). */
+  #tabBar,#mjTabBar{position:fixed;top:54px;bottom:auto!important;left:calc(max(16px,50% - 700px) + 306px);
+    right:max(16px,calc(50% - 700px));z-index:835;height:auto!important;width:auto;
+    flex-direction:row!important;align-items:flex-end;gap:4px;overflow:visible;
     padding:8px 4px 0;background:linear-gradient(180deg,var(--leather),var(--leather2))}
   #mjTabBar{left:max(16px,calc(50% - 700px))} /* MJ : pas de charRail */
   #tabBar button,#mjTabBar button{width:auto!important;height:auto;min-height:0;left:auto!important;margin:0!important;
@@ -281,9 +284,7 @@ body.ds-lefty .norg-nav{padding:7px 10px calc(7px + env(safe-area-inset-bottom))
   /* la page porte le filet du haut, l'onglet actif le recouvre */
   #tabContent,#mjTabContent{border-top:2px solid var(--acc-strong);border-right:none;max-width:none;min-height:60vh}
   /* MJ : la zone principale démarre à gauche (pas de charRail) */
-  #mjScreen{padding:104px max(16px,calc(50% - 700px)) 40px max(16px,calc(50% - 700px))!important}
-  /* décale le contenu sous les onglets horizontaux (hauteur ~44px) */
-  #tabContent{margin-top:44px}#mjTabContent{margin-top:44px}
+  #mjScreen{padding:102px max(16px,calc(50% - 700px)) 40px max(16px,calc(50% - 700px))!important}
   /* Contenu : 2 colonnes de catégories */
   .norg-panel{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
 
