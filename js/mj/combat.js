@@ -49,7 +49,7 @@ function mjTabCombat(){
       ${!_mjCombatStarted&&_mjCombatants.length?`<button class="btn bsm" style="border-color:var(--cp);color:var(--cp)" onclick="mjStartCombat()">✨ Lancer l'initiative</button>`:''}
       ${_mjCombatStarted?`<button class="btn bsm" style="border-color:var(--cp);color:var(--cp)" onclick="mjNextTurn()">▶ Tour suivant</button>
         <button class="btn bsm" style="border-color:var(--good);color:var(--good)" onclick="mjEndCombat()">🏁 Fin du combat</button>
-        <div style="display:flex;align-items:center;gap:6px;padding:4px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;font-size:13px">
+        <div class="g-sub" style="display:flex;align-items:center;gap:6px;padding:4px 10px;font-size:13px">
           🔄 Round <strong style="color:var(--cp)">${_mjRound}</strong>
           ${currentC?` — Tour de <strong style="color:var(--cp)">${esc(currentC.name)}</strong>`:''}
         </div>`:''}
@@ -191,7 +191,7 @@ function mjFillFromNPC(idx){
 function mjOpenAddMonster(){
   _mjNewMonsterAttacks=[];_mjNewMonsterSpells=[];_mjNewMonsterTraits=[];_mjEditingMonsterIdx=-1;
   window._mjPendingAbilities=null;
-  const npcSection=_mjNPCs.length?`<div style="margin-bottom:12px;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:2px">
+  const npcSection=_mjNPCs.length?`<div class="g-sub" style="margin-bottom:12px;padding:8px">
       <div style="font-size:13px;font-weight:600;color:var(--cp);margin-bottom:6px">👤 Mes PNJ (${_mjNPCs.length})</div>
       <div style="max-height:90px;overflow-y:auto">${_mjNPCs.map((n,ni)=>`<div class="aci" onclick="mjFillFromNPC(${ni})" style="padding:5px 8px">
         <div class="ain">${esc(n.name||'?')}</div>
@@ -199,7 +199,7 @@ function mjOpenAddMonster(){
       </div>`).join('')}</div>
     </div>`:'';
   const compSection=MONSTERS_DB
-    ?`<div style="margin-bottom:12px;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:2px">
+    ?`<div class="g-sub" style="margin-bottom:12px;padding:8px">
         <div style="font-size:13px;font-weight:600;color:var(--cp);margin-bottom:6px">📚 Compendium (${MONSTERS_DB.length} monstres)</div>
         <input class="fi" id="monSearch" placeholder="Rechercher : Gobelin, Dragon..." oninput="mjFilterMonsters(this.value)" onfocus="mjFilterMonsters(this.value)" style="margin-bottom:4px">
         <div id="monResults" style="max-height:120px;overflow-y:auto"></div>

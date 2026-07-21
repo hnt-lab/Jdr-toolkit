@@ -132,15 +132,15 @@ function mjShowPlayerDetail(idx){
         <div style="background:var(--surface2);border-radius:2px;padding:8px">${skillsHtml}</div>
       </div>
     </div>
-    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:10px;margin-bottom:10px">
+    <div class="g-sub" style="padding:10px;margin-bottom:10px">
       <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">Inventaire</div>
       ${invHtml}
       <div style="font-size:13px;color:var(--text3);margin-top:8px">💰 ${curHtml}</div>
     </div>
-    ${spells.length?`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:10px;margin-bottom:10px"><div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Sorts</div>${spellHtml}</div>`:''}
-    ${feats.length?`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:10px;margin-bottom:10px"><div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">Capacités & Dons</div>${featHtml}</div>`:''}
-    ${persBlocks.length?`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:10px;margin-bottom:10px"><div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">Personnalité</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${persBlocks.join('')}</div></div>`:''}
-    ${p.backstory?`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:10px;margin-bottom:10px"><div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Histoire du personnage</div><div style="font-size:13px;color:var(--text2);white-space:pre-wrap">${esc(p.backstory)}</div></div>`:''}
+    ${spells.length?`<div class="g-sub" style="padding:10px;margin-bottom:10px"><div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Sorts</div>${spellHtml}</div>`:''}
+    ${feats.length?`<div class="g-sub" style="padding:10px;margin-bottom:10px"><div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">Capacités & Dons</div>${featHtml}</div>`:''}
+    ${persBlocks.length?`<div class="g-sub" style="padding:10px;margin-bottom:10px"><div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">Personnalité</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${persBlocks.join('')}</div></div>`:''}
+    ${p.backstory?`<div class="g-sub" style="padding:10px;margin-bottom:10px"><div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Histoire du personnage</div><div style="font-size:13px;color:var(--text2);white-space:pre-wrap">${esc(p.backstory)}</div></div>`:''}
     ${p.secrets?`<div style="background:rgba(200,168,75,.06);border:1px solid rgba(200,168,75,.3);border-radius:2px;padding:10px;margin-bottom:10px"><div style="font-size:12px;color:var(--cp);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">🔐 Secrets (MJ)</div><div style="font-size:13px;color:var(--text2);white-space:pre-wrap">${esc(p.secrets)}</div></div>`:''}
     ${(p.languages||p.proficiencies||(p.weaponProfs&&p.weaponProfs.length))?`<div style="font-size:13px;color:var(--text3);line-height:2">${p.languages?`🗣 <b>Langues :</b> <span style="color:var(--text2)">${esc(p.languages)}</span><br>`:''}${p.proficiencies?`📜 <b>Maîtrises :</b> <span style="color:var(--text2)">${esc(p.proficiencies)}</span><br>`:''}${p.weaponProfs&&p.weaponProfs.length?`⚔ <b>Armes :</b> <span style="color:var(--text2)">${p.weaponProfs.join(', ')}</span><br>`:''}${p.armorProfs&&p.armorProfs.length?`🛡 <b>Armures :</b> <span style="color:var(--text2)">${p.armorProfs.join(', ')}</span>`:''}</div>`:''}
   </div>
@@ -355,7 +355,7 @@ async function saveMJCustomFeats(){
 }
 function _mjRenderCompendiumList(){
   if(!_mjCustomFeats.length)return'<div style="font-size:13px;color:var(--text3);font-style:italic;text-align:center;padding:20px">Aucune entrée. Créez votre première capacité ci-dessus.</div>';
-  return _mjCustomFeats.map((f,i)=>`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:10px;margin-bottom:6px">
+  return _mjCustomFeats.map((f,i)=>`<div class="g-sub" style="padding:10px;margin-bottom:6px">
     <div style="display:flex;align-items:flex-start;gap:8px">
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:600;color:var(--text)">${esc(f.name)}</div>
@@ -373,7 +373,7 @@ function mjOpenCompendium(){
   const listHtml=ids.length?ids.map(id=>{
     const c=_mjCompLib[id];
     const total=(c.feats||[]).length+(c.spells||[]).length+(c.items||[]).length;
-    return`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:10px;margin-bottom:6px;display:flex;align-items:center;gap:8px">
+    return`<div class="g-sub" style="padding:10px;margin-bottom:6px;display:flex;align-items:center;gap:8px">
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:600;color:var(--text)">${esc(c.name)}</div>
         <div style="font-size:13px;color:var(--text3)">${(c.feats||[]).length} capacité(s) · ${(c.spells||[]).length} sort(s) · ${(c.items||[]).length} objet(s)</div>
@@ -661,7 +661,7 @@ function mjOpenFeatPicker(playerIdx){
   openWideModal(`<div class="pt">📚 Importer depuis le compendium</div>
     <div style="font-size:13px;color:var(--text2);margin-bottom:10px">Cliquez sur une capacité pour l'ajouter à la fiche du personnage.</div>
     <div style="max-height:60vh;overflow-y:auto;margin-bottom:10px">
-      ${allFeats.map((f,i)=>`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:10px;margin-bottom:6px;cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='var(--cp)'" onmouseout="this.style.borderColor='var(--border)'" onclick="mjApplyCustomFeat(${i},${playerIdx})">
+      ${allFeats.map((f,i)=>`<div class="g-sub" style="padding:10px;margin-bottom:6px;cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='var(--cp)'" onmouseout="this.style.borderColor='var(--border)'" onclick="mjApplyCustomFeat(${i},${playerIdx})">
         <div style="display:flex;align-items:center;gap:8px">
           <div style="flex:1;min-width:0">
             <div style="font-size:13px;font-weight:600">${esc(f.name)}</div>
@@ -806,7 +806,7 @@ function mjWhisperPlayer(idx){
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
       ${players.map((pl,i)=>`<button class="btn bsm${idx===i?' bprimary':''}" id="mjwrecip_${i}" style="padding:5px 10px" onclick="_mjSelectWhisperPlayer(${i})">${esc(pl.playerName||'Joueur')}${(pl.charData||{}).charName?` <span style="font-size:12px;opacity:.7">(${esc((pl.charData||{}).charName)})</span>`:''}</button>`).join('')}
     </div>
-    <div id="mjWhisperHistory" style="min-height:80px;max-height:180px;overflow-y:auto;background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:8px;margin-bottom:8px">${typeof _whisperConvHtml==='function'?_whisperConvHtml(targetUid):'<div style="font-size:13px;color:var(--text3);font-style:italic;text-align:center;padding:8px">Aucun message échangé.</div>'}</div>
+    <div id="mjWhisperHistory" class="g-sub" style="min-height:80px;max-height:180px;overflow-y:auto;padding:8px;margin-bottom:8px">${typeof _whisperConvHtml==='function'?_whisperConvHtml(targetUid):'<div style="font-size:13px;color:var(--text3);font-style:italic;text-align:center;padding:8px">Aucun message échangé.</div>'}</div>
     <textarea id="whisperMsg" placeholder="Message secret..." style="width:100%;box-sizing:border-box;min-height:64px;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;color:var(--text);font-size:13px;resize:vertical;margin-bottom:8px"></textarea>
     <div style="display:flex;gap:8px">
       <button class="btn bac" style="flex:1" onclick="_sendMJWhisperAndRefresh()">🤫 Envoyer</button>

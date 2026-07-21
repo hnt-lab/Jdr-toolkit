@@ -46,7 +46,7 @@ function compRenderLibList(){
       ? `<span style="font-size:13px;color:#b58be0;background:rgba(181,139,224,.12);border:1px solid rgba(181,139,224,.35);border-radius:2px;padding:1px 6px">Perso</span>`
       : `<span style="font-size:13px;color:#7eb8f7;background:rgba(126,184,247,.1);border:1px solid rgba(126,184,247,.3);border-radius:2px;padding:1px 6px">Importé</span>`;
     const nameJson = JSON.stringify(p.name).replace(/"/g,'&quot;');
-    return `<div style="display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:9px;margin-bottom:6px">
+    return `<div class="g-sub" style="display:flex;align-items:center;gap:8px;padding:9px;margin-bottom:6px">
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px">${esc(p.name)} ${badge}</div>
         <div style="font-size:13px;color:var(--text3)">${_compCountsLabel(p.counts)}</div>

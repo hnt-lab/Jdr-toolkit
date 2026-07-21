@@ -600,18 +600,18 @@ function viewCharSheet(uid,campId){
     <div class="pt" style="margin-bottom:10px">${pp.avatar||'⚔'} ${canSee('perso')?esc(pp.charName||'?'):'???'} <span style="font-weight:400;font-size:13px;color:var(--text3)">— ${esc(pp.playerName||'')}</span></div>
     <div style="max-height:70vh;overflow-y:auto;padding-right:4px">
     ${canSee('perso')?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:10px"><div class="fl mb6">Classe & Niveau</div><div style="font-size:13px">${esc(cls)}</div></div>
-      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:10px"><div class="fl mb6">Race</div><div style="font-size:13px">${esc(p.race||'?')}</div></div>
+      <div class="g-sub" style="padding:10px"><div class="fl mb6">Classe & Niveau</div><div style="font-size:13px">${esc(cls)}</div></div>
+      <div class="g-sub" style="padding:10px"><div class="fl mb6">Race</div><div style="font-size:13px">${esc(p.race||'?')}</div></div>
     </div>`:hidden}
-    ${canSee('combat')?`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:10px;margin-bottom:8px">
+    ${canSee('combat')?`<div class="g-sub" style="padding:10px;margin-bottom:8px">
       <div class="fl mb6">Combat</div>
       <div style="display:flex;gap:16px"><div><div style="font-size:12px;color:var(--text3)">PV</div><div style="font-size:15px;font-weight:600;color:var(--good)">${p.hp||0}/${p.hpMax||0}</div></div><div><div style="font-size:12px;color:var(--text3)">CA</div><div style="font-size:15px;font-weight:600">${p.ac||10}</div></div></div>
     </div>`:''}
-    ${canSee('competences')?`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:10px;margin-bottom:8px">
+    ${canSee('competences')?`<div class="g-sub" style="padding:10px;margin-bottom:8px">
       <div class="fl mb6">Caractéristiques</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">${(p.abilities||[]).map((v,i)=>`<div style="text-align:center"><div style="font-size:13px;color:var(--text3)">${['FOR','DEX','CON','INT','SAG','CHA'][i]}</div><div style="font-size:16px;font-weight:600">${v}</div></div>`).join('')}</div>
     </div>`:''}
-    ${canSee('historique')&&p.backstory?`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:10px;margin-bottom:8px"><div class="fl mb6">Backstory</div><div style="font-size:13px;color:var(--text2);white-space:pre-wrap">${esc(p.backstory)}</div></div>`:''}
+    ${canSee('historique')&&p.backstory?`<div class="g-sub" style="padding:10px;margin-bottom:8px"><div class="fl mb6">Backstory</div><div style="font-size:13px;color:var(--text2);white-space:pre-wrap">${esc(p.backstory)}</div></div>`:''}
     ${(isMJ2||isOwn)&&p.secrets?`<div style="background:rgba(200,168,75,.06);border:1px solid rgba(200,168,75,.3);border-radius:2px;padding:10px;margin-bottom:8px"><div class="fl mb6" style="color:var(--cp)">🔐 Secrets</div><div style="font-size:13px;color:var(--text2);white-space:pre-wrap">${esc(p.secrets)}</div></div>`:''}
     </div>
     <div style="display:flex;justify-content:flex-end;margin-top:8px">

@@ -159,7 +159,7 @@ function tabCombat(p){
           const kiMagic=moineLvl>=6?' (magique ✨)':''; // Frappes de ki (Moine niv.6) : mains nues = attaques magiques
           const unarmedDmg=moineLvl>=1?`1${artsMartiauxDie.replace('d','d')} contondant${kiMagic}`:'1 contondant';
           const unarmedDmgRaw=moineLvl>=1?artsMartiauxDie:'1';
-          return`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:10px;margin-bottom:6px">
+          return`<div class="g-sub" style="padding:10px;margin-bottom:6px">
             <div style="display:flex;justify-content:space-between;align-items:center">
               <span style="font-size:14px;font-weight:600">Poing</span>
               <span style="color:var(--cp);font-weight:600">+${unarmedAtk} / ${esc(unarmedDmg)}</span>

@@ -42,7 +42,7 @@ function openWildshapeModal() {
   openWideModal(`<div class="pt">🐺 Entrer en Forme sauvage</div>
     <div style="font-size:13px;color:var(--text3);margin-bottom:10px">CR max : ${crMax<=0.25?'1/4':crMax<=0.5?'1/2':crMax} — Nage : ${canSwim?'<span style="color:var(--good)">✓</span>':'✗'} — Vol : ${canFly?'<span style="color:var(--good)">✓</span>':'✗'} — Charges : <strong style="color:var(--cp)">${druLvl>=20?'∞':fsUsed+'/'+fsMax}</strong></div>
     <div id="wsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;max-height:48vh;overflow-y:auto;margin-bottom:10px">
-      ${available.map((b,gi)=>{const bi=BEAST_FORMS.indexOf(b);return`<div onclick="wsShowDetail(${bi})" style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:10px;cursor:pointer;text-align:center;transition:all .15s" onmouseover="this.style.borderColor='var(--good)';this.style.background='rgba(76,175,80,.06)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface2)'">
+      ${available.map((b,gi)=>{const bi=BEAST_FORMS.indexOf(b);return`<div onclick="wsShowDetail(${bi})" class="g-sub" style="padding:10px;cursor:pointer;text-align:center;transition:all .15s" onmouseover="this.style.borderColor='var(--good)';this.style.background='rgba(76,175,80,.06)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface2)'">
         <div style="font-size:26px;margin-bottom:4px">${b.icon}</div>
         <div style="font-size:13px;font-weight:600">${b.name}</div>
         <div style="font-size:12px;color:var(--text3)">CR ${b.crD}</div>
@@ -121,7 +121,7 @@ function openElementalModal() {
   openWideModal(`<div class="pt">🌊 Entrer en Forme sauvage élémentaire</div>
     <div style="font-size:13px;color:var(--text3);margin-bottom:10px">CR 5 — Coût : <strong style="color:var(--cp)">2 utilisations de Forme sauvage</strong> (disponibles : ${druLvl>=20?'∞':fsUsed+'/2'})</div>
     <div id="feGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;margin-bottom:10px">
-      ${ELEMENTAL_FORMS.map((ef,gi)=>`<div onclick="feShowDetail(${gi})" style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:10px;cursor:pointer;text-align:center;transition:all .15s" onmouseover="this.style.borderColor='var(--info)';this.style.background='rgba(41,182,246,.06)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface2)'">
+      ${ELEMENTAL_FORMS.map((ef,gi)=>`<div onclick="feShowDetail(${gi})" class="g-sub" style="padding:10px;cursor:pointer;text-align:center;transition:all .15s" onmouseover="this.style.borderColor='var(--info)';this.style.background='rgba(41,182,246,.06)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface2)'">
         <div style="font-size:26px;margin-bottom:4px">${ef.icon}</div>
         <div style="font-size:13px;font-weight:600">${ef.name}</div>
         <div style="font-size:12px;color:var(--text3)">CR 5</div>

@@ -26,13 +26,13 @@ function mjTabObjets(){
   }).join('');
 
   const compSection=ITEMS_DB
-    ?`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:12px;margin-bottom:12px">
+    ?`<div class="g-sub" style="padding:12px;margin-bottom:12px">
         <div style="font-size:13px;font-weight:600;color:var(--cp);margin-bottom:8px">📚 Compendium — ${ITEMS_DB.length.toLocaleString()} objets D&D 5e</div>
         <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">${rarFilterBar}</div>
         <input class="fi" id="itemSearch" placeholder="Chercher : Épée longue, Potion de soins, Anneau..." oninput="mjFilterItems(this.value)" onfocus="mjFilterItems(this.value)" style="margin-bottom:6px">
         <div id="itemResults" style="max-height:220px;overflow-y:auto"></div>
       </div>`
-    :`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:12px;margin-bottom:12px;text-align:center">
+    :`<div class="g-sub" style="padding:12px;margin-bottom:12px;text-align:center">
         <div style="font-size:13px;color:var(--text3);margin-bottom:8px">Chargez le compendium pour ajouter des objets depuis la base D&amp;D 5e SRD.</div>
         <button class="btn bsm bprimary" onclick="loadItemsDB(()=>renderMJContent())">📚 Charger le compendium d'objets</button>
       </div>`;

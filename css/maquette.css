@@ -217,6 +217,19 @@ body.ds-lefty .norg-rail button.on{margin-left:-4px;margin-right:0;left:0;border
 body.ds-lefty .norg-scroll{border-right:none;border-left:1px solid var(--acc-strong)}
 body.ds-lefty .norg-nav{padding:7px 10px calc(7px + env(safe-area-inset-bottom)) 76px}
 
+/* Sous-carte (boîtes internes : armes, capacités, encarts) — aspect maquette */
+.g-sub{background:var(--card2);border:1px solid var(--line);border-radius:0;padding:9px 11px;
+  margin-bottom:6px;color:var(--ink)}
+.g-sub:last-child{margin-bottom:0}
+
+/* ── ÉTAPES (création de perso / montée de niveau) dans le rail ── */
+.norg-rail button.done{opacity:.9;border-color:var(--good)!important;color:var(--good)!important;cursor:pointer}
+.norg-rail button:disabled{opacity:.4;cursor:default}
+#tabBar button.done{border-color:var(--good)!important;color:var(--good)!important}
+#tabBar button:disabled{opacity:.4;cursor:default}
+/* La création remplit la zone de contenu */
+.creation-wrap{max-width:none;margin:0}
+
 /* Caracs : dans l'onglet Personnage sur MOBILE, dans le charRail sur DESKTOP */
 .rail-body{display:none}
 

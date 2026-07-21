@@ -574,7 +574,7 @@ function openPlayerReadonlySheetFull(p,priv,playerInfo,isMJ){
   const charName=esc(p.charName||playerInfo?.playerName||'?');
 
   // helpers
-  const roCell=(label,val)=>`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:10px"><div style="font-size:12px;color:var(--text3);margin-bottom:3px">${label}</div><div style="font-size:13px">${val}</div></div>`;
+  const roCell=(label,val)=>`<div class="g-sub" style="padding:10px"><div style="font-size:12px;color:var(--text3);margin-bottom:3px">${label}</div><div style="font-size:13px">${val}</div></div>`;
   const roSection=(label)=>`<div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 8px">${label}</div>`;
 
   // Onglet Perso
@@ -590,7 +590,7 @@ function openPlayerReadonlySheetFull(p,priv,playerInfo,isMJ){
     </div>
     ${isPublic('competences')&&abilities?`${roSection('Caractéristiques')}
     <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-bottom:4px">
-      ${ABILITIES_SH.map((s,i)=>{const v=abilities[i]||10;const m=Math.floor((v-10)/2);return`<div style="text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:6px 3px"><div style="font-size:13px;color:var(--text3);font-weight:600">${s}</div><div style="font-size:18px;font-weight:700">${v}</div><div style="font-size:13px;color:var(--cp)">${m>=0?'+':''}${m}</div></div>`;}).join('')}
+      ${ABILITIES_SH.map((s,i)=>{const v=abilities[i]||10;const m=Math.floor((v-10)/2);return`<div class="g-sub" style="text-align:center;padding:6px 3px"><div style="font-size:13px;color:var(--text3);font-weight:600">${s}</div><div style="font-size:18px;font-weight:700">${v}</div><div style="font-size:13px;color:var(--cp)">${m>=0?'+':''}${m}</div></div>`;}).join('')}
     </div>`:''}
     ${!isPublic('competences')?`<div style="padding:8px;background:var(--surface2);border-radius:2px;font-size:13px;color:var(--text3);margin-bottom:8px">🔒 Caractéristiques — section privée</div>`:''}
     ${(()=>{
@@ -599,7 +599,7 @@ function openPlayerReadonlySheetFull(p,priv,playerInfo,isMJ){
       if(SRD&&SRD.races){const rd=SRD.races.find(r=>r.name===p.race);if(rd&&rd.traits){if(Array.isArray(rd.traits))rd.traits.forEach(t=>traits.push({name:t.name,source:esc(p.race||''),desc:t.desc||''}));else if(typeof rd.traits==='string')traits.push({name:'Traits raciaux',source:esc(p.race||''),desc:rd.traits});}}
       if(SRD&&SRD.backgrounds){const bd=SRD.backgrounds.find(b=>b.name===p.background);if(bd&&bd.feature)traits.push({name:bd.feature,source:esc(p.background||''),desc:bd.featureDesc||''});}
       if(!traits.length)return'';
-      return`${roSection('Capacités & traits')}${traits.map(t=>`<div style="margin-bottom:8px;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:2px"><div style="font-size:13px;font-weight:600;color:var(--cp)">${esc(t.name)}</div><div style="font-size:12px;color:var(--text3);margin-bottom:3px">${t.source}</div>${t.desc?`<div style="font-size:13px;color:var(--text2);margin-top:4px">${esc(t.desc)}</div>`:''}</div>`).join('')}`;
+      return`${roSection('Capacités & traits')}${traits.map(t=>`<div class="g-sub" style="margin-bottom:8px;padding:8px"><div style="font-size:13px;font-weight:600;color:var(--cp)">${esc(t.name)}</div><div style="font-size:12px;color:var(--text3);margin-bottom:3px">${t.source}</div>${t.desc?`<div style="font-size:13px;color:var(--text2);margin-top:4px">${esc(t.desc)}</div>`:''}</div>`).join('')}`;
     })()}
     ${(()=>{
       const sts=p.statuses||[];if(!sts.length)return'';
@@ -621,7 +621,7 @@ function openPlayerReadonlySheetFull(p,priv,playerInfo,isMJ){
         const atkM=finesse?Math.max(forM,dexM):w.slot==='ranged'?dexM:forM;
         const bonus=pb+atkM;
         const slotLabel=w.slot==='mainhand'?'Main droite':w.slot==='offhand'?'Main gauche':'Distance';
-        return`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;margin-bottom:5px"><div><div style="font-size:13px;font-weight:600">${esc(w.name)}</div><div style="font-size:12px;color:var(--text3)">${slotLabel}</div></div><span style="color:var(--cp);font-weight:700">${bonus>=0?'+':''}${bonus}${srdW?' / '+esc(srdW.damage):''}</span></div>`;
+        return`<div class="g-sub" style="display:flex;justify-content:space-between;align-items:center;padding:8px;margin-bottom:5px"><div><div style="font-size:13px;font-weight:600">${esc(w.name)}</div><div style="font-size:12px;color:var(--text3)">${slotLabel}</div></div><span style="color:var(--cp);font-weight:700">${bonus>=0?'+':''}${bonus}${srdW?' / '+esc(srdW.damage):''}</span></div>`;
       }).join('')}`:'';
       // Sauvegardes
       const mc=(p.classes||[])[0];const saveProfIds=mc?(CLASS_SAVES[mc.name]||[]):[];
@@ -629,7 +629,7 @@ function openPlayerReadonlySheetFull(p,priv,playerInfo,isMJ){
       return`<div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;margin-bottom:12px">
         <div><div style="display:flex;justify-content:space-between;font-size:13px;color:var(--text3);margin-bottom:4px"><span>Points de vie</span><span style="font-weight:700;color:${hp<=0?'var(--danger)':hpColor}">${hp<=0?(p.deathSaves?.fail>=3?'💀 Mort':'⚠ À terre'):hp+' / '+hpMax}</span></div>
         <div style="height:10px;background:var(--surface2);border-radius:2px;overflow:hidden"><div style="height:100%;width:${hpPct}%;background:${hpColor};border-radius:2px"></div></div></div>
-        ${p.ac?`<div style="text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:8px 14px"><div style="font-size:12px;color:var(--text3)">CA</div><div style="font-size:16px;font-weight:700">${p.ac}</div></div>`:''}
+        ${p.ac?`<div class="g-sub" style="text-align:center;padding:8px 14px"><div style="font-size:12px;color:var(--text3)">CA</div><div style="font-size:16px;font-weight:700">${p.ac}</div></div>`:''}
       </div>
       ${conds.length?`<div style="margin-bottom:12px"><div style="font-size:12px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Conditions</div><div style="display:flex;flex-wrap:wrap;gap:5px">${conds.map(c=>`<span class="status-badge malus">⚠ ${esc(c)}</span>`).join('')}</div></div>`:''}
       ${charges?`<div style="margin-bottom:8px"><div style="font-size:12px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Capacités</div>${charges}</div>`:''}

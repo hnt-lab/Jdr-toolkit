@@ -142,7 +142,7 @@ function _showHudDetail(uid){
   const dead=down&&(p.deathSaves?.fail>=3);
   const conds=p.conditions||[];
   const STATS_SH=['FOR','DEX','CON','INT','SAG','CHA'];
-  const statsHtml=p.abilities?STATS_SH.map((s,i)=>{const v=p.abilities[i]||10;const m=Math.floor((v-10)/2);return`<div style="text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:3px"><div style="font-size:11px;color:var(--text3)">${s}</div><div style="font-size:13px;font-weight:700;color:var(--text)">${v}</div><div style="font-size:11px;color:var(--cp)">${m>=0?'+':''}${m}</div></div>`;}).join(''):'';
+  const statsHtml=p.abilities?STATS_SH.map((s,i)=>{const v=p.abilities[i]||10;const m=Math.floor((v-10)/2);return`<div class="g-sub" style="text-align:center;padding:3px"><div style="font-size:11px;color:var(--text3)">${s}</div><div style="font-size:13px;font-weight:700;color:var(--text)">${v}</div><div style="font-size:11px;color:var(--cp)">${m>=0?'+':''}${m}</div></div>`;}).join(''):'';
   const chargesHtml=_buildChargeChips(p);
 
   // Mode : overlay (hub/mj/group-only) ou flottant (fiche perso ouverte)
@@ -164,7 +164,7 @@ function _showHudDetail(uid){
     </div>
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:${(p.shieldHp||0)>0?'4':'8'}px">
       <div style="flex:1"><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text3);margin-bottom:3px"><span>PV</span><span style="font-weight:700;color:${down?'var(--danger)':hpColor}">${dead?'💀':down?'⚠ À terre':hp+'/'+hpMax}</span></div><div style="height:7px;background:var(--surface2);border-radius:2px;overflow:hidden"><div style="height:100%;width:${hpPct}%;background:${hpColor};border-radius:2px"></div></div></div>
-      ${p.ac?`<div style="text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:4px 10px;flex-shrink:0"><div style="font-size:11px;color:var(--text3)">CA</div><div style="font-size:16px;font-weight:700">${p.ac}</div></div>`:''}
+      ${p.ac?`<div class="g-sub" style="text-align:center;padding:4px 10px;flex-shrink:0"><div style="font-size:11px;color:var(--text3)">CA</div><div style="font-size:16px;font-weight:700">${p.ac}</div></div>`:''}
     </div>
     ${(p.shieldHp||0)>0?`<div style="margin-bottom:8px;padding:4px 6px;background:rgba(33,150,243,.08);border:1px solid rgba(33,150,243,.25);border-radius:2px"><div style="display:flex;justify-content:space-between;font-size:13px;color:var(--info);margin-bottom:2px"><span>🔵 Bouclier magique</span><span style="font-weight:700">${p.shieldHp}/${p.shieldHpMax||p.shieldHp}</span></div><div style="height:4px;background:rgba(33,150,243,.15);border-radius:2px;overflow:hidden"><div style="height:100%;width:${Math.round((p.shieldHp/Math.max(1,p.shieldHpMax||p.shieldHp))*100)}%;background:var(--info);border-radius:2px"></div></div></div>`:''}
     ${conds.length?`<div style="font-size:13px;color:var(--text2);margin-bottom:8px">${conds.join(' ')}</div>`:''}

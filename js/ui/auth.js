@@ -80,7 +80,7 @@ function openUserSettings(){
   const compIds=Object.keys(_mjCompLib);
   const compHtml=compIds.length?compIds.map(id=>{
     const c=_mjCompLib[id];
-    return`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:10px;margin-bottom:6px;display:flex;align-items:center;gap:8px">
+    return`<div class="g-sub" style="padding:10px;margin-bottom:6px;display:flex;align-items:center;gap:8px">
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:600;color:var(--text)">${esc(c.name)}</div>
         <div style="font-size:13px;color:var(--text3)">${(c.feats||[]).length} capacité(s) · ${(c.spells||[]).length} sort(s) · ${(c.items||[]).length} objet(s)</div>

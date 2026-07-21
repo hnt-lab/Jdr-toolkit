@@ -803,14 +803,25 @@ function calcLUSteps(p,className,newClassLevel){
   return steps;
 }
 
+// Étapes de MONTÉE DE NIVEAU dans le rail (même coque que la fiche : rail vertical
+// sur mobile, onglets horizontaux sur desktop). Retour possible sur une étape validée.
+const LU_STEP_LABELS={direction:'Direction',style:'Style de combat',archetype:'Archétype',asi:'Amélioration',expertise:'Expertise',spells:'Sorts',secretsMagiques:'Secrets Magiques',metamagic:'Métamagie',mcSkill:'Compétence',invocations:'Invocations',recap:'Confirmation'};
+const LU_STEP_ICONS={direction:'🧭',style:'⚔️',archetype:'🌟',asi:'📈',expertise:'🎯',spells:'✨',secretsMagiques:'📖',metamagic:'🌀',mcSkill:'🎓',invocations:'👁',recap:'✅'};
+function _luRailHTML(){
+  if(typeof LU==='undefined'||!LU.steps||!LU.steps.length)return'';
+  return LU.steps.map((s,i)=>{
+    const done=i<LU.step-1,on=i===LU.step-1;
+    const act=done?` onclick="LU.step=${i+1};renderTab();renderTabBar()"`:'';
+    return`<button class="tab${on?' on':''}${done?' done':''}"${act}${(!done&&!on)?' disabled':''} title="${esc(LU_STEP_LABELS[s]||s)}"><span class="ti">${LU_STEP_ICONS[s]||'•'}</span><span class="tl">${esc(LU_STEP_LABELS[s]||s)}</span></button>`;
+  }).join('');
+}
 function tabLevelUp(p){
   const lvl=totalLevel(p);const newLvl=lvl+1;const mc=mainClass(p);
-  const stepLabels={direction:'Direction',style:'Style de combat',archetype:'Archétype',asi:'Amélioration',expertise:'Expertise',spells:'Sorts',secretsMagiques:'Secrets Magiques',metamagic:'Métamagie',mcSkill:'Compétence',invocations:'Invocations',recap:'Confirmation'};
+  const stepLabels=LU_STEP_LABELS;
 
+  // (La progression est portée par le RAIL D'ÉTAPES — cf. renderTabBar/_luRailHTML.)
   const displaySteps=LU.steps.length?LU.steps:['direction','recap'];
-  const progress=LU.steps.length>1?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:16px">
-    ${displaySteps.map((s,i)=>`<span class="cp-step${i<LU.step-1?' done':i===LU.step-1?' active':''}">${i<LU.step-1?'✓ ':''+(i+1)+'. '}${stepLabels[s]||s}</span>${i<displaySteps.length-1?'<span style="color:var(--text3);font-size:12px;align-self:center">›</span>':''}`).join('')}
-  </div>`:'';
+  const progress='';
 
   const curStep=LU.steps[LU.step-1]||'direction';
   let content='';

@@ -401,7 +401,7 @@ async function _openPlayerWhisperModal(){
   openModal(`<div style="display:flex;flex-direction:column;gap:8px">
     <div class="pt" style="margin-bottom:0">🤫 Chuchoter</div>
     <div id="whisperRecipList" style="display:flex;gap:6px;flex-wrap:wrap;padding:2px 0"><div style="font-size:13px;color:var(--text3)">Chargement…</div></div>
-    <div id="whisperHistory" style="min-height:80px;max-height:200px;overflow-y:auto;background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:8px">
+    <div id="whisperHistory" class="g-sub" style="min-height:80px;max-height:200px;overflow-y:auto;padding:8px">
       <div style="font-size:13px;color:var(--text3);font-style:italic;text-align:center;padding:8px">Sélectionnez un destinataire.</div>
     </div>
     <div style="display:flex;gap:6px;align-items:flex-end">

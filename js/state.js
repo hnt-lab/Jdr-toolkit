@@ -697,7 +697,24 @@ function renderPlayerBar(){
 function renderTabBar(){
   const bar=document.getElementById('tabBar');if(!bar)return;
   const p=P();
-  if(!p.created){bar.innerHTML='';return;}
+  // CRÉATION : les ÉTAPES prennent la place des onglets dans le rail (demande user :
+  // « étapes en nav rail de côté comme la fiche perso »). Rail vertical sur mobile,
+  // onglets horizontaux sur desktop — même coque que la fiche, automatiquement.
+  if(!p.created){
+    const _st=(typeof getCreSteps==='function')?getCreSteps():[];
+    const _LBL=['Race','Classe','Stats','Historique','Compétences','Sorts','Équipement','Confirmation'];
+    const _ICO={'Race':'🧬','Classe':'⚔️','Stats':'📊','Historique':'📜','Compétences':'🎯','Sorts':'✨','Équipement':'🎒','Confirmation':'✅'};
+    const _cur=_LBL[(typeof CS!=='undefined'?CS.step:1)-1];
+    const _idx=_st.indexOf(_cur);
+    bar.innerHTML=_st.map((s,i)=>{
+      const done=i<_idx,on=i===_idx;
+      // on peut revenir sur une étape déjà validée (l'index dans les étapes = CS.step)
+      const act=done?` onclick="CS.step=${i+1};renderTab();renderTabBar()"`:'';
+      return`<button class="tab${on?' on':''}${done?' done':''}"${act}${(!done&&!on)?' disabled':''} title="${esc(s)}"><span class="ti">${_ICO[s]||'•'}</span><span class="tl">${esc(s)}</span></button>`;
+    }).join('');
+    if(typeof _initTabScrollers==='function')setTimeout(_initTabScrollers,0);
+    return;
+  }
   // REFONTE P2 : 6 onglets fusionnés (Personnage=Perso+Compétences · Inventaire=Équip.+Sac · Historique=XP+Historique)
   const _lvlupCls=(()=>{const _lvl=totalLevel(p);const _nxt=XP_LEVELS[_lvl]||XP_LEVELS[19];return(p.xp||0)>=_nxt&&_lvl<20&&!p.pendingLevelUp?'lvlup':''})();
   let TABS=[
@@ -713,6 +730,15 @@ function renderTabBar(){
     p.tabOrder.forEach(id=>{const t=TABS.find(x=>x.id===id);if(t)ordered.push(t);});
     TABS.forEach(t=>{if(!ordered.find(x=>x.id===t.id))ordered.push(t);});
     TABS=ordered;
+  }
+  // MONTÉE DE NIVEAU en cours : le rail affiche les ÉTAPES du LU (comme la création)
+  if(state.activeTab==='levelup'&&typeof _luRailHTML==='function'){
+    const _lu=_luRailHTML();
+    if(_lu){
+      bar.innerHTML=_lu;
+      if(typeof _initTabScrollers==='function')setTimeout(_initTabScrollers,0);
+      return;
+    }
   }
   if(p.pendingLevelUp)TABS.unshift({id:'levelup',ico:'⬆',txt:'Niveau +',cls:'lvlup'});
   // Alias des anciens onglets fusionnés (activeTab sauvegardé en 9-onglets)
@@ -740,7 +766,7 @@ function openTabOrderSettings(){
   };
   const rows=p.tabOrder.map((id,i)=>{
     const isFirst=i===0;const isLast=i===p.tabOrder.length-1;
-    return`<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;margin-bottom:5px">
+    return`<div class="g-sub" style="display:flex;align-items:center;gap:8px;padding:8px 10px;margin-bottom:5px">
       <span style="font-size:14px;flex:1">${LABELS[id]||id}</span>
       <button onclick="_tabOrderMove('${id}',-1)" ${isFirst?'disabled':''} style="background:none;border:1px solid var(--border);color:var(--text);border-radius:2px;padding:3px 9px;cursor:pointer;font-size:14px;opacity:${isFirst?.3:1}">↑</button>
       <button onclick="_tabOrderMove('${id}',1)" ${isLast?'disabled':''} style="background:none;border:1px solid var(--border);color:var(--text);border-radius:2px;padding:3px 9px;cursor:pointer;font-size:14px;opacity:${isLast?.3:1}">↓</button>
@@ -771,6 +797,9 @@ function setTab(id){
 function renderTab(){
   const el=document.getElementById('tabContent');if(!el)return;
   const p=P();
+  // Création & montée de niveau : le RAIL affiche les étapes → il doit suivre
+  // l'avancement (les boutons Continuer/Retour n'appellent que renderTab).
+  if(!p.created||state.activeTab==='levelup')setTimeout(renderTabBar,0);
   if(!p.created){el.innerHTML=tabCreation(p);if(typeof _ctaScrollGlow==='function')setTimeout(_ctaScrollGlow,40);return;}
   const map={perso:tabPerso,competences:tabCompetences,combat:tabCombat,equipement:tabEquipement,sac:tabSac,historique:tabHistorique,xp:tabXP,sorts:tabSorts,levelup:tabLevelUp,journal:tabJournal};
   // REFONTE P2 — onglets FUSIONNÉS : catégories dépliables (contenus d'origine INTACTS)
@@ -849,11 +878,10 @@ function tabCreation(){
   const labels=['Race','Classe','Stats','Historique','Compétences','Sorts','Équipement','Confirmation'];
   const cur=labels[CS.step-1];
   const stepIdx=steps.indexOf(cur);
-  const progress=`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:18px">
-    ${steps.map((s,i)=>`<span class="cp-step${i<stepIdx?' done':i===stepIdx?' active':''}">${i<stepIdx?'✓ ':''+(i+1)+'. '}${s}</span>${i<steps.length-1?'<span style="color:var(--text3);font-size:12px;align-self:center">›</span>':''}`).join('')}
-  </div>`;
+  // (La progression est portée par le RAIL D'ÉTAPES — cf. renderTabBar. Plus de chips ici.)
+  const progress='';
   const map={1:creStep1,2:creStep2,3:creStep3,4:creStep4,5:creStep5,6:()=>{const cd=SRD.classes.find(c=>c.name===CS.classe);return cd&&cd.spellcaster&&cd.startSpells>0?creStep6Sorts():creStep7();},7:()=>{const cd=SRD.classes.find(c=>c.name===CS.classe);return cd&&cd.spellcaster&&cd.startSpells>0?creStep7():creStep8();},8:creStep8};
-  return`<div class="creation-wrap"><div class="panel"><div class="pt" style="font-size:15px">🧙 Création du personnage</div>${progress}${(map[CS.step]||creStep1)()}</div></div>`;
+  return`<div class="creation-wrap"><div class="panel"><div class="pt">🧙 Création du personnage — ${esc(cur||'')}</div>${progress}${(map[CS.step]||creStep1)()}</div></div>`;
 }
 
 function creStep1(){

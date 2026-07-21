@@ -251,7 +251,7 @@ function renderLearnSpell(p, magLvl){
     : [];
 
   return`<div>
-    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:12px;margin-bottom:12px">
+    <div class="g-sub" style="padding:12px;margin-bottom:12px">
       <div style="font-size:13px;font-weight:600;color:var(--cp);margin-bottom:4px">📜 Copier un sort dans votre grimoire</div>
       <div style="font-size:13px;color:var(--text3)">Coût : 2h + <strong>50 po par niveau du sort</strong> — Tous les sorts Magicien disponibles</div>
       <div style="font-size:13px;color:var(--text2);margin-top:4px">Votre trésor actuel : <strong style="color:var(--cp)">${cur.po||0} po</strong></div>
@@ -272,7 +272,7 @@ function renderLearnSpell(p, magLvl){
         ${results.map(s=>{
           const cost = s.level * 50;
           const canAfford = (cur.po||0) >= cost;
-          return`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:8px 10px;margin-bottom:5px;display:flex;align-items:center;gap:8px">
+          return`<div class="g-sub" style="padding:8px 10px;margin-bottom:5px;display:flex;align-items:center;gap:8px">
             <div style="flex:1;min-width:0">
               <div style="font-size:13px;font-weight:600">${esc(s.name)}</div>
               <div style="font-size:13px;color:var(--text3)">Niv.${s.level} • ${esc(s.school)} • ${esc(s.castTime)}</div>
@@ -318,7 +318,7 @@ function renderCompendiumSearch(p){
 
   return`<div>
     ${!isLoaded?`
-      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:16px;text-align:center;margin-bottom:12px">
+      <div class="g-sub" style="padding:16px;text-align:center;margin-bottom:12px">
         <div style="font-size:14px;font-weight:600;color:var(--cp);margin-bottom:6px">📚 Compendium de sorts</div>
         <div style="font-size:13px;color:var(--text3);margin-bottom:12px">1213 sorts disponibles. Placez <strong>spells_db.json</strong> dans le même dossier que la fiche.</div>
         <button class="btn bprimary" onclick="loadSpellsDB(()=>render())">⬇️ Charger le compendium</button>
@@ -348,7 +348,7 @@ function renderCompendiumSearch(p){
       <div style="max-height:420px;overflow-y:auto">
         ${results.map(s=>{
           const already = knownNames.includes(s.name)||knownNames.includes(s.nameEN);
-          return`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:8px 10px;margin-bottom:5px;display:flex;align-items:center;gap:8px">
+          return`<div class="g-sub" style="padding:8px 10px;margin-bottom:5px;display:flex;align-items:center;gap:8px">
             <div style="flex:1;min-width:0">
               <div style="font-size:13px;font-weight:600;color:${already?'var(--cp)':'var(--text)'}">${esc(s.name)}${s.ritual?' <span style="font-size:12px;color:var(--cp)">(R)</span>':''}</div>
               <div style="font-size:13px;color:var(--text3)">${s.level===0?'Cantrip':'Niv.'+s.level} • ${esc(s.school)} • ${esc(s.castTime)} • ${esc(s.range)}</div>

@@ -194,7 +194,7 @@ function cycleSkillIfAllowed(name,current,maxSkills){
 function openFeatSearch(){openModal(`<div class="pt">Ajouter une capacité</div>
 <input class="fi" id="featQ" placeholder="🔍 Chercher dans les capacités SRD..." oninput="filterFeats(this.value)" style="margin-bottom:8px">
 <div id="featList">${renderFeatList('')}</div>
-<div style="margin-top:12px;padding:10px;background:var(--surface2);border-radius:2px;border:1px solid var(--border)">
+<div class="g-sub" style="margin-top:12px;padding:10px">
   <div style="font-size:13px;font-weight:600;color:var(--cp);margin-bottom:8px">✨ Capacité personnalisée (univers alternatif)</div>
   <input class="fi" id="featCustomName" placeholder="Nom de la capacité" style="margin-bottom:6px">
   <textarea class="fi" id="featCustomDesc" rows="2" placeholder="Description de la capacité..." style="resize:vertical;margin-bottom:6px"></textarea>

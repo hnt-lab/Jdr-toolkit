@@ -153,7 +153,7 @@ async function openPackEditor(compId){
   CE_TYPES.forEach(t => { if(!Array.isArray(c[t])) c[t] = []; });
   const sections = CE_TYPES.map(type => {
     const spec = CE_SPEC[type]; const arr = c[type];
-    const rows = arr.length ? arr.map((e,i) => `<div style="display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:7px 9px;margin-bottom:5px">
+    const rows = arr.length ? arr.map((e,i) => `<div class="g-sub" style="display:flex;align-items:center;gap:8px;padding:7px 9px;margin-bottom:5px">
         <div style="flex:1;min-width:0;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(spec.name(e))}</div>
         <button class="btn bsm" onclick="ceEditEntry('${compId}','${type}',${i})">✏️</button>
         <button class="btn bsm" style="color:var(--danger);border-color:rgba(229,57,53,.3)" onclick="ceDeleteEntry('${compId}','${type}',${i})">🗑</button>
