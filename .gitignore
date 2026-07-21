@@ -1,3 +1,8 @@
 # Outils locaux de déploiement (chemins machine) — ne jamais publier
 update.bat
 update-en-ligne.bat
+
+# Notes de travail internes — jamais publiees
+_audit/
+_veille/
+desktop.ini
