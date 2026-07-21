@@ -683,8 +683,6 @@ function render(){
   renderPlayerBar();renderTabBar();renderTab();
   const _cr=document.getElementById('charRail');
   if(_cr)_cr.innerHTML=(typeof renderCharRail==='function'?renderCharRail(p):'');
-  const _f2=document.querySelector('.fiche-2col');
-  if(_f2)_f2.classList.toggle('no-rail',!p.created); // pas de rail pendant la création
 }
 
 function renderPlayerBar(){
@@ -780,17 +778,20 @@ function openTabOrderSettings(){
     </div>`);
 }
 
+// Table des rendus d'onglet — SOURCE UNIQUE (setTab et renderTab s'y réfèrent tous les deux)
+function _tabRenderers(){return{perso:tabPerso,competences:tabCompetences,combat:tabCombat,equipement:tabEquipement,sac:tabSac,historique:tabHistorique,xp:tabXP,sorts:tabSorts,levelup:tabLevelUp,journal:tabJournal};}
+// Onglets fusionnés (REFONTE P2) : l'ancien id retombe sur l'onglet qui l'absorbe
+const TAB_ALIAS={competences:'perso',sac:'equipement',xp:'historique'};
+
 function setTab(id){
+  id=TAB_ALIAS[id]||id; // fusion : on mémorise et on surligne l'onglet PARENT
   state.activeTab=id;
   if(currentCampaignId)localStorage.setItem('lastTab_'+currentCampaignId,id);
   if(id==='levelup')resetLU();
   renderTabBar();
+  renderTab(); // rendu UNIQUE : fusions + enveloppe .norg-panel + drag + autoGrow
   const el=document.getElementById('tabContent');if(!el)return;
-  const map={perso:tabPerso,competences:tabCompetences,combat:tabCombat,equipement:tabEquipement,sac:tabSac,historique:tabHistorique,xp:tabXP,sorts:tabSorts,levelup:tabLevelUp,journal:tabJournal};
-  el.innerHTML=(map[id]||tabPerso)(P());
   el.classList.remove('tab-switch-anim');void el.offsetWidth;el.classList.add('tab-switch-anim'); // animation de changement d'onglet
-  _enableTabDrag();applyAllSectionOrders(); // FIX : enveloppe + ordre AUSSI au changement d'onglet (sinon le drag « saute »)
-  setTimeout(autoGrowAll,0);
   if(typeof _centerActiveTab==='function')setTimeout(_centerActiveTab,40); // centre l'onglet actif dans la barre
 }
 
@@ -801,10 +802,9 @@ function renderTab(){
   // l'avancement (les boutons Continuer/Retour n'appellent que renderTab).
   if(!p.created||state.activeTab==='levelup')setTimeout(renderTabBar,0);
   if(!p.created){el.innerHTML=tabCreation(p);if(typeof _ctaScrollGlow==='function')setTimeout(_ctaScrollGlow,40);return;}
-  const map={perso:tabPerso,competences:tabCompetences,combat:tabCombat,equipement:tabEquipement,sac:tabSac,historique:tabHistorique,xp:tabXP,sorts:tabSorts,levelup:tabLevelUp,journal:tabJournal};
+  const map=_tabRenderers();
   // REFONTE P2 — onglets FUSIONNÉS : catégories dépliables (contenus d'origine INTACTS)
-  const _alias={competences:'perso',sac:'equipement',xp:'historique'};
-  if(_alias[state.activeTab])state.activeTab=_alias[state.activeTab];
+  if(TAB_ALIAS[state.activeTab])state.activeTab=TAB_ALIAS[state.activeTab];
   const FUSED={perso:[['perso','👤 Identité & caractéristiques'],['competences','🎯 Compétences']],
     equipement:[['equipement','🛡 Équipement'],['sac','🎒 Sac & encombrement']],
     historique:[['historique','⭐ Progression & XP'],['xp','📖 Montée de niveau']]};

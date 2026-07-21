@@ -63,8 +63,7 @@ const PRECACHE = [
   './manifest.json',
   './img/icon.svg',
   './img/icon-512.png',
-  './img/logo.png',
-  './img/bg-login.jpg'
+  './img/logo.png'
 ];
 
 // Domaines Firebase/Google : jamais interceptés

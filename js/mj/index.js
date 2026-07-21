@@ -20,8 +20,7 @@ function showMJScreen(){
 
 function setMJTab(tab){
   _mjTab=tab;
-  renderMJTabs();
-  renderMJContent();
+  renderMJTabs();   // peint AUSSI le contenu (cf. shell.js) — pas de 2ᵉ appel : évite un double rendu
   const el=document.getElementById('mjTabContent');
   if(el){el.classList.remove('tab-switch-anim');void el.offsetWidth;el.classList.add('tab-switch-anim');} // animation de changement d'onglet MJ
   if(typeof _centerActiveTab==='function')setTimeout(_centerActiveTab,40); // centre l'onglet actif dans la barre

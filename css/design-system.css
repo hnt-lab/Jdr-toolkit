@@ -10,35 +10,22 @@
           [x] rail  [x] vitals  [x] dé  [x] classe  [x] gaucher  [x] desktop
    ═══════════════════════════════════════════════════════════════════════ */
 
-/* ── 01 · TOKENS — thème clair « Grimoire » (défaut) ─────────────────── */
+/* ── 01 · TOKENS ds-* = ALIAS de la source unique (css/variables.css) ────
+   AUDIT 2026-07-21 : la palette était DUPLIQUÉE ici en 28 couleurs codées en dur
+   (+ un 2ᵉ bloc pour le sombre) → une couleur modifiée dans variables.css ne suivait
+   pas. Désormais ces tokens ne font que POINTER vers les vraies variables : une seule
+   source de vérité, et le mode Veillée s'applique automatiquement (plus de bloc dark). */
 :root, .ds-light{
-  --ds-page:#e7d8b2; --ds-card:#f4ead0; --ds-card2:#efe4c8;
-  --ds-ink:#2c2113; --ds-soft:#6b5a3a; --ds-faint:#8a744a;
-  --ds-acc:#9a7a32; --ds-acc-strong:#7a5f22;
-  --ds-seal:#7a2e2e; --ds-good:#3f6d3a; --ds-warn:#9a6a1e;
-  --ds-line:#c3ab77; --ds-line-soft:#d6c395;
-  --ds-glow:rgba(154,122,50,.28);
-  /* Chrome cuir + laiton — COMMUN aux deux thèmes (c'est « le même livre ») */
-  --ds-leather:#221507; --ds-leather2:#31200c;
-  --ds-brass:#b98f3e; --ds-brass-hi:#e9c877;
-  /* Typo */
-  --ds-disp:'Cinzel','Palatino Linotype','Book Antiqua',Georgia,serif;
-  --ds-body:Georgia,Cambria,'Times New Roman',serif;
-  --ds-mono:ui-monospace,'Cascadia Code',Consolas,monospace;
-  /* Couleur de classe (surchargée par perso via style="--cls-c:...") */
-  --cls-c:var(--ds-acc);
-}
-
-/* ── 01b · TOKENS — thème sombre « Veillée » (Direction 03) ──────────── */
-.ds-dark{
-  --ds-page:#12100e; --ds-card:#1e1b17; --ds-card2:#242019;
-  --ds-ink:#ede8df; --ds-soft:#9c9384; --ds-faint:#6e6455;
-  --ds-acc:#d4af6a; --ds-acc-strong:#e9c877;
-  --ds-seal:#c8632e; --ds-good:#8fbf6f; --ds-warn:#e0a850;
-  --ds-line:#3b342a; --ds-line-soft:#2c261e;
-  --ds-glow:rgba(212,175,106,.22);
-  --ds-leather:#191007; --ds-leather2:#241809;
-  --ds-brass:#8a6a2e; --ds-brass-hi:#d4af6a;
+  --ds-page:var(--bg);        --ds-card:var(--surface);   --ds-card2:var(--surface2);
+  --ds-ink:var(--text);       --ds-soft:var(--text2);     --ds-faint:var(--text3);
+  --ds-acc:var(--cp);         --ds-acc-strong:var(--cp2);
+  --ds-seal:var(--danger);    --ds-good:var(--good);      --ds-warn:var(--warn);
+  --ds-line:var(--border);    --ds-line-soft:var(--border2);
+  --ds-glow:var(--cglow);
+  --ds-leather:var(--leather);--ds-leather2:var(--leather2);
+  --ds-brass:var(--brass);    --ds-brass-hi:var(--brass-hi);
+  --ds-disp:var(--F);         --ds-body:var(--B);         --ds-mono:var(--M);
+  --cls-c:var(--cls);
 }
 
 /* Règles contractuelles (rappel) :
@@ -61,9 +48,6 @@
 .ds-btn.big{min-height:46px;font-size:16px}
 .ds-btn:disabled{opacity:.45;cursor:default}
 .ds-btn:focus-visible{outline:2px solid var(--ds-acc-strong);outline-offset:1px}
-.ds-input{background:var(--ds-card2);border:1px solid var(--ds-line);color:var(--ds-ink);
-  padding:9px 10px;font-family:var(--ds-body);font-size:15px;min-height:40px;border-radius:0}
-.ds-input::placeholder{color:var(--ds-faint)}
 
 /* ── 03 · CARTES, TITRES, CHIPS, BANNIÈRES ───────────────────────────── */
 .ds-card{background:var(--ds-card);border:1px solid var(--ds-acc);color:var(--ds-ink);padding:12px 14px;
@@ -101,27 +85,8 @@
 .ds-hp.low{animation:dsPulse 1.5s ease-in-out infinite}
 @keyframes dsPulse{0%,100%{box-shadow:inset 0 0 5px rgba(0,0,0,.28),0 0 6px color-mix(in srgb,var(--ds-seal) 40%,transparent)}
   50%{box-shadow:inset 0 0 5px rgba(0,0,0,.28),0 0 16px color-mix(in srgb,var(--ds-seal) 75%,transparent)}}
-/* Réservoir de ressources — même verre, balayage plus lent */
-.ds-tank{height:10px;position:relative;border:1px solid var(--ds-line);background:var(--ds-card2);
-  box-shadow:inset 0 0 3px rgba(0,0,0,.25)}
-.ds-tank>i{position:absolute;inset:1px auto 1px 1px;width:58%;overflow:hidden;
-  background:linear-gradient(180deg,color-mix(in srgb,var(--ds-acc) 70%,white),var(--ds-acc) 45%,color-mix(in srgb,var(--ds-acc) 55%,black))}
-.ds-tank>i::after{content:"";position:absolute;top:0;bottom:0;left:-24px;width:20px;
-  background:linear-gradient(100deg,transparent,rgba(255,255,255,.4),transparent);animation:dsSweep 4.6s ease-in-out infinite}
-/* Points de charge (cercles autorisés) */
-.ds-dots{display:flex;gap:5px}
-.ds-dot{width:15px;height:15px;border-radius:50%;border:2px solid var(--ds-acc);background:var(--ds-acc);
-  box-shadow:inset 0 0 3px rgba(0,0,0,.4)}
-.ds-dot.used{background:transparent}
-/* Mini-barre PLATE — listes denses (initiative MJ) uniquement */
-.ds-hpmini{height:7px;background:var(--ds-card2);border:1px solid var(--ds-line);position:relative}
-.ds-hpmini>i{position:absolute;inset:1px auto 1px 1px;background:var(--ds-good)}
-
-/* ── 05 · CARACTÉRISTIQUES — MODIFICATEUR gros/gras, base en petit ───── */
-.ds-carac{text-align:center;background:var(--ds-card2);border:1px solid var(--ds-line);padding:6px 2px}
-.ds-carac .n{font-size:10.5px;color:var(--ds-soft);letter-spacing:.08em;text-transform:uppercase}
-.ds-carac .m{font-family:var(--ds-disp);font-size:22px;font-weight:800;color:var(--ds-ink);line-height:1.1}
-.ds-carac .b{font-family:var(--ds-mono);font-size:11px;color:var(--ds-faint)}
+/* NB : réservoirs (.g-tank), points de charge (.g-dot), mini-barres (.hpmini)
+   et caractéristiques (.rail-carac) → maquette.css. */
 
 /* ── 06 · INDICES MJ (4 matières, rivet laiton) + ARTEFACTS/OBJETS ───── */
 .ds-pin{position:relative;background:#efe4c8;color:#2c2113;border:1px solid #c3ab77;padding:15px 12px 10px;
@@ -146,18 +111,7 @@
   box-shadow:inset 0 0 0 2px var(--ds-card),inset 0 0 0 3px var(--ds-acc),0 0 10px var(--ds-glow)}
 .ds-item.artefact .ic{background:radial-gradient(circle at 35% 30%,var(--ds-brass-hi),var(--ds-brass));border-color:var(--ds-acc-strong)}
 
-/* ── 07 · CATÉGORIE DÉPLIABLE (⠿ modulable) + COINS SERTIS ───────────── */
-.ds-fold{border:1px solid var(--ds-acc);background:var(--ds-card);
-  box-shadow:inset 0 0 0 2px var(--ds-card),inset 0 0 0 3px var(--ds-line)}
-.ds-fold>.fh{display:flex;align-items:center;gap:7px;padding:8px 10px;cursor:pointer;user-select:none;
-  min-height:40px;font-family:var(--ds-disp);font-variant:small-caps;letter-spacing:.07em;
-  color:var(--ds-acc-strong);font-size:14.5px;border-bottom:1px solid var(--ds-line-soft)}
-.ds-fold.closed>.fh{border-bottom:none}
-.ds-fold>.fh .grip{color:var(--ds-faint);font-size:14px;cursor:grab;letter-spacing:-1px;touch-action:none}
-.ds-fold>.fh .chev{margin-left:auto;transition:transform .2s;font-size:11px;color:var(--ds-soft)}
-.ds-fold.closed>.fh .chev{transform:rotate(-90deg)}
-.ds-fold>.fb{padding:9px 10px;display:flex;flex-direction:column;gap:8px}
-.ds-fold.closed>.fb{display:none}
+/* ── 07 · COINS SERTIS (catégories dépliables → .g-fold, maquette.css) ── */
 .ds-corners{position:relative;background:var(--ds-card);border:1px solid var(--ds-line);padding:10px 12px;color:var(--ds-ink)}
 .ds-corners::before,.ds-corners::after,.ds-corners .cx::before,.ds-corners .cx::after{
   content:"";position:absolute;width:12px;height:12px;border:2px solid var(--ds-acc-strong)}
@@ -165,13 +119,6 @@
 .ds-corners::after{bottom:-2px;right:-2px;border-left:none;border-top:none}
 .ds-corners .cx::before{top:-2px;right:-2px;border-left:none;border-bottom:none}
 .ds-corners .cx::after{bottom:-2px;left:-2px;border-right:none;border-top:none}
-
-/* ── 08 · JOURNAL / CHAT / CHRONIQUES (trait de couleur par personne) ── */
-.ds-log{border:1px solid var(--ds-line-soft);border-left:3px solid var(--who,var(--ds-acc));
-  background:var(--ds-card2);padding:6px 9px;font-size:13.5px;color:var(--ds-ink)}
-.ds-log .lh{display:flex;align-items:center;gap:6px;margin-bottom:2px}
-.ds-log .lh b{font-family:var(--ds-disp);font-size:13px;color:var(--who,var(--ds-acc))}
-.ds-log .lh time{font-family:var(--ds-mono);font-size:10px;color:var(--ds-faint);margin-left:auto}
 
 /* ── 09 · CHROME — en-tête & nav bas (3 items + signaux Groupe) ──────── */
 .ds-chrome{background:linear-gradient(180deg,var(--ds-leather),var(--ds-leather2));
@@ -197,48 +144,9 @@
   background:linear-gradient(135deg,#6d28d9,#4338ca);color:#fff;font-size:15px;font-weight:700;
   animation:dsBdgPulse 2s ease-in-out infinite}
 
-/* ── 10 · RAIL D'ONGLETS (42×44, actif 53, fusion à la page) ─────────── */
-.ds-main{display:flex;min-height:0} /* conteneur : page + rail */
-.ds-scroll{flex:1;overflow-y:auto;border-right:1px solid var(--ds-acc-strong);background:var(--ds-page)}
-.ds-rail{width:52px;flex:none;display:flex;flex-direction:column;gap:6px;padding:10px 4px 10px 0;
-  background:color-mix(in srgb,var(--ds-leather) 14%,var(--ds-page))}
-.ds-rail button{width:42px;height:44px;margin-left:auto;border:1px solid var(--ds-line);
-  background:var(--ds-card);font-size:17px;cursor:pointer;padding:0;color:var(--ds-ink);opacity:.75;border-radius:0}
-.ds-rail button.on{opacity:1;width:53px;margin-left:0;position:relative;left:-1px;
-  border:1px solid var(--ds-acc-strong);border-left:none;background:var(--ds-page);font-size:19px}
-.ds-rail button:focus-visible{outline:2px solid var(--ds-acc-strong)}
-.ds-rail button.lvlup{border-color:var(--ds-brass-hi);color:var(--ds-acc-strong);
-  animation:dsLvl 1.8s ease-in-out infinite}
-@keyframes dsLvl{50%{box-shadow:0 0 10px var(--ds-brass-hi)}}
-.ds-rail .foot{margin-top:auto;display:flex;flex-direction:column;gap:4px}
-.ds-rail .foot button{height:34px;font-size:13px;opacity:.6} /* 🔒 + ↕ en pied de rail */
+/* ── 10-11 · Coque de fiche (rail, bandeau, vitals) → .norg-* (maquette.css) */
 
-/* ── 11 · VITALS ANCRÉES (mobile) + bandeau identité ─────────────────── */
-.ds-head{position:relative;display:flex;align-items:center;gap:10px;padding:8px 12px;z-index:5;
-  background:linear-gradient(180deg,var(--ds-leather),var(--ds-leather2));
-  border-bottom:2px solid var(--ds-brass);color:var(--ds-brass-hi);font-family:var(--ds-disp)}
-.ds-head .pp{width:46px;height:46px;flex:none;border:2px solid var(--cls-c,var(--ds-brass));
-  background:var(--ds-card2);display:grid;place-items:center;font-size:24px;overflow:hidden;
-  margin-bottom:-16px;box-shadow:0 3px 7px rgba(0,0,0,.45);cursor:pointer}
-.ds-head .pp img{width:100%;height:100%;object-fit:cover}
-.ds-head .pp.lvlup{animation:dsPPGold 1.6s ease-in-out infinite}
-@keyframes dsPPGold{50%{box-shadow:0 0 14px var(--ds-brass-hi),0 3px 7px rgba(0,0,0,.45);border-color:var(--ds-brass-hi)}}
-.ds-head .nm{font-size:16px;letter-spacing:.04em;line-height:1.1}
-.ds-head .cl{font-size:11px;opacity:.75;font-family:var(--ds-body)}
-.ds-vitals{display:flex;align-items:center;gap:9px;padding:8px 10px 8px 70px;
-  background:var(--ds-card2);border-bottom:2px solid var(--ds-acc);font-size:12px}
-.ds-vitals .vs{white-space:nowrap;color:var(--ds-soft)}
-.ds-vitals .vs b{color:var(--ds-ink);font-family:var(--ds-mono);font-size:13.5px}
-.ds-vitals .ds-hp{flex:1;height:16px;min-width:70px;cursor:pointer} /* tap = Dégâts/Soins */
-
-/* ── 12 · DÉ FLOTTANT (ancrage + estompage 4 s) ──────────────────────── */
-.ds-die{position:fixed;right:16px;bottom:73px;width:54px;height:54px;border-radius:50%;z-index:888;
-  display:grid;place-items:center;font-size:23px;cursor:grab;touch-action:none;user-select:none;
-  background:radial-gradient(circle at 34% 30%,var(--ds-brass-hi),var(--ds-brass) 58%,#6e5320);
-  box-shadow:0 0 0 3px var(--ds-leather),0 0 0 5px var(--ds-brass),0 4px 10px rgba(0,0,0,.5);
-  transition:opacity .5s}
-.ds-die.idle{opacity:.45}
-.ds-die:active{cursor:grabbing}
+/* ── 12 · LOGEMENT DU DÉ FLOTTANT (le dé lui-même = #diceFloat) ──────── */
 .ds-dsock{position:fixed;right:12px;bottom:77px;width:62px;height:62px;border-radius:50%;z-index:887;
   background:radial-gradient(circle,rgba(0,0,0,.38),rgba(0,0,0,.12));
   box-shadow:inset 0 3px 8px rgba(0,0,0,.55);opacity:0;transition:opacity .15s;pointer-events:none}
@@ -247,54 +155,15 @@
 #diceFloat{transition:opacity .5s}
 #diceFloat.ds-idle{opacity:1}
 
-/* ── 13 · IDENTITÉ DE CLASSE — option de profil (2 styles validés) ───── */
-/* Style « Complet » (profil n°1) : liseré + filets/jauges teintés + coins gravés */
-.ds-cls-full .ds-card{border-top:3px solid var(--cls-c)}
-.ds-cls-full .ds-title,.ds-cls-full .ds-fold>.fh{border-bottom-color:var(--cls-c)}
-.ds-cls-full .ds-dot{border-color:var(--cls-c);background:var(--cls-c)}
-.ds-cls-full .ds-dot.used{background:transparent}
-.ds-cls-full .ds-tank>i{background:linear-gradient(180deg,color-mix(in srgb,var(--cls-c) 70%,white),var(--cls-c) 45%,color-mix(in srgb,var(--cls-c) 55%,black))}
-/* Glyphes de coin : GROS (18px) et EN TRANSPARENCE (jamais de fond opaque) */
-.ds-clsglyph{position:absolute;font-size:18px;font-weight:700;color:var(--cls-c);line-height:1;pointer-events:none}
-.ds-clsglyph.tl{top:-12px;left:-9px}
-.ds-clsglyph.br{bottom:-12px;right:-9px}
-/* Style « Par le motif » (profil n°2) : portrait liseré + emblème + coins SEULS */
-.ds-cls-motif .ds-head .pp{border-color:var(--cls-c)}
-/* Emblème en filigrane au bout du bandeau (les 2 styles) */
-.ds-emblem{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:32px;opacity:.18;pointer-events:none}
+/* ── 13 · Identité de classe (Mix 1/Mix 2) : à recâbler sur .g-card/.g-fold/
+   .norg-head quand l'option de profil sera branchée — cf. project_ui_redesign. */
 
-/* ── 14 · MODE GAUCHER (option de profil) — rail + dé à GAUCHE ───────── */
-.ds-lefty .ds-main{flex-direction:row-reverse}
-.ds-lefty .ds-scroll{border-right:none;border-left:1px solid var(--ds-acc-strong)}
-.ds-lefty .ds-rail{padding:10px 0 10px 4px}
-.ds-lefty .ds-rail button{margin-left:0;margin-right:auto}
-.ds-lefty .ds-rail button.on{margin-left:-4px;margin-right:0;left:0;
-  border-left:1px solid var(--ds-acc-strong);border-right:none}
-.ds-lefty .ds-die{right:auto;left:16px}
+/* ── 14 · MODE GAUCHER — le logement du dé passe à gauche ────────────── */
 .ds-lefty .ds-dsock{right:auto;left:12px}
 
-/* ── 15 · DESKTOP (≥900px) — rail à libellés, 2 colonnes, charRail ───── */
+/* ── 15 · DESKTOP (≥900px) — logement du dé agrandi ──────────────────── */
 @media(min-width:900px){
-  .ds-wrap{max-width:1400px;margin:0 auto}
-  /* Rail élargi : libellé à côté de l'icône */
-  .ds-rail{width:150px}
-  .ds-rail button{width:140px;display:flex;align-items:center;gap:8px;padding:0 10px;
-    font-size:16px;font-family:var(--ds-disp)}
-  .ds-rail button .lbl{font-size:13px}
-  .ds-rail button.on{width:151px}
-  .ds-lefty .ds-rail button.on{margin-left:-4px}
-  /* Contenu : 2 colonnes de catégories (déplaçables entre colonnes) */
-  .ds-cols2{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
-  /* Dé plus grand */
-  .ds-die{width:80px;height:80px;font-size:34px;bottom:84px}
   .ds-dsock{width:90px;height:90px;bottom:79px}
-  /* Fiche : charRail (existant, conservé) | contenu 2 col. | rail onglets */
-  .ds-fiche3{display:grid;grid-template-columns:300px minmax(0,1fr) auto;gap:14px}
-}
-/* Mobile : le rail-libellé n'existe pas, 1 colonne */
-@media(max-width:899px){
-  .ds-rail button .lbl{display:none}
-  .ds-cols2{display:flex;flex-direction:column;gap:9px}
 }
 
 /* ── 17 · PAGE TABLES (hub) — migration P1 ───────────────────────────── */
@@ -352,16 +221,6 @@ body.ds-lefty #mjScreen{padding-right:10px!important;padding-left:58px!important
 
 /* ── 19 · Caractéristiques (dans l'onglet Personnage) ─────────────────── */
 #charRail{background:transparent!important;border:none!important;box-shadow:none!important;padding:0!important}
-/* Jauge PV vitrée (le remplissage garde sa couleur d'état inline) */
-.hp-bar-hero{height:16px!important;background:var(--ds-card2)!important;border:1px solid var(--ds-acc-strong)!important;
-  border-radius:0!important;box-shadow:inset 0 0 5px rgba(0,0,0,.28),0 0 10px var(--ds-glow)!important;position:relative;cursor:pointer;overflow:hidden}
-.hp-bar-hero .hp-fill{border-radius:0!important;position:relative;overflow:hidden}
-.hp-bar-hero .hp-fill::before{content:"";position:absolute;top:1px;left:2px;right:2px;height:2px;background:rgba(255,255,255,.3)}
-.hp-bar-hero .hp-fill::after{content:"";position:absolute;top:0;bottom:0;left:-30px;width:26px;
-  background:linear-gradient(100deg,transparent,rgba(255,255,255,.5),transparent);animation:dsSweep 3.4s ease-in-out infinite}
-.rail-stat{background:var(--ds-card2)!important;border:1px solid var(--ds-line)!important;border-radius:0!important}
-.rail-stat-l{color:var(--ds-soft)!important}
-.rail-stat-v{color:var(--ds-ink)!important;font-family:var(--ds-disp)!important}
 /* CARACS — hiérarchie inversée EN PUR CSS : MODIFICATEUR gros/gras, base en petit */
 .rail-carac{display:flex!important;flex-direction:column;align-items:center;background:var(--ds-card2)!important;
   border:1px solid var(--ds-line)!important;border-radius:0!important;padding:5px 2px!important}
@@ -370,9 +229,6 @@ body.ds-lefty #mjScreen{padding-right:10px!important;padding-left:58px!important
 .rail-carac-v{order:3;font-family:var(--ds-mono)!important;font-size:11px!important;color:var(--ds-faint)!important;font-weight:400!important}
 .rail-carac-input{order:3;font-size:12px!important;width:44px!important;text-align:center;background:var(--ds-card)!important;color:var(--ds-ink)!important;border:1px solid var(--ds-line)!important}
 .rail-chip{background:var(--ds-card2)!important;border:1px solid var(--ds-line)!important;color:var(--ds-soft)!important;border-radius:0!important}
-.rail-sec-t{font-family:var(--ds-mono)!important;font-size:11px!important;letter-spacing:.18em;text-transform:uppercase;
-  color:var(--ds-acc-strong)!important;border-bottom:1px solid var(--ds-line)!important;padding-bottom:3px}
-.rail-sec{background:transparent!important;border:none!important}
 .rail-caracs{gap:5px!important}
 
 /* ── 20 · PAGE GROUPE (overlay P3) ───────────────────────────────────── */
@@ -408,13 +264,6 @@ body.ds-lefty #mjScreen{padding-right:10px!important;padding-left:58px!important
    variables, plus de sélecteurs d'attribut, plus de contre-overrides.
    ═══════════════════════════════════════════════════════════════════════ */
 
-/* Vitals en UNE ligne (utilisé par renderCharRail) */
-.dsv-row{display:flex;align-items:center;gap:9px}
-.dsv-row .hp-bar-hero{flex:1;min-width:70px;margin:0!important;position:relative}
-.dsv-stat{white-space:nowrap;color:var(--text2);font-size:12px}
-.dsv-stat b{color:var(--text);font-family:var(--M);font-size:14px}
-.dsv-hp{position:absolute;right:7px;top:50%;transform:translateY(-50%);font-family:var(--M);font-size:11px;color:var(--text);z-index:3}
-
 /* Gaucher : le dé passe à gauche */
 body.ds-lefty #diceFloat{right:auto!important;left:13px!important}
 
@@ -446,7 +295,7 @@ body.ds-lefty #diceFloat{right:auto!important;left:13px!important}
 
 /* Accessibilité */
 @media(prefers-reduced-motion:reduce){
-  .ds-hp>i::after,.ds-tank>i::after{animation:none!important}
-  .ds-hp.low,.ds-nav .it .bdg.turn,.ds-turnbar,.ds-rail button.lvlup,.ds-head .pp.lvlup{animation:none!important}
-  .ds-die{transition:none}
+  .ds-hp>i::after,.g-tank>i::after,.g-hp>i::after{animation:none!important}
+  .ds-hp.low,.g-hp.low,.ds-nav .it .bdg.turn,.ds-turnbar,.norg-rail button.lvlup,.norg-head .pp.lvlup{animation:none!important}
+  #diceFloat{transition:none}
 }

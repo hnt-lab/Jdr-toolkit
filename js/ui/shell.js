@@ -191,6 +191,9 @@ function renderMJTabs(){ // surcharge de mj/index.js — rail 6 onglets {ico,txt
   // CRUCIAL : envelopper la barre dans .tab-scroller (le rail fixe) — en session MJ pure,
   // renderTabBar (joueur) ne tourne jamais, donc personne d'autre ne crée le wrapper.
   if(typeof _initTabScrollers==='function')setTimeout(_initTabScrollers,0);
+  // ⚠ showMJScreen() n'appelle QUE renderMJTabs et compte sur lui pour peindre le
+  // contenu (comportement de l'original) — sans ça le Panneau MJ s'ouvre VIDE.
+  if(typeof renderMJContent==='function')renderMJContent();
 }
 function _dsOpenShareModal(type){
   const T={indice:'📜 Indice',artefact:'🗡 Artefact',quete:'🗝 Objet de quête'}[type]||type;

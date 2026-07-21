@@ -5,15 +5,12 @@
   border:none;border-bottom:2px solid var(--brass);border-radius:0;
   position:fixed;top:0;left:0;right:0;z-index:850;min-height:44px}
 .hdr-title,.hdr-home-txt,.hub-hdr-title,.mj-hdr-title{font-family:var(--F);font-size:15px;color:var(--brass-hi);letter-spacing:.06em}
-/* Identité du perso = dans le bandeau (renderCharRail), pas dans l'en-tête → masquée (maquette) */
-.hdr-char{display:none}
 /* Nom de campagne (en-tête MJ) : lisible sur le cuir (le flip de vars l'avait rendu encre-sur-cuir) */
 #mjHdrCamp{color:var(--brass-hi)!important;opacity:.8}
 .hdr-logo{width:22px;height:22px}
 .pbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px}
 .ptag{padding:4px 10px;border-radius:0;border:1px solid var(--border);font-size:12px;cursor:pointer;background:var(--surface);color:var(--text2);transition:all .15s}
 .ptag.on{border-color:var(--cp);color:var(--cp);background:var(--surface2)}
-.ptag-add{border-style:dashed}
 .tabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px}
 .tab{padding:6px 12px;border:1px solid var(--border);border-radius:0;font-size:13px;cursor:pointer;background:var(--surface);color:var(--text2);font-family:var(--B);transition:all .15s}
 .tab.on{border-color:var(--cp);color:var(--cp);background:var(--surface2)}
@@ -26,49 +23,23 @@
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 .g6{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
-.mt8{margin-top:8px}.mb6{margin-bottom:6px}.mb10{margin-bottom:10px}
+.mb6{margin-bottom:6px}.mb10{margin-bottom:10px}
 /* HUB */
 #hubScreen{display:none;min-height:100vh;padding:56px 0 0;background:var(--bg)}
 .hub-hdr-title{font-size:15px!important;text-shadow:none;line-height:1.2;white-space:nowrap}
 .hub-hdr-row2{display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0}
 .hub-body{max-width:1400px;margin:0 auto;padding:14px 16px 90px;position:relative;z-index:1}
 .hub-section{margin-bottom:24px}
-.hub-section-title{font-family:var(--F);font-size:18px;color:var(--cp);letter-spacing:.06em;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid rgba(200,168,75,.2);display:flex;align-items:center;justify-content:space-between}
-.table-card{background:rgba(16,11,7,.8);border:1px solid rgba(200,168,75,.2);border-radius:12px;padding:16px;margin-bottom:12px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 4px 20px rgba(0,0,0,.4)}
-.table-card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.table-card-name{font-family:var(--F);font-size:21px;color:var(--cp);text-shadow:0 0 12px rgba(200,168,75,.3)}
-.table-card-mj{font-size:15px;color:var(--text3)}
-.camp-card{background:rgba(255,255,255,.04);border:1px solid rgba(200,168,75,.15);border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:all .2s}
-.camp-card:hover{border-color:var(--cp);background:rgba(200,168,75,.08);transform:translateX(3px)}
-.camp-card-name{font-size:18px;font-weight:600;color:var(--text)}
-.camp-card-status{font-size:14px;padding:2px 8px;border-radius:10px;border:1px solid}
-.camp-status-active{color:#4caf50;border-color:#4caf50;background:rgba(76,175,80,.1)}
-.camp-status-finished{color:var(--text3);border-color:var(--border)}
 .hub-empty{text-align:center;padding:32px 16px;color:var(--text3);font-size:18px;font-style:italic}
 /* FOND TAVERNE — neutralisé (hub en parchemin uni, maquette 2026-07-20) */
 .tavern-bg{position:relative;background:var(--bg)}
 /* AUTH SCREEN */
 #authScreen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:16px}
-.auth-box{
-  background:rgba(16,11,7,.82);
-  border:1px solid rgba(200,168,75,.25);
-  backdrop-filter:blur(14px);
-  -webkit-backdrop-filter:blur(14px);
-  border-radius:14px;padding:28px;width:100%;max-width:400px;
-  position:relative;z-index:1;
-  box-shadow:0 8px 40px rgba(0,0,0,.6), inset 0 1px 0 rgba(200,168,75,.1);
-}
 .auth-title{font-family:var(--F);font-size:22px;color:var(--cp);text-align:center;margin-bottom:4px;letter-spacing:.08em}
 .auth-sub{font-size:18px;color:var(--text3);text-align:center;margin-bottom:22px}
 .auth-tab{display:flex;gap:6px;margin-bottom:20px}
 .auth-tab button{flex:1;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text2);font-family:var(--B);cursor:pointer;transition:all .15s;font-size:18px}
 .auth-tab button.on{border-color:var(--cp);color:var(--cp);background:var(--cglow)}
-.auth-role{display:flex;gap:8px;margin-bottom:14px}
-.auth-role-btn{flex:1;padding:12px 8px;border:2px solid var(--border);border-radius:10px;background:var(--surface2);color:var(--text2);cursor:pointer;text-align:center;transition:all .2s;font-family:var(--B)}
-.auth-role-btn.on{border-color:var(--cp);color:var(--cp);background:var(--cglow)}
-.auth-role-btn .role-icon{font-size:24px;display:block;margin-bottom:4px}
-.auth-role-btn .role-name{font-size:18px;font-weight:600}
-.auth-role-btn .role-desc{font-size:15px;color:var(--text3);margin-top:2px}
 .auth-error{background:rgba(229,57,53,.12);border:1px solid rgba(229,57,53,.3);border-radius:8px;padding:10px;font-size:17px;color:#e53935;margin-bottom:12px;display:none}
 .auth-spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--cp);border-radius:50%;animation:spin .7s linear infinite;margin-right:6px;vertical-align:middle}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -115,29 +86,16 @@
   /* Hub */
   .hub-hdr{padding:8px 12px}
   .hub-hdr-title{font-size:21px}
-  .hub-section-title{flex-wrap:wrap;gap:6px}
-  .table-card-hdr{flex-wrap:wrap;gap:8px}
-  /* Vue joueur — hdr-char se compresse sans déborder */
-  .hdr-char{min-width:0;overflow:hidden}
   /* MJ player cards */
   .mj-player-card{padding:10px}
 }
 /* Breakpoint téléphone (≤480px) */
 @media(max-width:480px){
   .hub-body{padding:8px 8px 80px}
-  .table-card{padding:12px}
-  .camp-expanded{padding:8px}
   .hub-hdr-title{font-size:18px}
-  /* Empile le nom de table et les boutons MJ verticalement */
-  .table-card-hdr{flex-direction:column;align-items:stretch;gap:6px}
-  /* Boutons de section plus compacts */
-  .hub-section-title .btn,.hub-section-title .bsm{font-size:15px;padding:3px 8px}
-  /* Carte membre : wrap du nom long */
-  .member-badge{max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   /* Vue joueur header — plus compact */
   #app,#mjScreen{padding:4px 4px 80px}
   .hdr{gap:5px;padding:6px 8px}
-  .hdr-char{font-size:15px}
   /* MJ header et cartes */
   .mj-hdr{padding:6px 10px;gap:5px}
   .mj-player-card{padding:8px}
