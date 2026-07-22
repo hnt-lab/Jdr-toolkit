@@ -296,16 +296,7 @@ function tabCombat(p){
   ${renderFamilier(p)}
   ${renderCompagnonAnimal(p)}
   ${typeof renderConcPanel==='function'?renderConcPanel(p):''}
-  ${(!wsC?.active||druLvl>=18)&&hasCaster&&(slots||(p.spells||[]).length>0)?cs('cs-sorts',`<div class="panel"><div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>Sorts</div>
-      <div class="g3 mb10">
-        <div class="sb hi"><div class="sn">Bonus sort</div><div style="font-size:18px;font-weight:600;color:var(--cp)">${fmt(pb(lvl)+spellMod)}</div></div>
-        <div class="sb hi"><div class="sn">DD sort</div><div style="font-size:18px;font-weight:600;color:var(--cp)">${8+pb(lvl)+spellMod}</div></div>
-        <div class="sb"><div class="sn">Mod.</div><div style="font-size:14px;font-weight:600">${fmt(spellMod)}</div></div>
-      </div>
-      ${slots?`<div style="margin-bottom:10px"><div class="fl mb6">Emplacements</div>${slots.map((total,ni)=>total?`<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span style="font-size:13px;color:var(--text2);width:50px">Niv. ${ni+1}</span><div>${Array.from({length:total},(_,si)=>`<span class="slot-bubble${si<(slotsUsed[ni]||0)?' used':''}" onclick="toggleSlot(${ni},${si},${total})"></span>`).join('')}</div><span style="font-size:12px;color:var(--text3)">${total-(slotsUsed[ni]||0)}/${total}</span></div>`:'').join('')}<button class="btn bsm" style="margin-top:4px" onclick="upd('spellSlotsUsed',[]);render()">Récupérer tous</button></div>`:''}
-      ${(()=>{const magLvl=((p.classes||[]).find(c=>c.name==='Magicien')||{}).level||0;if(!magLvl)return'';const prepMax=Math.max(1,intM+magLvl);const known=(p.spells||[]).filter(s=>{const sp=findSpellData(s.name);return sp&&sp.level>0;}).length;return`<div style="margin-top:8px;padding:8px;background:var(--surface2);border-radius:2px;font-size:13px;color:var(--text2)">📚 Sorts préparés : <strong style="color:${known>prepMax?'var(--danger)':'var(--cp)'}">${known}/${prepMax}</strong> (INT ${fmt(intM)} + niv. ${magLvl})</div>`;})()}
-      ${renderSpellList(p, true)}
-    </div>`):''}
+  ${(!wsC?.active||druLvl>=18)&&hasCaster&&(slots||(p.spells||[]).length>0)?renderArmedSpells(p):''}
   </div>`;
 }
 
@@ -648,12 +639,111 @@ function isPrepCaster(p){
   return (p.classes||[]).some(c=>PREP_CASTERS.includes(c.name));
 }
 
-// combatOnly=true → n'affiche que cantrips + sorts préparés (pour l'onglet Combat)
-function renderSpellList(p, combatOnly){
+// ═══════════════════════════════════════════════════════════════════════════
+//  SORTS ARMÉS (A6 — 2026-07-22)
+//  Combat n'affiche plus la bibliothèque entière : seulement les sorts que le
+//  joueur a lui-même ÉPINGLÉS depuis l'onglet Sorts. Principe acté « armer puis
+//  lancer » : on choisit son arsenal à froid, on ne fouille pas en plein combat.
+//
+//  Trois notions à ne pas confondre :
+//   • CONNU     — le sort est sur la fiche (p.spells)
+//   • PRÉPARÉ   — s.prepared, et seulement pour les classes qui préparent
+//                 (PREP_CASTERS). Barde/Ensorceleur/Occultiste/Rôdeur connaissent
+//                 leurs sorts : ils sont toujours prêts, sans préparation.
+//   • ARMÉ      — p.pinnedSpells, choix d'INTERFACE du joueur. Indépendant du reste.
+//  Un sort armé mais non préparé n'est PAS lançable : il sort de Combat tout seul,
+//  et son épingle est conservée (le repos long représerve les mêmes sorts).
+// ═══════════════════════════════════════════════════════════════════════════
+const SPELL_DMG_ICON={fire:'🔥',cold:'❄️',lightning:'⚡',thunder:'🌩️',acid:'🧪',poison:'🧪',
+  necrotic:'💀',radiant:'☀️',psychic:'🧠',force:'✨',bludgeoning:'🔨',piercing:'🏹',slashing:'⚔️'};
+function _spellIcon(d){
+  if(!d)return'✨';
+  if(d.dmg&&d.dmg.length&&SPELL_DMG_ICON[d.dmg[0].type])return SPELL_DMG_ICON[d.dmg[0].type];
+  if(/soin|guéri|heal/i.test(d.name||''))return'💚';
+  if(d.school==='Abjuration')return'🛡️';
+  if(d.school==='Divination')return'🔮';
+  if(d.school==='Enchantement')return'🌀';
+  if(d.school==='Illusion')return'🎭';
+  if(d.school==='Nécromancie')return'💀';
+  if(d.school==='Invocation'||d.school==='Conjuration')return'🕯️';
+  return'✨';
+}
+function isSpellPinned(p,name){return (p&&p.pinnedSpells||[]).includes(name);}
+function togglePinSpell(name){
+  const p=P();if(!p)return;
+  p.pinnedSpells=p.pinnedSpells||[];
+  const i=p.pinnedSpells.indexOf(name);
+  if(i>=0){p.pinnedSpells.splice(i,1);showToast('📌 « '+name+' » retiré des sorts armés.');}
+  else{p.pinnedSpells.push(name);showToast('📌 « '+name+' » armé — il apparaît dans Combat.');}
+  saveAll();render();
+}
+// Sorts armés RÉELLEMENT lançables maintenant (l'épingle seule ne suffit pas).
+function _armedSpells(p){
+  const pinned=p.pinnedSpells||[];
+  if(!pinned.length)return[];
+  const prepCaster=isPrepCaster(p);
+  const circle=(typeof getDruidCircleSpells==='function')?getDruidCircleSpells(p):[];
+  const circleNames=new Set(circle.map(s=>s.name));
+  const out=[];
+  pinned.forEach(name=>{
+    const d=findSpellData(name);
+    const known=(p.spells||[]).find(s=>s.name===name);
+    const isCircle=circleNames.has(name);
+    if(!known&&!isCircle)return;                      // sort retiré de la fiche entre-temps
+    const lv=d?d.level:(known&&known.level)||0;
+    // Non préparé ⇒ pas lançable ⇒ absent de Combat (l'épingle, elle, est gardée).
+    if(lv>0&&prepCaster&&!isCircle&&!(known&&known.prepared))return;
+    out.push({name,lv,d,isCircle});
+  });
+  return out.sort((a,b)=>(a.lv-b.lv)||a.name.localeCompare(b.name));
+}
+function renderArmedSpells(p){
+  const lvl=totalLevel(p);
+  const slots=calcSpellSlots(p);
+  const slotsUsed=p.spellSlotsUsed||[];
+  const _mc=mainClass(p);const _cd=_mc?SRD.classes.find(c=>c.name===_mc.name):null;
+  const ab=p.abilities||[10,10,10,10,10,10];
+  const spellMod=_cd?({CHA:mod(ab[5]),SAG:mod(ab[4]),INT:mod(ab[3])}[_cd.saves&&_cd.saves[1]]||mod(ab[3])):mod(ab[3]);
+  const spellDC=8+pb(lvl)+spellMod;
+  const armed=_armedSpells(p);
+  // Forme sauvage : même verrou que la liste complète (incantation impossible avant le niv.18).
+  const wsActive=p.wildshape?.active&&!p.wildshape?.isElemental;
+  const druLvl=((p.classes||[]).find(c=>c.name==='Druide')||{}).level||0;
+  const blocked=wsActive&&druLvl<18;
+  const slotRow=slots?`<div class="armed-slots">${slots.map((total,ni)=>total?`<div class="armed-slotgrp"><span class="armed-slotlbl">Niv.${ni+1}</span>${Array.from({length:total},(_,si)=>`<span class="slot-bubble${si<(slotsUsed[ni]||0)?' used':''}" onclick="toggleSlot(${ni},${si},${total})"></span>`).join('')}</div>`:'').join('')}</div>`:'';
+  const rows=blocked
+    ?`<div class="armed-empty">🐺 En forme animale — l'incantation est impossible avant le niveau 18.</div>`
+    :(armed.length?armed.map(s=>{
+      const d=s.d;
+      const conc=!!(d&&d.duration&&/concentration/i.test(d.duration));
+      const meta=[];
+      if(d&&d.range)meta.push(`<span class="armed-meta">🎯 ${esc(d.range)}</span>`);
+      if(d&&d.damage)meta.push(`<span class="armed-meta dmg">${esc(d.damage)}</span>`);
+      if(d&&d.savingThrow)meta.push(`<span class="armed-meta">JS ${esc(d.savingThrow)} DD ${spellDC}</span>`);
+      else if(d&&d.attack)meta.push(`<span class="armed-meta">Attaque ${fmt(pb(lvl)+spellMod)}</span>`);
+      if(conc)meta.push(`<span class="armed-meta conc" title="Concentration">🔵 Conc.</span>`);
+      if(d&&d.ritual)meta.push(`<span class="armed-meta">Rituel</span>`);
+      return`<div class="armed-row">
+        <span class="armed-ico">${_spellIcon(d)}</span>
+        <div class="armed-main">
+          <div class="armed-name">${esc(s.name)}<span class="armed-lv">${s.lv===0?'Mineur':'Niv.'+s.lv}</span>${s.isCircle?'<span class="armed-lv">⭐ Cercle</span>':''}</div>
+          ${meta.length?`<div class="armed-metas">${meta.join('')}</div>`:''}
+        </div>
+        <button class="btn bac bsm armed-cast" onclick="castSpell('${jsq(s.name)}',${s.lv})">⚡ Lancer</button>
+      </div>`;
+    }).join('')
+    :`<div class="armed-empty">Aucun sort armé. Va dans l'onglet <strong>Sorts</strong> et touche 📌 sur ceux que tu veux avoir sous la main en combat.</div>`);
+  return cs('cs-sorts',`<div class="panel"><div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>⚡ Sorts armés</div>
+    ${slotRow}
+    <div class="armed-stats">Attaque <strong>${fmt(pb(lvl)+spellMod)}</strong> · DD <strong>${spellDC}</strong></div>
+    ${rows}
+  </div>`);
+}
+
+// Liste complète des sorts — onglet SORTS uniquement (Combat utilise renderArmedSpells).
+function renderSpellList(p){
   const spells = p.spells||[];
-  const druCircleSpells=combatOnly?getDruidCircleSpells(p):[];
-  const druCircleNames=new Set(druCircleSpells.map(s=>s.name));
-  if(!spells.length&&!druCircleSpells.length)return`<div style="font-size:13px;color:var(--text3);font-style:italic;padding:8px">Aucun sort enregistré.</div>`;
+  if(!spells.length)return`<div style="font-size:13px;color:var(--text3);font-style:italic;padding:8px">Aucun sort enregistré.</div>`;
   const wsActive=p.wildshape?.active&&!p.wildshape?.isElemental;
   const druEntry=(p.classes||[]).find(c=>c.name==='Druide');
   const druLvl=druEntry?druEntry.level:0;
@@ -670,19 +760,10 @@ function renderSpellList(p, combatOnly){
   spells.forEach(s=>{
     const data=findSpellData(s.name);
     const lv=data?data.level:(s.level||0);
-    // En mode combat, on filtre : cantrips toujours visibles, niveaux 1+ seulement si préparé (ou classe "connaît") — les sorts de cercle sont toujours affichés
-    if(combatOnly && lv>0 && prepCaster && !s.prepared && !druCircleNames.has(s.name)) return;
+    // Plus aucun filtrage ici : cette liste est celle de l'onglet Sorts, qui montre TOUT.
+    // Le tri de ce qui est utilisable en combat se fait dans renderArmedSpells (sorts armés).
     if(!byLvl[lv])byLvl[lv]=[];
     byLvl[lv].push({...s,data,stableId:'spl_'+s.name.replace(/[^a-zA-Z0-9]/g,'_')});
-  });
-  // Ajouter les sorts de cercle (combat uniquement, s'ils ne sont pas déjà dans p.spells)
-  druCircleSpells.forEach(cs=>{
-    const data=findSpellData(cs.name);
-    const lv=data?data.level:cs.level;
-    if(!byLvl[lv])byLvl[lv]=[];
-    if(!byLvl[lv].find(x=>x.name===cs.name)){
-      byLvl[lv].push({name:cs.name,prepared:true,level:lv,data,stableId:'spl_circ_'+cs.name.replace(/[^a-zA-Z0-9]/g,'_'),isCircle:true});
-    }
   });
   if(!Object.keys(byLvl).length)return materialNote+`<div style="font-size:13px;color:var(--text3);font-style:italic;padding:8px">Aucun sort préparé.</div>`;
   const STAR_COLORS=['#ffd700','#4fc3f7','var(--good)','#ff8a65','#ba68c8','#f06292','#4db6ac','#ff7043','var(--danger)','var(--arcane)'];
@@ -713,8 +794,11 @@ function renderSpellList(p, combatOnly){
         const lvi=parseInt(lv);
         const isPrepared=s.prepared||lvi===0||!prepCaster;
         const hasMComponent=wsMaterialRestrict&&components&&components.includes('M');
+        const pinned=isSpellPinned(p,s.name);
+        // Hiérarchie visuelle demandée le 2026-07-22 : un sort prêt à servir se voit au premier
+        // coup d'œil, un sort non préparé est terni (il reste lisible, mais recule).
         return`
-        <div class="sort-row"${hasMComponent?' style="opacity:0.4"':''}>
+        <div class="sort-row${isPrepared?' is-ready':' is-unprep'}"${hasMComponent?' style="opacity:0.4"':''}>
           <div class="sort-head" onclick="document.getElementById('${s.stableId}').classList.toggle('open')">
             <div style="flex:1">
               <div style="font-size:13px;font-weight:600;${!isPrepared?'color:var(--text3)':''}">${s.isCircle?'<span style="font-size:12px;color:var(--cp);margin-right:4px">⭐</span>':''}${esc(s.name)}${ritual?' <span style="font-size:12px;color:var(--cp)">(R)</span>':''}${isConc?' <span title="Concentration" style="font-size:11.5px">🔵</span>':''}${s.isCircle?'  <span style="font-size:13px;background:rgba(200,168,75,.15);color:var(--cp);border-radius:2px;padding:1px 5px">Cercle</span>':isPrepared&&lvi>0&&prepCaster?'  <span style="font-size:13px;background:rgba(76,175,80,.15);color:var(--good);border-radius:2px;padding:1px 5px">Préparé</span>':''}</div>
@@ -722,7 +806,8 @@ function renderSpellList(p, combatOnly){
             </div>
             ${damage?`<span style="font-size:13px;color:var(--cp);margin-right:6px">${esc(damage)}</span>`:''}
             ${isPrepared&&!hasMComponent?`<button class="btn bac bsm" style="flex-shrink:0;margin-right:6px" onclick="event.stopPropagation();castSpell('${jsq(s.name)}',${lvi})">⚡ Lancer</button>`:''}
-            ${!combatOnly&&prepCaster&&lvi>0&&!s.isCircle?`<button class="btn bsm" style="margin-right:6px;${isPrepared?'background:rgba(76,175,80,.15);color:var(--good);border-color:var(--good)':''}" onclick="event.stopPropagation();togglePrepareSpell('${jsq(s.name)}')">${isPrepared?'✓ Prêt':'Préparer'}</button>`:''}
+            ${prepCaster&&lvi>0&&!s.isCircle?`<button class="btn bsm" style="margin-right:6px;${isPrepared?'background:rgba(76,175,80,.15);color:var(--good);border-color:var(--good)':''}" onclick="event.stopPropagation();togglePrepareSpell('${jsq(s.name)}')">${isPrepared?'✓ Prêt':'Préparer'}</button>`:''}
+            <button class="btn bsm sort-pin${pinned?' on':''}" title="${pinned?'Retirer des sorts armés':'Armer : afficher ce sort dans Combat'}" onclick="event.stopPropagation();togglePinSpell('${jsq(s.name)}')">📌</button>
             <span style="color:var(--text3)">▾</span>
           </div>
           <div class="sort-body" id="${s.stableId}">

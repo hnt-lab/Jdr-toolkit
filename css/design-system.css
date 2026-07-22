@@ -170,8 +170,29 @@
 #diceFloat{transition:opacity .5s}
 #diceFloat.ds-idle{opacity:1}
 
-/* ── 13 · Identité de classe (Mix 1/Mix 2) : à recâbler sur .g-card/.g-fold/
-   .norg-head quand l'option de profil sera branchée — cf. project_ui_redesign. */
+/* ── 13 · IDENTITÉ DE CLASSE — recâblée le 2026-07-22 (A4) ───────────────
+   La couleur vient de --cls (.th-<Classe>, variables.css §Couleur d'identité),
+   posée sur <body> par _dsApplyClassTheme (shell.js). Option de profil :
+     • .ds-mix1 « Complet » — coins gravés visibles aux quatre angles de l'encart
+     • .ds-mix2 « Motif »   — simple liseré haut, discret
+     • .ds-mix0 « Aucune »  — rien (retour au laiton d'origine)
+   ⚠️ On cible `.panel` ET `.g-card` : le JS n'émet ENCORE que `.panel`
+   (migration des composants de la maquette non faite — cf. JOURNAL). Ne pas
+   retirer `.panel` de ces sélecteurs avant que la migration soit terminée. */
+.ds-mix1 #app .panel,.ds-mix1 #app .g-card{position:relative}
+.ds-mix1 #app .panel::before,.ds-mix1 #app .g-card::before,
+.ds-mix1 #app .panel::after,.ds-mix1 #app .g-card::after{
+  content:'';position:absolute;width:13px;height:13px;pointer-events:none;
+  border-color:var(--cls,var(--cp));opacity:.85}
+.ds-mix1 #app .panel::before,.ds-mix1 #app .g-card::before{
+  top:-1px;left:-1px;border-top:2px solid;border-left:2px solid}
+.ds-mix1 #app .panel::after,.ds-mix1 #app .g-card::after{
+  bottom:-1px;right:-1px;border-bottom:2px solid;border-right:2px solid}
+.ds-mix2 #app .panel,.ds-mix2 #app .g-card{border-top:2px solid var(--cls,var(--cp))}
+/* Le portrait porte la couleur de classe dans les deux styles (touche commune).
+   `.eq-portrait` est la classe réellement émise par le JS — `.rail-portrait`
+   n'existe que dans une règle CSS orpheline, ne pas s'y accrocher. */
+.ds-mix1 #app .eq-portrait,.ds-mix2 #app .eq-portrait{border-color:var(--cls,var(--cp))!important}
 
 /* ── 14 · MODE GAUCHER — le logement du dé passe à gauche ────────────── */
 .ds-lefty .ds-dsock{right:auto;left:12px}
@@ -208,7 +229,13 @@
 .hub-2col{gap:14px}
 .hub-back{margin:2px 0 10px}
 #partyHudBtn{display:none!important}
-@media(max-width:640px){ #modeNav{padding-left:12px!important} }
+/* 🔴 RETIRÉ le 2026-07-22 — « le dé masque le bouton Tables en gaucher » (mobile).
+   Il y avait ici : @media(max-width:640px){ #modeNav{padding-left:12px!important} }
+   La nav réserve 76px du côté du dé — à DROITE en droitier (maquette.css:174), à GAUCHE en
+   gaucher (maquette.css:223). Cette règle, portée par un ID ET un !important, écrasait la
+   réservation gauche sur mobile : le dé (`left:13px`) retombait pile sur le premier bouton.
+   Elle ne servait plus à rien par ailleurs (12px contre les 10px déjà posés par .norg-nav).
+   Corrigé à la SOURCE — pas de contre-règle empilée. */
 
 /* ── 18 · RAIL — DÉPLACÉ dans maquette.css (.norg-rail, structure §03) ───
    Ne restent ici que les neutralisations de l'ancien emballage. */

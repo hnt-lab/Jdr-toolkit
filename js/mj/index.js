@@ -53,6 +53,10 @@ function renderMJContent(){
   else if(_mjTab==='objets') el.innerHTML=mjTabObjets();
   else if(_mjTab==='journal') el.innerHTML=mjTabJournalScreen();
   else if(_mjTab==='regles'){el.innerHTML=mjTabRegles();mjInitRulesDnD();}
+  // A8 — onglet « Réserve » : place réservée, mécanique au lot B (voir shell.js, renderMJTabs).
+  else if(_mjTab==='stock') el.innerHTML=`<div class="panel"><div class="pt">🎒 Réserve</div>
+    <p style="font-size:13px;color:var(--text2);line-height:1.6">Ici s'accumulera ce que tu prépares <strong>sans le donner tout de suite</strong> : objets, indices, artefacts. Tu les gardes sous le coude, puis tu les publies au groupe d'un bouton <strong>« Mettre à disposition »</strong> quand le moment arrive.</p>
+    <p style="font-size:13px;color:var(--text3);font-style:italic;margin-top:8px">En attendant, le partage direct reste dans l'onglet <strong>Objets</strong> (🎁 Apporter au groupe).</p></div>`;
   // Panneaux déplaçables aussi côté MJ (sauf Règles qui a son propre drag)
   if(_mjTab!=='regles'&&typeof _enableTabDrag==='function'){_enableTabDrag('mjTabContent');applyAllSectionOrders('mjTabContent');}
 }

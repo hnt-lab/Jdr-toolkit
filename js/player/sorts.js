@@ -119,9 +119,10 @@ function tabSorts(p){
     return`<div style="margin-bottom:10px;padding:10px;background:rgba(200,168,75,.06);border:1px solid rgba(200,168,75,.3);border-radius:2px">
       <div style="font-size:13px;font-weight:700;color:var(--cp);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">⭐ Sorts du Cercle — ${esc(terrain)}</div>
       <div style="font-size:12px;color:var(--text3);margin-bottom:8px;font-style:italic">Toujours préparés · Ne comptent pas dans le quota · Consomment un emplacement de sort au lancer</div>
-      ${cs.map(sp=>{const d=findSpellData(sp.name);return`<div style="font-size:13px;padding:5px 8px;margin-bottom:3px;background:var(--surface2);border-radius:2px;display:flex;align-items:center;gap:8px">
+      ${cs.map(sp=>{const d=findSpellData(sp.name);const _pin=(typeof isSpellPinned==='function')&&isSpellPinned(p,sp.name);return`<div style="font-size:13px;padding:5px 8px;margin-bottom:3px;background:var(--surface2);border-radius:2px;display:flex;align-items:center;gap:8px">
         <span style="color:var(--cp);font-size:13px">⭐</span>
         <div style="flex:1"><span style="font-weight:500">${esc(sp.name)}</span>${d?`<span style="font-size:12px;color:var(--text3);margin-left:6px">${sp.level===0?'Cantrip':'Niv.'+sp.level}${d.school?' · '+esc(d.school):''}${d.castTime?' · '+esc(d.castTime):''}</span>`:'<span style="font-size:12px;color:var(--text3);margin-left:6px">Niv.'+sp.level+'</span>'}</div>
+        <button class="btn bsm sort-pin${_pin?' on':''}" title="${_pin?'Retirer des sorts armés':'Armer : afficher ce sort dans Combat'}" onclick="togglePinSpell('${jsq(sp.name)}')">📌</button>
       </div>`;}).join('')}
     </div>`;
   })();
@@ -134,7 +135,7 @@ function tabSorts(p){
       ${slotHtml}
       ${circleSection}
       ${prepInfo}
-      ${renderSpellList(p, false)}
+      ${renderSpellList(p)}
     </div>
   </div>`;
 }

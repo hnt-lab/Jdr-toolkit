@@ -11,11 +11,33 @@
 function dsApplyPrefs(){
   const t=localStorage.getItem('ds_theme')||'light';
   const h=localStorage.getItem('ds_hand')||'right';
+  const m=localStorage.getItem('ds_mix')||'mix1';
   document.body.classList.toggle('ds-dark',t==='dark');
   document.body.classList.toggle('ds-lefty',h==='left');
+  document.body.classList.toggle('ds-mix1',m==='mix1');
+  document.body.classList.toggle('ds-mix2',m==='mix2');
+  document.body.classList.toggle('ds-mix0',m==='off');
+  _dsApplyClassTheme();
+}
+// ── IDENTITÉ DE CLASSE (A4, recâblée le 2026-07-22) ──────────────────────────
+// `variables.css` définit .th-<Classe> → --cls (la couleur de la classe). Personne
+// ne posait cette classe : --cls restait au laiton par défaut, donc l'identité de
+// classe était INVISIBLE, quelle que soit l'option choisie. C'est ici qu'on la pose.
+// ⚠️ Le style s'accroche à `.panel` — PAS seulement à `.g-card` : les composants de
+// la maquette ne sont pas encore émis par le JS (dette connue, cf. JOURNAL). Câbler
+// uniquement sur .g-card n'aurait strictement rien affiché.
+function _dsApplyClassTheme(){
+  try{
+    const p=(typeof P==='function')?P():null;
+    const mc=(p&&typeof mainClass==='function')?mainClass(p):null;
+    const name=mc&&mc.name;
+    document.body.className=document.body.className.replace(/\bth-\S+/g,'').trim();
+    if(name)document.body.classList.add('th-'+name);
+  }catch(e){}
 }
 function dsSetTheme(t){localStorage.setItem('ds_theme',t);dsApplyPrefs();}
 function dsSetHand(h){localStorage.setItem('ds_hand',h);dsApplyPrefs();if(typeof _dsDieSeat==='function')_dsDieSeat();}
+function dsSetMix(m){localStorage.setItem('ds_mix',m);dsApplyPrefs();}
 dsApplyPrefs();
 
 // ── NAV 3 DESTINATIONS : Tables · Personnage/Panneau MJ · Groupe ──
@@ -195,6 +217,11 @@ function renderMJTabs(){ // surcharge de mj/index.js — rail 6 onglets {ico,txt
     {id:'objets',ico:'💰',txt:'Objets'},
     {id:'journal',ico:'📓',txt:'Journal MJ'},
     {id:'regles',ico:'📖',txt:'Règles'},
+    // A8 (2026-07-22) — la RÉSERVE du MJ : ce qu'il a préparé mais pas encore donné au groupe.
+    // La place est prise MAINTENANT pour que le rail soit dimensionné pour 7 onglets ; la
+    // mécanique (« Mettre à disposition ») vient au lot B. Un onglet honnêtement vide vaut
+    // mieux qu'une place fantôme qui casserait la mise en page le jour où on la remplit.
+    {id:'stock',ico:'🎒',txt:'Réserve'},
   ];
   const bar=document.getElementById('mjTabBar');
   if(bar) bar.innerHTML=tabs.map(t=>{
@@ -336,7 +363,9 @@ function _dsSyncFicheHead(){
 }
 if(typeof render==='function'){
   const _dsOldRender=render;
-  render=function(){_dsOldRender.apply(this,arguments);setTimeout(_dsSyncFicheHead,0);};
+  // _dsApplyClassTheme à CHAQUE rendu : la classe du personnage peut changer (montée de
+  // niveau, multiclassage, changement de perso) — la couleur d'identité doit suivre.
+  render=function(){_dsOldRender.apply(this,arguments);_dsApplyClassTheme();setTimeout(_dsSyncFicheHead,0);};
 }
 window.addEventListener('resize',_dsSyncFicheHead);
 
@@ -377,6 +406,7 @@ if(typeof openUserSettings==='function'){
         if(box&&!document.getElementById('dsPrefsSec')){
           const t=localStorage.getItem('ds_theme')||'light';
           const h=localStorage.getItem('ds_hand')||'right';
+          const m=localStorage.getItem('ds_mix')||'mix1';
           const w=document.createElement('details');w.id='dsPrefsSec';w.className='acc';w.open=false;
           w.innerHTML=`<summary>🎨 Affichage</summary>
             <div class="acc-body">
@@ -386,10 +416,17 @@ if(typeof openUserSettings==='function'){
                 <button class="btn${t==='dark'?' bac':''}" onclick="dsSetTheme('dark');closeModal();openUserSettings()">🌙 Veillée</button>
               </div>
               <div class="fl mb6">Main directrice</div>
-              <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
                 <button class="btn${h==='right'?' bac':''}" onclick="dsSetHand('right');closeModal();openUserSettings()">🖐 Droitier</button>
                 <button class="btn${h==='left'?' bac':''}" onclick="dsSetHand('left');closeModal();openUserSettings()">✋ Gaucher</button>
               </div>
+              <div class="fl mb6">Identité de classe</div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap">
+                <button class="btn${m==='mix1'?' bac':''}" onclick="dsSetMix('mix1');closeModal();openUserSettings()">⬛ Complet</button>
+                <button class="btn${m==='mix2'?' bac':''}" onclick="dsSetMix('mix2');closeModal();openUserSettings()">〰 Motif</button>
+                <button class="btn${m==='off'?' bac':''}" onclick="dsSetMix('off');closeModal();openUserSettings()">∅ Aucune</button>
+              </div>
+              <div class="ds-note" style="margin-top:6px">La couleur de ta classe marque les encarts : coins gravés (Complet) ou liseré (Motif).</div>
             </div>`;
           // Placer « Affichage » JUSTE APRÈS l'accordéon « Profil » (1ᵉʳ .acc), pas à la fin
           const accs=box.querySelectorAll('details.acc');

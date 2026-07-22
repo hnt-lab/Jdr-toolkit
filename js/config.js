@@ -205,6 +205,13 @@ function parseSpellsDB(arr){
       if(o.damage == null) o.damage = o.dmg[0].dice;
       if(!o.rolls.length) o.rolls = o.dmg.map(d => [d.dice, o.level, d.type]);
     } else if(o.damage == null){ o.damage = ''; }
+    // 🔴 BUG CORRIGÉ 2026-07-22 — le jet de sauvegarde n'était JAMAIS affiché.
+    // base-srd porte `save:{ability:'DEX'}` (codes EN) ; tout l'affichage lit `savingThrow`
+    // en abrégé FR. Le champ n'était dérivé nulle part ⇒ le badge « JS … DD … » et le libellé
+    // du bouton de dégâts restaient muets sur les 116 sorts à sauvegarde (sur 319).
+    if(o.savingThrow == null && o.save && o.save.ability){
+      o.savingThrow = ({STR:'FOR',DEX:'DEX',CON:'CON',INT:'INT',WIS:'SAG',CHA:'CHA'})[o.save.ability] || o.save.ability;
+    }
     return o;
   });
 }
