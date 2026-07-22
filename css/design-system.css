@@ -189,6 +189,11 @@
 .ds-mix1 #app .panel::after,.ds-mix1 #app .g-card::after{
   bottom:-1px;right:-1px;border-bottom:2px solid;border-right:2px solid}
 .ds-mix2 #app .panel,.ds-mix2 #app .g-card{border-top:2px solid var(--cls,var(--cp))}
+/* Le bandeau de la fiche et le signet de l'onglet ouvert portent aussi la couleur de
+   classe : sans eux l'identité se limitait aux encarts et se voyait à peine. */
+.ds-mix1 #charRail .norg-head,.ds-mix2 #charRail .norg-head{border-bottom-color:var(--cls,var(--brass-trim))!important}
+.ds-mix1 #tabBar button.on::before,.ds-mix2 #tabBar button.on::before{background:var(--cls,var(--acc-strong))}
+.ds-mix1 #app .pt,.ds-mix2 #app .pt{border-left:3px solid var(--cls,var(--cp));padding-left:7px}
 /* Le portrait porte la couleur de classe dans les deux styles (touche commune).
    `.eq-portrait` est la classe réellement émise par le JS — `.rail-portrait`
    n'existe que dans une règle CSS orpheline, ne pas s'y accrocher. */

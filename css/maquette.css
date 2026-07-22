@@ -306,6 +306,14 @@ body.ds-lefty .norg-nav{padding:7px 10px calc(7px + env(safe-area-inset-bottom))
   #tabBar button.on,#mjTabBar button.on{position:relative;z-index:2;background:var(--page)!important;color:var(--ink)!important;
     font-weight:700;padding-top:9px!important;border-color:var(--acc-strong)!important;width:auto!important}
   #tabBar button.on::after,#mjTabBar button.on::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--page)}
+  /* SIGNET de l'onglet actif (2026-07-22) — l'intercalaire lui donne le fond de la page :
+     sans repère, il se lisait comme un trou plutôt que comme l'onglet ouvert. Ce liseré
+     laiton en haut le désigne sans rompre la fusion avec le panneau (qui se joue en bas). */
+  #tabBar button.on::before,#mjTabBar button.on::before{content:"";position:absolute;
+    left:-1px;right:-1px;top:-1px;height:3px;background:var(--acc-strong);border-radius:5px 5px 0 0}
+  /* …et les onglets fermés reculent d'un cran, pour que l'ouvert ressorte par contraste. */
+  #tabBar button:not(.on),#mjTabBar button:not(.on){opacity:.78!important}
+  #tabBar button:not(.on):hover,#mjTabBar button:not(.on):hover{opacity:1!important}
   #tabBar .tab-foot,#mjTabBar .tab-foot{opacity:.65!important}
   #tabBar button.tab-foot:nth-last-child(2){margin-left:auto!important}
   /* la page porte le filet du haut, l'onglet actif le recouvre */

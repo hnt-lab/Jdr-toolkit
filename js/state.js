@@ -569,11 +569,24 @@ async function saveAll(silent=false){
       _ownWriteData=_stableJSON(state.players[0]);
       _ownWriteDataSet.add(_ownWriteData);
       const p=state.players[0];
-      await fbDb.collection('characters').doc(currentUser.uid+'_'+currentCampaignId).set({
+      // 🔴 CORRECTIF 2026-07-22 — SUPPRIMER UN CHAMP NE SE PROPAGEAIT JAMAIS AU SERVEUR.
+      // L'écriture était un set(..., {merge:true}). Firestore fusionne les maps champ par
+      // champ : une clé retirée de l'objet local (`delete p.wildshape`, `delete
+      // p.combatCharges['Témérité']`, `delete p.steelDefender`…) n'était pas effacée en base,
+      // elle y SURVIVAIT. Au rechargement la fiche la ramenait — d'où « la forme animale
+      // revient à chaque reset », et « elle s'applique à tous les persos » (un respec réécrit
+      // characterData en fusion : les champs de l'ancien personnage restaient collés au neuf).
+      // update() REMPLACE intégralement le champ `characterData` — c'est la sémantique voulue,
+      // et il laisse intacts les champs posés par le MJ (ejectedFromCampaign, leftCampaign).
+      // Repli sur set() au tout premier enregistrement, quand le document n'existe pas encore.
+      const _ref=fbDb.collection('characters').doc(currentUser.uid+'_'+currentCampaignId);
+      const _payload={
         userId:currentUser.uid,campaignId:currentCampaignId,tableId:currentTableId,
         characterData:p,
         updatedAt:firebase.firestore.FieldValue.serverTimestamp()
-      },{merge:true});
+      };
+      try{ await _ref.update(_payload); }
+      catch(_e){ if(_e&&_e.code==='not-found') await _ref.set(_payload); else throw _e; }
       const charMeta={
         charName:p.charName||'Personnage',
         charClass:(p.classes||[]).map(c=>c.name+' '+c.level).join(' / '),

@@ -732,8 +732,8 @@ function renderArmedSpells(p){
         <button class="btn bac bsm armed-cast" onclick="castSpell('${jsq(s.name)}',${s.lv})">⚡ Lancer</button>
       </div>`;
     }).join('')
-    :`<div class="armed-empty">Aucun sort armé. Va dans l'onglet <strong>Sorts</strong> et touche 📌 sur ceux que tu veux avoir sous la main en combat.</div>`);
-  return cs('cs-sorts',`<div class="panel"><div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>⚡ Sorts armés</div>
+    :`<div class="armed-empty">Aucun sort de combat. Va dans l'onglet <strong>Sorts</strong> et touche 📌 sur ceux que tu veux avoir sous la main en combat.</div>`);
+  return cs('cs-sorts',`<div class="panel"><div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>⚡ Sorts de combat</div>
     ${slotRow}
     <div class="armed-stats">Attaque <strong>${fmt(pb(lvl)+spellMod)}</strong> · DD <strong>${spellDC}</strong></div>
     ${rows}
