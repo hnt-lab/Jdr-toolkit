@@ -13,13 +13,21 @@ function showMJScreen(){
   if(typeof _refreshNavAvatars==='function')_refreshNavAvatars();
   if(typeof _refreshModeNav==='function')_refreshModeNav();
   if(typeof _syncFloatingUI==='function')_syncFloatingUI();
-  _mjTab='joueurs';
+  // Restaure l'onglet MJ où le MJ en était (symétrique de lastTab_ côté joueur). Avant, un
+  // 'joueurs' figé ramenait TOUJOURS l'écran MJ sur l'onglet Groupe après un F5 (signalé 2026-07-23).
+  _mjTab=_validMJTab(localStorage.getItem('lastMJTab_'+currentCampaignId))||'joueurs';
   renderMJTabs();
   if(!localStorage.getItem('tuto_mj_done')) setTimeout(()=>startTutorial('mj'),700);
 }
 
+// Onglets MJ valides — sert à filtrer une clé localStorage périmée (une clé d'un onglet
+// disparu ne doit pas laisser _mjTab sur une valeur qui ne rend rien).
+const _MJ_TABS=['joueurs','combat','pnj','objets','journal','regles','stock'];
+function _validMJTab(t){return _MJ_TABS.includes(t)?t:null;}
 function setMJTab(tab){
   _mjTab=tab;
+  // Mémorise l'onglet MJ actif par campagne (restauré par showMJScreen au F5 / à la ré-entrée).
+  if(currentCampaignId){try{localStorage.setItem('lastMJTab_'+currentCampaignId,tab);}catch(e){}}
   renderMJTabs();   // peint AUSSI le contenu (cf. shell.js) — pas de 2ᵉ appel : évite un double rendu
   const el=document.getElementById('mjTabContent');
   if(el){el.classList.remove('tab-switch-anim');void el.offsetWidth;el.classList.add('tab-switch-anim');} // animation de changement d'onglet MJ
