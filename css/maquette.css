@@ -280,7 +280,21 @@ body.ds-lefty .norg-nav{padding:7px 10px calc(7px + env(safe-area-inset-bottom))
      seul bandeau allant d'un bord à l'autre de l'écran. */
   #charRail .norg-head{position:static;height:var(--tabs-h);box-sizing:border-box;
     border-bottom:2px solid var(--brass-trim)}
-  #charRail .norg-vitals{position:static;padding:8px 10px;flex-wrap:wrap}
+  /* VITALS DÉVELOPPÉES (calage sur la maquette desktop, 2026-07-23) — sur desktop le
+     charRail a de la place : la jauge PV passe pleine largeur et plus haute, les boutons
+     Dégâts/Soins apparaissent, et CA/Init/Vitesse deviennent 3 tuiles. L'ordre est piloté
+     par `order` (pas par le DOM) pour NE PAS toucher la barre compacte du mobile. */
+  #charRail .norg-vitals{position:static;padding:12px 10px;display:flex;flex-wrap:wrap;gap:6px;align-items:stretch}
+  #charRail .norg-vitals .g-hp{order:1;flex:1 0 100%;height:22px}
+  #charRail .norg-vitals .g-hp .vv{font-size:12px}
+  #charRail .norg-vitals .rail-hpbtns{order:2;display:flex;flex:1 0 100%;gap:6px}
+  #charRail .norg-vitals .rail-hpbtns .btn{flex:1;min-height:32px}
+  #charRail .norg-vitals .rail-dmg{border-color:rgba(163,55,42,.5);color:var(--seal,var(--danger))}
+  #charRail .norg-vitals .rail-heal{border-color:rgba(63,109,58,.5);color:var(--good)}
+  #charRail .norg-vitals .vs{order:3;flex:1;min-width:0;display:flex;flex-direction:column;
+    align-items:center;gap:1px;background:var(--card2);border:1px solid var(--line);padding:7px 4px}
+  #charRail .norg-vitals .vs b{font-size:17px}
+  #charRail .norg-vitals .norg-xtra{order:4;flex:1 0 100%}
   #charRail .rail-caracs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px}
   .caracs-intab{display:none}
   .rail-body{display:block;padding:0 10px 12px}

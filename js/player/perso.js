@@ -59,6 +59,7 @@ function renderCharRail(p){
       <div class="g-hp${hpCls}" onclick="openHpModal()" title="Dégâts / Soins"><i style="width:${pct}%"></i><span class="vv">${barText}</span></div>
       <span class="vs" title="Initiative">⚡ <b>${initVal}</b></span>
       <span class="vs" title="Vitesse">👣 <b>${spdVal}</b></span>
+      <div class="rail-hpbtns"><button class="btn bsm rail-dmg" onclick="openHpModal()">💥 Dégâts</button><button class="btn bsm rail-heal" onclick="openHpModal()">💚 Soins</button></div>
       ${hpExtra?`<div class="norg-xtra">${hpExtra}</div>`:''}
     </div>
     <div class="rail-body">${_caracsChipsHTML(p)}</div>
