@@ -81,7 +81,9 @@ async function saveMJData(){
   try{
     await fbDb.collection('characters').doc(currentUser.uid+'_'+currentCampaignId+'_mj').set({
       entries:_mjJournal,npcs:_mjNPCs,objets:_mjObjets,
-      userId:currentUser.uid,campaignId:currentCampaignId,
+      // tableId AJOUTÉ le 2026-07-22 : sans lui, les règles Firestore refusaient ce document
+      // aux joueurs → groupe ET combat cassés (cf. _tools/firestore.rules, match /characters).
+      userId:currentUser.uid,campaignId:currentCampaignId,tableId:currentTableId,
       updatedAt:firebase.firestore.FieldValue.serverTimestamp()
     },{merge:true});
   }catch(e){showToast('❌ Erreur sauvegarde : '+e.message);}

@@ -128,7 +128,8 @@ async function saveMJJournal(){
   if(!currentUser||!currentCampaignId)return;
   try{
     await fbDb.collection('characters').doc(currentUser.uid+'_'+currentCampaignId+'_mj').set({
-      entries:_mjJournal,npcs:_mjNPCs,objets:_mjObjets,userId:currentUser.uid,campaignId:currentCampaignId,
+      // tableId : même raison qu'en mj/index.js — sans lui les règles refusent ce doc aux joueurs.
+      entries:_mjJournal,npcs:_mjNPCs,objets:_mjObjets,userId:currentUser.uid,campaignId:currentCampaignId,tableId:currentTableId,
       updatedAt:firebase.firestore.FieldValue.serverTimestamp()
     },{merge:true});
   }catch(e){showToast('❌ Erreur sauvegarde journal : '+e.message);}
