@@ -53,10 +53,8 @@ function renderMJContent(){
   else if(_mjTab==='objets') el.innerHTML=mjTabObjets();
   else if(_mjTab==='journal') el.innerHTML=mjTabJournalScreen();
   else if(_mjTab==='regles'){el.innerHTML=mjTabRegles();mjInitRulesDnD();}
-  // A8 — onglet « Réserve » : place réservée, mécanique au lot B (voir shell.js, renderMJTabs).
-  else if(_mjTab==='stock') el.innerHTML=`<div class="panel"><div class="pt">🎒 Réserve</div>
-    <p style="font-size:13px;color:var(--text2);line-height:1.6">Ici s'accumulera ce que tu prépares <strong>sans le donner tout de suite</strong> : objets, indices, artefacts. Tu les gardes sous le coude, puis tu les publies au groupe d'un bouton <strong>« Mettre à disposition »</strong> quand le moment arrive.</p>
-    <p style="font-size:13px;color:var(--text3);font-style:italic;margin-top:8px">En attendant, le partage direct reste dans l'onglet <strong>Objets</strong> (🎁 Apporter au groupe).</p></div>`;
+  // A8/B2b — onglet « Réserve » : antichambre du MJ (mjTabReserve, plus bas).
+  else if(_mjTab==='stock') el.innerHTML=mjTabReserve();
   // Panneaux déplaçables aussi côté MJ (sauf Règles qui a son propre drag)
   if(_mjTab!=='regles'&&typeof _enableTabDrag==='function'){_enableTabDrag('mjTabContent');applyAllSectionOrders('mjTabContent');}
 }
@@ -84,13 +82,101 @@ async function saveMJData(){
   if(!currentUser||!currentCampaignId)return;
   try{
     await fbDb.collection('characters').doc(currentUser.uid+'_'+currentCampaignId+'_mj').set({
-      entries:_mjJournal,npcs:_mjNPCs,objets:_mjObjets,
+      entries:_mjJournal,npcs:_mjNPCs,objets:_mjObjets,reserve:_mjReserve,
       // tableId AJOUTÉ le 2026-07-22 : sans lui, les règles Firestore refusaient ce document
       // aux joueurs → groupe ET combat cassés (cf. _tools/firestore.rules, match /characters).
       userId:currentUser.uid,campaignId:currentCampaignId,tableId:currentTableId,
       updatedAt:firebase.firestore.FieldValue.serverTimestamp()
     },{merge:true});
   }catch(e){showToast('❌ Erreur sauvegarde : '+e.message);}
+}
+
+// ═════════════════════════════════════════════════════════════════════════
+//  ONGLET RÉSERVE (B2b, 2026-07-23) — antichambre du MJ
+//  Le MJ prépare des indices / artefacts / objets de quête qui restent PRIVÉS
+//  (`_mjReserve`, dans le doc _mj) tant qu'il ne clique pas « Mettre à
+//  disposition ». À ce moment, l'item QUITTE la réserve et rejoint les partages
+//  de la campagne (`campaigns/<camp>.shares`), que la page Groupe des joueurs
+//  affiche déjà (_dsShares, shell.js). Décision utilisateur : il PASSE, il n'est
+//  pas copié.
+//  ⚠️ LIMITE DE CONFIDENTIALITÉ (à traiter avec le durcissement Firestore) : le
+//     doc _mj est LISIBLE par les membres de la table (nécessaire pour le combat
+//     et le groupe). La réserve y est donc techniquement lisible par un joueur qui
+//     inspecterait la base — comme l'est déjà le journal MJ privé. Ce n'est pas une
+//     confidentialité forte ; c'est « hors de vue » dans l'app, pas « inaccessible ».
+// ═════════════════════════════════════════════════════════════════════════
+function mjTabReserve(){
+  const _shHTML=(typeof _dsShareHTML==='function')?_dsShareHTML:null;
+  const items=(_mjReserve||[]).map((it,i)=>{
+    const inner=_shHTML?_shHTML(it,i,false):`<div class="ds-note">${esc(it.title||it.text||'?')}</div>`;
+    return`<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:8px">
+      <div style="flex:1;min-width:0">${inner}</div>
+      <div style="display:flex;flex-direction:column;gap:4px;flex:none">
+        <button class="btn bsm bac" onclick="mjPublishReserveItem(${i})" title="Révéler au groupe">🎁 Donner</button>
+        <button class="btn bsm bdanger" onclick="mjDeleteReserveItem(${i})" title="Supprimer">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+  return`<div class="panel"><div class="pt">🎒 Réserve</div>
+    <p style="font-size:13px;color:var(--text3);line-height:1.5;margin-bottom:10px">Ce que tu prépares <strong>sans le donner tout de suite</strong>. Clique <strong>🎁 Donner</strong> quand le moment arrive : l'objet passe alors dans la page Groupe des joueurs.</p>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button class="btn" style="flex:1" onclick="mjOpenReserveModal('indice')">📜 Indice</button>
+      <button class="btn" style="flex:1" onclick="mjOpenReserveModal('artefact')">🗡 Artefact</button>
+      <button class="btn" style="flex:1" onclick="mjOpenReserveModal('quete')">🗝 Obj. quête</button>
+    </div>
+    ${items||'<div class="ds-note" style="font-style:italic;padding:6px 0">Réserve vide. Prépare un indice, un artefact ou un objet de quête ci-dessus — il restera invisible aux joueurs jusqu\'à ce que tu le donnes.</div>'}
+  </div>`;
+}
+function mjOpenReserveModal(type){
+  const T={indice:'📜 Indice',artefact:'🗡 Artefact',quete:'🗝 Objet de quête'}[type]||type;
+  const MI={parchemin:'📜',pierre:'🪨',bois:'🌳',rune:'🔮'};
+  const mat=type==='indice'?`<div class="fl mb6">Matière de l'indice</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+      ${['parchemin','pierre','bois','rune'].map((m,i)=>`<button class="btn mjResMat${i===0?' bac':''}" data-m="${m}" onclick="document.querySelectorAll('.mjResMat').forEach(b=>b.classList.remove('bac'));this.classList.add('bac')">${MI[m]} ${m}</button>`).join('')}
+    </div>`:'';
+  openModal(`<div class="pt">${T} — ajouter à la réserve</div>
+    <div class="fl mb6">Titre${type==='indice'?' (optionnel)':''}</div>
+    <input class="fi" id="mjResTitle" style="margin-bottom:10px">
+    ${mat}
+    <div class="fl mb6">${type==='indice'?"Texte de l'indice":'Description'}</div>
+    <textarea class="fi" id="mjResText" rows="3" style="resize:vertical;margin-bottom:12px"></textarea>
+    <div style="display:flex;gap:8px">
+      <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
+      <button class="btn bac" style="flex:2" onclick="mjConfirmReserve('${type}')">🎒 Mettre en réserve</button>
+    </div>`);
+}
+async function mjConfirmReserve(type){
+  const title=((document.getElementById('mjResTitle')||{}).value||'').trim();
+  const text=((document.getElementById('mjResText')||{}).value||'').trim();
+  if(!text&&!title){showToast('❌ Écris au moins un titre ou un texte.');return;}
+  const item={type,title,text,ts:Date.now()};
+  if(type==='indice'){const mEl=document.querySelector('.mjResMat.bac');item.matiere=mEl?mEl.dataset.m:'parchemin';}
+  _mjReserve.push(item);
+  closeModal();
+  await saveMJData();
+  renderMJContent();
+  showToast('🎒 Ajouté à la réserve.');
+}
+async function mjDeleteReserveItem(idx){
+  if(idx<0||idx>=_mjReserve.length)return;
+  _mjReserve.splice(idx,1);
+  await saveMJData();
+  renderMJContent();
+  showToast('🗑 Retiré de la réserve.');
+}
+async function mjPublishReserveItem(idx){
+  const it=_mjReserve[idx];
+  if(!it||!currentCampaignId)return;
+  try{
+    // 1) publier vers les partages de la campagne (page Groupe des joueurs)
+    await fbDb.collection('campaigns').doc(currentCampaignId).update({shares:firebase.firestore.FieldValue.arrayUnion(it)});
+    // 2) seulement ensuite le retirer de la réserve (si l'étape 1 échoue, rien n'est perdu)
+    _mjReserve.splice(idx,1);
+    await saveMJData();
+    if(typeof _dsShares!=='undefined')_dsShares=null; // force le rechargement des partages MJ
+    renderMJContent();
+    showToast('🎁 Mis à disposition du groupe.');
+  }catch(e){showToast('❌ Une erreur est survenue, réessaie.');}
 }
 
 // ─────────────────────────────────────────

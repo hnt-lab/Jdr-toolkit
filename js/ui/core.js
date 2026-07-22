@@ -15,6 +15,7 @@ let _mjRound=1;
 let _mjCombatLog=[];
 let _mjNPCs=[];
 let _mjObjets=[];
+let _mjReserve=[]; // lot B — antichambre du MJ : indices/artefacts/objets préparés, pas encore révélés
 let _mjSelectedNPC=null;
 let _encMonsters=[];
 let _encGroupSize=4;

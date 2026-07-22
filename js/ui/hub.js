@@ -264,7 +264,48 @@ function _hubTableDetailHTML(t){
       <button class="ds-btn primary" style="margin-top:8px" onclick="importCompPack()">📥 Importer un paquet</button>
     </div>`:''}
     <div class="ds-title">📜 Campagnes ${isMJ?`<button class="ds-btn primary" style="min-height:34px;padding:4px 12px" onclick="openCreateCampaign('${t.id}')">＋ Nouvelle</button>`:''}</div>
-    ${campList}`;
+    ${campList}
+    ${!isMJ?`<div style="margin-top:18px;text-align:center">
+      <button class="ds-btn quiet" style="color:var(--ds-seal);border-color:var(--ds-seal);min-height:32px;padding:4px 12px" onclick="promptLeaveTable('${t.id}')">🚪 Quitter la table</button>
+    </div>`:''}`;
+}
+// ─── QUITTER UNE TABLE (joueur) — lot B, 2026-07-23 ───
+// Le joueur est retiré de la table (donc de TOUTES ses campagnes d'un coup), mais ses
+// personnages RESTENT dans « Mes personnages » du profil (décision utilisateur). On ne
+// touche donc NI aux fiches `characters/<uid>_<camp>`, NI à `charLib`. Le MJ ne peut pas
+// quitter sa propre table (il la supprime) — le bouton ne s'affiche pas pour lui.
+function promptLeaveTable(tableId){
+  const t=_hubCache&&_hubCache.find(x=>x.id===tableId);
+  if(!t){showToast('❌ Table introuvable.');return;}
+  const nbCamp=(t.campaigns||[]).length;
+  window._pendingLeaveTable=tableId;
+  openModal(`<div class="pt" style="color:var(--danger)">Quitter « ${esc(t.name)} » ?</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:16px">Tu seras retiré de la table${nbCamp?` et de ses <b>${nbCamp} campagne${nbCamp>1?'s':''}</b>`:''}. Tes personnages <b>restent dans « Mes personnages »</b> : tu les retrouves si tu es réinvité.</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
+      <button class="btn" style="flex:2;color:var(--danger);border-color:rgba(229,57,53,.5)" onclick="confirmLeaveTable()">🚪 Quitter la table</button>
+    </div>`);
+}
+async function confirmLeaveTable(){
+  const tableId=window._pendingLeaveTable;
+  if(!tableId||!currentUser)return;
+  closeModal();
+  const t=_hubCache&&_hubCache.find(x=>x.id===tableId);
+  if(!t)return;
+  try{
+    // Update AUTORISÉ par les règles : ne touche QUE memberIds/Names/Avatars, en se retirant SOI-MÊME.
+    const upd={memberIds:(t.memberIds||[]).filter(u=>u!==currentUser.uid)};
+    upd['memberNames.'+currentUser.uid]=firebase.firestore.FieldValue.delete();
+    upd['memberAvatars.'+currentUser.uid]=firebase.firestore.FieldValue.delete();
+    await fbDb.collection('tables').doc(tableId).update(upd);
+    // Si la partie en cours était sur cette table, on efface la mémoire de session (sinon F5 tenterait d'y revenir).
+    const _s=(typeof loadSessionState==='function')?loadSessionState():null;
+    if(_s&&_s.tableId===tableId&&typeof clearSessionState==='function')clearSessionState();
+    if(_hubCache)_hubCache=_hubCache.filter(x=>x.id!==tableId);
+    _hubSelectedTableId=null;
+    showToast('✅ Tu as quitté la table. Tes personnages sont conservés.');
+    renderHub();
+  }catch(e){showToast('❌ Une erreur est survenue, réessaie.');}
 }
 
 function renderHubHTML(tables){
@@ -677,7 +718,7 @@ async function enterCampaign(tableId,campaignId,tName,cName,preloadedCharData,fo
     if(asMJ){
       // MJ : pas de personnage jouable, on charge le journal + données MJ
       _mjJournal=[];_journalSubTab='mj';_compilationData=null;
-      _mjPlayersData=[];_mjCombatants=[];_mjNPCs=[];_mjObjets=[];
+      _mjPlayersData=[];_mjCombatants=[];_mjNPCs=[];_mjObjets=[];_mjReserve=[];
       _mjCombatStarted=false;_mjCurrentTurn=0;_mjRound=1;_mjCombatLog=[];_mjSelectedNPC=null;
       try{
         const mjRef=fbDb.collection('characters').doc(currentUser.uid+'_'+campaignId+'_mj');
@@ -687,6 +728,7 @@ async function enterCampaign(tableId,campaignId,tName,cName,preloadedCharData,fo
           _mjJournal=d.entries||[];
           _mjNPCs=d.npcs||[];
           _mjObjets=d.objets||[];
+          _mjReserve=d.reserve||[];
           if(d.combatState?.active&&Array.isArray(d.combatState.combatants)&&d.combatState.combatants.length){
             _mjCombatants=d.combatState.combatants;
             _mjCombatStarted=true;

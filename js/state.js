@@ -607,9 +607,18 @@ async function saveAll(silent=false){
       }
     }
   }
-  try{localStorage.setItem(getUserSK(),JSON.stringify(state));}catch(e){}
+  // ❌ RETIRÉ (lot B, 2026-07-23) — écriture locale de TOUT `state` sous getUserSK().
+  //   Cette copie (portraits en base64 compris) n'était RELUE nulle part (grep : 0 lecture) :
+  //   du poids mort qui consommait l'essentiel du quota localStorage (~4,3 Mo mesurés).
+  //   La source de vérité de la fiche, c'est Firestore. Purge one-shot plus bas (boot).
   // Toast sauvegarde supprimé — le sync dot suffit comme indicateur
 }
+// Purge unique des anciennes sauvegardes locales mortes (dnd5e_v5*). S'exécute une fois.
+(function(){try{
+  if(localStorage.getItem('_sk_purged_v1'))return;
+  Object.keys(localStorage).filter(k=>k===SK||k.indexOf(SK+'_')===0).forEach(k=>localStorage.removeItem(k));
+  localStorage.setItem('_sk_purged_v1','1');
+}catch(e){}})();
 function P(){return state.players[state.activeIdx]||state.players[0];}
 function upd(k,v){P()[k]=v;}
 
@@ -669,7 +678,11 @@ function _enableTabDrag(rootId){
 }
 window._DRAG_DIAG=false; // diagnostic (mettre true pour réafficher le toast)
 function cs(id,html){return`<div class="mj-rules-section" data-csid="${id}" draggable="true" ondragstart="combatDragStart(event,'${id}',this)" ondragend="combatDragEnd(this)" ondragover="combatDragOver(event,this)" ondrop="combatDrop(event,'${id}')">${html}</div>`;}
-let _spellLevelsOpen={};
+// _spellLevelsOpen : niveaux de sorts dépliés/repliés. Lot B (2026-07-23) — désormais
+// PERSISTÉ : avant, en mémoire vive seule, l'état était perdu à chaque F5. Une seule
+// clé pour tous les persos (préférence d'affichage, pas donnée de perso).
+let _spellLevelsOpen=(function(){try{return JSON.parse(localStorage.getItem('spellLvlOpen'))||{};}catch(e){return{};}})();
+function _saveSpellLevelsOpen(){try{localStorage.setItem('spellLvlOpen',JSON.stringify(_spellLevelsOpen));}catch(e){}}
 let _equipProfOpen={all:false};
 
 async function uploadEquipPortrait(input){

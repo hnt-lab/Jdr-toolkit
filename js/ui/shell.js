@@ -361,11 +361,45 @@ function _dsSyncFicheHead(){
     if(total>0)document.documentElement.style.setProperty('--head-h',total+'px');
   }catch(e){}
 }
+// ── PRÉSERVATION DU DÉFILEMENT (lot B, 2026-07-23) ───────────────────────────
+// Plainte : « les pages se réinitialisent en permanence ». Cause : render() (fiche)
+// et renderMJContent() (MJ) reconstruisent tout le contenu par innerHTML → la page
+// remonte en haut à CHAQUE action (cocher une charge, lancer un dé, modifier les PV…).
+// Correctif : mémoriser la position juste avant de reconstruire, la restaurer juste après.
+//   • MÊME onglet (refresh in-place)  → on restaure la position (le vrai correctif).
+//   • onglet DIFFÉRENT (on vient d'en changer) → on remonte en haut (comportement voulu).
+// C'est ce qui distingue un rafraîchissement d'un changement d'onglet, sans toucher à setTab.
+let _dsScrollLastKey=null;
+function _dsPreserveScroll(key,fn){
+  const se=document.scrollingElement||document.documentElement;
+  const same=(key===_dsScrollLastKey);
+  const y=same?(se?se.scrollTop:0):0;
+  try{fn();}finally{
+    _dsScrollLastKey=key;
+    if(same){
+      if(se)se.scrollTop=y;
+      // autoGrow/layout peut décaler la hauteur juste après → on refixe au frame suivant.
+      requestAnimationFrame(()=>{if(se)se.scrollTop=y;});
+    }else if(se){se.scrollTop=0;}
+  }
+}
 if(typeof render==='function'){
   const _dsOldRender=render;
   // _dsApplyClassTheme à CHAQUE rendu : la classe du personnage peut changer (montée de
   // niveau, multiclassage, changement de perso) — la couleur d'identité doit suivre.
-  render=function(){_dsOldRender.apply(this,arguments);_dsApplyClassTheme();setTimeout(_dsSyncFicheHead,0);};
+  render=function(){
+    const _k='fiche:'+((typeof state!=='undefined'&&state)?state.activeTab:'')+':'+((typeof state!=='undefined'&&state)?state.activeIdx:'');
+    _dsPreserveScroll(_k,()=>_dsOldRender.apply(this,arguments));
+    _dsApplyClassTheme();setTimeout(_dsSyncFicheHead,0);
+  };
+}
+if(typeof renderMJContent==='function'){
+  const _dsOldMJRender=renderMJContent;
+  renderMJContent=function(){
+    // Clé = onglet MJ courant : un simple refresh garde la position, un changement d'onglet remonte.
+    const _k='mj:'+((typeof _mjTab!=='undefined')?_mjTab:'');
+    _dsPreserveScroll(_k,()=>_dsOldMJRender.apply(this,arguments));
+  };
 }
 window.addEventListener('resize',_dsSyncFicheHead);
 

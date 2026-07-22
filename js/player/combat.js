@@ -775,7 +775,7 @@ function renderSpellList(p){
     const isOpen=_spellLevelsOpen[lv]!==false;
     return`
     <div style="margin-bottom:10px">
-      <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;padding-bottom:3px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="_spellLevelsOpen['${lv}']=!(_spellLevelsOpen['${lv}']!==false);render()">
+      <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;padding-bottom:3px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="_spellLevelsOpen['${lv}']=!(_spellLevelsOpen['${lv}']!==false);(typeof _saveSpellLevelsOpen==='function'&&_saveSpellLevelsOpen());render()">
         <span>${lvLabel} <span style="color:var(--text3);font-size:13px">(${byLvl[lv].length})</span></span>
         <span style="font-size:12px;color:var(--text3)">${isOpen?'▴':'▾'}</span>
       </div>

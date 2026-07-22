@@ -198,7 +198,9 @@ let _userInfoCache={};
 let _whisperHistory=[];
 let _whisperInited=false;
 function stopAllListeners(){_unsubscribes.forEach(fn=>{try{fn();}catch(e){}});_unsubscribes=[];_whisperHistory=[];_whisperInited=false;}
-window.addEventListener('beforeunload',()=>{if(_unsaved){clearTimeout(_saveDebounce);try{localStorage.setItem(getUserSK(),JSON.stringify(state));}catch(e){}}});
+// À la fermeture, si des changements sont en attente, on force l'écriture EN LIGNE
+// (source de vérité). L'ancienne copie locale sous getUserSK() n'était jamais relue → retirée.
+window.addEventListener('beforeunload',()=>{if(_unsaved){clearTimeout(_saveDebounce);try{saveAll(true);}catch(e){}}});
 function _debouncedMJRender(){clearTimeout(_mjRenderDebounce);_mjRenderDebounce=setTimeout(()=>{renderMJContent();_flashSyncDot('mjSyncDot');},350);}
 function _flashSyncDot(id){const d=document.getElementById(id);if(!d)return;d.className='sync-dot on';setTimeout(()=>{d.className='sync-dot';},2500);}
 async function _getPlayerInfo(uid){
