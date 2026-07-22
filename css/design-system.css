@@ -89,9 +89,19 @@
    et caractéristiques (.rail-carac) → maquette.css. */
 
 /* ── 06 · INDICES MJ (4 matières, rivet laiton) + ARTEFACTS/OBJETS ───── */
+/* CHEVAUCHEMENT INDICE / OBJET — corrigé le 2026-07-22 (rapport utilisateur).
+   Un élément `transform:rotate()` garde dans le flux la place de sa version DROITE :
+   ses coins débordent verticalement de L/2 × sin(α). Le carton s'étirait sur toute la
+   largeur du panneau : sur un écran large (~1370px) → 685 × sin(0,8°) ≈ 9,6px, PLUS la
+   punaise ::before à top:-7px ≈ 17px de débordement pour 9px de marge → l'indice mordait
+   sur l'objet suivant. Invisible sur mobile (~2px), garanti sur desktop.
+   Correction à la source : on PLAFONNE la largeur (un indice est un petit papier punaisé,
+   pas une bannière) → le débordement retombe à ~3,6px, largement couvert par la marge.
+   Ne pas « corriger » en empilant de la marge : elle dépendrait de la largeur d'écran. */
 .ds-pin{position:relative;background:#efe4c8;color:#2c2113;border:1px solid #c3ab77;padding:15px 12px 10px;
   font-family:var(--ds-mono);font-size:12.5px;line-height:1.5;transform:rotate(-1.4deg);
-  box-shadow:2px 3px 8px rgba(0,0,0,.3);margin-top:9px}
+  box-shadow:2px 3px 8px rgba(0,0,0,.3);
+  max-width:520px;margin:16px auto 18px}
 .ds-pin::before{content:"";position:absolute;top:-7px;left:50%;transform:translateX(-50%);
   width:15px;height:15px;border-radius:50%;
   background:radial-gradient(circle at 35% 30%,var(--ds-brass-hi),var(--ds-brass) 60%,#5a4418);
@@ -125,8 +135,13 @@
   color:var(--ds-brass-hi);font-family:var(--ds-disp)}
 .ds-chrome.top{display:flex;align-items:center;gap:8px;padding:9px 12px;
   border-bottom:2px solid var(--ds-brass);font-size:14px;letter-spacing:.05em}
+/* FORMES — règle arrêtée le 2026-07-22 (rapport utilisateur « boutons fermer carrés ») :
+     • BOUTONS d'interface (fermer, options, +/−) → CARRÉS (rayon 2px), comme les onglets
+       et les champs. C'est la charte : la maquette n'a pas de bouton rond.
+     • PORTRAITS et AVATARS → restent ronds (.dt-avatar, .nav-avatar, .pm-portrait).
+     • PASTILLES et INDICATEURS → restent ronds (.slot-bubble, .g-dot, badges, punaise). */
 .ds-chrome.top .opt{margin-left:auto;width:32px;height:32px;flex:none;border:1.5px solid var(--ds-brass-hi);
-  border-radius:50%;display:grid;place-items:center;font-size:14px;cursor:pointer;background:transparent;color:var(--ds-brass-hi)}
+  border-radius:2px;display:grid;place-items:center;font-size:14px;cursor:pointer;background:transparent;color:var(--ds-brass-hi)}
 .ds-nav{position:relative;display:flex;align-items:center;justify-content:space-around;
   min-height:56px;padding:8px;padding-bottom:calc(8px + env(safe-area-inset-bottom,0px));
   border-top:2px solid var(--ds-brass);background:linear-gradient(180deg,var(--ds-leather2),var(--ds-leather));
@@ -232,7 +247,7 @@ body.ds-lefty #mjScreen{padding-right:10px!important;padding-left:58px!important
 .rail-caracs{gap:5px!important}
 
 /* ── 20 · PAGE GROUPE (overlay P3) ───────────────────────────────────── */
-#dsGroupPage{position:fixed;left:0;right:0;bottom:0;top:56px;z-index:840;display:none;background:var(--ds-page)}
+#dsGroupPage{position:fixed;left:0;right:0;bottom:0;top:var(--chrome-h);z-index:840;display:none;background:var(--ds-page)}
 @media(min-width:641px){#dsGroupPage{top:64px}}
 .ds-grouppage{height:100%;display:flex;flex-direction:column}
 .ds-grouppage .gp-body{flex:1;overflow-y:auto;padding:12px;max-width:900px;margin:0 auto;width:100%}

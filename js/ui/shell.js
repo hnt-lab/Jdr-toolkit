@@ -95,13 +95,15 @@ function _dsRenderGroup(){
   }).join(''):`<div class="ds-note" style="padding:10px 0">En attente des joueurs…</div>`;
   const shares=_dsShares===null?`<div class="ds-note">Chargement…</div>`
     :(_dsShares.length?_dsShares.map((s,i)=>_dsShareHTML(s,i,false)).join(''):`<div class="ds-note" style="font-style:italic">Le MJ n'a encore rien mis à disposition.</div>`);
+  // A5 (2026-07-22) — Groupe = MODE de plein rang, pas une fenêtre : plus de titre de page
+  // ni de bouton ✕. On en sort par la nav (Tables · Personnage · Groupe), comme des autres modes.
+  // Le nom du groupe se règlera dans les réglages de table (lot B) ; à défaut, aucun titre.
   el.innerHTML=`<div class="ds-grouppage">
-    <div class="ds-chrome top">👥 Le groupe${currentCampaignName?` — ${esc(currentCampaignName)}`:''}<button class="opt" onclick="_dsCloseGroup()">✕</button></div>
     <div class="gp-body">
       ${tour}
       <div class="ds-seclbl" style="margin:12px 0 8px">🧑‍🤝‍🧑 Membres</div>
       ${membres}
-      <div class="ds-seclbl" style="margin:14px 0 8px">📌 Mis à disposition par le MJ</div>
+      <div class="ds-seclbl" style="margin:14px 0 8px">🎁 Apporté par le MJ</div>
       ${shares}
       <div class="ds-seclbl" style="margin:14px 0 8px">📜 Chronique</div>
       <button class="ds-btn" style="width:100%" onclick="_dsCloseGroup();openCampChronicle(currentTableId,currentCampaignId)">📜 Ouvrir la chronique de la campagne</button>
@@ -324,32 +326,27 @@ if(typeof render==='function'){
 }
 window.addEventListener('resize',_dsSyncFicheHead);
 
-// ── REPRISE DE SESSION : revenir là où on était (pas à l'accueil) ──
-// L'OS tue/recharge la PWA → avant : retour au hub. Maintenant : on mémorise la
-// campagne active et on y REPLONGE au démarrage (fallback hub si échec).
-if(typeof enterCampaign==='function'){
-  const _dsOldEC=enterCampaign;
-  enterCampaign=function(tableId,campaignId){
-    try{localStorage.setItem('ds_resume',JSON.stringify({t:tableId,c:campaignId}));}catch(e){}
-    return _dsOldEC.apply(this,arguments);
-  };
-}
-if(typeof showHub==='function'){
-  const _dsOldSH=showHub;
-  showHub=function(){
-    if(!window._dsResumeTried){
-      window._dsResumeTried=true;
-      try{
-        const r=JSON.parse(localStorage.getItem('ds_resume')||'null');
-        if(r&&r.t&&r.c){enterCampaign(r.t,r.c);return;}
-      }catch(e){}
-    }else{
-      // Navigation volontaire vers les Tables : on n'y ramènera pas de force au prochain démarrage
-      try{localStorage.removeItem('ds_resume');}catch(e){}
-    }
-    _dsOldSH.apply(this,arguments);
-  };
-}
+// ── REPRISE DE SESSION — RETIRÉE ICI le 2026-07-22, remplacée par le « lot 0 » ──
+// Il y avait à cet endroit deux enveloppes (sur enterCampaign et showHub) qui mémorisaient la
+// campagne dans une clé `ds_resume` et y replongeaient au démarrage. Elles portaient 5 défauts :
+//   1. ⚠ GRAVE — elles appelaient enterCampaign() AVANT le vrai showHub(), donc avant que
+//      renderHub() ait rempli _hubCache. Or enterCampaign en déduit le rôle :
+//      `asMJ = tableData && tableData.mjId===currentUser.uid`. Avec _hubCache null → asMJ=false
+//      → un MJ était rouvert comme JOUEUR.
+//   2. leur `return;` empêchait le vrai showHub() de s'exécuter : _hubCache restait null pour
+//      TOUTE la session, alors que enterCampaign et joinGroupOnly s'en servent.
+//   3. `ds_resume` n'était pas cloisonnée par compte → deux comptes sur le même navigateur
+//      héritaient de la partie de l'autre.
+//   4. la branche `else` effaçait la clé dès le 2e appel à showHub, c.-à-d. dès un simple retour
+//      aux Tables → la reprise ne fonctionnait qu'une fois puis se désarmait silencieusement.
+//   5. enterCampaign était appelée sans nom de table ni de campagne, et sans _hubCache pour les
+//      retrouver → bandeaux vides.
+// Le remplacement vit désormais à la source, pas en surcouche :
+//   • écriture  : enterCampaign (hub.js) · joinGroupOnly + showHub (core.js)
+//   • lecture   : _bootToLastScreen / _restoreSession (core.js), APRÈS le remplissage de _hubCache
+//   • stockage  : mjtk_session_<uid> (firebase.js), cloisonné par compte
+// Purge de l'ancienne clé, devenue morte :
+try{localStorage.removeItem('ds_resume');}catch(e){}
 
 // ── OPTIONS PROFIL : thème ☀/🌙 + main 🖐/✋ (section ajoutée au modal Profil) ──
 if(typeof openUserSettings==='function'){

@@ -37,7 +37,12 @@
 /* Jauge de PV « vitrée » — liquide centré, reflet, lueur, pouls */
 .g-hp{position:relative;height:16px;border:1px solid var(--acc-strong);background:var(--card2);
   box-shadow:inset 0 0 5px rgba(0,0,0,.28), 0 0 10px var(--glow)}
-.g-hp>i{position:absolute;inset:3px auto 3px 3px;width:72%;overflow:hidden;
+/* PV QUI DÉBORDENT DE LA FIOLE — corrigé le 2026-07-22 (rapport user).
+   Le remplissage démarre à 3px du bord gauche (inset …3px) mais le JS lui donne une
+   largeur en % du conteneur ENTIER : à 100 % de PV il dépassait donc de 3px à gauche
+   + 3px à droite, débordant du cadre et écrasant le texte « 38/38 ».
+   max-width le borne à l'intérieur de la fiole, quel que soit le % transmis. */
+.g-hp>i{position:absolute;inset:3px auto 3px 3px;width:72%;max-width:calc(100% - 6px);overflow:hidden;
   background:linear-gradient(180deg,color-mix(in srgb,var(--good) 62%,white) 0%,var(--good) 42%,color-mix(in srgb,var(--good) 55%,black))}
 .g-hp>i::before{content:"";position:absolute;top:1px;left:2px;right:2px;height:2px;background:rgba(255,255,255,.3);z-index:2}
 .g-hp>i::after{content:"";position:absolute;top:0;bottom:0;left:-30px;width:26px;
@@ -137,7 +142,7 @@
 .norg-head .pp img{width:100%;height:100%;object-fit:cover}
 .norg-head .nm{font-size:15px;letter-spacing:.04em;line-height:1.1}
 .norg-head .cl{font-size:10.5px;opacity:.75;font-family:var(--f-body)}
-.norg-head .opt{margin-left:auto;width:27px;height:27px;flex:none;border:1.5px solid var(--brass-hi);border-radius:50%;
+.norg-head .opt{margin-left:auto;width:27px;height:27px;flex:none;border:1.5px solid var(--brass-hi);border-radius:2px;/* carré : cf. règle des formes, design-system.css §09 */
   display:grid;place-items:center;font-size:12px;background:transparent;color:var(--brass-hi);cursor:pointer;padding:0}
 .norg-vitals{position:fixed;left:0;right:0;z-index:849;
   display:flex;align-items:center;gap:9px;padding:8px 10px 8px 70px;
@@ -266,10 +271,15 @@ body.ds-lefty .norg-nav{padding:7px 10px calc(7px + env(safe-area-inset-bottom))
   #modeNav.nav-top .flat.on,#modeNav.nav-top .mode-btn.on{background:var(--brass-trim);color:var(--leather);font-weight:700}
 
   /* ── FICHE : charRail gauche (sticky) + zone principale (tabs H + contenu) ── */
-  #app{padding:102px max(16px,calc(50% - 700px)) 40px calc(max(16px,50% - 700px) + 306px)!important}
-  #charRail{position:fixed;top:54px;bottom:0;width:290px;left:max(16px,calc(50% - 700px));z-index:840;
+  #app{padding:var(--shell-h) max(16px,calc(50% - 700px)) 40px calc(max(16px,50% - 700px) + 306px)!important}
+  #charRail{position:fixed;top:var(--chrome-h);bottom:0;width:290px;left:max(16px,calc(50% - 700px));z-index:840;
     overflow-y:auto;background:var(--page);border-right:1px solid var(--acc-strong);padding:0}
-  #charRail .norg-head{position:static;border-bottom:2px solid var(--brass-trim)}
+  /* A2 — BANDEAU CONTINU : .norg-head (au-dessus du charRail) et #tabBar (à droite)
+     occupent la MÊME bande [--chrome-h → --shell-h] et partagent déjà le même dégradé
+     de cuir. Leur imposer la même hauteur suffit à ce que l'en-tête se lise comme UN
+     seul bandeau allant d'un bord à l'autre de l'écran. */
+  #charRail .norg-head{position:static;height:var(--tabs-h);box-sizing:border-box;
+    border-bottom:2px solid var(--brass-trim)}
   #charRail .norg-vitals{position:static;padding:8px 10px;flex-wrap:wrap}
   #charRail .rail-caracs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px}
   .caracs-intab{display:none}
@@ -278,14 +288,18 @@ body.ds-lefty .norg-nav{padding:7px 10px calc(7px + env(safe-area-inset-bottom))
   /* ── ONGLETS HORIZONTAUX (intercalaires, verbatim maquette .g-tab) ── */
   /* ⚠ bottom:auto OBLIGATOIRE — sinon le `bottom` du rail mobile étire la barre
      sur toute la hauteur (fond cuir plein écran + onglets tombés en bas). */
-  #tabBar,#mjTabBar{position:fixed;top:54px;bottom:auto!important;left:calc(max(16px,50% - 700px) + 306px);
-    right:max(16px,calc(50% - 700px));z-index:835;height:auto!important;width:auto;
+  /* height FIXE (--tabs-h) et non plus auto : c'est ce qui garantit que le bas de la
+     barre coïncide EXACTEMENT avec le haut de #tabContent (padding = --shell-h).
+     align-items:flex-end colle les onglets sur ce bord → l'onglet actif et le panneau
+     se touchent, et son ::after peut recouvrir le filet : c'est l'intercalaire. */
+  #tabBar,#mjTabBar{position:fixed;top:var(--chrome-h);bottom:auto!important;left:calc(max(16px,50% - 700px) + 306px);
+    right:max(16px,calc(50% - 700px));z-index:835;height:var(--tabs-h)!important;width:auto;
     flex-direction:row!important;align-items:flex-end;gap:4px;overflow:visible;
-    padding:8px 4px 0;background:linear-gradient(180deg,var(--leather),var(--leather2))}
+    padding:0 4px 0;background:linear-gradient(180deg,var(--leather),var(--leather2))}
   #mjTabBar{left:max(16px,calc(50% - 700px))} /* MJ : pas de charRail */
   #tabBar button,#mjTabBar button{width:auto!important;height:auto;min-height:0;left:auto!important;margin:0!important;
     flex:0 0 auto;flex-direction:row;justify-content:center;gap:6px;font-family:var(--f-disp);font-size:12.5px;
-    padding:7px 14px 6px!important;background:color-mix(in srgb,var(--card) 55%,var(--leather))!important;
+    padding:11px 16px 9px!important;background:color-mix(in srgb,var(--card) 55%,var(--leather))!important;
     color:color-mix(in srgb,var(--ink) 55%,var(--leather))!important;border:1px solid var(--brass-trim)!important;
     border-bottom:none!important;border-radius:5px 5px 0 0!important;opacity:1!important}
   #tabBar button .tl,#mjTabBar button .tl{display:inline!important;font-size:12.5px}
@@ -297,7 +311,7 @@ body.ds-lefty .norg-nav{padding:7px 10px calc(7px + env(safe-area-inset-bottom))
   /* la page porte le filet du haut, l'onglet actif le recouvre */
   #tabContent,#mjTabContent{border-top:2px solid var(--acc-strong);border-right:none;max-width:none;min-height:60vh}
   /* MJ : la zone principale démarre à gauche (pas de charRail) */
-  #mjScreen{padding:102px max(16px,calc(50% - 700px)) 40px max(16px,calc(50% - 700px))!important}
+  #mjScreen{padding:var(--shell-h) max(16px,calc(50% - 700px)) 40px max(16px,calc(50% - 700px))!important}
   /* Contenu : 2 colonnes de catégories */
   .norg-panel{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
 

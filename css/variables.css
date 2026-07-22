@@ -6,6 +6,24 @@
    ═══════════════════════════════════════════════════════════════════════ */
 
 :root{
+  /* ── HAUTEURS DE LA COQUE (lot A1, 2026-07-22) ───────────────────────────
+     SOURCE UNIQUE des hauteurs de bandeau. Avant : 54px, 56px et 102px écrits
+     en dur dans 3 fichiers, censés s'accorder mais que rien ne synchronisait.
+     Conséquences mesurées :
+       • #dtopbar fait 54px + 2px de bordure = 56px, mais #tabBar se posait à
+         54px → il passait SOUS la bordure → onglets MJ tronqués en haut.
+       • le contenu réservait 102-54 = 48px à une barre d'onglets haute d'environ
+         39px → ~10px de vide sous l'onglet actif : le ::after censé recouvrir le
+         filet de #tabContent tombait dans le trou, l'onglet « flottait » au lieu
+         d'être soudé au panneau (mode intercalaire cassé).
+     Régler --tabs-h suffit désormais à épaissir la barre d'onglets : elle est
+     calée sur .norg-head (8 + 46 de portrait + 8 + 2 de bordure = 64px), ce qui
+     répond à la demande « bandeau d'onglets aussi épais que .norg-head ».
+     ⚠ NE PAS réintroduire de valeur en dur : tout part d'ici. */
+  --chrome-h:56px;       /* #dtopbar (54px) + sa bordure basse (2px) */
+  --tabs-h:64px;         /* barre d'onglets desktop — alignée sur .norg-head */
+  --shell-h:calc(var(--chrome-h) + var(--tabs-h)); /* où le contenu commence */
+
   /* Fonds (parchemin) */
   --bg:#e7d8b2;          /* page */
   --surface:#f4ead0;     /* carte */

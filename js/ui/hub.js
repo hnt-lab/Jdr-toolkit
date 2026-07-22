@@ -149,7 +149,8 @@ function _hubCampCardHTML(t,c,isMJ){
                   <div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600">${esc(charInfo.charName||'?')}</div><div class="ds-note">${esc(charInfo.charClass||'')}</div></div>
                   <button class="ds-btn quiet" style="color:var(--ds-seal);border-color:var(--ds-seal);flex-shrink:0;min-height:32px;padding:3px 9px" onclick="playerLeaveCharacter('${c.id}')">✕ Quitter</button>
                 </div>
-                <button class="ds-btn primary" style="width:100%" onclick="joinGroupOnly('${t.id}','${c.id}')">👥 Rejoindre le groupe</button>
+                ${(()=>{const cur=_dsCurrentGame();return (cur&&cur.campaignId===c.id)?_dsInGameBadge()
+                  :`<button class="ds-btn primary" style="width:100%" onclick="joinGroupOnly('${t.id}','${c.id}')">👥 Rejoindre le groupe</button>`;})()}
               </div>`
             :(charInfo&&charInfo.leftCampaign
               ?`<div style="margin-top:8px">
@@ -186,6 +187,19 @@ function _hubCampCardHTML(t,c,isMJ){
         </div>${expandedHtml}</div>`;
 }
 
+// « Partie en cours » (lot A7, 2026-07-22) — s'appuie sur la mémoire de session du lot 0.
+// Une partie est EN COURS tant que la table+campagne sont mémorisées, même quand on remonte
+// au Hub (showHub n'écrase que `mode`). C'est ce qui remplace les boutons Reprendre / Rejoindre.
+function _dsCurrentGame(){
+  const s=(typeof loadSessionState==='function')?loadSessionState():null;
+  return (s&&s.tableId&&s.campaignId)?s:null;
+}
+function _dsInGameBadge(){
+  return`<div class="ds-ingame" style="width:100%;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:7px;
+    padding:8px 10px;border:1px solid var(--ds-acc-strong);background:var(--ds-card2);
+    font-family:var(--ds-disp);font-size:12px;letter-spacing:.06em;color:var(--ds-acc-strong)">
+    <span class="ds-livedot" style="width:8px;height:8px;border-radius:50%;background:var(--ds-acc-strong);flex:none"></span>Partie en cours</div>`;
+}
 // Carte de table (rail) — illustration + catégorie code couleur + « Reprendre » direct (P1 validée)
 function _dsTableCardHTML(t,selected){
   const isMJ=t.mjId===currentUser.uid;
@@ -193,7 +207,9 @@ function _dsTableCardHTML(t,selected){
   const thumb=(t.campaigns||[]).map(c=>c.imageUrl).find(Boolean);
   const lastId=localStorage.getItem('lastCamp_'+t.id);
   const last=(t.campaigns||[]).find(c=>c.id===lastId)||(t.campaigns||[]).find(c=>c.status!=='finished');
-  const resume=last?`<button class="ds-btn primary" style="width:100%;margin-top:8px" onclick="event.stopPropagation();hubResumeTable('${t.id}')">${isMJ?'👑 Ouvrir':'▶ Reprendre'} — ${esc(last.name)}</button>`:'';
+  const cur=_dsCurrentGame();
+  const resume=(cur&&cur.tableId===t.id)?_dsInGameBadge()
+    :last?`<button class="ds-btn primary" style="width:100%;margin-top:8px" onclick="event.stopPropagation();hubResumeTable('${t.id}')">${isMJ?'👑 Ouvrir':'▶ Reprendre'} — ${esc(last.name)}</button>`:'';
   return`<div class="ds-tablecard${isMJ?' mj':''}${selected?' sel':''}" onclick="hubSelectTable('${t.id}')">
     <div class="art">${isMJ?'🏰':'⚔'}${thumb?`<img src="${esc(thumb)}" onerror="this.remove()">`:''}</div>
     <div class="bd">
@@ -260,7 +276,12 @@ function renderHubHTML(tables){
     <button class="ds-btn primary" onclick="openCreateTable()">＋ Créer une table</button>
     <button class="ds-btn" onclick="openJoinTable()">🚪 Rejoindre une table</button>
   </div>`;
-  if(!_hubSelectedTableId||!tables.find(t=>t.id===_hubSelectedTableId)) _hubSelectedTableId=tables[0].id;
+  // A7 : à défaut de sélection explicite, on ouvre la table de la PARTIE EN COURS
+  // (et non la première de la liste) — cohérent avec la campagne laissée dépliée.
+  if(!_hubSelectedTableId||!tables.find(t=>t.id===_hubSelectedTableId)){
+    const _cur=_dsCurrentGame();
+    _hubSelectedTableId=(_cur&&tables.find(t=>t.id===_cur.tableId))?_cur.tableId:tables[0].id;
+  }
   const sel=tables.find(t=>t.id===_hubSelectedTableId);
   const mine=tables.filter(t=>t.mjId===currentUser.uid);
   const others=tables.filter(t=>t.mjId!==currentUser.uid);
@@ -643,6 +664,7 @@ async function enterCampaign(tableId,campaignId,tName,cName,preloadedCharData,fo
   currentTableId=tableId;
   currentCampaignId=campaignId;
   try{localStorage.setItem('lastCamp_'+tableId,campaignId);}catch(e){} // mémo « Reprendre » (P1)
+  saveSessionState({tableId,campaignId,mode:'play'}); // lot 0 : F5 rouvre ICI (voir firebase.js)
   if(!tName&&_hubCache){const t=_hubCache.find(t=>t.id===tableId);if(t){tName=t.name;const c=t.campaigns.find(c=>c.id===campaignId);if(c)cName=c.name;}}
   currentTableName=tName||'';
   currentCampaignName=cName||'';

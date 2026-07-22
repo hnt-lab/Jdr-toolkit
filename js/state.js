@@ -716,7 +716,7 @@ function renderTabBar(){
   // REFONTE P2 : 6 onglets fusionnés (Personnage=Perso+Compétences · Inventaire=Équip.+Sac · Historique=XP+Historique)
   const _lvlupCls=(()=>{const _lvl=totalLevel(p);const _nxt=XP_LEVELS[_lvl]||XP_LEVELS[19];return(p.xp||0)>=_nxt&&_lvl<20&&!p.pendingLevelUp?'lvlup':''})();
   let TABS=[
-    {id:'perso',ico:'👤',txt:'Personnage'},
+    {id:'perso',ico:'👤',txt:'Caractéristiques'}, // renommé 2026-07-22 (rapport user) — l'id reste 'perso' : il sert de clé dans lastTab_/tabOrder
     {id:'combat',ico:'⚔️',txt:'Combat'},
     {id:'sorts',ico:'✨',txt:'Sorts'},
     {id:'equipement',ico:'🎒',txt:'Inventaire'},
@@ -751,7 +751,7 @@ function renderTabBar(){
 function openTabOrderSettings(){
   const p=P();
   const BASE_IDS=['perso','combat','sorts','equipement','historique','journal'];
-  const LABELS={perso:'👤 Personnage',combat:'⚔️ Combat',sorts:'✨ Sorts',equipement:'🎒 Inventaire',historique:'📜 Historique',journal:'📖 Journal'};
+  const LABELS={perso:'👤 Caractéristiques',combat:'⚔️ Combat',sorts:'✨ Sorts',equipement:'🎒 Inventaire',historique:'📜 Historique',journal:'📖 Journal'};
   if(!p.tabOrder||p.tabOrder.length<BASE_IDS.length)p.tabOrder=[...BASE_IDS];
   window._tabOrderMove=(id,dir)=>{
     const order=p.tabOrder;const i=order.indexOf(id);const j=i+dir;

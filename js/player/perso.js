@@ -106,17 +106,14 @@ function tabPerso(p){
   <div data-csgroup="perso-gauche">
     <!-- (Portrait déplacé dans le rail ; caractéristiques ci-dessus — _caracsChipsHTML) -->
 
-    ${ws?.active?`<div class="panel mb10" style="border-color:rgba(76,175,80,.4);background:rgba(76,175,80,.04)">
-      <div class="pt" style="color:var(--good);display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>${ws.beast.icon} ${esc(ws.beast.name)} — Attaques & Traits</div>
-      ${ws.beast.attacks.map(a=>`<div style="background:rgba(76,175,80,.08);border:1px solid rgba(76,175,80,.2);border-radius:2px;padding:8px 10px;margin-bottom:6px">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <strong style="color:var(--good);font-size:13px">${esc(a.name)}</strong>
-          <span style="color:var(--text2);font-size:13px">+${a.bonus} / <strong>${esc(a.dmg)}</strong> ${esc(a.type||'')}</span>
-        </div>
-        ${a.special?`<div style="font-size:13px;color:var(--text3);margin-top:3px">${esc(a.special)}</div>`:''}
-        <button class="btn bsm" style="margin-top:6px;border-color:rgba(76,175,80,.4);color:var(--good)" onclick="rollAttack('${jsq(a.name)}',${a.bonus},'${jsq(a.dmg)}')" title="Jet d'attaque + dégâts">⚔ Attaque</button>
-      </div>`).join('')}
+    <!-- FORME SAUVAGE — les ATTAQUES ont été retirées d'ici le 2026-07-22 (rapport user :
+         elles faisaient doublon avec l'onglet Combat, qui les rend déjà via druide.js).
+         Règle : on agit dans Combat, on consulte ici. Seuls les TRAITS de la bête restent —
+         ce ne sont pas des actions d'attaque et ils n'existent nulle part ailleurs. -->
+    ${ws?.active&&(ws.beast.traits||[]).length?`<div class="panel mb10" style="border-color:rgba(76,175,80,.4);background:rgba(76,175,80,.04)">
+      <div class="pt" style="color:var(--good);display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>${ws.beast.icon} ${esc(ws.beast.name)} — Traits</div>
       ${ws.beast.traits.map(t=>`<div style="font-size:13px;color:var(--text2);padding:5px 0;border-bottom:1px solid rgba(76,175,80,.15)">🐾 ${esc(t)}</div>`).join('')}
+      <div style="font-size:12px;color:var(--text3);margin-top:8px">⚔ Les attaques de la forme sont dans l'onglet <strong>Combat</strong>.</div>
     </div>`:''}
 
     <!-- Résistances & Immunités (rétractable) -->

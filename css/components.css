@@ -87,7 +87,7 @@
 .stat-row{display:flex;align-items:center;gap:8px;padding:8px;background:var(--surface2);border-radius:2px;margin-bottom:6px;flex-wrap:wrap}
 .stat-row-name{width:105px;font-size:13px;color:var(--text2)}
 .stat-ctrl{display:flex;align-items:center;gap:8px}
-.stat-ctrl button{width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--surface3);color:var(--text);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.stat-ctrl button{width:28px;height:28px;border-radius:2px;border:1px solid var(--border);/* carré : cf. règle des formes, design-system.css §09 */background:var(--surface3);color:var(--text);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .15s}
 .stat-ctrl button:hover:not(:disabled){border-color:var(--cp);color:var(--cp)}.stat-ctrl button:disabled{opacity:.3;cursor:not-allowed}
 .stat-val{font-size:15px;font-weight:700;color:var(--text);width:32px;text-align:center}
 .sk-choice{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:2px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;transition:all .15s;margin-bottom:4px}

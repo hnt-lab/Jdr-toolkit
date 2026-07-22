@@ -49,6 +49,7 @@ async function doRegister(){
 }
 async function doLogout(){
   stopAllListeners();
+  clearSessionState(); // AVANT signOut : la clé est indexée sur currentUser.uid (firebase.js)
   await authService.signOut();
   state={players:[],activeIdx:0,activeTab:'perso'};
   currentTableId=null;currentCampaignId=null;

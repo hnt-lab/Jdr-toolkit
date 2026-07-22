@@ -146,6 +146,39 @@ let currentCampaignId=null;
 let currentTableName='';
 let currentCampaignName='';
 let currentTableMjId=null;
+
+// ═══ MÉMOIRE DE SESSION (lot 0, 2026-07-22) ═══
+// PROBLÈME RÉSOLU : currentTableId/currentCampaignId ci-dessus ne vivent QUE le temps de l'onglet.
+// Un F5 les remettait à null → l'app repartait systématiquement du Hub (core.js appelait showHub()
+// sans condition), quel que soit l'endroit où l'utilisateur en était.
+//
+// DEUX NOTIONS DISTINCTES, volontairement dans le MÊME objet (trois clés séparées finiraient par
+// se désynchroniser : la table d'une session avec la campagne d'une autre) :
+//   • tableId + campaignId = LA PARTIE EN COURS — survit au retour au Hub (c'est ce qui permet
+//     d'afficher « Partie en cours » au lieu du bouton Reprendre/Rejoindre).
+//   • mode ('hub' | 'play')  = L'ÉCRAN où l'utilisateur était — change à chaque navigation.
+//     'play' suffit : le rôle MJ/joueur est redéduit de la table à la restauration, il n'est
+//     JAMAIS relu depuis cette note (une note périmée ne doit pas pouvoir donner des droits).
+//
+// Cloisonnée par compte, comme getUserSK() (state.js:560) : deux comptes sur le même navigateur
+// ne doivent pas hériter de la partie de l'autre.
+function _sessionKey(){return currentUser?'mjtk_session_'+currentUser.uid:null;}
+function saveSessionState(patch){
+  const k=_sessionKey();if(!k)return;
+  try{
+    const cur=loadSessionState()||{};
+    localStorage.setItem(k,JSON.stringify({...cur,...patch,ts:Date.now()}));
+  }catch(e){} // quota / mode privé : la mémoire de session est un confort, jamais un bloquant
+}
+function loadSessionState(){
+  const k=_sessionKey();if(!k)return null;
+  try{const raw=localStorage.getItem(k);return raw?JSON.parse(raw):null;}catch(e){return null;}
+}
+function clearSessionState(){
+  const k=_sessionKey();if(!k)return;
+  try{localStorage.removeItem(k);}catch(e){}
+}
+
 let _activeCombatState=null;
 let _combatListenerInitialized=false;
 let _prevCombatTurnUid=null;

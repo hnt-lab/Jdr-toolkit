@@ -86,6 +86,7 @@ async function joinGroupOnly(tableId,campaignId){
   currentTableId=tableId;currentCampaignId=campaignId;
   currentTableName=tableData?.name||'';currentTableMjId=tableData?.mjId||null;
   _groupOnlyMode=true;
+  saveSessionState({tableId,campaignId,mode:'group'}); // lot 0 : F5 revient en mode groupe, pas au Hub
   stopAllListeners();
   _groupData=[];_activeCombatState=null;_combatListenerInitialized=false;_prevCombatTurnUid=null;
   _groupHudOpen=false; // ne PAS ouvrir le panneau : juste afficher le bouton 👥 (l'utilisateur l'ouvre quand il veut)
@@ -126,10 +127,17 @@ function showHub(){
   document.getElementById('hubScreen').style.display='block';
   document.getElementById('app').style.display='none';
   document.getElementById('mjScreen').style.display='none';
-  _expandedCamp=null;
+  // A7 : au retour au Hub, la campagne EN COURS reste dépliée (au lieu de tout replier).
+  // Sinon on repliait exactement la carte que l'utilisateur venait de quitter.
+  {const _cur=(typeof loadSessionState==='function')?loadSessionState():null;
+   _expandedCamp=(_cur&&_cur.campaignId)?_cur.campaignId:null;}
   _refreshNavAvatars();_refreshModeNav();_syncFloatingUI();
-  renderHub();
+  // Lot 0 : on note l'ÉCRAN sans toucher à la partie en cours — un F5 depuis le Hub reste au Hub,
+  // mais la table/campagne restent mémorisées (« Partie en cours »).
+  saveSessionState({mode:'hub'});
+  const _rh=renderHub(); // renderHub est async : la promesse sert à la restauration (voir _restoreSession)
   if(!localStorage.getItem('tuto_player_done')) setTimeout(()=>startTutorial('player'),700);
+  return _rh;
 }
 function showApp(){
   document.getElementById('authScreen').style.display='none';
@@ -172,6 +180,41 @@ function _mjtkEntrance(done){
   setTimeout(()=>{if(ov.parentNode)ov.remove();if(scene){scene.style.transform='';scene.style.transition='';scene.style.transformOrigin='';}if(panel){panel.style.opacity='';panel.style.transform='';panel.style.transition='';}},3300);
 }
 
+// ─── RESTAURATION DE SESSION (lot 0, 2026-07-22) ───
+// Rouvre la partie où l'utilisateur en était au lieu de repartir du Hub à chaque F5.
+//
+// ⚠️ TIMING CRITIQUE — NE PAS APPELER enterCampaign() PLUS TÔT.
+// enterCampaign déduit le rôle MJ ainsi (hub.js) :
+//     const tableData=_hubCache&&_hubCache.find(t=>t.id===tableId);
+//     const asMJ=!!(tableData&&tableData.mjId===currentUser.uid);
+// et _hubCache n'est rempli qu'à la FIN de renderHub() (async, plusieurs requêtes réseau).
+// Restaurer avant ⇒ _hubCache null ⇒ asMJ=false ⇒ un MJ serait rouvert comme JOUEUR.
+// D'où l'ordre imposé : showHub() (qui attend renderHub) PUIS restauration.
+// ⚠️ La note est lue AVANT showHub() et passée en argument : showHub() écrit mode:'hub',
+// donc une lecture faite après ne verrait jamais 'play'/'group' — la restauration ne se
+// déclencherait plus jamais. Ne pas « simplifier » en relisant loadSessionState() ici.
+async function _restoreSession(s){
+  if(!s||!s.tableId||!s.campaignId)return false;
+  if(s.mode!=='play'&&s.mode!=='group')return false;
+  // La table et la campagne existent-elles ENCORE ? Couvre d'un coup : table supprimée,
+  // campagne supprimée, joueur exclu de la table. Le rôle MJ/joueur est redéduit par
+  // enterCampaign à partir de la table — jamais lu depuis la note.
+  const t=_hubCache&&_hubCache.find(x=>x.id===s.tableId);
+  const c=t&&(t.campaigns||[]).find(x=>x.id===s.campaignId);
+  if(!t||!c){clearSessionState();return false;} // on reste au Hub, silencieusement
+  if(s.mode==='group')await joinGroupOnly(s.tableId,s.campaignId);
+  else await enterCampaign(s.tableId,s.campaignId,t.name,c.name);
+  return true;
+}
+async function _bootToLastScreen(){
+  const s=loadSessionState(); // LIRE D'ABORD — showHub() va écrire mode:'hub' par-dessus
+  try{
+    await showHub();          // remplit _hubCache : indispensable avant toute restauration
+    await _restoreSession(s); // échec ⇒ on reste au Hub, que showHub a déjà noté comme mode courant
+  }catch(e){}
+  finally{hideSplash();}      // retardé si une restauration était prévue (voir onAuthStateChanged)
+}
+
 // ─── AUTH STATE ───
 fbAuth.onAuthStateChanged(async user=>{
   if(user){
@@ -189,12 +232,16 @@ fbAuth.onAuthStateChanged(async user=>{
         if(d.exists){currentUserData=d.data();if(typeof _refreshNavAvatars==='function')_refreshNavAvatars();}
       },()=>{});
     }catch(e){}
-    hideSplash();
+    // Lot 0 : si une partie est à restaurer, on GARDE le splash le temps de la restauration —
+    // sinon l'utilisateur voit le Hub clignoter une fraction de seconde avant sa fiche.
+    // (_bootToLastScreen retire le splash dans tous les cas, y compris en cas d'erreur.)
+    const _sess=loadSessionState();
+    if(!(_sess&&_sess.mode==='play'&&_sess.tableId&&_sess.campaignId))hideSplash();
     if(typeof _refreshNavAvatars==='function')_refreshNavAvatars();
     if(typeof loadMJCompLib==='function')loadMJCompLib();
     const _authEl=document.getElementById('authScreen');
-    if(_authEl&&getComputedStyle(_authEl).display!=='none'&&typeof _mjtkEntrance==='function'){_mjtkEntrance(showHub);}
-    else{showHub();}
+    if(_authEl&&getComputedStyle(_authEl).display!=='none'&&typeof _mjtkEntrance==='function'){_mjtkEntrance(_bootToLastScreen);}
+    else{_bootToLastScreen();}
   }else{
     if(window._userDocUnsub){try{window._userDocUnsub();}catch(e){}window._userDocUnsub=null;}
     currentUser=null;currentUserData=null;
