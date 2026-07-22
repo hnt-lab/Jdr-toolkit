@@ -129,8 +129,10 @@ function showHub(){
   document.getElementById('mjScreen').style.display='none';
   // A7 : au retour au Hub, la campagne EN COURS reste dépliée (au lieu de tout replier).
   // Sinon on repliait exactement la carte que l'utilisateur venait de quitter.
+  // ⚠ _expandedCamp est une clé COMPOSITE « tableId_campaignId » (hub.js:5-6, hub.js:115) —
+  //   y mettre le seul campaignId ne correspondait à aucune carte : rien ne se dépliait.
   {const _cur=(typeof loadSessionState==='function')?loadSessionState():null;
-   _expandedCamp=(_cur&&_cur.campaignId)?_cur.campaignId:null;}
+   _expandedCamp=(_cur&&_cur.tableId&&_cur.campaignId)?(_cur.tableId+'_'+_cur.campaignId):null;}
   _refreshNavAvatars();_refreshModeNav();_syncFloatingUI();
   // Lot 0 : on note l'ÉCRAN sans toucher à la partie en cours — un F5 depuis le Hub reste au Hub,
   // mais la table/campagne restent mémorisées (« Partie en cours »).

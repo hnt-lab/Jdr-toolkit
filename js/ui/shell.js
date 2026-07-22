@@ -62,11 +62,22 @@ function _dsShareHTML(s,idx,mjMode){
     <div style="flex:1;min-width:0"><div style="font-family:var(--ds-disp);font-size:11.5px;font-weight:700">${esc(s.title||'?')} ${chip}</div>
     ${s.text?`<div class="ds-note">${esc(s.text)}</div>`:''}</div>${del}</div>`;
 }
+// ⛔ NE JAMAIS LIRE L'ÉTAT DE L'APP VIA « window.X » — CE FICHIER EN EST MORT LE 2026-07-22.
+// currentUser, _groupData, _activeCombatState, _mjTab, _mjCombatStarted sont déclarés avec
+// « let » (firebase.js, core.js). Or « let » au premier niveau d'un <script> classique crée
+// une variable de portée SCRIPT, PAS une propriété de window : window._groupData vaut donc
+// TOUJOURS undefined. Écrit en garde défensive, « window.X && X.champ » ne protégeait rien —
+// il forçait la branche vide en silence, sans la moindre erreur en console.
+// Conséquences réelles : page Groupe bloquée sur « En attente des joueurs… » avec 4 joueurs à
+// table · aucun bandeau de tour de jeu · onglet MJ actif jamais surligné (donc intercalaire MJ
+// impossible). Preuve : `node -e "let a=1;console.log(globalThis.a)"` → undefined.
+// shell.js étant chargé EN DERNIER (index.html:269), ces variables existent toujours :
+// on les lit DIRECTEMENT. Pour une variable qui pourrait manquer, utiliser typeof, pas window.
 function _dsRenderGroup(){
   const el=document.getElementById('dsGroupPage');if(!el||!_dsGroupOpen)return;
-  const combat=window._activeCombatState&&_activeCombatState.active;
-  const myTurn=combat&&_activeCombatState.currentTurnUid===(window.currentUser&&currentUser.uid);
-  const gd=window._groupData||[];
+  const combat=_activeCombatState&&_activeCombatState.active;
+  const myTurn=combat&&currentUser&&_activeCombatState.currentTurnUid===currentUser.uid;
+  const gd=_groupData||[];
   const tour=combat?`<div class="ds-seclbl" style="margin:12px 0 8px">⚡ Tour de jeu</div>
     ${myTurn?`<div class="ds-turnbar"><span>⚡ C'est ton tour !</span><button class="ds-btn" style="min-height:34px" onclick="playerEndTurn()">⏩ Fin du tour</button></div>`
       :`<div class="ds-banner">⚔ <span>Combat en cours — au tour de <b>${esc((gd.find(pp=>pp.uid===_activeCombatState.currentTurnUid)||{}).playerName||(((gd.find(pp=>pp.uid===_activeCombatState.currentTurnUid)||{}).charData||{}).charName)||'…')}</b></span></div>`}`:'';
@@ -76,7 +87,7 @@ function _dsRenderGroup(){
     const pct=Math.max(0,Math.min(100,hp/hpMax*100));
     const low=pct<=25,mid=pct>25&&pct<=50;
     const down=hp<=0,dead=down&&(p.deathSaves&&p.deathSaves.fail>=3);
-    const isOwn=pp.uid===(window.currentUser&&currentUser.uid);
+    const isOwn=!!currentUser&&pp.uid===currentUser.uid;
     const portrait=p.portrait||p.equipPortrait;
     const cls=(p.classes||[]).map(c=>c.name+' '+c.level).join(' / ');
     const chips=(typeof _buildChargeChips==='function')?_buildChargeChips(p):'';
@@ -154,9 +165,9 @@ function _dsNavSignals(){
   const turn=document.getElementById('dsNavTurn');
   const dng=document.getElementById('dsNavDanger');
   if(!turn&&!dng)return;
-  const combatActive=!!(window._activeCombatState&&_activeCombatState.active);
-  const myTurn=combatActive&&_activeCombatState.currentTurnUid===(window.currentUser&&currentUser.uid);
-  const dCount=(window._groupData||[]).filter(pp=>{const p=pp.charData||{};return p.hpMax&&p.hp/p.hpMax<=.25;}).length;
+  const combatActive=!!(_activeCombatState&&_activeCombatState.active); // voir l'avertissement « window.X » plus haut
+  const myTurn=combatActive&&!!currentUser&&_activeCombatState.currentTurnUid===currentUser.uid;
+  const dCount=(_groupData||[]).filter(pp=>{const p=pp.charData||{};return p.hpMax&&p.hp/p.hpMax<=.25;}).length;
   if(turn)turn.style.display=myTurn?'flex':'none';
   if(dng){dng.style.display=dCount?'flex':'none';dng.textContent=dCount||'';}
 }
@@ -187,8 +198,11 @@ function renderMJTabs(){ // surcharge de mj/index.js — rail 6 onglets {ico,txt
   ];
   const bar=document.getElementById('mjTabBar');
   if(bar) bar.innerHTML=tabs.map(t=>{
-    const ce=t.id==='combat'?(window._mjCombatStarted?' mj-tab-combat-active':' mj-tab-combat-idle'):'';
-    return`<button class="mj-tab${window._mjTab===t.id?' on':''}${ce}" onclick="setMJTab('${t.id}')"><span class="ti">${t.ico}</span><span class="tl">${t.txt}</span></button>`;
+    // _mjTab / _mjCombatStarted : lecture DIRECTE — voir l'avertissement « window.X » plus haut.
+    // Avec window._mjTab (undefined), AUCUN onglet MJ ne recevait « on » : d'où le rail MJ sans
+    // onglet actif, et l'intercalaire MJ (::after posé sur .on) qui ne pouvait pas fonctionner.
+    const ce=t.id==='combat'?(_mjCombatStarted?' mj-tab-combat-active':' mj-tab-combat-idle'):'';
+    return`<button class="mj-tab${_mjTab===t.id?' on':''}${ce}" onclick="setMJTab('${t.id}')"><span class="ti">${t.ico}</span><span class="tl">${t.txt}</span></button>`;
   }).join('');
   // CRUCIAL : envelopper la barre dans .tab-scroller (le rail fixe) — en session MJ pure,
   // renderTabBar (joueur) ne tourne jamais, donc personne d'autre ne crée le wrapper.
