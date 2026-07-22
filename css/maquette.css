@@ -284,6 +284,10 @@ body.ds-lefty .norg-nav{padding:7px 10px calc(7px + env(safe-area-inset-bottom))
   #charRail .rail-caracs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px}
   .caracs-intab{display:none}
   .rail-body{display:block;padding:0 10px 12px}
+  /* Le ⚙ du bandeau de fiche fait DOUBLON avec l'avatar de la barre du haut (desktop
+     uniquement — sur mobile la barre du haut est masquée, le ⚙ y reste l'unique accès).
+     Corrigé à la source : masqué ici, dans la même requête média qui fait naître la barre. */
+  .norg-head .opt{display:none}
 
   /* ── ONGLETS HORIZONTAUX (intercalaires, verbatim maquette .g-tab) ── */
   /* ⚠ bottom:auto OBLIGATOIRE — sinon le `bottom` du rail mobile étire la barre
