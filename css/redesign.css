@@ -120,9 +120,10 @@
 .rail-carac-n{font-size:11.5px;color:var(--text3);letter-spacing:.05em}
 .rail-carac-v{font-size:18px;font-weight:700;color:var(--text);line-height:1.1}
 .rail-carac-m{font-size:13px;color:var(--cp)}
-/* Boutons Dégâts/Soins du rail : DESKTOP uniquement (sur mobile la barre de vitals est
-   compacte et fixe, l'accès Dégâts/Soins passe par le tap sur la jauge + l'onglet Combat). */
+/* Boutons Dégâts/Soins + label PV du rail : DESKTOP uniquement (sur mobile la barre de
+   vitals est compacte et fixe ; l'accès Dégâts/Soins passe par le tap sur la jauge). */
 .rail-hpbtns{display:none}
+.rail-pvlbl{display:none}
 .rail-chips{display:flex;flex-wrap:wrap;gap:5px}
 .rail-chip{font-size:11.5px;padding:2px 8px;border-radius:2px;background:var(--surface);border:1px solid var(--border);color:var(--text2)}
 .rail-resist{border-color:rgba(200,168,75,.35);color:var(--cp)}

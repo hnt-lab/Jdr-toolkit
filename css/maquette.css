@@ -272,21 +272,28 @@ body.ds-lefty .norg-nav{padding:7px 10px calc(7px + env(safe-area-inset-bottom))
 
   /* ── FICHE : charRail gauche (sticky) + zone principale (tabs H + contenu) ── */
   #app{padding:var(--shell-h) max(16px,calc(50% - 700px)) 40px calc(max(16px,50% - 700px) + 306px)!important}
-  #charRail{position:fixed;top:var(--chrome-h);bottom:0;width:290px;left:max(16px,calc(50% - 700px));z-index:840;
-    overflow-y:auto;background:var(--page);border-right:1px solid var(--acc-strong);padding:0}
-  /* A2 — BANDEAU CONTINU : .norg-head (au-dessus du charRail) et #tabBar (à droite)
-     occupent la MÊME bande [--chrome-h → --shell-h] et partagent déjà le même dégradé
-     de cuir. Leur imposer la même hauteur suffit à ce que l'en-tête se lise comme UN
-     seul bandeau allant d'un bord à l'autre de l'écran. */
-  #charRail .norg-head{position:static;height:var(--tabs-h);box-sizing:border-box;
-    border-bottom:2px solid var(--brass-trim)}
+  /* CARTE (copier-collé de la maquette desktop, 2026-07-23) — le rail n'est plus une colonne
+     pleine hauteur fondue dans la page : c'est une CARTE encadrée (fond carte + filet + coins
+     gravés à la couleur de classe), de la hauteur de son contenu, qui défile en interne si besoin. */
+  #charRail{position:fixed;top:var(--chrome-h);bottom:auto;
+    max-height:calc(100vh - var(--chrome-h) - 16px);width:290px;left:max(16px,calc(50% - 700px));z-index:840;
+    overflow-y:auto;background:var(--card);border:1px solid var(--line);padding:0}
+  #charRail::before,#charRail::after{content:"";position:absolute;width:14px;height:14px;
+    border-color:var(--cls,var(--acc-strong));pointer-events:none;z-index:2}
+  #charRail::before{top:-1px;left:-1px;border-top:2px solid;border-left:2px solid}
+  #charRail::after{bottom:-1px;right:-1px;border-bottom:2px solid;border-right:2px solid}
+  #charRail .norg-head{position:static;height:auto;box-sizing:border-box;padding:12px;
+    background:linear-gradient(180deg,var(--card),var(--card2));border-bottom:1px solid var(--line)}
   /* VITALS DÉVELOPPÉES (calage sur la maquette desktop, 2026-07-23) — sur desktop le
      charRail a de la place : la jauge PV passe pleine largeur et plus haute, les boutons
      Dégâts/Soins apparaissent, et CA/Init/Vitesse deviennent 3 tuiles. L'ordre est piloté
      par `order` (pas par le DOM) pour NE PAS toucher la barre compacte du mobile. */
   #charRail .norg-vitals{position:static;padding:12px 10px;display:flex;flex-wrap:wrap;gap:6px;align-items:stretch}
-  #charRail .norg-vitals .g-hp{order:1;flex:1 0 100%;height:22px}
-  #charRail .norg-vitals .g-hp .vv{font-size:12px}
+  #charRail .norg-vitals .rail-pvlbl{order:0;flex:1 0 100%;display:flex;justify-content:space-between;
+    align-items:baseline;font-family:var(--f-disp);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--soft)}
+  #charRail .norg-vitals .rail-pvlbl b{font-family:var(--f-mono);font-size:14px;color:var(--ink);letter-spacing:0}
+  #charRail .norg-vitals .g-hp{order:1;flex:1 0 100%;height:20px}
+  #charRail .norg-vitals .g-hp .vv{display:none} /* la valeur est reprise dans le label au-dessus */
   #charRail .norg-vitals .rail-hpbtns{order:2;display:flex;flex:1 0 100%;gap:6px}
   #charRail .norg-vitals .rail-hpbtns .btn{flex:1;min-height:32px}
   #charRail .norg-vitals .rail-dmg{border-color:rgba(163,55,42,.5);color:var(--seal,var(--danger))}
@@ -343,6 +350,6 @@ body.ds-lefty .norg-nav{padding:7px 10px calc(7px + env(safe-area-inset-bottom))
 
   /* ── GAUCHER : charRail à droite, onglets décalés à gauche ── */
   body.ds-lefty #app{padding-left:max(16px,calc(50% - 700px))!important;padding-right:calc(max(16px,50% - 700px) + 306px)!important}
-  body.ds-lefty #charRail{left:auto;right:max(16px,calc(50% - 700px));border-right:none;border-left:1px solid var(--acc-strong)}
+  body.ds-lefty #charRail{left:auto;right:max(16px,calc(50% - 700px))} /* carte : bordure sur les 4 côtés, rien à inverser */
   body.ds-lefty #tabBar{left:max(16px,calc(50% - 700px));right:calc(max(16px,50% - 700px) + 306px)}
 }

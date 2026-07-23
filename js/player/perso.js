@@ -55,6 +55,7 @@ function renderCharRail(p){
       <button class="opt" onclick="openUserSettings()" title="Profil &amp; options">⚙</button>
     </div>
     <div class="norg-vitals">
+      <div class="rail-pvlbl">❤ Points de vie <b>${barText}</b></div>
       <span class="vs" title="Classe d'armure">🛡 <b>${caVal}</b></span>
       <div class="g-hp${hpCls}" onclick="openHpModal()" title="Dégâts / Soins"><i style="width:${pct}%"></i><span class="vv">${barText}</span></div>
       <span class="vs" title="Initiative">⚡ <b>${initVal}</b></span>
