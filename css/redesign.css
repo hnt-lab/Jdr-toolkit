@@ -124,6 +124,10 @@
    vitals est compacte et fixe ; l'accès Dégâts/Soins passe par le tap sur la jauge). */
 .rail-hpbtns{display:none}
 .rail-pvlbl{display:none}
+.rail-seclbl{display:none}   /* sous-titres de section du rail : desktop seulement */
+.rail-sub{display:none}      /* sous-classe sous le nom : desktop seulement */
+.vs .vk{display:none}        /* libellé long des tuiles (« 🛡 CA ») : desktop seulement */
+.vs .vi{font-style:normal}   /* icône seule : c'est la version mobile compacte */
 .rail-chips{display:flex;flex-wrap:wrap;gap:5px}
 .rail-chip{font-size:11.5px;padding:2px 8px;border-radius:2px;background:var(--surface);border:1px solid var(--border);color:var(--text2)}
 .rail-resist{border-color:rgba(200,168,75,.35);color:var(--cp)}

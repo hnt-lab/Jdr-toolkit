@@ -44,6 +44,10 @@ function renderCharRail(p){
   // Structure MAQUETTE §03 : .norg-head (portrait + nom + ⚙) puis .norg-vitals (CA · PV · Init · Vitesse).
   // Le retour aux Tables se fait par la nav du bas — pas de bouton redondant ici.
   const hpCls=ws?.active?'':(pct<=25?' low':(pct<=50?' mid':''));
+  // Sous-classe de la classe principale (« Collège du Savoir », « Cercle de la terre »…) —
+  // affichée sous la ligne race·classe, à la couleur de classe. Desktop seulement (cf. .rail-sub).
+  const _mcRail=(typeof mainClass==='function')?mainClass(p):null;
+  const _subCls=(_mcRail&&p.archetype)?(p.archetype[_mcRail.name]||''):'';
   return `
     <div class="norg-head">
       <span class="pp" onclick="document.getElementById('portInput')?.click()" title="Changer le portrait">${p.portrait?`<img src="${p.portrait}" alt="">`:'🧑'}</span>
@@ -51,15 +55,16 @@ function renderCharRail(p){
       <div style="min-width:0;flex:1">
         <div class="nm">${esc(p.charName||'Personnage')}${ws?.active?' 🐺':''}<span id="playerSyncDot" class="sync-dot" title="Mis à jour en temps réel"></span></div>
         <div class="cl">${esc(p.race||'')}${cls?' · '+esc(cls):''}${align?' · '+esc(align):''}</div>
+        ${_subCls?`<div class="cl rail-sub">${esc(_subCls)}</div>`:''}
       </div>
       <button class="opt" onclick="openUserSettings()" title="Profil &amp; options">⚙</button>
     </div>
     <div class="norg-vitals">
       <div class="rail-pvlbl">❤ Points de vie <b>${barText}</b></div>
-      <span class="vs" title="Classe d'armure">🛡 <b>${caVal}</b></span>
+      <span class="vs" title="Classe d'armure"><i class="vk">🛡 CA</i><i class="vi">🛡</i> <b>${caVal}</b></span>
       <div class="g-hp${hpCls}" onclick="openHpModal()" title="Dégâts / Soins"><i style="width:${pct}%"></i><span class="vv">${barText}</span></div>
-      <span class="vs" title="Initiative">⚡ <b>${initVal}</b></span>
-      <span class="vs" title="Vitesse">👣 <b>${spdVal}</b></span>
+      <span class="vs" title="Initiative"><i class="vk">⚡ Init</i><i class="vi">⚡</i> <b>${initVal}</b></span>
+      <span class="vs" title="Vitesse"><i class="vk">👣 Vitesse</i><i class="vi">👣</i> <b>${spdVal}</b></span>
       <div class="rail-hpbtns"><button class="btn bsm rail-dmg" onclick="openHpModal()">💥 Dégâts</button><button class="btn bsm rail-heal" onclick="openHpModal()">💚 Soins</button></div>
       ${hpExtra?`<div class="norg-xtra">${hpExtra}</div>`:''}
     </div>
@@ -81,8 +86,11 @@ function _caracsChipsHTML(p){
   const resist=(typeof getEffectiveResistances==='function')?getEffectiveResistances(p):[];
   const _encum=(typeof getEncumbrance==='function')?getEncumbrance(p):null;
   const chips=(p.statuses||[]).slice(0,8).map(s=>`<span class="rail-chip">${esc(s.icon||'•')} ${esc(s.name||s.stat||'')}</span>`).join('')+resist.map(t=>`<span class="rail-chip rail-resist">🛡 ${esc(t)}</span>`).join('')+(_encum&&_encum.level?`<span class="rail-chip" style="color:${_encum.level===2?'var(--danger)':'var(--warn)'};border-color:${_encum.level===2?'rgba(229,57,53,.4)':'rgba(255,152,0,.4)'}">🎒 ${_encum.label} (−${_encum.speedMalus} m)</span>`:'');
-  return`<div class="rail-caracs" style="margin-bottom:10px">${caracs}</div>
-    ${chips?`<div class="rail-chips" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px">${chips}</div>`:''}`;
+  // Sous-titres de section (maquette desktop) : masqués sur mobile via .rail-seclbl.
+  return`${chips?`<div class="rail-seclbl">États &amp; ressources</div>
+    <div class="rail-chips" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px">${chips}</div>`:''}
+    <div class="rail-seclbl">Caractéristiques</div>
+    <div class="rail-caracs" style="margin-bottom:10px">${caracs}</div>`;
 }
 
 // ═══════════════════════════════════════
