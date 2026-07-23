@@ -134,8 +134,10 @@ function createDiceButton(){
   btn.setAttribute('role','button');btn.setAttribute('aria-label','Lanceur de dés');btn.setAttribute('tabindex','0'); /* a11y : bouton icône-seule annoncé + focusable */
   const _irlNow=_isIRLMode();
   btn.style.cssText=`position:fixed;bottom:24px;right:24px;z-index:888;width:52px;height:52px;border-radius:50%;background:${_irlNow?'var(--warn)':'var(--cp)'};color:${_irlNow?'#000':'#1a1400'};font-size:16px;display:none;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px ${_irlNow?'rgba(255,152,0,.5)':'rgba(0,0,0,.5)'};transition:transform .15s;user-select:none;`;
-  btn.onmouseenter=()=>btn.style.transform='scale(1.1)';
-  btn.onmouseleave=()=>btn.style.transform='scale(1)';
+  // ❌ SUPPRIMÉ (2026-07-23) : onmouseenter/onmouseleave posaient un scale(1.1) en style
+  // INLINE — l'inline bat TOUT le CSS, donc l'animation maquette du dé (inclinaison
+  // translateY(-3px) rotate(-8deg), maquette.css §dice) ne pouvait jamais s'exprimer.
+  // Le survol appartient au CSS ; le JS ne touche plus à transform.
   let _pressTimer=null,_longActivated=false;
   function _startPress(){_longActivated=false;_pressTimer=setTimeout(()=>{_longActivated=true;_openDiceShortcuts();},450);}
   function _endPress(){clearTimeout(_pressTimer);if(!_longActivated)toggleDicePanel();_longActivated=false;}

@@ -394,11 +394,14 @@ body.ds-lefty .norg-nav{padding:7px 10px calc(7px + env(safe-area-inset-bottom))
   .norg-panel>.g-fold>.fh{background:none;border:none;padding:2px 2px 6px;
     font-family:var(--f-disp);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)}
   .norg-panel>.g-fold>.fb{padding:0;gap:14px}
+  /* Le contenu d'un groupe fusionné n'a plus de sous-colonnes : la colonne de la grille
+     EST la colonne (maquette = cartes empilées dans 2 colonnes, jamais 4 sous-colonnes). */
+  .norg-panel>.g-fold>.fb .g2{grid-template-columns:1fr}
   /* Cartes de contenu (maquette .fold) : cadre simple, en-tête .pt façon .fh */
   #app .panel,#mjScreen .panel{box-shadow:none;border:1px solid var(--border);background:var(--surface2);
     margin-bottom:0;padding:12px}
   #app .g-sub,#mjScreen .g-sub{background:var(--surface);box-shadow:none}
-  #app .pt,#mjScreen .pt{font-variant:none;font-family:var(--f-disp);font-size:14px;letter-spacing:.02em;
+  #app .pt,#mjScreen .pt{font-variant:normal;font-family:var(--f-disp);font-size:14px;letter-spacing:.02em;
     color:var(--text);margin:-12px -12px 12px;padding:10px 12px;
     background:linear-gradient(180deg,var(--surface),var(--surface2));border-bottom:1px solid var(--border)}
   /* Boutons (maquette .btn) */
