@@ -129,10 +129,16 @@
 .seclbl{font-family:var(--f-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--acc-strong);border-bottom:1px solid var(--line);padding-bottom:3px}
 .seclbl.mj{color:var(--good);border-color:var(--good)}
 
-/* ══════════ COQUE (§03 maquette) — adaptée au vrai viewport ══════════
+/* ══════════ COUCHE MOBILE — COQUE (§03 maquette) ══════════
+   ARCHITECTURE (GO utilisateur 2026-07-23) : DEUX interfaces étanches, UNE base de
+   features. Tout ce qui est coque MOBILE vit sous @media(max-width:899px) ; la coque
+   DESKTOP vit dans l'unique bloc @media(min-width:900px) en fin de fichier ; le reste
+   (tokens, composants, pont de classes) est COMMUN. Plus jamais de règle de coque
+   sans étiquette de surface : c'est ce qui forçait les batailles d'!important.
    Démo : .norg = boîte 340×680 en flex-column.
    Réel  : head+vitals FIXES en haut · rail FIXE à droite · nav FIXE en bas.
    --head-h est calé en JS (_dsSyncFicheHead) sur la hauteur réelle. */
+@media(max-width:899px){
 .norg-head{position:fixed;top:0;left:0;right:0;z-index:850;
   display:flex;align-items:center;gap:10px;padding:8px 12px;
   background:linear-gradient(180deg,var(--leather),var(--leather2));
@@ -180,8 +186,9 @@
 .norg-nav .flat .mode-ico{font-size:17px;line-height:1.4}
 .norg-nav .flat .mode-lbl{font-size:11px;letter-spacing:.03em}
 .norg-nav .flat.disabled{opacity:.4;pointer-events:none}
+} /* ══ fin COUCHE MOBILE (coque) ══ */
 
-/* ══════════ PONT DE CLASSES ══════════
+/* ══════════ COMMUN — PONT DE CLASSES ══════════
    Les classes historiques de l'app rendues avec les SPECS EXACTES des composants
    maquette. Aucun renommage JS (donc aucun sélecteur cassé) : même rendu. */
 .panel{background:var(--card);border:1px solid var(--acc);box-shadow:inset 0 0 0 2px var(--card),inset 0 0 0 3px var(--line);color:var(--ink);padding:12px 14px;border-radius:0;margin-bottom:10px}
@@ -215,12 +222,14 @@
 .modal-box{background:var(--card);color:var(--ink);border:1px solid var(--acc);border-radius:0;padding:16px;
   box-shadow:inset 0 0 0 2px var(--card),inset 0 0 0 3px var(--line),0 12px 40px rgba(0,0,0,.5)}
 
-/* ── GAUCHER : rail + dé en miroir (verbatim maquette .lefty) ── */
+/* ── COUCHE MOBILE — GAUCHER : rail + dé en miroir (verbatim maquette .lefty) ── */
+@media(max-width:899px){
 body.ds-lefty .norg-rail{right:auto;left:0;padding:10px 0 10px 4px}
 body.ds-lefty .norg-rail button{margin-left:0;margin-right:auto}
 body.ds-lefty .norg-rail button.on{margin-left:-4px;margin-right:0;left:0;border-left:1px solid var(--acc-strong);border-right:none}
 body.ds-lefty .norg-scroll{border-right:none;border-left:1px solid var(--acc-strong)}
 body.ds-lefty .norg-nav{padding:7px 10px calc(7px + env(safe-area-inset-bottom)) 76px}
+}
 
 /* Sous-carte (boîtes internes : armes, capacités, encarts) — aspect maquette */
 .g-sub{background:var(--card2);border:1px solid var(--line);border-radius:0;padding:9px 11px;
@@ -378,11 +387,8 @@ body.ds-lefty .norg-nav{padding:7px 10px calc(7px + env(safe-area-inset-bottom))
     height:3px;background:var(--surface)}
   #tabBar .tab-foot,#mjTabBar .tab-foot{opacity:.65!important}
   #tabBar button.tab-foot:nth-last-child(2){margin-left:auto!important}
-  /* Neutralise le rail MJ VERTICAL mobile (design-system §18bis, sélecteurs (1,2,0)
-     en !important) : à spécificité égale, cette règle-ci, chargée après, gagne. */
-  #mjTabBar .mj-tab.on{font-size:13.5px!important;background:var(--surface)!important;
-    border:1px solid var(--cp)!important;border-bottom:none!important;
-    left:auto!important;width:auto!important;box-shadow:none!important}
+  /* (Contre-règle « rail MJ vertical » RETIRÉE le 2026-07-23 : §18bis est désormais
+     scellé ≤899px dans design-system.css — plus rien à neutraliser ici.) */
 
   /* ── PANNEAU DE CONTENU (maquette .panel) ── */
   #tabContent,#mjTabContent{background:var(--surface);border:1px solid var(--border);
