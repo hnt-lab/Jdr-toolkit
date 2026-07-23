@@ -70,7 +70,8 @@
 @media(max-width:560px){ .mj-grid{grid-template-columns:1fr} }
 /* Boutons FLOTTANTS plus GROS sur desktop (demande user 2026-06-15) — mobile inchangé */
 @media(min-width:900px){
-  #diceFloat{width:80px!important;height:80px!important;font-size:36px!important;bottom:30px!important;right:30px!important}
+  /* (#diceFloat SUPPRIMÉ ici le 2026-07-23 — le dé desktop est celui de la maquette,
+     stylé dans le bloc desktop de maquette.css, animation au survol comprise.) */
   #partyHudBtn{width:80px!important;height:80px!important;font-size:34px!important}
   #dicePanel,#diceShortcuts{bottom:122px!important}
   #diceShortcuts button{width:64px!important;height:64px!important;font-size:28px!important}

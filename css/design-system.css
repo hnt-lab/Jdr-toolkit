@@ -203,8 +203,10 @@
 .ds-lefty .ds-dsock{right:auto;left:12px}
 
 /* ── 15 · DESKTOP (≥900px) — logement du dé agrandi ──────────────────── */
+/* Aligné sur le dé de la maquette (74px, ancré à 26px du coin — maquette.css §dice). */
 @media(min-width:900px){
-  .ds-dsock{width:90px;height:90px;bottom:79px}
+  .ds-dsock{width:84px;height:84px;bottom:21px;right:21px}
+  .ds-lefty .ds-dsock{right:auto;left:21px}
 }
 
 /* ── 17 · PAGE TABLES (hub) — migration P1 ───────────────────────────── */
@@ -252,11 +254,9 @@
 #hubScreen{min-height:100vh}
 body.ds-lefty #app{padding-right:10px!important;padding-left:58px!important}
 body.ds-lefty #mjScreen{padding-right:10px!important;padding-left:58px!important}
-@media(min-width:900px){
-  #app{padding-right:162px!important}
-  #mjScreen{padding-right:162px!important}
-  body.ds-lefty #app,body.ds-lefty #mjScreen{padding-left:162px!important;padding-right:10px!important}
-}
+/* (Desktop #app/#mjScreen/#diceFloat : SUPPRIMÉ ici le 2026-07-23 — la géométrie desktop
+   vit dans UN SEUL endroit, le bloc desktop de maquette.css = portage exact de la maquette
+   validée. Ne jamais réintroduire de doublon ici.) */
 #app.tavern-bg::before,#app.tavern-bg::after{display:none!important}
 /* Dé serti dans le bandeau, à droite (inversé en gaucher) */
 @media(max-width:899px){
@@ -264,16 +264,21 @@ body.ds-lefty #mjScreen{padding-right:10px!important;padding-left:58px!important
   .ds-dsock{bottom:calc(env(safe-area-inset-bottom) + 1px);right:6px}
   .ds-lefty .ds-dsock{right:auto;left:6px}
 }
-@media(min-width:900px){#diceFloat{bottom:88px!important}}
 
 /* ── 19 · Caractéristiques (dans l'onglet Personnage) ─────────────────── */
-#charRail{background:transparent!important;border:none!important;box-shadow:none!important;padding:0!important}
+/* MOBILE seulement : sur desktop le charRail est la CARTE de la maquette (maquette.css).
+   Cette règle en !important écrasait silencieusement le fond de carte — d'où un rail
+   « fondu dans la page » sur les captures du 23/07 malgré la v0.9.197. */
+@media(max-width:899px){
+  #charRail{background:transparent!important;border:none!important;box-shadow:none!important;padding:0!important}
+}
 /* CARACS — hiérarchie inversée EN PUR CSS : MODIFICATEUR gros/gras, base en petit */
+/* Valeurs ALIGNÉES sur la maquette desktop validée (2026-07-23) : mod 23px/800, base mono 12px. */
 .rail-carac{display:flex!important;flex-direction:column;align-items:center;background:var(--ds-card2)!important;
-  border:1px solid var(--ds-line)!important;border-radius:0!important;padding:5px 2px!important}
-.rail-carac-n{order:1;font-size:10.5px!important;color:var(--ds-soft)!important;letter-spacing:.08em;text-transform:uppercase}
-.rail-carac-m{order:2;font-family:var(--ds-disp)!important;font-size:22px!important;font-weight:800!important;color:var(--ds-ink)!important;line-height:1.1}
-.rail-carac-v{order:3;font-family:var(--ds-mono)!important;font-size:11px!important;color:var(--ds-faint)!important;font-weight:400!important}
+  border:1px solid var(--ds-line)!important;border-radius:0!important;padding:8px 2px 6px!important}
+.rail-carac-n{order:1;font-size:10px!important;color:var(--ds-soft)!important;letter-spacing:.08em;text-transform:uppercase;font-family:var(--ds-disp)}
+.rail-carac-m{order:2;font-family:var(--ds-disp)!important;font-size:23px!important;font-weight:800!important;color:var(--ds-ink)!important;line-height:1.05}
+.rail-carac-v{order:3;font-family:var(--ds-mono)!important;font-size:12px!important;color:var(--ds-faint)!important;font-weight:400!important}
 .rail-carac-input{order:3;font-size:12px!important;width:44px!important;text-align:center;background:var(--ds-card)!important;color:var(--ds-ink)!important;border:1px solid var(--ds-line)!important}
 .rail-chip{background:var(--ds-card2)!important;border:1px solid var(--ds-line)!important;color:var(--ds-soft)!important;border-radius:0!important}
 .rail-caracs{gap:5px!important}
@@ -295,11 +300,9 @@ body.ds-lefty #mjScreen{padding-right:10px!important;padding-left:58px!important
 #mjTabBar .mj-tab.on{opacity:1;width:53px;margin-left:0;position:relative;left:-1px;
   border-color:var(--ds-acc-strong)!important;border-left:none!important;background:var(--ds-page)!important;font-size:19px;box-shadow:none!important}
 #mjTabBar .mj-tab.mj-tab-combat-active{border-color:var(--ds-seal)!important;animation:dsPulse 1.6s ease-in-out infinite}
-@media(min-width:900px){
-  #mjTabBar .mj-tab{width:140px;justify-content:flex-start;gap:8px;padding:0 10px!important}
-  #mjTabBar .mj-tab .tl{display:inline;font-size:13px;font-family:var(--ds-disp)}
-  #mjTabBar .mj-tab.on{width:151px}
-}
+/* (Desktop : SUPPRIMÉ le 2026-07-23 — sur desktop les onglets MJ sont HORIZONTAUX,
+   stylés par le bloc desktop de maquette.css comme ceux de la fiche. Le rail vertical
+   ci-dessus reste la version MOBILE.) */
 .ds-lefty #mjTabBar .mj-tab{margin-left:0;margin-right:auto}
 .ds-lefty #mjTabBar .mj-tab.on{left:1px;border-left:1px solid var(--ds-acc-strong)!important;border-right:none!important}
 #mjScreen{background:var(--ds-page)!important}

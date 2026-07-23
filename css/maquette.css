@@ -246,142 +246,179 @@ body.ds-lefty .norg-nav{padding:7px 10px calc(7px + env(safe-area-inset-bottom))
      HORIZONTAUX (intercalaires) + contenu 2 colonnes
    • tout centré dans un cadre de 1400px
    ═══════════════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════════════
+   DESKTOP — PORTAGE EXACT DE LA MAQUETTE VALIDÉE (2026-07-23)
+   Source de vérité : maquette « Fiche personnage » approuvée par l'utilisateur
+   (artifact c8dfed0c). RÈGLE : les valeurs (tailles, marges, polices, ombres,
+   animations) sont COPIÉES de la maquette, pas réinterprétées. Toute retouche
+   se fait D'ABORD dans la maquette, validée, PUIS reportée ici.
+   Correspondance des sélecteurs maquette → app :
+     .chrome        → #dtopbar            .pill      → #modeNav.nav-top .flat
+     .avatar        → .dt-avatar          .shell     → #app / #mjScreen (padding)
+     .rail/.card    → #charRail           .rail-head → #charRail .norg-head
+     .gauge         → .g-hp               .pv-lbl    → .rail-pvlbl
+     .pv-actions    → .rail-hpbtns        .stat      → .norg-vitals .vs
+     .carac         → .rail-carac         .sublabel  → .rail-seclbl
+     .tabbar/.tab   → #tabBar/#mjTabBar   .panel     → #tabContent/#mjTabContent
+     .grid2         → .norg-panel         .fold/.fh  → .panel/.pt (cartes de contenu)
+     .dice          → #diceFloat
+   Géométrie maquette : conteneur 1380px (demi-largeur 690) · rail 302px · gouttière 18px.
+   ═══════════════════════════════════════════════════════════════════════ */
 @media(min-width:900px){
-  /* La nav du bas et le dé serti (mobile) disparaissent */
-  body:not(.ds-mobile) #diceFloat{bottom:88px!important;right:24px!important}
+  /* ── PAGE (maquette body) ── */
+  body{font-size:15px;line-height:1.5;
+    background-image:radial-gradient(1200px 600px at 50% -10%, rgba(154,122,50,.06), transparent 60%)}
 
-  /* ── BARRE DU HAUT ── */
-  #dtopbar{position:fixed;top:0;left:0;right:0;height:54px;z-index:860;display:flex;align-items:center;gap:16px;
-    padding:0 max(16px,calc(50% - 700px));
-    background:linear-gradient(180deg,var(--leather),var(--leather2));border-bottom:2px solid var(--brass-trim);
-    box-shadow:0 2px 10px rgba(0,0,0,.4)}
-  .dt-logo{display:flex;align-items:center;gap:8px;color:var(--brass-hi);font-family:var(--f-disp);font-size:16px;
-    letter-spacing:.05em;cursor:pointer;white-space:nowrap}
+  /* ── BARRE DU HAUT (maquette .chrome) ── */
+  #dtopbar{position:fixed;top:0;left:0;right:0;height:54px;z-index:860;
+    display:flex;align-items:center;gap:20px;padding:0 max(20px,calc(50% - 690px));
+    background:linear-gradient(180deg,var(--leather),var(--leather2));
+    border-bottom:2px solid var(--brass);box-shadow:0 2px 12px rgba(0,0,0,.4)}
+  .dt-logo{display:flex;align-items:center;gap:9px;color:var(--brass-hi);font-family:var(--f-disp);
+    font-size:16px;letter-spacing:.05em;cursor:pointer;white-space:nowrap}
   .dt-logo .hdr-logo{width:26px;height:26px}
   .dt-avatar{margin-left:auto;width:34px;height:34px;border-radius:50%;border:1.5px solid var(--brass-hi);
-    background:transparent;color:var(--brass-hi);font-size:16px;cursor:pointer;display:grid;place-items:center;flex:none}
-  /* nav modes en pills, centrée dans la barre */
-  #modeNav.nav-top{position:static;display:flex;gap:6px;background:none;border:none;box-shadow:none;padding:0;
-    min-height:0;margin:0 auto}
+    background:radial-gradient(circle at 35% 30%,#4a3418,#211405);color:var(--brass-hi);
+    display:grid;place-items:center;font-size:16px;cursor:pointer;padding:0}
+  /* Pastilles de nav (maquette .pill) */
+  #modeNav.nav-top{position:static;display:flex;gap:6px;background:none;border:none;box-shadow:none;
+    padding:0;margin-left:6px;min-height:0;width:auto}
   #modeNav.nav-top .flat,#modeNav.nav-top .mode-btn{display:flex;flex-direction:row;align-items:center;gap:7px;
-    background:none;border:1px solid transparent;color:var(--brass-hi);font-family:var(--f-disp);font-size:13px;
-    padding:7px 16px;min-width:0;min-height:0;cursor:pointer;white-space:nowrap;border-radius:2px}
+    padding:7px 15px;border-radius:2px;font-family:var(--f-disp);font-size:13px;letter-spacing:.04em;
+    color:#d8c188;background:none;border:1px solid transparent;opacity:1;min-width:0;line-height:1.2;
+    transition:.15s}
   #modeNav.nav-top .flat br{display:none}
-  #modeNav.nav-top .flat .mode-ico{font-size:15px}
-  #modeNav.nav-top .flat.on,#modeNav.nav-top .mode-btn.on{background:var(--brass-trim);color:var(--leather);font-weight:700}
+  #modeNav.nav-top .flat .mode-ico{font-size:15px;line-height:1}
+  #modeNav.nav-top .flat .mode-lbl{font-size:13px;letter-spacing:.04em}
+  #modeNav.nav-top .flat:hover{color:var(--brass-hi);background:rgba(233,200,119,.08)}
+  #modeNav.nav-top .flat.on,#modeNav.nav-top .mode-btn.on{background:var(--brass);color:var(--leather);
+    font-weight:700;box-shadow:inset 0 0 0 1px rgba(255,255,255,.15)}
+  #modeNav.nav-top .flat.on .mode-lbl{font-weight:700}
 
-  /* ── FICHE : charRail gauche (sticky) + zone principale (tabs H + contenu) ── */
-  #app{padding:var(--shell-h) max(16px,calc(50% - 700px)) 40px calc(max(16px,50% - 700px) + 306px)!important}
-  /* CARTE (copier-collé de la maquette desktop, 2026-07-23) — le rail n'est plus une colonne
-     pleine hauteur fondue dans la page : c'est une CARTE encadrée (fond carte + filet + coins
-     gravés à la couleur de classe), de la hauteur de son contenu, qui défile en interne si besoin. */
-  #charRail{position:fixed;top:var(--chrome-h);bottom:auto;
-    max-height:calc(100vh - var(--chrome-h) - 16px);width:290px;left:max(16px,calc(50% - 700px));z-index:840;
-    overflow-y:auto;background:var(--card);border:1px solid var(--line);padding:0}
-  #charRail::before,#charRail::after{content:"";position:absolute;width:14px;height:14px;
-    border-color:var(--cls,var(--acc-strong));pointer-events:none;z-index:2}
+  /* ── COQUE FICHE (maquette .shell : 302px | 1fr, gap 18, padding 18/…/120) ──
+     #app garde display:block (posé en JS) : la géométrie grid de la maquette est
+     reproduite en positionnement fixe avec les MÊMES cotes. */
+  #app{padding:calc(54px + 2px + 18px + 44px) max(20px,calc(50% - 690px)) 120px
+    calc(max(20px,50% - 690px) + 320px)!important;min-height:100vh;overflow-x:hidden;background:var(--page)!important}
+  #app.tavern-bg::before,#app.tavern-bg::after{display:none!important}
+
+  /* ── CHARRAIL = LA CARTE (maquette .rail > .card.crest) ── */
+  #charRail{position:fixed;top:calc(54px + 2px + 16px);bottom:auto;left:max(20px,calc(50% - 690px));
+    width:302px;max-height:calc(100vh - 56px - 32px);z-index:840;overflow-y:auto;
+    background:var(--surface)!important;border:1px solid var(--border)!important;box-shadow:none!important;padding:0!important}
+  #charRail::before,#charRail::after{content:"";position:absolute;width:13px;height:13px;
+    border-color:var(--cls,var(--cp));opacity:.9;pointer-events:none;z-index:2}
   #charRail::before{top:-1px;left:-1px;border-top:2px solid;border-left:2px solid}
   #charRail::after{bottom:-1px;right:-1px;border-bottom:2px solid;border-right:2px solid}
-  /* En-tête de carte CLAIR (maquette) — le cuir sombre est la version mobile du bandeau. */
-  #charRail .norg-head{position:static;height:auto;box-sizing:border-box;padding:12px;
-    background:linear-gradient(180deg,var(--card),var(--card2));border-bottom:1px solid var(--line);
-    color:var(--ink)}
-  #charRail .norg-head .pp{width:64px;height:64px;font-size:30px;margin-bottom:0;
-    box-shadow:0 2px 8px rgba(0,0,0,.18)}
-  #charRail .norg-head .nm{font-size:18px;font-weight:700;color:var(--ink)}
-  #charRail .norg-head .cl{font-size:12.5px;opacity:1;color:var(--soft)}
-  /* VITALS DÉVELOPPÉES (calage sur la maquette desktop, 2026-07-23) — sur desktop le
-     charRail a de la place : la jauge PV passe pleine largeur et plus haute, les boutons
-     Dégâts/Soins apparaissent, et CA/Init/Vitesse deviennent 3 tuiles. L'ordre est piloté
-     par `order` (pas par le DOM) pour NE PAS toucher la barre compacte du mobile. */
-  #charRail .norg-vitals{position:static;padding:12px 10px;display:flex;flex-wrap:wrap;gap:6px;align-items:stretch}
+  /* En-tête de carte (maquette .rail-head) */
+  #charRail .norg-head{position:static;height:auto;box-sizing:border-box;display:flex;gap:12px;align-items:center;
+    padding:12px;background:linear-gradient(180deg,var(--surface),var(--surface2));
+    border-bottom:1px solid var(--border);color:var(--text)}
+  #charRail .norg-head .pp{width:64px;height:64px;font-size:30px;margin-bottom:0;border-radius:2px;
+    border:2px solid var(--cls,var(--cp));box-shadow:0 2px 8px rgba(0,0,0,.18)}
+  #charRail .norg-head .nm{font-family:var(--f-disp);font-size:18px;font-weight:700;letter-spacing:.01em;
+    line-height:1.15;color:var(--text)}
+  #charRail .norg-head .cl{font-size:13px;opacity:1;color:var(--text2);margin-top:2px}
+  .norg-head .opt{display:none} /* doublon avec l'avatar de la barre du haut (desktop) */
+  #charRail .rail-sub{display:block;color:var(--cls,var(--cp));font-family:var(--f-disp);
+    font-size:11px;letter-spacing:.06em;margin-top:3px;opacity:1}
+  /* Corps de carte (maquette .rail-body, gap 12) */
+  #charRail .norg-vitals{position:static;padding:12px 12px 0;display:flex;flex-wrap:wrap;gap:6px;align-items:stretch}
+  #charRail .rail-body{display:block;padding:12px}
+  /* PV (maquette .pv-lbl + .gauge + .pv-actions) */
   #charRail .norg-vitals .rail-pvlbl{order:0;flex:1 0 100%;display:flex;justify-content:space-between;
-    align-items:baseline;font-family:var(--f-disp);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--soft)}
-  #charRail .norg-vitals .rail-pvlbl b{font-family:var(--f-mono);font-size:14px;color:var(--ink);letter-spacing:0}
-  #charRail .norg-vitals .g-hp{order:1;flex:1 0 100%;height:20px}
-  #charRail .norg-vitals .g-hp .vv{display:none} /* la valeur est reprise dans le label au-dessus */
+    align-items:baseline;font-family:var(--f-disp);font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--text3)}
+  #charRail .norg-vitals .rail-pvlbl b{font-family:var(--f-mono);font-size:15px;color:var(--text);letter-spacing:0}
+  #charRail .norg-vitals .g-hp{order:1;flex:1 0 100%;height:22px;border:1px solid var(--border);
+    background:var(--surface3);cursor:pointer}
+  #charRail .norg-vitals .g-hp>i{inset:0 auto 0 0;max-width:100%}
+  #charRail .norg-vitals .g-hp .vv{display:none} /* la valeur vit dans le label au-dessus */
   #charRail .norg-vitals .rail-hpbtns{order:2;display:flex;flex:1 0 100%;gap:6px}
-  #charRail .norg-vitals .rail-hpbtns .btn{flex:1;min-height:32px}
-  #charRail .norg-vitals .rail-dmg{border-color:rgba(163,55,42,.5);color:var(--seal,var(--danger))}
+  #charRail .norg-vitals .rail-hpbtns .btn{flex:1;min-height:0;padding:7px 10px;
+    font-family:var(--f-disp);font-size:12.5px;letter-spacing:.03em}
+  #charRail .norg-vitals .rail-dmg{border-color:rgba(163,55,42,.5);color:var(--danger)}
   #charRail .norg-vitals .rail-heal{border-color:rgba(63,109,58,.5);color:var(--good)}
-  #charRail .norg-vitals .vs{order:3;flex:1;min-width:0;display:flex;flex-direction:column;
-    align-items:center;gap:1px;background:var(--card2);border:1px solid var(--line);padding:7px 4px}
-  #charRail .norg-vitals .vs b{font-size:17px;font-family:var(--f-mono)}
-  /* Tuiles : libellé complet (« 🛡 CA ») au-dessus de la valeur — l'icône seule est la variante mobile. */
+  /* CA / Init / Vitesse (maquette .statline .stat) */
+  #charRail .norg-vitals .vs{order:3;flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;
+    gap:1px;background:var(--surface2);border:1px solid var(--border);padding:7px 4px;color:var(--text3)}
+  #charRail .norg-vitals .vs b{font-family:var(--f-mono);font-size:18px;font-weight:700;color:var(--text);margin-top:1px}
   #charRail .norg-vitals .vs .vk{display:block;font-style:normal;font-family:var(--f-disp);
-    font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--soft);white-space:nowrap}
+    font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--text3);white-space:nowrap}
   #charRail .norg-vitals .vs .vi{display:none}
   #charRail .norg-vitals .norg-xtra{order:4;flex:1 0 100%}
-  #charRail .rail-caracs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px}
-  /* Sous-titres de section + sous-classe (maquette desktop) */
-  #charRail .rail-seclbl{display:block;font-family:var(--f-disp);font-size:10.5px;letter-spacing:.1em;
-    text-transform:uppercase;color:var(--soft);margin:0 0 6px}
-  #charRail .rail-sub{display:block;color:var(--cls,var(--acc-strong));font-family:var(--f-disp);
-    font-size:10.5px;letter-spacing:.06em;margin-top:3px;opacity:1}
+  /* Sections du rail (maquette .sublabel) */
+  #charRail .rail-seclbl{display:block;font-family:var(--f-disp);font-size:11px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--text3);margin:0 0 6px}
+  #charRail .rail-caracs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
   .caracs-intab{display:none}
-  .rail-body{display:block;padding:0 10px 12px}
-  /* Le ⚙ du bandeau de fiche fait DOUBLON avec l'avatar de la barre du haut (desktop
-     uniquement — sur mobile la barre du haut est masquée, le ⚙ y reste l'unique accès).
-     Corrigé à la source : masqué ici, dans la même requête média qui fait naître la barre. */
-  .norg-head .opt{display:none}
 
-  /* ── ONGLETS HORIZONTAUX (intercalaires, verbatim maquette .g-tab) ── */
-  /* ⚠ bottom:auto OBLIGATOIRE — sinon le `bottom` du rail mobile étire la barre
-     sur toute la hauteur (fond cuir plein écran + onglets tombés en bas). */
-  /* height FIXE (--tabs-h) et non plus auto : c'est ce qui garantit que le bas de la
-     barre coïncide EXACTEMENT avec le haut de #tabContent (padding = --shell-h).
-     align-items:flex-end colle les onglets sur ce bord → l'onglet actif et le panneau
-     se touchent, et son ::after peut recouvrir le filet : c'est l'intercalaire. */
-  #tabBar,#mjTabBar{position:fixed;top:var(--chrome-h);bottom:auto!important;left:calc(max(16px,50% - 700px) + 306px);
-    right:max(16px,calc(50% - 700px));z-index:835;height:var(--tabs-h)!important;width:auto;
-    flex-direction:row!important;align-items:flex-end;gap:4px;overflow:visible;
-    padding:0 4px 0;background:linear-gradient(180deg,var(--leather),var(--leather2))}
-  #mjTabBar{left:max(16px,calc(50% - 700px))} /* MJ : pas de charRail */
-  #tabBar button,#mjTabBar button{width:auto!important;height:auto;min-height:0;left:auto!important;margin:0!important;
-    flex:0 0 auto;flex-direction:row;justify-content:center;gap:6px;font-family:var(--f-disp);font-size:12.5px;
-    padding:11px 16px 9px!important;background:color-mix(in srgb,var(--card) 55%,var(--leather))!important;
-    color:color-mix(in srgb,var(--ink) 55%,var(--leather))!important;border:1px solid var(--brass-trim)!important;
-    border-bottom:none!important;border-radius:5px 5px 0 0!important;opacity:1!important}
-  #tabBar button .tl,#mjTabBar button .tl{display:inline!important;font-size:12.5px}
-  #tabBar button.on,#mjTabBar button.on{position:relative;z-index:2;background:var(--page)!important;color:var(--ink)!important;
-    font-weight:700;padding-top:9px!important;border-color:var(--acc-strong)!important;width:auto!important}
-  #tabBar button.on::after,#mjTabBar button.on::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--page)}
-  /* SIGNET de l'onglet actif (2026-07-22) — l'intercalaire lui donne le fond de la page :
-     sans repère, il se lisait comme un trou plutôt que comme l'onglet ouvert. Ce liseré
-     laiton en haut le désigne sans rompre la fusion avec le panneau (qui se joue en bas). */
-  #tabBar button.on::before,#mjTabBar button.on::before{content:"";position:absolute;
-    left:-1px;right:-1px;top:-1px;height:3px;background:var(--acc-strong);border-radius:5px 5px 0 0}
-  /* …et les onglets fermés reculent d'un cran, pour que l'ouvert ressorte par contraste. */
-  #tabBar button:not(.on),#mjTabBar button:not(.on){opacity:.78!important}
-  #tabBar button:not(.on):hover,#mjTabBar button:not(.on):hover{opacity:1!important}
+  /* ── ONGLETS (maquette .tabbar/.tab — SANS bande de cuir : ils flottent sur la page) ── */
+  #tabBar,#mjTabBar{position:fixed;top:calc(54px + 2px + 16px);bottom:auto!important;
+    left:calc(max(20px,50% - 690px) + 320px);right:max(20px,calc(50% - 690px));z-index:835;
+    height:44px!important;width:auto;display:flex!important;flex-direction:row!important;
+    align-items:flex-end;gap:4px;overflow:visible!important;padding:0 2px;background:none!important;border:none!important}
+  #mjTabBar{left:max(20px,calc(50% - 690px))} /* MJ : pas de charRail */
+  #tabBar button,#mjTabBar button,#mjTabBar .mj-tab{width:auto!important;height:auto;min-height:0;left:auto!important;
+    margin:0!important;flex:0 0 auto;display:inline-flex;flex-direction:row;align-items:center;justify-content:center;
+    gap:8px;font-family:var(--f-disp);font-size:13.5px;letter-spacing:.03em;
+    padding:11px 18px 10px!important;cursor:pointer;position:relative;bottom:-1px;
+    color:color-mix(in srgb,var(--text2) 80%,var(--leather))!important;
+    background:color-mix(in srgb,var(--surface) 55%,var(--surface3))!important;
+    border:1px solid var(--border)!important;border-bottom:none!important;
+    border-radius:6px 6px 0 0!important;opacity:.82!important;transition:.15s;box-shadow:none!important}
+  #tabBar button .ti,#mjTabBar button .ti{font-size:15px}
+  #tabBar button .tl,#mjTabBar button .tl{display:inline!important;font-size:13.5px}
+  #tabBar button:hover,#mjTabBar button:hover{opacity:1!important}
+  #tabBar button.on,#mjTabBar button.on{opacity:1!important;font-weight:700;color:var(--text)!important;
+    background:var(--surface)!important;border-color:var(--cp)!important;z-index:3}
+  #tabBar button.on::before,#mjTabBar button.on::before{content:"";position:absolute;left:-1px;right:-1px;top:-1px;
+    height:3px;background:var(--cls,var(--cp));border-radius:6px 6px 0 0}
+  #tabBar button.on::after,#mjTabBar button.on::after{content:"";position:absolute;left:0;right:0;bottom:-2px;
+    height:3px;background:var(--surface)}
   #tabBar .tab-foot,#mjTabBar .tab-foot{opacity:.65!important}
   #tabBar button.tab-foot:nth-last-child(2){margin-left:auto!important}
-  /* la page porte le filet du haut, l'onglet actif le recouvre */
-  #tabContent,#mjTabContent{border-top:2px solid var(--acc-strong);border-right:none;max-width:none;min-height:60vh}
-  /* MJ : la zone principale démarre à gauche (pas de charRail) */
-  #mjScreen{padding:var(--shell-h) max(16px,calc(50% - 700px)) 40px max(16px,calc(50% - 700px))!important}
-  /* Contenu : 2 colonnes de catégories */
+  /* Neutralise le rail MJ VERTICAL mobile (design-system §18bis, sélecteurs (1,2,0)
+     en !important) : à spécificité égale, cette règle-ci, chargée après, gagne. */
+  #mjTabBar .mj-tab.on{font-size:13.5px!important;background:var(--surface)!important;
+    border:1px solid var(--cp)!important;border-bottom:none!important;
+    left:auto!important;width:auto!important;box-shadow:none!important}
+
+  /* ── PANNEAU DE CONTENU (maquette .panel) ── */
+  #tabContent,#mjTabContent{background:var(--surface);border:1px solid var(--border);
+    border-top:2px solid var(--cp);border-right:1px solid var(--border);padding:16px;max-width:none;min-height:60vh}
+  /* 2 colonnes de cartes (maquette .grid2) */
   .norg-panel{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
-  /* ── APLATISSEMENT (copier-collé maquette, 2026-07-23) ─────────────────────
-     La maquette desktop = des cartes SIMPLES en 2 colonnes. L'app empilait :
-     carte de fusion (.g-fold, avec son propre double filet) CONTENANT des
-     panneaux (.panel) portant chacun un double cadre incrusté → cartes dans
-     cartes. Sur desktop : la fusion devient un GROUPE invisible (son en-tête
-     reste, en libellé de section discret, pour garder pli + réorganisation),
-     et chaque .panel devient une carte à cadre simple, comme la maquette. */
+  /* Fusion = groupe invisible ; son en-tête = libellé de section (pli + réorganisation gardés) */
   .norg-panel>.g-fold{background:transparent;border:none;box-shadow:none}
   .norg-panel>.g-fold>.fh{background:none;border:none;padding:2px 2px 6px;
-    font-family:var(--f-disp);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
-    color:var(--soft)}
+    font-family:var(--f-disp);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)}
   .norg-panel>.g-fold>.fb{padding:0;gap:14px}
-  #app .panel,#mjScreen .panel{box-shadow:none;border:1px solid var(--line);margin-bottom:0}
-  #app .g-sub,#mjScreen .g-sub{box-shadow:none}
-  /* Titres de carte : petit en-tête de pli, comme la maquette (⠿ + titre + filet bas). */
-  #app .pt,#mjScreen .pt{font-size:14px;border-bottom:1px solid var(--line);
-    background:none;margin:-1px 0 10px;padding-bottom:7px}
+  /* Cartes de contenu (maquette .fold) : cadre simple, en-tête .pt façon .fh */
+  #app .panel,#mjScreen .panel{box-shadow:none;border:1px solid var(--border);background:var(--surface2);
+    margin-bottom:0;padding:12px}
+  #app .g-sub,#mjScreen .g-sub{background:var(--surface);box-shadow:none}
+  #app .pt,#mjScreen .pt{font-variant:none;font-family:var(--f-disp);font-size:14px;letter-spacing:.02em;
+    color:var(--text);margin:-12px -12px 12px;padding:10px 12px;
+    background:linear-gradient(180deg,var(--surface),var(--surface2));border-bottom:1px solid var(--border)}
+  /* Boutons (maquette .btn) */
+  #app .btn,#mjScreen .btn{font-family:var(--f-disp);font-size:12.5px;letter-spacing:.03em;border-radius:2px}
+  #app .btn.bsm,#mjScreen .btn.bsm{font-size:12px}
+  #mjScreen{padding:calc(54px + 2px + 18px + 44px) max(20px,calc(50% - 690px)) 120px!important;
+    min-height:100vh;overflow-x:hidden}
 
-  /* ── GAUCHER : charRail à droite, onglets décalés à gauche ── */
-  body.ds-lefty #app{padding-left:max(16px,calc(50% - 700px))!important;padding-right:calc(max(16px,50% - 700px) + 306px)!important}
-  body.ds-lefty #charRail{left:auto;right:max(16px,calc(50% - 700px))} /* carte : bordure sur les 4 côtés, rien à inverser */
-  body.ds-lefty #tabBar{left:max(16px,calc(50% - 700px));right:calc(max(16px,50% - 700px) + 306px)}
+  /* ── DÉ FLOTTANT (maquette .dice — animation au survol comprise) ── */
+  #diceFloat{width:74px!important;height:74px!important;font-size:32px!important;
+    right:26px!important;bottom:26px!important;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#caa64f,#8a6a26)!important;border:2px solid var(--brass-hi)!important;
+    box-shadow:0 6px 20px rgba(0,0,0,.35),inset 0 2px 6px rgba(255,255,255,.3)!important;
+    transition:transform .15s,opacity .5s!important}
+  #diceFloat:hover{transform:translateY(-3px) rotate(-8deg)}
+
+  /* ── GAUCHER : rail et onglets en miroir, dé à gauche ── */
+  body.ds-lefty #app{padding-left:max(20px,calc(50% - 690px))!important;
+    padding-right:calc(max(20px,50% - 690px) + 320px)!important}
+  body.ds-lefty #charRail{left:auto;right:max(20px,calc(50% - 690px))}
+  body.ds-lefty #tabBar{left:max(20px,calc(50% - 690px));right:calc(max(20px,50% - 690px) + 320px)}
+  body.ds-lefty #diceFloat{right:auto!important;left:26px!important}
 }
