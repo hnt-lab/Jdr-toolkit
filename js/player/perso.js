@@ -13,8 +13,10 @@ function renderCharRail(p){
   const pct=Math.max(0,Math.min(100,Math.round((ws?.active?ws.beast.hpCur/Math.max(1,ws.beast.hpMax):p.hp/Math.max(1,effectiveHpMax))*100)));
   const hpColor=ws?.active?'var(--good)':pct>50?'var(--good)':pct>25?'var(--warn)':'var(--danger)';
   const caBonus=(p.statuses||[]).filter(s=>s.stat==='ca').reduce((a,s)=>a+(parseInt(s.value)||0),0);
-  const hpBonus=(p.statuses||[]).filter(s=>s.stat==='hp').reduce((a,s)=>a+(parseInt(s.value)||0),0);
   const caDisplay=p.ac+caBonus;
+  // PV temporaires : champ de la fiche + statuts qui en accordent — calcul unique
+  // (DataContracts.temporaryHpOf). La somme des statuts était calculée ici puis JETÉE.
+  const hpTempTotal=_hpTempOf(p);
   const dexM=mod(p.abilities[1]);
   // (Caracs déplacées dans l'onglet Personnage — décision maquette 2026-07-19 :
   //  le rail ne garde que CA / PV / Init / Vitesse. Voir _caracsChipsHTML.)
@@ -25,9 +27,9 @@ function renderCharRail(p){
     barText=`🐺 ${ws.beast.hpCur}/${ws.beast.hpMax}`;
     hpExtra=`<button class="btn bsm" style="width:100%;margin-top:6px;border-color:rgba(76,175,80,.5);color:var(--good)" onclick="revertWildshape()">↩ Reprendre forme</button>`;
   } else {
-    barText=`${p.hp}${(p.hpTemp||0)>0?`+${p.hpTemp}`:''}/${effectiveHpMax}${_exhLvl>=4?' ½':''}`;
+    barText=`${p.hp}${hpTempTotal>0?`+${hpTempTotal}`:''}/${effectiveHpMax}${_exhLvl>=4?' ½':''}`;
     hpExtra=`${(p.shieldHp||0)>0?`<div class="rail-shield">🔵 Bouclier ${p.shieldHp}/${p.shieldHpMax||p.shieldHp}</div>`:''}
-      ${mj?`<div class="rail-mjhp"><label>PV max <input type="number" min="1" value="${p.hpMax}" oninput="P().hpMax=Math.max(1,parseInt(this.value)||1);render()"></label><label>Temp <input type="number" min="0" value="${p.hpTemp||0}" oninput="P().hpTemp=Math.max(0,parseInt(this.value)||0)"></label></div>`:''}
+      ${mj?`<div class="rail-mjhp"><label>PV max <input type="number" min="1" value="${p.hpMax}" oninput="P().hpMax=Math.max(1,parseInt(this.value)||1);_markUnsaved();render()"></label><label>Temp <input type="number" min="0" value="${p.hpTemp||0}" oninput="P().hpTemp=Math.max(0,parseInt(this.value)||0);_markUnsaved()"></label></div>`:''}
       ${p.hp<=0?`<div class="rail-down">💀 À TERRE — 0 PV${p.deathSaves?.fail>=3?' ☠':''}</div><div class="rail-ds"><span style="color:var(--good)">✓</span>${[0,1,2].map(i=>`<span class="ds-circle${i<(p.deathSaves?.success||0)?' s':''}" onclick="cycleDS('success',${i})"></span>`).join('')}<span style="color:var(--danger);margin-left:10px">✗</span>${[0,1,2].map(i=>`<span class="ds-circle${i<(p.deathSaves?.fail||0)?' f':''}" onclick="cycleDS('fail',${i})"></span>`).join('')}</div>`:''}`;
   }
   // Vitesse (forme sauvage / barbare rapide / épuisement)
@@ -57,6 +59,7 @@ function renderCharRail(p){
         <div class="cl">${esc(p.race||'')}${cls?' · '+esc(cls):''}${align?' · '+esc(align):''}</div>
         ${_subCls?`<div class="cl rail-sub">${esc(_subCls)}</div>`:''}
       </div>
+      ${!mj?`<button class="opt" onclick="_dsOpenCharacterPage()" title="Mes personnages">🗂</button>`:''}
       <button class="opt" onclick="openUserSettings()" title="Profil &amp; options">⚙</button>
     </div>
     <div class="norg-vitals">
@@ -106,10 +109,11 @@ function tabPerso(p){
   const hpColor=ws?.active?'var(--good)':pct>50?'var(--good)':pct>25?'var(--warn)':'var(--danger)';
 
   // Calcul CA affichée avec statuts
+  // (caDisplay/hpDisplay : hpDisplay ajoutait les statuts de PV aux PV COURANTS — une
+  //  erreur de modèle, un bonus de PV temporaires ne soigne pas. Il n'avait aucun
+  //  lecteur ; les PV temporaires s'affichent dans le rail, via _hpTempOf.)
   const caBonus=(p.statuses||[]).filter(s=>s.stat==='ca').reduce((a,s)=>a+(parseInt(s.value)||0),0);
-  const hpBonus=(p.statuses||[]).filter(s=>s.stat==='hp').reduce((a,s)=>a+(parseInt(s.value)||0),0);
   const caDisplay=p.ac+caBonus;
-  const hpDisplay=p.hp+hpBonus;
 
   return`<div class="caracs-intab">${_caracsChipsHTML(p)}</div><div class="g2">
   <!-- COLONNE GAUCHE -->
@@ -209,14 +213,14 @@ function tabPerso(p){
       return`<div class="panel mb10">
         <div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>Repos</div>
         <div style="display:flex;gap:8px;${_chantB?'padding:6px;border:2px solid var(--cp);border-radius:2px;background:rgba(200,168,75,.04)':''}">
-          <div class="rest-btn short"${_restLocked?' style="opacity:.45;pointer-events:none" title="Pas de repos en combat"':''} onclick="doShortRest()">
+          <div class="rest-btn short"${_restLocked?' style="opacity:.45;pointer-events:none" title="Pas de repos en combat"':''} onclick="requestGroupRest('short')">
             <div style="font-size:16px">☕</div>
             <div style="font-weight:600">Repos court</div>
             <div style="font-size:12px;color:var(--text3);margin-top:1px">≥ 1 heure</div>
             <div style="font-size:12px;margin-top:2px">Lance le dé de vie + CON</div>
             ${_chantB?`<div style="font-size:12px;color:var(--cp);font-weight:600;margin-top:4px;border-top:1px solid rgba(200,168,75,.3);padding-top:3px">🎶 +${_chantB} PV (${esc(_chantSrc)})</div>`:''}
           </div>
-          <div class="rest-btn long"${_restLocked?' style="opacity:.45;pointer-events:none" title="Pas de repos en combat"':''} onclick="doLongRest()">
+          <div class="rest-btn long"${_restLocked?' style="opacity:.45;pointer-events:none" title="Pas de repos en combat"':''} onclick="requestGroupRest('long')">
             <div style="font-size:16px">🌙</div>
             <div style="font-weight:600">Repos long</div>
             <div style="font-size:12px;color:var(--text3);margin-top:1px">≥ 8 heures</div>
@@ -243,7 +247,6 @@ function openPrivacySettings(){
   const tabs=[
     {id:'perso',label:'⚔ Personnage',desc:'Nom, race, classe, apparence'},
     {id:'competences',label:'✦ Compétences',desc:'Compétences & modificateurs'},
-    {id:'combat',label:'🗡 Combat',desc:'PV, CA, attaques'},
     {id:'sorts',label:'✦ Sorts',desc:'Liste de sorts'},
     {id:'equipement',label:'🛡 Équipement',desc:'Armures & armes'},
     {id:'sac',label:'🎒 Sac',desc:'Inventaire & monnaie'},
@@ -251,7 +254,7 @@ function openPrivacySettings(){
     {id:'xp',label:'✧ Expérience',desc:'XP & niveau'},
   ];
   openModal(`<div class="pt">🔒 Confidentialité</div>
-    <div style="font-size:13px;color:var(--text3);margin-bottom:14px">Le MJ voit toujours tout. Choisissez ce que les autres joueurs peuvent voir onglet par onglet.</div>
+    <div style="font-size:13px;color:var(--text3);margin-bottom:14px">Choisis les informations partagées aux autres membres. Les PV et les conditions restent toujours visibles : ils représentent l’état observable du personnage.</div>
     ${tabs.map(t=>{
       const checked=priv[t.id]!==false;
       return`<label style="display:flex;align-items:center;gap:10px;padding:8px 4px;cursor:pointer;border-bottom:1px solid var(--border)">
@@ -262,7 +265,7 @@ function openPrivacySettings(){
         </div>
       </label>`;
     }).join('')}
-    <div style="font-size:13px;color:var(--text3);margin-top:10px;padding:8px;background:rgba(200,168,75,.06);border-radius:2px;border:1px solid rgba(200,168,75,.15)">🔐 Les <strong>Secrets</strong> (onglet Historique) sont toujours privés — uniquement toi et le MJ.</div>
+    <div style="font-size:13px;color:var(--text3);margin-top:10px;padding:8px;background:rgba(200,168,75,.06);border-radius:2px;border:1px solid rgba(200,168,75,.15)">🔐 Les <strong>Secrets</strong> sont explicitement partagés avec le MJ. Les notes marquées « Moi uniquement » restent personnelles.</div>
     <div style="display:flex;justify-content:flex-end;margin-top:14px"></div>`);
 }
 
@@ -404,7 +407,7 @@ function applyHp(sign){
       }
       // 2. PV normaux
       const _effMax=(p.exhaustion||0)>=4?Math.floor(p.hpMax/2):p.hpMax;
-      const _newHp=Math.max(0,Math.min(_effMax+(p.hpTemp||0),p.hp-dmg));
+      const _newHp=Math.max(0,Math.min(_effMax+_hpTempOf(p),p.hp-dmg));
       if(_newHp===0&&p.race==='Demi-Orc'&&!p.relentlessEnduranceUsed){
         p.hp=0;_markUnsaved();render();
         openModal('<div style="text-align:center;padding:20px 16px"><div style="font-size:36px;margin-bottom:8px">🧟</div><div class="pt" style="margin-bottom:6px">Endurance implacable</div><div style="font-size:14px;color:var(--text2);margin-bottom:20px">Vous tombez à 0 PV !<br>Utiliser <strong>Endurance implacable</strong> pour tomber à <strong style="color:var(--good)">1 PV</strong> ?<br><span style="font-size:13px;color:var(--text3)">(1 utilisation par repos long)</span></div><div style="display:flex;gap:8px;justify-content:center"><button class="btn bprimary" style="min-width:80px" onclick="useRelentlessEndurance()">✅ Oui</button><button class="btn" style="min-width:80px" onclick="closeModal()">❌ Non</button></div></div>');
@@ -418,7 +421,7 @@ function applyHp(sign){
       if(p.hp<=0)setTimeout(()=>_checkHpZeroVeille(),250);
     } else {
       const _effMax=(p.exhaustion||0)>=4?Math.floor(p.hpMax/2):p.hpMax;
-      p.hp=Math.max(0,Math.min(_effMax+(p.hpTemp||0),p.hp+delta));
+      p.hp=Math.max(0,Math.min(_effMax+_hpTempOf(p),p.hp+delta));
     }
   }
   if(typeof _logMJAction==='function')_logMJAction(sign<0?('💥 subit '+delta+' PV ('+p.hp+'/'+p.hpMax+')'):('💚 regagne '+delta+' PV ('+p.hp+'/'+p.hpMax+')'));
@@ -551,7 +554,10 @@ function quickAddStatus(idx){
     value:s.value||0,icon:s.icon||'◆',desc:s.desc||'',
     rollPenalty:s.rollPenalty||'',rollBonus:s.rollBonus||''
   });
-  closeModal();render();
+  // _markUnsaved : sans lui rien ne part au serveur (saveAll est déclenché par ce
+  // marquage, state.js). Un statut ajouté restait donc LOCAL — perdu au rechargement
+  // et invisible du MJ, y compris les PV temporaires (retour de test du 2026-07-26).
+  _markUnsaved();closeModal();render();
 }
 
 function addCustomStatus(){
@@ -564,9 +570,9 @@ function addCustomStatus(){
   const desc=document.getElementById('stDesc')?.value||'';
   const p=P();if(!p.statuses)p.statuses=[];
   p.statuses.push({name,type,stat,value,icon:type==='bonus'?'✅':type==='malus'?'❌':'◆',desc,rollPenalty,rollBonus:''});
-  closeModal();render();
+  _markUnsaved();closeModal();render();
 }
-function removeStatus(i){const p=P();if(p.statuses)p.statuses.splice(i,1);render();}
+function removeStatus(i){const p=P();if(p.statuses)p.statuses.splice(i,1);_markUnsaved();render();}
 function toggleConcentration(spellName){const p=P();if(!p.statuses)p.statuses=[];const idx=p.statuses.findIndex(s=>s.name==='Concentration');if(idx>=0){const _endSpell=p.concentrationSpell,_endName=p.charName||'';p.statuses.splice(idx,1);delete p.concentrationSpell;if(_endSpell&&typeof _clearGroupConcentrationBuff==='function')_clearGroupConcentrationBuff(_endSpell,_endName);}else{const preset=STATUS_PRESETS.find(s=>s.name==='Concentration');p.statuses.push(preset?{...preset}:{name:'Concentration',type:'neutral',icon:'🎯',desc:'Sort de concentration actif.',rollPenalty:''});if(spellName)p.concentrationSpell=spellName;}_markUnsaved();render();}
 function activateConcentration(){const spell=(document.getElementById('concSpellInput')?.value||'').trim();toggleConcentration(spell||undefined);}
 function rollConcSave(dmg){
@@ -616,9 +622,87 @@ function openResistModal(){
   </div>`);
 }
 
-function toggleInspiration(){const p=P();p.inspiration=!p.inspiration;_markUnsaved();render();}
+function toggleInspiration(){
+  const p=P();if(!p)return;
+  if(isMJ()){
+    p.inspiration=!p.inspiration;
+    _markUnsaved();render();
+    showToast(p.inspiration?'✦ Inspiration accordée.':'Inspiration retirée.');
+    return;
+  }
+  if(!p.inspiration){
+    showToast('Le MJ doit accorder l’inspiration.');
+    return;
+  }
+  openModal(`<div class="pt">Dépenser l’inspiration ?</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:16px">Cette inspiration sera consommée immédiatement.</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
+      <button class="btn bac" style="flex:2" onclick="confirmSpendInspiration()">Dépenser</button>
+    </div>`);
+}
+function confirmSpendInspiration(){
+  const p=P();if(!p||!p.inspiration){closeModal();return;}
+  p.inspiration=false;
+  _markUnsaved();saveAll();render();closeModal();
+  showToast('✦ Inspiration dépensée.');
+}
 
 // ── REPOS ──
+function requestGroupRest(type){
+  if(typeof _activeCombatState!=='undefined'&&_activeCombatState&&_activeCombatState.active){
+    showToast('⛔ Pas de repos pendant un combat !');return;
+  }
+  if(!currentCampaignId||currentCampaignId==='__solo__'){
+    if(type==='long')doLongRest();else doShortRest();
+    return;
+  }
+  const v2RestEnabled=typeof v2CompatService!=='undefined'
+    &&v2CompatService.isEnabled()
+    &&typeof v2RestService!=='undefined';
+  if(!v2RestEnabled){
+    // Repli historique jusqu'au déploiement du traitement serveur V2.
+    if(type==='long')doLongRest();else doShortRest();
+    return;
+  }
+  const label=type==='long'?'Repos long':'Repos court';
+  openModal(`<div class="pt">${type==='long'?'🌙':'☕'} Proposer un ${label.toLowerCase()} ?</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:16px">Le groupe pourra choisir de participer. Le repos ne sera appliqué à personne avant la décision du MJ.</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
+      <button class="btn bac" style="flex:2" onclick="submitGroupRestProposal('${type}')">Proposer au groupe</button>
+    </div>`);
+}
+async function submitGroupRestProposal(type){
+  const p=P();if(!p||!currentUser||!currentCampaignId)return;
+  // Anti-spam : deux clics = deux propositions de repos, donc deux cartes à valider
+  // par le MJ. Clé par type, pour ne pas bloquer une demande de repos long parce
+  // qu'une demande de repos court est en cours d'envoi.
+  return guardAction('proposeRest:'+type,async()=>{
+  try{
+    if(typeof v2CompatService!=='undefined'&&v2CompatService.isEnabled()
+      &&typeof v2RestService!=='undefined'){
+      const proposalId=await v2RestService.propose(currentCampaignId,{
+        type,
+        requestedBy:currentUser.uid,
+        requestedByName:p.charName||currentUserData?.displayName||'Membre'
+      });
+      closeModal();
+      if(type==='short'&&typeof _dsOpenShortRestChoice==='function'){
+        _dsOpenShortRestChoice(proposalId);
+      }else{
+        showToast('🌙 Proposition envoyée au groupe.');
+      }
+      return;
+    }else{
+      p.restInvite={t:Date.now(),type,name:p.charName||'Un aventurier',status:'proposed'};
+      await saveAll(true);
+    }
+    closeModal();
+    showToast(`${type==='long'?'🌙':'☕'} Proposition envoyée au groupe.`);
+  }catch(e){showToast('❌ Proposition impossible : '+e.message);}
+  });
+}
 // Reset centralisé des jauges internes des panneaux de classe (audit RAW 2026-07-07).
 // Les combatFeatures de config.js sont resetées par nom ailleurs ; ici = les clés propres aux panneaux.
 function _classGaugeRestResets(p,type){
@@ -681,6 +765,7 @@ function doShortRest(){
   if(_moineRestLvl>0)p.combatCharges['Ki']=_moineRestLvl;
   delete p.combatCharges['ChantReposantResult'];
   _classGaugeRestResets(p,'court');
+  if(!(typeof v2CompatService!=='undefined'&&v2CompatService.isEnabled()))_proposeGroupRest('court');
   render();saveAll();showToast(`☕ Repos court — ${cd.hd}(${roll-mod(p.abilities[2])})+CON = <strong>+${healed}</strong>${_chantBonus?` + 🎶 <strong>+${_chantBonus}</strong>`:''} PV`);
 }
 function _applyIRLShortRest(){
@@ -704,7 +789,7 @@ function _applyIRLShortRest(){
   if(_moineIRLLvl>0)p.combatCharges['Ki']=_moineIRLLvl;
   delete p.combatCharges['ChantReposantResult'];
   _classGaugeRestResets(p,'court');
-  _proposeGroupRest('court');closeModal();render();saveAll();showToast(`☕ Repos court — <strong>+${healed}</strong>${_rlChantB?` + 🎶 <strong>+${_rlChantB}</strong>`:''} PV`);
+  closeModal();render();saveAll();showToast(`☕ Repos court — <strong>+${healed}</strong>${_rlChantB?` + 🎶 <strong>+${_rlChantB}</strong>`:''} PV`);
 }
 function doLongRest(){
   if(typeof _activeCombatState!=='undefined'&&_activeCombatState&&_activeCombatState.active){showToast('⛔ Pas de repos pendant un combat !');return;}
@@ -725,7 +810,8 @@ function doLongRest(){
   if(_druLRLvl>0)p.combatCharges['Forme sauvage']=_druLRLvl>=20?99:2;
   const _moineLRLvl=((p.classes||[]).find(c=>c.name==='Moine')||{}).level||0;
   if(_moineLRLvl>0)p.combatCharges['Ki']=_moineLRLvl;
-  _proposeGroupRest('long');render();saveAll();showBanner('🌙','Repos long','PV, sorts, charges et conditions récupérés',{variant:'info'});
+  if(!(typeof v2CompatService!=='undefined'&&v2CompatService.isEnabled()))_proposeGroupRest('long');
+  render();saveAll();showBanner('🌙','Repos long','PV, sorts, charges et conditions récupérés',{variant:'info'});
   // Principe 18 — prompt de (re)préparation des sorts pour les préparateurs
   if(typeof isPrepCaster==='function'&&isPrepCaster(p)&&typeof _openLongRestPrep==='function')_openLongRestPrep(p);
 }

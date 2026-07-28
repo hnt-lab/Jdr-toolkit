@@ -1,3 +1,65 @@
+let _mjDistributedItems=null,_mjDistributedTableId=null;
+async function _mjLoadDistributedItems(){
+  if(typeof v2CompatService==='undefined'||!v2CompatService.isEnabled()
+    ||typeof v2ItemService==='undefined'||!currentTableId)return;
+  try{
+    _mjDistributedItems=await v2ItemService.listDistributed(currentTableId);
+    _mjDistributedTableId=currentTableId;
+  }catch(e){
+    _mjDistributedItems=[];
+    console.warn('Chargement des exemplaires impossible',e);
+  }
+  if(typeof _mjTab!=='undefined'&&_mjTab==='objets')renderMJContent();
+}
+function _mjDistributedItemsHTML(){
+  if(typeof v2CompatService==='undefined'||!v2CompatService.isEnabled())return '';
+  if(_mjDistributedTableId!==currentTableId)_mjDistributedItems=null;
+  if(_mjDistributedItems===null){
+    setTimeout(_mjLoadDistributedItems,0);
+    return`<div class="panel" style="margin-top:14px"><div class="pt">🎁 Objets distribués</div><div class="ds-note">Chargement…</div></div>`;
+  }
+  const rows=_mjDistributedItems.map((entry,index)=>{
+    const model=entry.model||{};
+    return`<div class="inv-item" style="align-items:center;gap:8px;flex-wrap:wrap">
+      <div style="flex:1;min-width:180px">
+        <div style="font-size:13px;font-weight:600">${esc(model.name||entry.displayName||'Objet')}</div>
+        <div class="ds-note">Possédé par ${esc(entry.ownerName||'?')} · ${entry.quantity||1} exemplaire(s)</div>
+      </div>
+      <select class="fi" style="width:auto;min-width:142px" onchange="mjUpdateDistributedItem(${index},'identification',this.value)">
+        <option value="unknown"${entry.identification==='unknown'?' selected':''}>Non identifié</option>
+        <option value="partial"${entry.identification==='partial'?' selected':''}>Partiel</option>
+        <option value="identified"${entry.identification==='identified'?' selected':''}>Identifié</option>
+      </select>
+      <select class="fi" style="width:auto;min-width:152px" onchange="mjUpdateDistributedItem(${index},'visibility',this.value)">
+        <option value="owner"${entry.visibility==='owner'?' selected':''}>Propriétaire</option>
+        <option value="group"${entry.visibility==='group'?' selected':''}>Groupe</option>
+        <option value="gm"${entry.visibility==='gm'?' selected':''}>MJ uniquement</option>
+      </select>
+      <button class="btn bsm bdanger" onclick="mjRevokeDistributedItem(${index})">Retirer</button>
+    </div>`;
+  }).join('');
+  return`<div class="panel" style="margin-top:14px"><div class="pt">🎁 Objets distribués</div>
+    <div class="ds-note" style="margin-bottom:8px">Le MJ peut révéler progressivement la nature de chaque exemplaire sans exposer son modèle secret.</div>
+    ${rows||'<div class="ds-note" style="font-style:italic">Aucun objet distribué.</div>'}
+  </div>`;
+}
+async function mjUpdateDistributedItem(index,field,value){
+  const entry=(_mjDistributedItems||[])[index];if(!entry)return;
+  try{
+    await v2ItemService.updateDisclosure(currentTableId,entry.id,{[field]:value});
+    await _mjLoadDistributedItems();
+    showToast('✓ Visibilité de l’objet mise à jour.');
+  }catch(e){showToast('❌ Modification impossible : '+e.message);}
+}
+async function mjRevokeDistributedItem(index){
+  const entry=(_mjDistributedItems||[])[index];if(!entry)return;
+  if(!confirm(`Retirer « ${(entry.model||{}).name||'cet objet'} » à ${entry.ownerName||'son propriétaire'} ?`))return;
+  try{
+    await v2ItemService.revoke(currentTableId,entry.id);
+    await _mjLoadDistributedItems();
+    showToast('Objet retiré.');
+  }catch(e){showToast('❌ Retrait impossible : '+e.message);}
+}
 function mjTabObjets(){
   const itemList=_mjObjets.length?_mjObjets.map((obj,i)=>{
     const ri=obj.rarity?RARITY_INFO[obj.rarity]:null;
@@ -44,6 +106,7 @@ function mjTabObjets(){
       <button class="btn bsm bprimary" onclick="mjOpenNewItem()">+ Créer manuellement</button>
     </div>
     <div class="mj-grid">${itemList}</div>
+    ${_mjDistributedItemsHTML()}
   </div>`;
 }
 
@@ -164,7 +227,20 @@ function mjOpenGiveItem(itemIdx){
   if(!_mjPlayersData.length){showToast('❌ Aucun joueur dans la campagne.');return;}
   const item=_mjObjets[itemIdx];
   openModal(`<div class="pt">🎁 Donner "${esc(item.name||'?')}"</div>
-    <div style="font-size:13px;color:var(--text2);margin-bottom:14px">Choisissez le joueur qui recevra cet objet dans son inventaire.</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:12px">Choisis ce que le propriétaire et le groupe savent réellement de cet objet.</div>
+    <div class="g2" style="gap:8px;margin-bottom:14px">
+      <div><div class="fl mb6">Visibilité</div><select class="fi" id="giveItem_visibility">
+        <option value="owner">Propriétaire uniquement</option>
+        <option value="group">Visible du groupe</option>
+        <option value="gm">MJ uniquement</option>
+      </select></div>
+      <div><div class="fl mb6">Identification</div><select class="fi" id="giveItem_identification">
+        <option value="unknown">Nature inconnue</option>
+        <option value="partial">Partiellement identifiée</option>
+        <option value="identified">Identifiée</option>
+      </select></div>
+    </div>
+    <div style="font-size:13px;color:var(--text3);margin-bottom:10px">Choisissez le personnage qui possédera cet exemplaire.</div>
     ${_mjPlayersData.map((pp,pi)=>`<div class="charlib-item" onclick="mjGiveItem(${itemIdx},${pi})">
       <span style="font-size:15px">${pp.avatar||'⚔'}</span>
       <div style="flex:1">
@@ -173,26 +249,74 @@ function mjOpenGiveItem(itemIdx){
       </div>
       <span style="color:var(--cp);font-size:13px">Donner →</span>
     </div>`).join('')}
+    <div class="fl mb6" style="margin-top:12px">Possession collective</div>
+    <div class="ds-note" style="margin-bottom:6px">L’objet appartient au groupe ; le personnage choisi n’est que son transporteur.</div>
+    ${_mjPlayersData.map((pp,pi)=>`<div class="charlib-item" onclick="mjGiveItemToGroup(${itemIdx},${pi})">
+      <span style="font-size:15px">👥</span>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600">Trésor du groupe</div>
+        <div style="font-size:13px;color:var(--text3)">Transporté par ${esc(pp.charData&&pp.charData.charName||pp.playerName||'?')}</div>
+      </div>
+      <span style="color:var(--cp);font-size:13px">Attribuer →</span>
+    </div>`).join('')}
     <div style="display:flex;justify-content:flex-end;margin-top:10px"><button class="btn" onclick="closeModal()">Annuler</button></div>`);
+}
+async function mjGiveItemToGroup(itemIdx,carrierIdx){
+  const item=_mjObjets[itemIdx],carrier=_mjPlayersData[carrierIdx];
+  if(!item||!carrier)return;
+  return guardAction('giveItemToGroup:'+itemIdx,async()=>{
+  try{
+    const characterId=await v2CompatService.getCurrentCharacterId(currentCampaignId,carrier.uid);
+    if(!characterId)throw new Error('Transporteur introuvable');
+    await v2ItemService.giveToGroup(currentTableId,characterId,item,{
+      identification:document.getElementById('giveItem_identification')?.value||'unknown',
+      createdBy:currentUser.uid
+    });
+    _mjDistributedItems=null;
+    closeModal();
+    showToast(`✅ "${esc(item.name||'?')}" appartient maintenant au groupe.`);
+  }catch(e){showToast('❌ Attribution impossible : '+e.message);}
+  });
 }
 
 async function mjGiveItem(itemIdx,playerIdx){
   const item=_mjObjets[itemIdx];
   const pp=_mjPlayersData[playerIdx];
   if(!item||!pp)return;
+  return guardAction('giveItem:'+itemIdx+':'+playerIdx,async()=>{
   try{
+    const visibility=document.getElementById('giveItem_visibility')?.value||'owner';
+    const identification=document.getElementById('giveItem_identification')?.value||'unknown';
+    const v2ItemsEnabled=typeof v2CompatService!=='undefined'&&v2CompatService.isEnabled()
+      &&typeof v2ItemService!=='undefined';
+    if(v2ItemsEnabled){
+      const characterId=await v2CompatService.getCurrentCharacterId(currentCampaignId,pp.uid);
+      if(!characterId)throw new Error('Personnage courant introuvable');
+      await v2ItemService.giveToCharacter(currentTableId,characterId,item,{
+        visibility,
+        identification,
+        createdBy:currentUser.uid
+      });
+      _mjDistributedItems=null;
+      closeModal();
+      showToast(`✅ Exemplaire de "${esc(item.name||'?')}" attribué.`);
+      return;
+    }
     const charRef=fbDb.collection('characters').doc(pp.uid+'_'+currentCampaignId);
     const charDoc=await charRef.get();
     if(!charDoc.exists){showToast('❌ Personnage introuvable.');return;}
     const charData=charDoc.data().characterData||{};
     if(!charData.inventory)charData.inventory=[];
-    const ex=charData.inventory.find(i=>i.name===item.name);
+    const ex=charData.inventory.find(i=>i.name===item.name
+      &&(i.visibility||'owner')===visibility
+      &&(i.identification||'identified')===identification);
     if(ex)ex.qty=(ex.qty||0)+1;
-    else charData.inventory.push({name:item.name,qty:1,desc:item.desc||'',magic:item.type==='Objet magique',linkedTo:'',itemType:_TYPE_LABEL_TO_CODE[item.type]||'',attunement:item.attunement||false,attuned:false});
+    else charData.inventory.push({name:item.name,qty:1,desc:item.desc||'',magic:item.type==='Objet magique',linkedTo:'',itemType:_TYPE_LABEL_TO_CODE[item.type]||'',attunement:item.attunement||false,attuned:false,visibility,identification});
     await charRef.update({'characterData.inventory':charData.inventory});
     closeModal();
     showToast(`✅ "${esc(item.name||'?')}" donné à ${esc(pp.charData&&pp.charData.charName||pp.playerName||'?')} !`);
   }catch(e){showToast('❌ Une erreur est survenue, réessaie.');}
+  });
 }
 
 // ─────────────────────────────────────────

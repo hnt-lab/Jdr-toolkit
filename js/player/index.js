@@ -9,7 +9,11 @@ function uploadPortrait(input){
   reader.onload=e=>{upd('portrait',e.target.result);render();};
   reader.readAsDataURL(file);
 }
-function _modalCloseX(){return`<button onclick="closeModal()" title="Fermer" aria-label="Fermer" style="position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--surface2);color:var(--text2);font-size:15px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:3">✕</button>`;}
+// Bouton de fermeture des modales — point de génération UNIQUE (toutes les modales
+// l'appellent). Carré et laiton depuis le 2026-07-26 : il était rond et gris, seul
+// vestige d'arrondi dans une interface entièrement à angles droits, et il ne portait
+// pas la couleur d'accent de la charte. border-radius:2px = le même que .btn.
+function _modalCloseX(){return`<button onclick="closeModal()" title="Fermer" aria-label="Fermer" style="position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:2px;border:1px solid var(--cp);background:var(--surface2);color:var(--cp);font-size:15px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:3">✕</button>`;}
 function openModal(html){const m=document.getElementById('modal');m.className='open';m.innerHTML=`<div class="modal-box" style="max-width:560px;position:relative;padding-right:18px">${_modalCloseX()}${html}</div>`;}
 function openWideModal(html){const m=document.getElementById('modal');m.className='open';m.innerHTML=`<div class="modal-box" style="max-width:720px;position:relative;padding-right:18px">${_modalCloseX()}${html}</div>`;}
 function closeModal(){const m=document.getElementById('modal');if(m){m.className='';m.innerHTML='';}if(typeof _tutoRemoveHighlight==='function')_tutoRemoveHighlight();}
@@ -168,7 +172,7 @@ function _openDiceShortcuts(){
   sp.innerHTML=`
     <div style="display:flex;align-items:center;gap:8px">
       <span style="font-size:13px;color:var(--cp);background:var(--surface);padding:4px 10px;border-radius:2px;border:1px solid var(--border);white-space:nowrap">Journal</span>
-      <button style="width:44px;height:44px;border-radius:50%;background:var(--surface);border:2px solid var(--cp);color:var(--cp);font-size:15px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4)" onclick="_diceNav('journal')">📓</button>
+      <button style="width:44px;height:44px;border-radius:50%;background:var(--surface);border:2px solid var(--cp);color:var(--cp);font-size:15px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.4)" onclick="_closeDiceShortcuts();openQuickNote()" title="Note rapide">📓</button>
     </div>
     ${currentTableId?`<div style="display:flex;align-items:center;gap:8px">
       <span style="font-size:13px;color:var(--cp);background:var(--surface);padding:4px 10px;border-radius:2px;border:1px solid var(--border);white-space:nowrap">Chuchoter</span>

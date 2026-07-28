@@ -40,49 +40,631 @@ function dsSetHand(h){localStorage.setItem('ds_hand',h);dsApplyPrefs();if(typeof
 function dsSetMix(m){localStorage.setItem('ds_mix',m);dsApplyPrefs();}
 dsApplyPrefs();
 
+// ── MODIFICATION D'UNE FICHE HORS SESSION ───────────────────────────────────
+// Consentement conservé seulement en mémoire : un rechargement ou un nouvel
+// onglet redemande l'autorisation, conformément à la décision produit.
+let _dsOutOfSessionEditUnlocked=false,_dsPendingEditTarget=null;
+function _dsEditedCharacterId(){
+  return typeof currentSheetCharacterId!=='undefined'&&currentSheetCharacterId
+    ?currentSheetCharacterId
+    :typeof currentCharacterId!=='undefined'?currentCharacterId:null;
+}
+function _dsOutOfSessionStorageKey(){
+  const id=_dsEditedCharacterId();
+  return id?'mjtk_out_of_session_edit_'+id:null;
+}
+function _dsOutOfSessionIsUnlocked(){
+  if(_dsOutOfSessionEditUnlocked)return true;
+  const key=_dsOutOfSessionStorageKey();
+  try{return !!key&&sessionStorage.getItem(key)==='1';}catch(e){return false;}
+}
+function _dsSheetIsInLiveSession(){
+  if(!currentCampaignId||currentCampaignId==='__solo__')return false;
+  if(_dsEditedCharacterId()&&currentCharacterId
+    &&_dsEditedCharacterId()!==currentCharacterId)return false;
+  const saved=typeof loadSessionState==='function'?loadSessionState():null;
+  return !!(saved&&saved.mode==='play'
+    &&saved.tableId===currentTableId
+    &&saved.campaignId===currentCampaignId);
+}
+function _dsConfirmOutOfSessionEdit(){
+  _dsOutOfSessionEditUnlocked=true;
+  const key=_dsOutOfSessionStorageKey();
+  try{if(key)sessionStorage.setItem(key,'1');}catch(e){}
+  const target=_dsPendingEditTarget;
+  _dsPendingEditTarget=null;
+  closeModal();
+  if(target&&document.contains(target)){
+    if(typeof target.focus==='function')target.focus();
+    if(typeof target.click==='function'&&target.tagName==='BUTTON')target.click();
+  }
+}
+function _dsCancelOutOfSessionEdit(){
+  _dsPendingEditTarget=null;
+  closeModal();
+}
+function _dsAskOutOfSessionEdit(target){
+  _dsPendingEditTarget=target;
+  openModal(`<div class="pt">Modifier la fiche hors session ?</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:16px">La partie n’est pas en cours. Tes changements seront tout de même enregistrés sur le personnage.</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn" style="flex:1" onclick="_dsCancelOutOfSessionEdit()">Retour</button>
+      <button class="btn bac" style="flex:2" onclick="_dsConfirmOutOfSessionEdit()">Modifier quand même</button>
+    </div>`);
+}
+document.addEventListener('pointerdown',event=>{
+  if(_dsOutOfSessionIsUnlocked()||_dsSheetIsInLiveSession())return;
+  const target=event.target?.closest?.('#tabContent input,#tabContent textarea,#tabContent select,#tabContent button,#tabContent [contenteditable="true"]');
+  if(!target)return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  _dsAskOutOfSessionEdit(target);
+},true);
+
 // ── NAV 3 DESTINATIONS : Tables · Personnage/Panneau MJ · Groupe ──
 // Remplace le contenu de #modeNav (2 items) par 3 items. Le bouton Groupe
 // ouvre pour l'instant le panneau de groupe existant (partyHud) — il
 // deviendra la vraie page Groupe à la migration de la page 3.
 // ── PAGE GROUPE (P3) — overlay plein écran : Tour → Membres → Partages MJ → Chronique ──
-let _dsGroupOpen=false,_dsShares=null;
+let _dsGroupOpen=false,_dsShares=null,_dsChronicleEntries=null,_dsRestProposals=[];
+let _dsGroupDiscoveriesUnsub=null,_dsGroupChronicleUnsub=null,_dsGroupRestUnsub=null;
+let _dsGroupRestParticipantUnsubs=[];
+function _dsV2Enabled(){
+  return typeof v2CompatService!=='undefined'&&v2CompatService.isEnabled();
+}
+function _dsCurrentCampaignData(){
+  const table=_hubCache&&_hubCache.find(item=>item.id===currentTableId);
+  return table&&(table.campaigns||[]).find(item=>item.id===currentCampaignId);
+}
+function _dsStopGroupDataListeners(){
+  if(typeof _dsGroupDiscoveriesUnsub==='function')_dsGroupDiscoveriesUnsub();
+  if(typeof _dsGroupChronicleUnsub==='function')_dsGroupChronicleUnsub();
+  if(typeof _dsGroupRestUnsub==='function')_dsGroupRestUnsub();
+  _dsGroupRestParticipantUnsubs.forEach(unsub=>{try{unsub();}catch(e){}});
+  _dsGroupRestParticipantUnsubs=[];
+  _dsGroupDiscoveriesUnsub=null;
+  _dsGroupChronicleUnsub=null;
+  _dsGroupRestUnsub=null;
+}
+function _dsDiscoveryToShare(doc){
+  const data=doc.data?doc.data():doc;
+  const type=data.type==='clue'?'indice':data.type==='artifact'?'artefact':'quete';
+  return {
+    ...data,
+    id:doc.id||data.id,
+    type,
+    title:data.title||'',
+    text:data.content||'',
+    matiere:data.material||data.matiere||''
+  };
+}
+function _dsLoadGroupData(){
+  _dsStopGroupDataListeners();
+  _dsShares=null;
+  _dsChronicleEntries=null;
+  // Les repos aussi : sans cette remise à zéro, la liste gardait la proposition de la
+  // fois précédente et la carte « ☕ Repos proposé » restait affichée alors que le MJ
+  // avait déjà tranché — l'écouteur ne s'abonne qu'aux propositions EN ATTENTE, il ne
+  // renvoie donc jamais rien pour effacer une proposition close (retour A8b du 26/07).
+  _dsRestProposals=[];
+  if(_dsV2Enabled()&&typeof v2GroupService!=='undefined'){
+    _dsGroupDiscoveriesUnsub=v2GroupService.listenDiscoveries(
+      currentCampaignId,
+      snapshot=>{
+        _dsShares=snapshot.docs.map(_dsDiscoveryToShare);
+        if(_dsGroupOpen)_dsRenderGroup();
+      },
+      ()=>{_dsShares=[];if(_dsGroupOpen)_dsRenderGroup();}
+    );
+    const campaign=_dsCurrentCampaignData();
+    if(campaign?.chronicleId){
+      _dsGroupChronicleUnsub=v2GroupService.listenChronicleEntries(
+        campaign.chronicleId,
+        snapshot=>{
+          _dsChronicleEntries=snapshot.docs.map(doc=>({id:doc.id,...doc.data()}));
+          if(_dsGroupOpen)_dsRenderGroup();
+        },
+        ()=>{_dsChronicleEntries=[];if(_dsGroupOpen)_dsRenderGroup();}
+      );
+    }else{
+      _dsChronicleEntries=[];
+    }
+    if(typeof v2RestService!=='undefined'){
+      _dsGroupRestUnsub=v2RestService.listenOpen(
+        currentCampaignId,
+        snapshot=>{
+          _dsRestProposals=snapshot.docs.map(doc=>({id:doc.id,...doc.data()}));
+          _dsGroupRestParticipantUnsubs.forEach(unsub=>{try{unsub();}catch(e){}});
+          _dsGroupRestParticipantUnsubs=_dsRestProposals.map(proposal=>
+            v2RestService.listenParticipants(
+              currentCampaignId,
+              proposal.id,
+              participants=>{
+                const target=_dsRestProposals.find(item=>item.id===proposal.id);
+                if(target){
+                  target.participants=Object.fromEntries(
+                    participants.docs.map(doc=>[doc.id,doc.data()])
+                  );
+                }
+                _dsAfterGroupData();
+              }
+            )
+          );
+          _dsAfterGroupData();
+        },
+        ()=>{_dsRestProposals=[];_dsAfterGroupData();}
+      );
+    }
+    return;
+  }
+  // Repli historique tant que les collections V2 ne sont pas activées localement.
+  try{
+    fbDb.collection('campaigns').doc(currentCampaignId).get().then(doc=>{
+      _dsShares=(doc.exists&&doc.data().shares)||[];
+      if(_dsGroupOpen)_dsRenderGroup();
+    }).catch(()=>{_dsShares=[];if(_dsGroupOpen)_dsRenderGroup();});
+  }catch(e){_dsShares=[];}
+}
+async function _dsChooseRest(proposalId,participates){
+  const proposal=(_dsRestProposals||[]).find(item=>item.id===proposalId);
+  if(participates&&proposal?.type==='short'){
+    _dsOpenShortRestChoice(proposalId);
+    return;
+  }
+  try{
+    await v2RestService.setParticipation(
+      currentCampaignId,proposalId,currentUser.uid,participates
+    );
+    showToast(participates
+      ?'✅ Tu participeras si le MJ autorise ce repos.'
+      :'Participation refusée.');
+  }catch(e){showToast('❌ Réponse impossible : '+e.message);}
+}
+// ═══════════════════════════════════════════════════════════════════════════
+//  REPOS COURT — L'ÉCRAN SUIT LE MODE DE DÉ (retour de test du 2026-07-26)
+//  « c'est en fonction du mode de dé que ces options doivent apparaître. »
+//  Avant, la même boîte demandait le nombre de dés ET un « résultat physique
+//  total (facultatif) » — elle parlait donc des deux mondes à la fois, à un
+//  joueur qui n'en vit qu'un. Désormais :
+//   • dé virtuel → un bouton « 🎲 Lancer les dés de vie », l'app lance ;
+//   • dé réel    → le message « Lance 2d8 · ajoute +2 par dé », puis le total.
+//  Le CHOIX du nombre de dés est conservé (arbitrage utilisateur du 26/07) : les
+//  dés de vie ne se rechargent qu'à moitié au repos long, tout dépenser d'office
+//  viderait la réserve de la journée sans que le joueur l'ait décidé.
+// ═══════════════════════════════════════════════════════════════════════════
+function _dsShortRestIsIRL(){return typeof _isIRLMode==='function'&&_isIRLMode();}
+// Met à jour la consigne de lancer réel quand les compteurs changent.
+function _dsShortRestSyncHint(){
+  const hint=document.getElementById('dsRestIRLHint');if(!hint)return;
+  const p=P();
+  const conMod=Math.floor((((p.abilities||[])[2]||10)-10)/2);
+  const parts=[];let totalDice=0;
+  document.querySelectorAll('.ds-rest-die').forEach(input=>{
+    const count=Math.max(0,Math.min(Number(input.max)||0,Math.trunc(Number(input.value)||0)));
+    if(!count)return;
+    totalDice+=count;
+    parts.push(`${count}d${input.dataset.die||8}`);
+  });
+  hint.innerHTML=totalDice
+    ?`🎲 Lance <b>${parts.join(' + ')}</b>${conMod?` · ajoute <b>${conMod>0?'+':''}${conMod}</b> à chaque dé`:''}, puis saisis le total.`
+    :`Choisis au moins un dé de vie, ou valide sans en dépenser.`;
+}
+function _dsOpenShortRestChoice(proposalId){
+  const p=P();
+  const used=p.hitDiceUsed||{};
+  const classes=(p.classes||[]).filter(entry=>(entry.level||0)>0);
+  if(!classes.length){
+    _dsConfirmShortRestChoice(proposalId,false);
+    return;
+  }
+  const irl=_dsShortRestIsIRL();
+  openModal(`<div class="pt">☕ Participer au repos court</div>
+    <div class="ds-note" style="margin-bottom:10px">Choisis combien de dés de vie tu dépenses. Tu peux tout laisser à zéro.</div>
+    ${classes.map(entry=>{
+      const definition=(SRD.classes||[]).find(item=>item.name===entry.name)||{};
+      const available=Math.max(0,(entry.level||0)-(used[entry.name]||0));
+      return`<div class="g-sub" style="display:flex;align-items:center;gap:8px;padding:8px;margin-bottom:6px">
+        <div style="flex:1"><b>${esc(entry.name)}</b><div class="ds-note">d${definition.hdVal||8} · ${available} disponible(s)</div></div>
+        <input class="fi ds-rest-die" data-class="${esc(entry.name)}" data-die="${definition.hdVal||8}" type="number" min="0" max="${available}" value="0" style="width:70px;text-align:center" oninput="_dsShortRestSyncHint()">
+      </div>`;
+    }).join('')}
+    ${irl?`<div id="dsRestIRLHint" class="ds-note" style="margin:12px 0 8px;padding:9px 11px;border:1px solid rgba(200,168,75,.45);background:rgba(200,168,75,.07);line-height:1.6"></div>
+    <div class="fl mb6">Total obtenu sur tes dés</div>
+    <input class="fi" id="dsRestPhysicalHealing" type="number" min="0" placeholder="Ex : 11" style="margin-bottom:12px">`:''}
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
+      <button class="btn" style="flex:1" onclick="_dsConfirmShortRestChoice('${proposalId}',true)">Sans dé de vie</button>
+      <button class="btn bac" style="flex:2" onclick="_dsConfirmShortRestChoice('${proposalId}',false)">${irl?'✓ Valider mon repos':'🎲 Lancer les dés de vie'}</button>
+    </div>`);
+  if(irl)_dsShortRestSyncHint();
+}
+async function _dsConfirmShortRestChoice(proposalId,withoutDice){
+  const p=P();
+  const hitDiceSpent={};
+  let healing=0,totalDice=0;
+  const conMod=Math.floor((((p.abilities||[])[2]||10)-10)/2);
+  if(!withoutDice){
+    document.querySelectorAll('.ds-rest-die').forEach(input=>{
+      const count=Math.max(0,Math.min(Number(input.max)||0,Math.trunc(Number(input.value)||0)));
+      if(!count)return;
+      hitDiceSpent[input.dataset.class]=count;
+      totalDice+=count;
+      for(let i=0;i<count;i++)healing+=Math.max(0,Math.ceil(Math.random()*(Number(input.dataset.die)||8))+conMod);
+    });
+    // Dé réel : c'est le joueur qui a lancé — l'app ne doit surtout pas tirer à sa
+    // place. Le champ n'existe qu'en mode réel, et il devient alors obligatoire dès
+    // qu'un dé est dépensé (sinon on enregistrerait un tirage virtuel en douce).
+    if(_dsShortRestIsIRL()){
+      const physical=document.getElementById('dsRestPhysicalHealing')?.value;
+      if(totalDice>0&&(physical===''||physical==null)){
+        showToast('🎲 Saisis le total obtenu sur tes dés.');
+        return;
+      }
+      healing=Math.max(0,Math.trunc(Number(physical)||0));
+    }
+    const chant=(_groupData||[]).find(member=>
+      member.uid!==currentUser?.uid
+      &&member.charData?.combatCharges?.ChantReposantResult!==undefined
+    )?.charData?.combatCharges?.ChantReposantResult||0;
+    if(totalDice>0)healing+=chant;
+  }
+  try{
+    await v2RestService.setParticipation(
+      currentCampaignId,proposalId,currentUser.uid,true,{healing,hitDiceSpent}
+    );
+    closeModal();
+    showToast(totalDice
+      ?`✅ Participation enregistrée · ${totalDice} dé(s) de vie · +${healing} PV si le MJ autorise.`
+      :'✅ Participation enregistrée sans dé de vie.');
+  }catch(e){showToast('❌ Réponse impossible : '+e.message);}
+}
+// ═══════════════════════════════════════════════════════════════════════════
+//  BLOC « REPOS PROPOSÉ » — rendu PARTAGÉ
+//  Affiché sur la page Groupe ET dans l'onglet Joueurs du panneau MJ (§10.1 :
+//  « repos collectifs »). Le MJ ne doit pas avoir à quitter son panneau en
+//  pleine session pour autoriser un repos ; le joueur, lui, répond depuis la
+//  page Groupe. Un seul rendu pour les deux : les boutons s'adaptent au rôle.
+// ═══════════════════════════════════════════════════════════════════════════
+function _dsRestBlockHTML(){
+  if(!_dsV2Enabled()||!(_dsRestProposals||[]).length)return'';
+  return`<div class="ds-seclbl" style="margin:14px 0 8px">☕ Repos proposé</div>
+    ${_dsRestProposals.map(proposal=>{
+      const participants=proposal.participants||{};
+      const own=participants[currentUser?.uid];
+      const table=_hubCache&&_hubCache.find(item=>item.id===currentTableId);
+      const names=table?.memberNames||{};
+      const accepted=Object.entries(participants).filter(([,p])=>p.participates===true).map(([uid,p])=>
+        (names[uid]||'Membre')+(proposal.type==='short'&&p.healing?` (+${p.healing} PV)`:'')
+      );
+      const declined=Object.entries(participants).filter(([,p])=>p.participates===false).map(([uid])=>names[uid]||'Membre');
+      return`<div class="ds-card" style="padding:10px;margin-bottom:8px">
+        <div style="font-weight:700">${proposal.type==='long'?'🌙 Repos long':'☕ Repos court'}</div>
+        <div class="ds-note" style="margin:3px 0 9px">Proposé par ${esc(proposal.requestedByName||'un membre')}. Aucun effet avant la décision du MJ.</div>
+        ${accepted.length||declined.length?`<div class="ds-note" style="margin-bottom:8px">${accepted.length?'✓ '+esc(accepted.join(', ')):''}${accepted.length&&declined.length?' · ':''}${declined.length?'Ne participe pas : '+esc(declined.join(', ')):''}</div>`:''}
+        <div style="display:flex;gap:7px">
+          ${window._currentCampIsMJ
+            ?`<button class="ds-btn primary" style="flex:1" onclick="_dsDecideRest('${proposal.id}',true)">Autoriser</button>
+              <button class="ds-btn quiet" style="flex:1" onclick="_dsDecideRest('${proposal.id}',false)">Refuser</button>`
+            :`<button class="ds-btn ${own?.participates===true?'primary':'quiet'}" style="flex:1" onclick="_dsChooseRest('${proposal.id}',true)">Participer</button>
+              <button class="ds-btn ${own?.participates===false?'primary':'quiet'}" style="flex:1" onclick="_dsChooseRest('${proposal.id}',false)">Ne pas participer</button>`}
+        </div>
+      </div>`;
+    }).join('')}`;
+}
+// Après réception de données de groupe : repeindre l'écran qui les montre.
+// La page Groupe n'est pas le seul consommateur depuis que le MJ suit les repos
+// depuis son panneau — sans ce second cas, une demande arrivait sans rien repeindre.
+function _dsAfterGroupData(){
+  if(_dsGroupOpen){_dsRenderGroup();return;}
+  if(window._currentCampIsMJ&&typeof _mjTab!=='undefined'&&_mjTab==='joueurs'
+    &&typeof renderMJContent==='function')renderMJContent();
+}
+async function _dsDecideRest(proposalId,approved){
+  // Anti-spam : la décision applique des soins et consomme des dés de vie — la
+  // rejouer deux fois n'est pas une écriture inoffensive. Clé par proposition.
+  return guardAction('decideRest:'+proposalId,async()=>{
+    try{
+      await v2RestService.decide(
+        currentCampaignId,proposalId,currentUser.uid,approved
+      );
+      showToast(approved
+        ?'✅ Repos autorisé. Application aux participants en cours.'
+        :'Repos refusé.');
+    }catch(e){showToast('❌ Décision impossible : '+e.message);}
+  });
+}
 function _dsNavGoGroup(){
-  if(window._currentCampIsMJ)return;
+  if(!currentCampaignId)return;
   _dsGroupOpen?_dsCloseGroup():_dsOpenGroup();
 }
 function _dsOpenGroup(){
-  _dsGroupOpen=true;_dsShares=null;
+  if(typeof _dsCloseCharacterPage==='function')_dsCloseCharacterPage();
+  _dsGroupOpen=true;
   let el=document.getElementById('dsGroupPage');
   if(!el){el=document.createElement('div');el.id='dsGroupPage';document.body.appendChild(el);}
   el.style.display='block';
   _dsRenderGroup();
-  // Partages du MJ : lecture du doc campagne à l'ouverture
-  try{
-    if(currentCampaignId&&typeof fbDb!=='undefined'){
-      fbDb.collection('campaigns').doc(currentCampaignId).get().then(d=>{
-        _dsShares=(d.exists&&d.data().shares)||[];
-        if(_dsGroupOpen)_dsRenderGroup();
-      }).catch(()=>{_dsShares=[];});
-    }
-  }catch(e){_dsShares=[];}
+  _dsLoadGroupData();
   if(typeof _refreshModeNav==='function')_refreshModeNav();
 }
 function _dsCloseGroup(){
   _dsGroupOpen=false;
+  _dsStopGroupDataListeners();
   const el=document.getElementById('dsGroupPage');if(el)el.style.display='none';
   if(typeof _refreshModeNav==='function')_refreshModeNav();
 }
+function _dsChronicleDate(value){
+  if(!value)return'À l’instant';
+  const date=typeof value.toDate==='function'?value.toDate():new Date(value);
+  if(Number.isNaN(date.getTime()))return'';
+  return new Intl.DateTimeFormat('fr-FR',{
+    day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'
+  }).format(date);
+}
+function _dsChronicleWasEdited(entry){
+  if(!entry?.createdAt||!entry?.updatedAt)return false;
+  const millis=value=>typeof value.toMillis==='function'
+    ?value.toMillis()
+    :new Date(value).getTime();
+  return millis(entry.updatedAt)>millis(entry.createdAt)+1000;
+}
+async function _dsAddChronicleEntry(){
+  if(!_dsV2Enabled()||typeof v2GroupService==='undefined')return;
+  const campaign=_dsCurrentCampaignData();
+  const input=document.getElementById('dsChronicleInput');
+  const content=String(input?.value||'').trim();
+  if(!campaign?.chronicleId){showToast('❌ Chronique V2 indisponible pour cette campagne.');return;}
+  if(!content){showToast('❌ Écris quelque chose avant de publier.');return;}
+  // Anti-spam : deux clics = deux fois la même entrée dans la Chronique. Le champ
+  // n'est vidé qu'APRÈS l'écriture, donc rien ne protégeait de la répétition.
+  return guardAction('addChronicleEntry',async()=>{
+    try{
+      await v2GroupService.addChronicleEntry(campaign.chronicleId,{
+        campaignId:currentCampaignId,
+        authorId:currentUser.uid,
+        authorNameSnapshot:currentUserData?.displayName||'Membre',
+        content
+      });
+      if(input)input.value='';
+      showToast('📜 Entrée publiée dans la chronique.');
+    }catch(e){showToast('❌ Publication impossible : '+e.message);}
+  });
+}
+function _dsEditChronicleEntry(entryId){
+  const entry=(_dsChronicleEntries||[]).find(item=>item.id===entryId);
+  if(!entry||entry.authorId!==currentUser?.uid)return;
+  openModal(`<div class="pt">✏ Modifier mon entrée</div>
+    <textarea class="fi" id="dsChronicleEditContent" rows="8" style="resize:vertical;margin-bottom:12px">${esc(entry.content||'')}</textarea>
+    <div class="ds-note" style="margin-bottom:12px">La date de publication reste inchangée ; l’entrée portera la mention « modifié ».</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
+      <button class="btn bac" style="flex:2" onclick="_dsConfirmChronicleEdit('${entryId}')">Enregistrer</button>
+    </div>`);
+}
+async function _dsConfirmChronicleEdit(entryId){
+  const campaign=_dsCurrentCampaignData();
+  const content=(document.getElementById('dsChronicleEditContent')?.value||'').trim();
+  if(!campaign?.chronicleId||!content)return;
+  try{
+    await v2GroupService.updateChronicleEntry(campaign.chronicleId,entryId,content);
+    closeModal();showToast('✅ Entrée modifiée.');
+  }catch(e){showToast('❌ Modification impossible : '+e.message);}
+}
+async function _dsDeleteChronicleEntry(entryId){
+  const campaign=_dsCurrentCampaignData();
+  const entry=(_dsChronicleEntries||[]).find(item=>item.id===entryId);
+  if(!campaign?.chronicleId||entry?.authorId!==currentUser?.uid)return;
+  if(!confirm('Supprimer cette entrée de la chronique ?'))return;
+  try{
+    await v2GroupService.deleteChronicleEntry(campaign.chronicleId,entryId);
+    showToast('Entrée supprimée.');
+  }catch(e){showToast('❌ Suppression impossible : '+e.message);}
+}
+
+// ── PAGE PERSONNAGE ──────────────────────────────────────────────────────────
+// Destination stable de la navigation. La fiche en cours reste prioritaire ;
+// la collection et les actions secondaires occupent un espace réduit.
+let _dsCharacterPageOpen=false;
+let _dsV2CharacterCache=null;
+function _dsCloseCharacterPage(){
+  _dsCharacterPageOpen=false;
+  const el=document.getElementById('dsCharacterPage');
+  if(el)el.style.display='none';
+}
+async function _dsLoadV2Characters(){
+  try{
+    _dsV2CharacterCache=await v2DataService.listOwnedCharacters(currentUser.uid);
+  }catch(e){
+    _dsV2CharacterCache=[];
+    showToast('❌ Chargement des personnages impossible : '+e.message);
+  }
+  if(_dsCharacterPageOpen)_dsRenderCharacterPage();
+}
+function _dsV2CharacterCard(character,isCurrent){
+  const sheet=character.sheet||{};
+  const cls=(sheet.classes||[]).map(c=>c.name+' '+c.level).join(' / ');
+  return`<article class="ds-card" style="margin-bottom:8px;${isCurrent?'border-color:var(--ds-acc-strong);':''}">
+    <div style="display:flex;align-items:center;gap:10px">
+      ${sheet.portrait
+        ?`<img src="${sheet.portrait}" style="width:42px;height:42px;object-fit:cover;border:1px solid var(--ds-line);flex:none">`
+        :`<span style="width:42px;height:42px;display:grid;place-items:center;background:var(--ds-card2);border:1px solid var(--ds-line);font-size:20px;flex:none">${currentUserData?.avatar||'⚔'}</span>`}
+      <button class="flat" style="flex:1;min-width:0;text-align:left" onclick="_dsOpenV2Character('${character.id}')">
+        <span style="display:block;font-family:var(--ds-disp);font-size:${isCurrent?'17px':'14px'};font-weight:700;color:var(--ds-ink)">${esc(sheet.charName||sheet.name||character.identity?.name||'Personnage')}</span>
+        <span class="ds-note">${esc(cls||'Classe à définir')}${isCurrent?' · personnage joué':''}</span>
+      </button>
+      ${isCurrent?'<span class="ds-chip good" style="font-size:10px">En cours</span>':''}
+      <button class="ds-btn quiet" style="min-height:30px;padding:2px 8px" onclick="exportV2Character('${character.id}')" title="Exporter">⬇</button>
+    </div>
+  </article>`;
+}
+async function _dsOpenV2Character(characterId){
+  try{
+    const sheet=await v2DataService.loadCharacterSheet(characterId);
+    if(!sheet){showToast('❌ Fiche introuvable.');return;}
+    _dsCloseCharacterPage();
+    _dsCloseGroup();
+    currentSheetCharacterId=characterId;
+    if(typeof _v2PersonalNotes!=='undefined')_v2PersonalNotes=null;
+    if(typeof _v2PersonalNotesCharacterId!=='undefined')_v2PersonalNotesCharacterId=null;
+    _dsOutOfSessionEditUnlocked=false;
+    state.players=[migratePlayer(sheet)];
+    state.activeIdx=0;
+    state.activeTab='perso';
+    stopAllListeners();
+    if(currentCampaignId){
+      _groupData=[];
+      startGroupListener(currentCampaignId);
+      if(currentTableMjId)startCombatListener(currentCampaignId,currentTableMjId);
+    }
+    showApp();
+    _suppressUnsavedMark=true;
+    render();
+  }catch(e){showToast('❌ Ouverture impossible : '+e.message);}
+}
+function _dsCharacterCard(campaignId,character,isCurrent){
+  const solo=character.tableName==='__solo__';
+  const context=solo
+    ?'Personnage indépendant'
+    :[character.campaignName,character.tableName].filter(Boolean).map(esc).join(' · ');
+  return`<article class="ds-card" style="margin-bottom:8px;${isCurrent?'border-color:var(--ds-acc-strong);':''}">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="width:42px;height:42px;display:grid;place-items:center;background:var(--ds-card2);border:1px solid var(--ds-line);font-size:20px;flex:none">${currentUserData?.avatar||'⚔'}</span>
+      <button class="flat" style="flex:1;min-width:0;text-align:left" onclick="enterCampaignFromLib('${campaignId}','${jsq(character.tableName||'')}','${jsq(character.campaignName||'')}')">
+        <span style="display:block;font-family:var(--ds-disp);font-size:${isCurrent?'17px':'14px'};font-weight:700;color:var(--ds-ink)">${esc(character.charName||'Personnage')}</span>
+        <span class="ds-note">${esc(character.charClass||'Classe à définir')}${context?' · '+context:''}</span>
+      </button>
+      ${isCurrent?'<span class="ds-chip good" style="font-size:10px">En cours</span>':''}
+      <button class="ds-btn quiet" style="min-height:30px;padding:2px 8px" onclick="exportCharacter('${campaignId}')" title="Exporter">⬇</button>
+    </div>
+  </article>`;
+}
+function _dsRenderCharacterPage(){
+  const el=document.getElementById('dsCharacterPage');
+  if(!el)return;
+  if(_dsV2Enabled()){
+    if(_dsV2CharacterCache===null){
+      el.innerHTML='<div class="ds-grouppage"><div class="gp-body"><div class="ds-title">Personnage</div><div class="ds-note" style="padding:18px 0">Chargement…</div></div></div>';
+      _dsLoadV2Characters();
+      return;
+    }
+    const chars=_dsV2CharacterCache;
+    const current=chars.find(character=>character.id===currentCharacterId)||null;
+    const others=chars.filter(character=>!current||character.id!==current.id);
+    el.innerHTML=`<div class="ds-grouppage">
+      <div class="gp-body">
+        <div class="ds-title" style="margin-bottom:10px">Personnage</div>
+        ${current
+          ?`<div class="ds-seclbl" style="margin-bottom:7px">Fiche en cours</div>${_dsV2CharacterCard(current,true)}`
+          :`<div class="ds-card" style="text-align:center;padding:20px;margin-bottom:12px">
+              <div style="font-family:var(--ds-disp);font-size:17px;font-weight:700">Aucune fiche en cours</div>
+              <div class="ds-note" style="margin-top:4px">Tes personnages restent disponibles ci-dessous.</div>
+            </div>`}
+        <div style="display:flex;align-items:center;gap:8px;margin:14px 0 8px">
+          <div class="ds-seclbl" style="flex:1">Mes personnages${chars.length?' · '+chars.length:''}</div>
+          <button class="ds-btn quiet" style="min-height:30px;padding:2px 8px" onclick="importStandaloneChar()">Importer</button>
+          <button class="ds-btn primary" style="min-height:30px;padding:2px 9px" onclick="openCreateStandaloneChar()">＋ Créer</button>
+        </div>
+        ${others.length?others.map(character=>_dsV2CharacterCard(character,false)).join(''):'<div class="ds-note" style="padding:12px 0">Aucun autre personnage.</div>'}
+        <div style="height:90px"></div>
+      </div>
+    </div>`;
+    return;
+  }
+  const chars=Object.entries(currentUserData?.charLib||{});
+  const currentIndex=chars.findIndex(([id])=>id===currentCampaignId);
+  const current=currentIndex>=0?chars[currentIndex]:null;
+  const others=chars.filter((_,index)=>index!==currentIndex);
+  el.innerHTML=`<div class="ds-grouppage">
+    <div class="gp-body">
+      <div class="ds-title" style="margin-bottom:10px">Personnage</div>
+      ${current
+        ?`<div class="ds-seclbl" style="margin-bottom:7px">Fiche en cours</div>${_dsCharacterCard(current[0],current[1],true)}`
+        :`<div class="ds-card" style="text-align:center;padding:20px;margin-bottom:12px">
+            <div style="font-family:var(--ds-disp);font-size:17px;font-weight:700">Aucune fiche en cours</div>
+            <div class="ds-note" style="margin-top:4px">Choisis un personnage ci-dessous ou crée-en un.</div>
+          </div>`}
+      <div style="display:flex;align-items:center;gap:8px;margin:14px 0 8px">
+        <div class="ds-seclbl" style="flex:1">Mes personnages${chars.length?' · '+chars.length:''}</div>
+        <button class="ds-btn quiet" style="min-height:30px;padding:2px 8px" onclick="importStandaloneChar()">Importer</button>
+        <button class="ds-btn primary" style="min-height:30px;padding:2px 9px" onclick="openCreateStandaloneChar()">＋ Créer</button>
+      </div>
+      ${others.length
+        ?others.map(([id,character])=>_dsCharacterCard(id,character,false)).join('')
+        :current?'':`<div class="ds-note" style="padding:12px 0">Tu n’as encore aucun personnage.</div>`}
+      <div style="height:90px"></div>
+    </div>
+  </div>`;
+}
+function _dsOpenCharacterPage(){
+  _dsCloseGroup();
+  _dsCharacterPageOpen=true;
+  let el=document.getElementById('dsCharacterPage');
+  if(!el){
+    el=document.createElement('div');
+    el.id='dsCharacterPage';
+    document.body.appendChild(el);
+  }
+  el.style.display='block';
+  if(_dsV2Enabled())_dsV2CharacterCache=null;
+  _dsRenderCharacterPage();
+  if(typeof _refreshModeNav==='function')_refreshModeNav();
+}
+function _navGoChar(){
+  if(window._currentCampIsMJ){
+    // ⚠️ Fermer les pages plein écran AVANT d'ouvrir le panneau MJ. La page Groupe et
+    // la page Personnage sont des surcouches posées sur <body> : sans ces fermetures,
+    // showMJScreen() peignait bien le panneau MJ… DERRIÈRE la page Groupe restée
+    // visible. D'où « en mode MJ, depuis la page Groupe, on ne peut pas cliquer sur
+    // Panneau MJ, il faut passer par Tables » (test du 25/07) — passer par Tables
+    // « marchait » seulement parce que showHub, lui, ferme ces surcouches.
+    // La branche joueur, juste en dessous, faisait déjà ces deux fermetures.
+    if(typeof _dsCloseGroup==='function')_dsCloseGroup();
+    if(typeof _dsCloseCharacterPage==='function')_dsCloseCharacterPage();
+    if(currentTableId&&currentCampaignId&&typeof enterCampaign==='function'){
+      enterCampaign(currentTableId,currentCampaignId);
+    }
+    return;
+  }
+  // Une fiche chargée reste le cœur de cette destination.
+  if(currentCampaignId&&state?.players?.length){
+    _dsCloseGroup();
+    _dsCloseCharacterPage();
+    showApp();
+    // ⚠️ showApp() ne fait qu'AFFICHER l'écran : il ne dessine rien. Sans le render()
+    // ci-dessous, arriver par « Reprendre » ouvrait une page BLANCHE — signalé au test
+    // du 25/07 (« je clique sur reprendre puis sur personnage »). Ce chemin-là passe par
+    // joinGroupOnly, qui charge bien la fiche en mémoire pour le lanceur de dés mais ne
+    // peint jamais : personne n'avait donc dessiné la fiche avant nous. Les deux autres
+    // entrées font déjà ce couple showApp()+render() (enterCampaign, _dsOpenV2Character).
+    // _suppressUnsavedMark : peindre n'est pas modifier — sans lui la fiche s'ouvrirait
+    // marquée « non sauvegardée » alors que le joueur n'a rien touché.
+    _suppressUnsavedMark=true;
+    if(typeof render==='function')render();
+    return;
+  }
+  _dsOpenCharacterPage();
+}
 function _dsShareHTML(s,idx,mjMode){
   const del=mjMode?`<button class="ds-btn quiet" style="min-height:26px;padding:2px 8px;color:var(--ds-seal);border-color:var(--ds-seal)" onclick="_dsRemoveShare(${idx})">🗑</button>`:'';
+  const media=s.image?.mediaId?`<button class="ds-discovery-media ${s.type}" onclick="_dsOpenDiscoveryImage(${idx})" aria-label="Agrandir l'image : ${esc(s.image.alt||s.title||'Découverte')}"><img data-discovery-media="${esc(s.image.mediaId)}" alt="${esc(s.image.alt||s.title||'Découverte')}" loading="lazy"></button>`:'';
   if(s.type==='indice'){
     const mat=s.matiere==='pierre'?'stone':s.matiere==='bois'?'wood':s.matiere==='rune'?'rune':'';
-    return`<div class="ds-pin ${mat}">${s.title?`<b>${esc(s.title)}</b><br>`:''}${esc(s.text||'')}${del?`<div style="margin-top:6px;text-align:right">${del}</div>`:''}</div>`;
+    return`<div class="ds-pin ${mat}">${media}${s.title?`<b>${esc(s.title)}</b><br>`:''}${esc(s.text||'')}${del?`<div style="margin-top:6px;text-align:right">${del}</div>`:''}</div>`;
   }
   const ic=s.type==='artefact'?'🗡':'🗝';
   const chip=s.type==='artefact'?'<span class="ds-chip seal" style="font-size:10px;padding:1px 6px">Artefact</span>':'<span class="ds-chip" style="font-size:10px;padding:1px 6px">Objet de quête</span>';
-  return`<div class="ds-item ${s.type==='artefact'?'artefact':''}"><span class="ic">${ic}</span>
+  return`<div class="ds-item ${s.type==='artefact'?'artefact':''}">${media||`<span class="ic">${ic}</span>`}
     <div style="flex:1;min-width:0"><div style="font-family:var(--ds-disp);font-size:11.5px;font-weight:700">${esc(s.title||'?')} ${chip}</div>
     ${s.text?`<div class="ds-note">${esc(s.text)}</div>`:''}</div>${del}</div>`;
+}
+async function _dsOpenDiscoveryImage(idx){
+  const s=(_dsShares||[])[idx];if(!s?.image)return;
+  try{
+    const url=await discoveryImageService.url(currentCampaignId,s.image);
+    openWideModal(`<div class="pt">${esc(s.title||'Découverte')}</div>
+      <img class="ds-discovery-full" src="${esc(url)}" alt="${esc(s.image.alt||s.title||'Découverte')}">
+      ${s.text?`<div class="ds-discovery-description">${esc(s.text)}</div>`:''}`);
+  }catch(e){showToast("❌ Impossible d'ouvrir l'image.");}
 }
 // ⛔ NE JAMAIS LIRE L'ÉTAT DE L'APP VIA « window.X » — CE FICHIER EN EST MORT LE 2026-07-22.
 // currentUser, _groupData, _activeCombatState, _mjTab, _mjCombatStarted sont déclarés avec
@@ -99,27 +681,76 @@ function _dsRenderGroup(){
   const el=document.getElementById('dsGroupPage');if(!el||!_dsGroupOpen)return;
   const combat=_activeCombatState&&_activeCombatState.active;
   const myTurn=combat&&currentUser&&_activeCombatState.currentTurnUid===currentUser.uid;
-  const gd=_groupData||[];
-  const tour=combat?`<div class="ds-seclbl" style="margin:12px 0 8px">⚡ Tour de jeu</div>
-    ${myTurn?`<div class="ds-turnbar"><span>⚡ C'est ton tour !</span><button class="ds-btn" style="min-height:34px" onclick="playerEndTurn()">⏩ Fin du tour</button></div>`
-      :`<div class="ds-banner">⚔ <span>Combat en cours — au tour de <b>${esc((gd.find(pp=>pp.uid===_activeCombatState.currentTurnUid)||{}).playerName||(((gd.find(pp=>pp.uid===_activeCombatState.currentTurnUid)||{}).charData||{}).charName)||'…')}</b></span></div>`}`:'';
-  const membres=gd.length?gd.map(pp=>{
+  const gd=window._currentCampIsMJ?(_mjPlayersData||[]):(_groupData||[]);
+  const localSidekicks=window._currentCampIsMJ
+    ?(_mjNPCs||[]).filter(npc=>npc.isSidekick===true
+      &&npc.archived!==true
+      &&(npc.campaignIds||[]).includes(currentCampaignId)).map(npc=>({
+        uid:`sidekick:${npc._v2Id||npc.name}`,
+        characterId:`sidekick:${npc._v2Id||npc.name}`,
+        playerName:'Contrôlé par le MJ',
+        avatar:'🤝',
+        isSidekick:true,
+        charData:{
+          charName:npc.name,
+          portrait:npc.portrait,
+          race:npc.race,
+          classes:[{name:npc.sidekickLabel||'Comparse',level:npc.sidekickLevel||1}],
+          hp:npc.hp,
+          hpMax:npc.hpMax||npc.hp,
+          tempHp:npc.tempHp,
+          conditions:npc.conditions||[]
+        }
+      }))
+    :(_groupSidekicks||[]);
+  const groupMembers=[...gd,...localSidekicks];
+  const publicOrder=combat
+    ?[...(_activeCombatState.combatants||[])]
+      .filter(combatant=>!combatant.hidden)
+      .sort((a,b)=>(b.initiative||0)-(a.initiative||0))
+    :[];
+  const currentIndex=publicOrder.findIndex(combatant=>{
+    if(_activeCombatState.currentTurnUid)return combatant.uid===_activeCombatState.currentTurnUid;
+    return combatant.name===_activeCombatState.currentTurnName;
+  });
+  const turnOwner=(gd.find(pp=>pp.uid===_activeCombatState?.currentTurnUid)||{});
+  const currentTurnName=_activeCombatState?.currentTurnName
+    ||turnOwner.playerName
+    ||(turnOwner.charData||{}).charName
+    ||'Créature';
+  const orderHtml=publicOrder.length
+    ?`<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:8px" aria-label="Ordre d'initiative">
+        ${publicOrder.map((combatant,index)=>{
+          const active=index===currentIndex;
+          const conditions=(combatant.conditions||[]).slice(0,2);
+          return`<span class="ds-chip${active?' good':''}" style="${active?'font-weight:800;':''}" title="Initiative ${combatant.initiative||0}${conditions.length?' · '+esc(conditions.join(', ')):''}">
+            ${active?'▶ ':''}${esc(combatant.name||'Créature')} · ${combatant.initiative||0}${conditions.length?' · ⚠ '+esc(conditions.join(', ')):''}
+          </span>`;
+        }).join('')}
+      </div>`
+    :'';
+  const tour=combat?`<div class="ds-seclbl" style="margin:12px 0 8px">⚡ Tour de jeu · Round ${_activeCombatState.round||1}</div>
+    ${myTurn?`<div class="ds-turnbar"><span>⚡ C'est ton tour !</span><button class="ds-btn quiet" style="min-height:34px" onclick="_dsOpenCombatTab()">⚔ Combat</button><button class="ds-btn" style="min-height:34px" onclick="playerEndTurn()">⏩ Fin du tour</button></div>`
+      :`<div class="ds-banner">⚔ <span style="flex:1">Combat en cours — au tour de <b>${esc(currentTurnName)}</b></span><button class="ds-btn quiet" style="min-height:32px" onclick="_dsOpenCombatTab()">⚔ Combat</button></div>`}
+    ${orderHtml}`:'';
+  const membres=groupMembers.length?groupMembers.map(pp=>{
     const p=pp.charData||{};
     const hp=p.hp||0,hpMax=p.hpMax||1;
     const pct=Math.max(0,Math.min(100,hp/hpMax*100));
     const low=pct<=25,mid=pct>25&&pct<=50;
     const down=hp<=0,dead=down&&(p.deathSaves&&p.deathSaves.fail>=3);
     const isOwn=!!currentUser&&pp.uid===currentUser.uid;
+    const isSidekick=pp.isSidekick===true;
     const portrait=p.portrait||p.equipPortrait;
     const cls=(p.classes||[]).map(c=>c.name+' '+c.level).join(' / ');
     const chips=(typeof _buildChargeChips==='function')?_buildChargeChips(p):'';
-    return`<div class="ds-corners" style="margin-bottom:10px;cursor:${isOwn?'default':'pointer'}" ${isOwn?'':`onclick="_showHudDetail('${pp.uid}')"`}><i class="cx"></i>
+    return`<div class="ds-corners" style="margin-bottom:10px;cursor:${isOwn||isSidekick?'default':'pointer'}" ${isOwn||isSidekick?'':`onclick="_showHudDetail('${pp.uid}')"`}><i class="cx"></i>
       <div style="display:flex;gap:9px;align-items:center">
         ${portrait?`<img src="${portrait}" style="width:42px;height:42px;object-fit:cover;border:1px solid var(--ds-acc);flex:none">`
           :`<span style="width:42px;height:42px;border:1px solid var(--ds-acc);background:var(--ds-card2);display:grid;place-items:center;font-size:15px;flex:none">${pp.avatar||'⚔'}</span>`}
         <div style="flex:1;min-width:0">
           <div style="font-family:var(--ds-disp);font-size:14.5px;color:var(--ds-ink)"><b>${esc(p.charName||pp.playerName||'?')}</b>
-            <span class="ds-note" style="font-size:11px">${isOwn?'Moi':esc(pp.playerName||'')}${cls?' · '+esc(cls):''}</span></div>
+            <span class="ds-note" style="font-size:11px">${isOwn?'Moi':isSidekick?'Comparse · contrôlé par le MJ':esc(pp.playerName||'')}${cls?' · '+esc(cls):''}</span></div>
           <div class="ds-hp ${low?'low':mid?'mid':''}" style="height:13px;margin-top:4px"><i style="width:${pct}%"></i><span class="vv">${dead?'💀':down?'⚠ 0':hp+'/'+hpMax}</span></div>
           ${(p.conditions||[]).length?`<div class="ds-note" style="margin-top:3px">${p.conditions.slice(0,4).join(' ')}</div>`:''}
           ${chips?`<div style="margin-top:3px">${chips}</div>`:''}
@@ -127,22 +758,55 @@ function _dsRenderGroup(){
       </div></div>`;
   }).join(''):`<div class="ds-note" style="padding:10px 0">En attente des joueurs…</div>`;
   const shares=_dsShares===null?`<div class="ds-note">Chargement…</div>`
-    :(_dsShares.length?_dsShares.map((s,i)=>_dsShareHTML(s,i,false)).join(''):`<div class="ds-note" style="font-style:italic">Le MJ n'a encore rien mis à disposition.</div>`);
+    :(_dsShares.length?_dsShares.map((s,i)=>_dsShareHTML(s,i,false)).join(''):`<div class="ds-note" style="font-style:italic">Le groupe n'a encore rien découvert.</div>`);
+  const chronicle=_dsV2Enabled()
+    ?(_dsChronicleEntries===null
+      ?`<div class="ds-note">Chargement…</div>`
+      :(_dsChronicleEntries.length
+        ?_dsChronicleEntries.map(entry=>`<article class="ds-card" style="margin-bottom:8px;padding:10px">
+            <div style="display:flex;gap:8px;align-items:baseline;margin-bottom:5px">
+              <b style="font-size:12px;color:var(--ds-acc-strong)">${esc(entry.authorNameSnapshot||'Membre')}</b>
+              <span class="ds-note" style="margin-left:auto">${_dsChronicleDate(entry.createdAt)}${_dsChronicleWasEdited(entry)?' · modifié':''}</span>
+            </div>
+            <div style="font-size:13px;line-height:1.55;white-space:pre-wrap">${esc(entry.content||'')}</div>
+            ${entry.authorId===currentUser?.uid?`<div style="display:flex;gap:5px;justify-content:flex-end;margin-top:8px">
+              <button class="ds-btn quiet" style="min-height:28px;padding:2px 7px" onclick="_dsEditChronicleEntry('${entry.id}')">Modifier</button>
+              <button class="ds-btn quiet" style="min-height:28px;padding:2px 7px;color:var(--danger)" onclick="_dsDeleteChronicleEntry('${entry.id}')">Supprimer</button>
+            </div>`:''}
+          </article>`).join('')
+        :`<div class="ds-note" style="padding:6px 0">La chronique ne contient encore aucune entrée.</div>`))
+    :`<button class="ds-btn" style="width:100%" onclick="_dsCloseGroup();openCampChronicle(currentTableId,currentCampaignId)">📜 Consulter la chronique</button>`;
+  const rests=_dsRestBlockHTML();
   // A5 (2026-07-22) — Groupe = MODE de plein rang, pas une fenêtre : plus de titre de page
   // ni de bouton ✕. On en sort par la nav (Tables · Personnage · Groupe), comme des autres modes.
   // Le nom du groupe se règlera dans les réglages de table (lot B) ; à défaut, aucun titre.
   el.innerHTML=`<div class="ds-grouppage">
     <div class="gp-body">
       ${tour}
+      ${rests}
       <div class="ds-seclbl" style="margin:12px 0 8px">🧑‍🤝‍🧑 Membres</div>
       ${membres}
-      <div class="ds-seclbl" style="margin:14px 0 8px">🎁 Apporté par le MJ</div>
+      <div class="ds-seclbl" style="margin:14px 0 8px">🔎 Découvertes</div>
       ${shares}
-      <div class="ds-seclbl" style="margin:14px 0 8px">📜 Chronique</div>
-      <button class="ds-btn" style="width:100%" onclick="_dsCloseGroup();openCampChronicle(currentTableId,currentCampaignId)">📜 Ouvrir la chronique de la campagne</button>
+      <div class="ds-seclbl" style="margin:14px 0 8px">📜 Chronique${currentCampaignName?' · '+esc(currentCampaignName):''}</div>
+      ${chronicle}
+      ${_dsV2Enabled()?`<div class="ds-card" style="margin-top:8px;padding:10px">
+        <textarea class="fi" id="dsChronicleInput" rows="3" placeholder="Ajouter une entrée à la chronique…" style="resize:vertical"></textarea>
+        <button class="ds-btn primary" style="width:100%;margin-top:7px" onclick="_dsAddChronicleEntry()">Publier</button>
+      </div>`:''}
       <div style="height:90px"></div>
     </div>
   </div>`;
+  discoveryImageService.bind(el,currentCampaignId);
+}
+function _dsOpenCombatTab(){
+  _dsCloseGroup();
+  if(window._currentCampIsMJ){
+    _mjTab='combat';
+    renderMJContent();
+  }else{
+    setTab('combat');
+  }
 }
 function _dsBuildNav(){
   const nav=document.getElementById('modeNav');if(!nav)return;
@@ -150,8 +814,8 @@ function _dsBuildNav(){
   nav.dataset.ds3='1';
   nav.classList.add('norg-nav'); // structure maquette
   nav.innerHTML=
-    `<button class="flat mode-btn mode-hub" onclick="_dsCloseGroup();showHub()"><span class="mode-ico">🧭</span><br><span class="mode-lbl">Tables</span></button>`+
-    `<button class="flat mode-btn mode-char" onclick="_dsCloseGroup();_navGoChar()"><span class="mode-ico mode-char-ico">🧙</span><br><span class="mode-lbl mode-char-lbl">Personnage</span></button>`+
+    `<button class="flat mode-btn mode-hub" onclick="_dsCloseGroup();_dsCloseCharacterPage();showHub()"><span class="mode-ico">🧭</span><br><span class="mode-lbl">Tables</span></button>`+
+    `<button class="flat mode-btn mode-char" onclick="_navGoChar()"><span class="mode-ico mode-char-ico">🧙</span><br><span class="mode-lbl mode-char-lbl">Personnage</span></button>`+
     `<button class="flat mode-btn mode-group" onclick="_dsNavGoGroup()" style="position:relative"><span class="mode-ico">👥</span><br><span class="mode-lbl">Groupe</span>`+
     `<span id="dsNavTurn" class="ds-navbdg" style="display:none;position:absolute;top:2px;right:14px;min-width:16px;height:16px;border-radius:50%;background:var(--arcane);color:#fff;font-size:11px;font-weight:700;display:none;align-items:center;justify-content:center;animation:combatPulse 1.6s ease-in-out infinite">⚡</span>`+
     `<span id="dsNavDanger" style="display:none;position:absolute;top:2px;left:14px;min-width:16px;height:16px;border-radius:50%;background:var(--danger);color:#fff;font-size:10px;font-weight:700;align-items:center;justify-content:center"></span>`+
@@ -167,18 +831,28 @@ function _refreshModeNav(){
   _dsBuildNav();
   nav.style.display='flex';
   const noCamp=!currentCampaignId;
-  nav.querySelectorAll('.mode-char,.mode-group').forEach(b=>{b.style.opacity=noCamp?'.35':'';b.style.pointerEvents=noCamp?'none':'';});
+  const charButton=nav.querySelector('.mode-char');
+  const groupButton=nav.querySelector('.mode-group');
+  if(charButton){
+    const disabled=noCamp&&!!window._currentCampIsMJ;
+    charButton.style.opacity=disabled?'.35':'';
+    charButton.style.pointerEvents=disabled?'none':'';
+  }
+  if(groupButton){
+    groupButton.style.opacity=noCamp?'.35':'';
+    groupButton.style.pointerEvents=noCamp?'none':'';
+  }
   const vis=el=>el&&el.style.display!=='none';
   const onHub=vis(document.getElementById('hubScreen'));
   const onChar=vis(document.getElementById('app'))||vis(document.getElementById('mjScreen'));
   const mj=!!window._currentCampIsMJ;
   nav.querySelectorAll('.mode-char-lbl').forEach(el=>el.textContent=mj?'Panneau MJ':'Personnage');
   nav.querySelectorAll('.mode-char-ico').forEach(el=>el.textContent=mj?'👑':'🧙');
-  const grp=nav.querySelector('.mode-group');if(grp)grp.style.display=mj?'none':'';
+  const grp=nav.querySelector('.mode-group');if(grp)grp.style.display='';
   const hb=nav.querySelector('.mode-hub'),ch=nav.querySelector('.mode-char');
   const gOpen=typeof _dsGroupOpen!=='undefined'&&_dsGroupOpen;
   if(hb)hb.classList.toggle('on',!!onHub&&!gOpen);
-  if(ch)ch.classList.toggle('on',!!onChar&&!gOpen);
+  if(ch)ch.classList.toggle('on',(!!onChar||_dsCharacterPageOpen)&&!gOpen);
   if(grp)grp.classList.toggle('on',gOpen);
   if(typeof _placeModeNavDesktop==='function')_placeModeNavDesktop();
 }
@@ -203,25 +877,36 @@ if(typeof _updatePartyHUD==='function'){
 function _dsRemoveShare(idx){
   if(!window._currentCampIsMJ||!currentCampaignId)return;
   const s=(_dsShares||[])[idx];if(!s)return;
+  if(_dsV2Enabled()&&typeof v2GroupService!=='undefined'){
+    v2GroupService.returnDiscoveryToReserve(currentCampaignId,s.id,currentUser.uid)
+      .then(()=>{_dsShares.splice(idx,1);showToast('🎒 Découverte replacée dans la Réserve.');_dsRenderMJShares();})
+      .catch(()=>showToast('❌ Une erreur est survenue, réessaie.'));
+    return;
+  }
   fbDb.collection('campaigns').doc(currentCampaignId).update({shares:firebase.firestore.FieldValue.arrayRemove(s)})
     .then(()=>{_dsShares.splice(idx,1);showToast('🗑 Partage retiré.');if(typeof _dsRenderMJShares==='function')_dsRenderMJShares();})
     .catch(()=>showToast('❌ Une erreur est survenue, réessaie.'));
 }
 
 // ── MJ (P4) : onglet « Joueurs » → « 👥 Groupe » + « 🎁 Apporter au groupe » ──
-function renderMJTabs(){ // surcharge de mj/index.js — rail 6 onglets {ico,txt}
+// ⚠️ DÉFINITION UNIQUE de renderMJTabs. Il en existait une seconde dans mj/index.js ;
+// shell.js étant chargé en dernier (index.html), c'est TOUJOURS celle-ci qui peignait le
+// rail — l'autre était du code mort, et un audit qui la lisait concluait « conforme »
+// alors que l'écran affichait autre chose (constaté le 2026-07-25). La version morte a
+// été retirée : ne pas en réintroduire ailleurs.
+//
+// Ordre et libellés : §10 du cahier des charges du 2026-07-24.
+// « Groupe » y devient « Joueurs » pour ne pas se confondre avec la vraie page Groupe.
+function renderMJTabs(){
   const tabs=[
-    {id:'joueurs',ico:'👥',txt:'Groupe'},
+    {id:'joueurs',ico:'👥',txt:'Joueurs'},
     {id:'combat',ico:'⚡',txt:'Combat'},
     {id:'pnj',ico:'🐉',txt:'PNJ'},
     {id:'objets',ico:'💰',txt:'Objets'},
+    // La RÉSERVE du MJ : ce qu'il a préparé mais pas encore donné au groupe.
+    {id:'stock',ico:'🎒',txt:'Réserve'},
     {id:'journal',ico:'📓',txt:'Journal MJ'},
     {id:'regles',ico:'📖',txt:'Règles'},
-    // A8 (2026-07-22) — la RÉSERVE du MJ : ce qu'il a préparé mais pas encore donné au groupe.
-    // La place est prise MAINTENANT pour que le rail soit dimensionné pour 7 onglets ; la
-    // mécanique (« Mettre à disposition ») vient au lot B. Un onglet honnêtement vide vaut
-    // mieux qu'une place fantôme qui casserait la mise en page le jour où on la remplit.
-    {id:'stock',ico:'🎒',txt:'Réserve'},
   ];
   const bar=document.getElementById('mjTabBar');
   if(bar) bar.innerHTML=tabs.map(t=>{
@@ -251,26 +936,54 @@ function _dsOpenShareModal(type){
     ${mat}
     <div class="fl mb6">${type==='indice'?"Texte de l'indice":'Description'}</div>
     <textarea class="fi" id="dsShText" rows="3" style="resize:vertical;margin-bottom:12px"></textarea>
+    <div class="fl mb6">Image (facultative)</div>
+    <input class="fi" id="dsShImage" type="file" accept="image/jpeg,image/png,image/webp" style="margin-bottom:12px">
     <div style="display:flex;gap:8px">
       <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
       <button class="btn bac" style="flex:2" onclick="_dsConfirmShare('${type}')">🎁 Mettre à disposition</button>
     </div>`);
 }
-function _dsConfirmShare(type){
+async function _dsConfirmShare(type){
   const title=((document.getElementById('dsShTitle')||{}).value||'').trim();
   const text=((document.getElementById('dsShText')||{}).value||'').trim();
   if(!text&&!title){showToast('❌ Écris au moins un titre ou un texte.');return;}
   const mEl=document.querySelector('.ds-matopt.bac');
-  const share={type,title,text,ts:Date.now()};
+  let image=null;
+  try{
+    const file=(document.getElementById('dsShImage')||{}).files?.[0];
+    if(file)image=await discoveryImageService.upload(currentCampaignId,file,title||'Découverte du groupe');
+  }catch(e){showToast('❌ Image impossible : '+e.message,4500);return;}
+  const share={type,title,text,image,ts:Date.now()};
   if(type==='indice')share.matiere=mEl?mEl.dataset.m:'parchemin';
+  if(_dsV2Enabled()&&typeof v2GroupService!=='undefined'){
+    const discoveryType=type==='indice'?'clue':type==='artefact'?'artifact':'quest_item';
+    const fallbackTitle=title||text.slice(0,60)||'Découverte';
+    v2GroupService.addDiscovery(currentCampaignId,{
+      type:discoveryType,
+      title:fallbackTitle,
+      content:text||null,
+      material:share.matiere||null,
+      image,
+      revealedBy:currentUser.uid
+    })
+      .then(()=>{closeModal();showToast('🔎 Découvert par le groupe.');_dsShares=null;_dsRenderMJShares(true);})
+      .catch(async()=>{if(image)await discoveryImageService.remove(currentCampaignId,image).catch(()=>{});showToast('❌ Une erreur est survenue, réessaie.');});
+    return;
+  }
   fbDb.collection('campaigns').doc(currentCampaignId).update({shares:firebase.firestore.FieldValue.arrayUnion(share)})
-    .then(()=>{closeModal();showToast('🎁 Mis à disposition du groupe.');_dsShares=null;_dsRenderMJShares(true);})
-    .catch(()=>showToast('❌ Une erreur est survenue, réessaie.'));
+    .then(()=>{closeModal();showToast('🔎 Découvert par le groupe.');_dsShares=null;_dsRenderMJShares(true);})
+    .catch(async()=>{if(image)await discoveryImageService.remove(currentCampaignId,image).catch(()=>{});showToast('❌ Une erreur est survenue, réessaie.');});
 }
 function _dsRenderMJShares(reload){
   const host=document.getElementById('dsMJShares');if(!host)return;
   if(_dsShares===null||reload){
     host.innerHTML='<div class="ds-note">Chargement…</div>';
+    if(_dsV2Enabled()&&typeof v2GroupService!=='undefined'){
+      v2GroupService.listDiscoveries(currentCampaignId)
+        .then(items=>{_dsShares=items.map(_dsDiscoveryToShare);_dsRenderMJShares();})
+        .catch(()=>{_dsShares=[];_dsRenderMJShares();});
+      return;
+    }
     fbDb.collection('campaigns').doc(currentCampaignId).get()
       .then(d=>{_dsShares=(d.exists&&d.data().shares)||[];_dsRenderMJShares();})
       .catch(()=>{_dsShares=[];_dsRenderMJShares();});
@@ -279,31 +992,22 @@ function _dsRenderMJShares(reload){
   host.innerHTML=_dsShares.length
     ?_dsShares.map((s,i)=>_dsShareHTML(s,i,true)).join('')
     :'<div class="ds-note" style="font-style:italic">Rien de partagé pour l\'instant — indices, artefacts et objets de quête apparaîtront sur la page Groupe des joueurs.</div>';
+  discoveryImageService.bind(host,currentCampaignId);
 }
-if(typeof renderMJContent==='function'){
-  const _dsOldMJC=renderMJContent;
-  renderMJContent=function(){
-    _dsOldMJC.apply(this,arguments);
-    try{
-      if(typeof _mjTab!=='undefined'&&_mjTab==='joueurs'){
-        const c=document.getElementById('mjTabContent');
-        if(c&&!document.getElementById('dsMJShares')){
-          const w=document.createElement('div');
-          w.innerHTML=`<div class="ds-seclbl" style="margin:4px 0 8px">🎁 Apporter au groupe</div>
-            <div style="display:flex;gap:8px;margin-bottom:8px">
-              <button class="ds-btn" style="flex:1" onclick="_dsOpenShareModal('indice')">📜 Indice</button>
-              <button class="ds-btn" style="flex:1" onclick="_dsOpenShareModal('artefact')">🗡 Artefact</button>
-              <button class="ds-btn" style="flex:1" onclick="_dsOpenShareModal('quete')">🗝 Obj. quête</button>
-            </div><div id="dsMJShares"></div>
-            <button class="ds-btn" style="width:100%;margin:10px 0 4px" onclick="setMJTab('journal');setTimeout(()=>{_journalSubTab='chronicle';renderMJContent();},0)">📜 Chronique de la campagne</button>
-            <div class="ds-seclbl" style="margin:12px 0 8px">👥 Joueurs</div>`;
-          c.insertBefore(w,c.firstChild);
-          _dsRenderMJShares();
-        }
-      }
-    }catch(e){}
-  };
-}
+// ⚠️ RETIRÉ le 2026-07-25 — un monkey-patch de renderMJContent injectait en tête de
+// l'onglet Joueurs : « 🎁 Apporter au groupe » (3 boutons), la liste des découvertes
+// partagées, et « 📜 Chronique de la campagne ». Il datait de la refonte UI de juillet,
+// avant le cahier des charges du 24/07, qui tranche l'inverse :
+//   §10.1 — l'onglet Joueurs « ne duplique ni Chronique, ni Découvertes, ni inventaires
+//           complets » ;
+//   phase F4 — « retrait des journaux joueurs et de la Chronique du panneau ».
+// Aucune capacité n'est perdue, vérifié avant retrait :
+//   • préparer ET donner un indice / artefact / objet de quête = onglet RÉSERVE
+//     (mjOpenReserveModal, mêmes trois types, plus le bouton « 🎁 Donner ») ;
+//   • consulter la chronique = Hub, détail de campagne (« 📜 Consulter la chronique »),
+//     et page Groupe côté joueurs.
+// Ne pas réinjecter de contenu dans un onglet MJ par surcharge : le contenu d'un onglet
+// appartient à sa fonction mjTab*(), sinon un audit qui la lit décrit un écran faux.
 
 // ── TOASTS RICHES → POPUPS GRIMOIRE (rapport 2026-07-19) ──
 // Les toasts COURTS (confirmations passives) restent des toasts ; les toasts RICHES
@@ -461,6 +1165,7 @@ if(typeof openUserSettings==='function'){
                 <button class="btn${m==='off'?' bac':''}" onclick="dsSetMix('off');closeModal();openUserSettings()">∅ Aucune</button>
               </div>
               <div class="ds-note" style="margin-top:6px">La couleur de ta classe marque les encarts : coins gravés (Complet) ou liseré (Motif).</div>
+              <button class="btn" style="width:100%;margin-top:12px" onclick="resetAllBlockLayouts()">↺ Réinitialiser la disposition</button>
             </div>`;
           // Placer « Affichage » JUSTE APRÈS l'accordéon « Profil » (1ᵉʳ .acc), pas à la fin
           const accs=box.querySelectorAll('details.acc');

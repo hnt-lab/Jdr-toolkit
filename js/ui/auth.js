@@ -61,25 +61,6 @@ function openUserSettings(){
   if(!currentUserData)return;
   const av=currentUserData.avatar||'⚔';
   const avatars=['⚔','🧙','🏹','🛡','🎲','🗡','✨','🐉','🧝','🌙','🔮','🌟'];
-  const charLib=currentUserData.charLib||{};
-  const chars=Object.entries(charLib);
-  const charHtml=chars.length?chars.map(([campId,c])=>{
-    const isSolo=c.tableName==='__solo__';
-    const subtitle=isSolo
-      ?`${esc(c.charClass||'Classe inconnue')} • Bibliothèque personnelle`
-      :`${esc(c.charClass||'')} • ${esc(c.campaignName||'')} (${esc(c.tableName||'')})`;
-    const actionLabel=isSolo?'Éditer →':'Jouer →';
-    return`<div class="charlib-item" onclick="enterCampaignFromLib('${campId}','${jsq(c.tableName||'')}','${jsq(c.campaignName||'')}')">
-      <span style="font-size:15px">${currentUserData.avatar||'⚔'}</span>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:600;color:var(--text)">${esc(c.charName||'?')}</div>
-        <div style="font-size:13px;color:var(--text3)">${subtitle}</div>
-      </div>
-      <span style="color:var(--cp);font-size:13px;flex-shrink:0">${actionLabel}</span>
-      <button class="btn bsm" style="flex-shrink:0;margin-left:4px" onclick="event.stopPropagation();exportCharacter('${campId}')" title="Exporter en JSON">⬇</button>
-      <button class="btn bsm" style="color:var(--danger);border-color:rgba(229,57,53,.3);margin-left:4px;flex-shrink:0" onclick="event.stopPropagation();deleteCharFromLib('${campId}')" title="Supprimer ce personnage">🗑</button>
-    </div>`;}).join('')
-    :`<div style="font-size:13px;color:var(--text3);font-style:italic;padding:6px 0">Aucun personnage sauvegardé.</div>`;
   // Section compendiums
   const compIds=Object.keys(_mjCompLib);
   const compHtml=compIds.length?compIds.map(id=>{
@@ -105,16 +86,6 @@ function openUserSettings(){
         <div class="fl mb6">Pseudo</div>
         <input class="fi" id="settingsName" value="${esc(currentUserData.displayName)}" style="margin-bottom:12px">
         <button class="btn bac" style="width:100%" onclick="saveUserSettings()">💾 Sauvegarder</button>
-      </div>
-    </details>
-    <details class="acc" open>
-      <summary>📚 Mes personnages</summary>
-      <div class="acc-body">
-        <div style="display:flex;gap:6px;margin-bottom:10px">
-          <button class="btn bsm" onclick="importStandaloneChar()">📥 Importer JSON</button>
-          <button class="btn bsm bprimary" onclick="openCreateStandaloneChar()">+ Créer</button>
-        </div>
-        <div>${charHtml}</div>
       </div>
     </details>
     <details class="acc">
@@ -326,6 +297,7 @@ async function saveUserSettings(){
 }
 async function enterCampaignFromLib(campaignId, tableName, campaignName){
   closeModal();
+  if(typeof _dsCloseCharacterPage==='function')_dsCloseCharacterPage();
   if(tableName==='__solo__'){
     await enterCampaign('__solo__',campaignId,'__solo__',campaignName);
     return;
@@ -343,8 +315,33 @@ async function enterCampaignFromLib(campaignId, tableName, campaignName){
 
 function openCreateStandaloneChar(){
   closeModal();
+  if(typeof _dsCloseCharacterPage==='function')_dsCloseCharacterPage();
+  if(typeof v2CompatService!=='undefined'&&v2CompatService.isEnabled()){
+    createV2StandaloneCharacter();
+    return;
+  }
   const soloId='solo_'+Date.now();
   enterCampaign('__solo__',soloId,'__solo__','Bibliothèque');
+}
+
+async function createV2StandaloneCharacter(importedSheet){
+  try{
+    const sheet=typeof migratePlayer==='function'
+      ?migratePlayer(importedSheet||defPlayer(currentUserData?.displayName||'Personnage'))
+      :(importedSheet||{charName:'Personnage'});
+    const characterId=await v2DataService.createCharacter({
+      ownerId:currentUser.uid,
+      identity:{
+        name:sheet.charName||sheet.name||'Personnage',
+        portrait:sheet.portrait||null,
+        race:sheet.race||null,
+        background:sheet.background||null
+      },
+      gmAccessIds:[]
+    },sheet);
+    if(typeof _dsV2CharacterCache!=='undefined')_dsV2CharacterCache=null;
+    await _dsOpenV2Character(characterId);
+  }catch(e){showToast('❌ Création impossible : '+e.message);}
 }
 
 function importStandaloneChar(){
@@ -357,8 +354,14 @@ function importStandaloneChar(){
     try{
       const text=await file.text();
       const data=JSON.parse(text);
+      if(typeof v2CompatService!=='undefined'&&v2CompatService.isEnabled()){
+        closeModal();
+        await createV2StandaloneCharacter(data);
+        return;
+      }
       const soloId='solo_'+Date.now();
       closeModal();
+      if(typeof _dsCloseCharacterPage==='function')_dsCloseCharacterPage();
       await enterCampaign('__solo__',soloId,'__solo__','Bibliothèque',data);
     }catch(err){showToast('❌ Fichier JSON invalide.');}
   };
@@ -366,6 +369,20 @@ function importStandaloneChar(){
 }
 
 // ─── EXPORT / IMPORT PERSONNAGE ───
+async function exportV2Character(characterId){
+  try{
+    const data=await v2DataService.loadCharacterSheet(characterId);
+    if(!data){showToast('❌ Personnage introuvable.');return;}
+    const name=data.charName||data.name||'personnage';
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=name.replace(/[^a-z0-9àâäéèêëîïôöùûüç]/gi,'_')+'.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    showToast('✅ Personnage exporté.');
+  }catch(e){showToast('❌ Erreur export : '+e.message);}
+}
 async function exportCharacter(campId){
   const charName=(currentUserData&&currentUserData.charLib&&currentUserData.charLib[campId]&&currentUserData.charLib[campId].charName)||'personnage';
   try{
@@ -383,6 +400,10 @@ async function exportCharacter(campId){
 }
 
 function openCharOrCreate(tableId,campId){
+  if(typeof v2CompatService!=='undefined'&&v2CompatService.isEnabled()){
+    openCharOrCreateV2(tableId,campId);
+    return;
+  }
   const charLib=(currentUserData&&currentUserData.charLib)||{};
   const others=Object.entries(charLib).filter(([cid])=>cid!==campId);
   const existingSection=others.length?`
@@ -405,9 +426,72 @@ function openCharOrCreate(tableId,campId){
     </div>`);
 }
 
+async function openCharOrCreateV2(tableId,campId){
+  let characters=[];
+  try{characters=await v2DataService.listOwnedCharacters(currentUser.uid);}catch(e){}
+  const existingSection=characters.length?`
+    <div style="margin-bottom:14px">
+      <div class="fl mb6" style="margin-bottom:8px">Utiliser un personnage existant</div>
+      ${characters.map(character=>{
+        const sheet=character.sheet||{};
+        const classes=(sheet.classes||[]).map(c=>c.name+' '+c.level).join(' / ');
+        return`<div class="charlib-item" style="cursor:pointer" onclick="useExistingCharForCampaign('${character.id}','${tableId}','${campId}')">
+          <span style="font-size:18px">${currentUserData?.avatar||'⚔'}</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:600">${esc(sheet.charName||sheet.name||'Personnage')}</div>
+            <div style="font-size:12px;color:var(--text3)">${esc(classes||'Classe à définir')}</div>
+          </div>
+          <span style="color:var(--cp);font-size:12px">Utiliser →</span>
+        </div>`;
+      }).join('')}
+    </div>`:'';
+  openModal(`<div class="pt">+ Rejoindre la campagne</div>
+    ${existingSection}
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button class="btn bac" style="width:100%" onclick="createV2CharacterForCampaign('${tableId}','${campId}')">✨ Créer un nouveau personnage</button>
+      <button class="btn" style="width:100%" onclick="importCharForCampaign('${tableId}','${campId}')">📥 Importer depuis un fichier JSON</button>
+    </div>`);
+}
+
+async function createV2CharacterForCampaign(tableId,campId,importedSheet){
+  try{
+    const sheet=typeof migratePlayer==='function'
+      ?migratePlayer(importedSheet||defPlayer(currentUserData?.displayName||'Personnage'))
+      :(importedSheet||{charName:'Personnage'});
+    const characterId=await v2DataService.createCharacter({
+      ownerId:currentUser.uid,
+      identity:{
+        name:sheet.charName||sheet.name||'Personnage',
+        portrait:sheet.portrait||null,
+        race:sheet.race||null,
+        background:sheet.background||null
+      },
+      gmAccessIds:[]
+    },sheet);
+    await v2DataService.joinCampaignWithCharacter({
+      campaignId:campId,
+      characterId,
+      userId:currentUser.uid
+    });
+    closeModal();
+    await renderHub();
+    await enterCampaign(tableId,campId);
+  }catch(e){showToast('❌ Création impossible : '+(e.message||e));}
+}
+
 async function useExistingCharForCampaign(sourceCampId,tableId,campId){
   closeModal();
   try{
+    if(typeof v2CompatService!=='undefined'&&v2CompatService.isEnabled()){
+      await v2DataService.joinCampaignWithCharacter({
+        campaignId:campId,
+        characterId:sourceCampId,
+        userId:currentUser.uid
+      });
+      await renderHub();
+      await enterCampaign(tableId,campId);
+      return;
+    }
     const doc=await characterService.getCharacter(currentUser.uid,sourceCampId);
     if(!doc.exists){showToast('❌ Personnage introuvable.');return;}
     const data=JSON.parse(JSON.stringify(doc.data().characterData||{}));
@@ -429,6 +513,10 @@ function importCharForCampaign(tableId,campId){
       const text=await file.text();
       const data=JSON.parse(text);
       closeModal();
+      if(typeof v2CompatService!=='undefined'&&v2CompatService.isEnabled()){
+        await createV2CharacterForCampaign(tableId,campId,data);
+        return;
+      }
       await enterCampaign(tableId,campId,null,null,data);
     }catch(err){showToast('❌ Fichier JSON invalide.');}
   };

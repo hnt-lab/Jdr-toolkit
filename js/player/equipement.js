@@ -20,10 +20,11 @@ function tabEquipement(p){
     <div class="eq-layout">
       <div class="eq-col">${left.map(slotHtml).join('')}</div>
       <div>
-        <div class="eq-portrait" onclick="document.getElementById('eqEquipImgInput').click()" title="Image d'équipement (indépendante du portrait)">${eqImg?`<img src="${eqImg}">`:`<div class="eq-portrait-hint">📷<br>Image<br>Cliquer</div>`}</div>
-        <input type="file" id="eqEquipImgInput" accept="image/jpeg,image/png,image/gif" style="display:none" onchange="uploadEquipPortrait(this)">
-        ${eqImg?`<button class="btn bsm bdanger" style="width:100%;margin-top:4px" onclick="upd('equipPortrait',null);render()">Supprimer</button>`:''}
-        <div style="margin-top:8px">${slotHtml({id:'back',label:'Cape/Dos',icon:'🧣'})}</div>
+        <!-- Image d'équipement RETIRÉE le 2026-07-25 (demande utilisateur : « elle n'est
+             pas utile et prend de la place »). Seule l'INTERFACE disparaît : le champ
+             equipPortrait reste dans les fiches existantes, donc rien n'est perdu si on
+             veut la rétablir. Le portrait du personnage, lui, est ailleurs (fiche). -->
+        ${slotHtml({id:'back',label:'Cape/Dos',icon:'🧣'})}
       </div>
       <div class="eq-col">${right.map(slotHtml).join('')}</div>
     </div>
@@ -132,23 +133,35 @@ function _calcArmorCA(p){
 }
 function openEquipSlot(slotId){
   const p=P();
-  const allInv=(p.inventory||[]).filter(i=>i.name&&i.qty>0);
+  // Les exemplaires V2 changent d'état depuis l'Inventaire ; ils ne doivent
+  // jamais être recopiés dans l'ancien système de slots.
+  const allInv=(p.inventory||[]).filter(i=>i.name&&i.qty>0&&!i._v2InstanceId);
   const inv=allInv.filter(item=>_slotAccepts(slotId,_itemType(item.name,item)));
   const SLOT_LABELS={head:'🪖 Tête',shoulders:'🧥 Épaules',chest:'🛡 Torse',hands:'🧤 Mains',legs:'👖 Jambes',feet:'👢 Pieds',neck:'📿 Cou',ring1:'💍 Anneau G',ring2:'💍 Anneau D',waist:'🪢 Ceinture',back:'🧣 Dos',mainhand:'⚔️ Main droite',offhand:'🗡️ Main gauche',ranged:'🏹 Distance'};
   let html=`<div style="font-size:12px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">🎒 Depuis ton sac</div>`;
   html+=inv.length?inv.map(item=>`<div class="aci" onclick="equipItem('${slotId}','${jsq(item.name)}','${jsq(item.desc||'')}',${item.magic||false},'${jsq(item.linkedTo||'')}')"><div class="ain">${esc(item.name)}${item.magic?` <span class="magic-badge">✨</span>`:''}</div>${item.desc?`<div class="ais">${esc(item.desc)}</div>`:''}</div>`).join(''):`<div style="font-size:13px;color:var(--text3);padding:4px;font-style:italic">${allInv.length?'Aucun objet compatible dans le sac.':'Sac vide.'}</div>`;
   openModal(`<div class="pt">${SLOT_LABELS[slotId]||slotId}</div><div style="max-height:400px;overflow-y:auto">${html}</div>`);
 }
+function _returnEquippedToInventory(p,item){
+  if(!item?.name)return;
+  if(!p.inventory)p.inventory=[];
+  const ex=p.inventory.find(entry=>!entry._v2InstanceId
+    &&entry.name===item.name
+    &&(entry.desc||'')===(item.desc||'')
+    &&Boolean(entry.magic)===Boolean(item.magic));
+  if(ex)ex.qty=(ex.qty||0)+1;
+  else p.inventory.push({...item,qty:1});
+}
 function equipItem(slotId,name,desc,magic,linkedTo){
   const p=P();if(!p.equip)p.equip={};
   if(!p.statuses)p.statuses=[];
+  const invItem=(p.inventory||[]).find(i=>!i._v2InstanceId&&i.name===name&&(i.qty||0)>0);
+  if(!invItem){showToast('❌ Cet objet n’est plus dans le sac.');return;}
   // Validation arme à deux mains → libère la main gauche automatiquement
   if(slotId==='mainhand'&&_isTwoHanded(name)){
     const oh=p.equip.offhand;
     if(oh&&oh.name){
-      if(!p.inventory)p.inventory=[];
-      const ex=p.inventory.find(i=>i.name===oh.name);
-      if(ex)ex.qty++;else p.inventory.push({name:oh.name,qty:1,desc:oh.desc||'',magic:oh.magic,linkedTo:oh.linkedTo||''});
+      _returnEquippedToInventory(p,oh);
       p.statuses=p.statuses.filter(s=>s.source!=='equip_offhand');
       delete p.equip.offhand;
       showToast('⚠️ '+name+' requiert deux mains — main gauche libérée.');
@@ -162,10 +175,13 @@ function equipItem(slotId,name,desc,magic,linkedTo){
       if(mh&&mh.name&&_isTwoHanded(mh.name)){showToast('⚠️ Impossible — '+mh.name+' nécessite deux mains.');return;}
     }
   }
+  // Le contenu du slot précédent retourne d'abord dans le sac, puis le nouvel
+  // exemplaire quitte réellement le sac. Même nom = bilan nul, sans copie.
+  if(p.equip[slotId])_returnEquippedToInventory(p,p.equip[slotId]);
+  invItem.qty=Math.max(0,(invItem.qty||0)-1);
   // Retirer les anciens bonus de ce slot
   p.statuses=p.statuses.filter(s=>s.source!=='equip_'+slotId);
   // Appliquer les statBonuses de l'objet s'il en a
-  const invItem=(p.inventory||[]).find(i=>i.name===name);
   if(invItem&&invItem.statBonuses&&invItem.statBonuses.length){
     invItem.statBonuses.forEach(b=>{
       p.statuses.push({name:name,type:b.value>0?'bonus':'malus',stat:b.stat,value:b.value,icon:'✨',desc:'Bonus de l\'objet équipé',source:'equip_'+slotId});
@@ -175,18 +191,20 @@ function equipItem(slotId,name,desc,magic,linkedTo){
   // Stocker le ca depuis items_db si disponible (améliore _calcArmorCA pour armures magiques)
   let caStr=null;
   if(typeof ITEMS_DB!=='undefined'&&ITEMS_DB){const dbItem=ITEMS_DB.find(x=>x.n===name);if(dbItem&&dbItem.ac)caStr=String(dbItem.ac);}
-  p.equip[slotId]={name,desc,magic:magic||false,linkedTo:linkedTo||'',...(caStr?{ca:caStr}:{})};
+  const equippedCopy={...invItem,name,desc,magic:magic||false,linkedTo:linkedTo||''};
+  delete equippedCopy.qty;
+  p.equip[slotId]={...equippedCopy,...(caStr?{ca:caStr}:{})};
   if(slotId==='chest'||slotId==='offhand'){const newCA=_calcArmorCA(p);if(p.ac!==newCA){p.ac=newCA;}} /* CA recalculée (toast technique retiré) */
-  closeModal();render();}
+  closeModal();render();_markUnsaved();}
 function unequipSlot(slotId){
   const p=P();if(!p.equip)return;
   const item=p.equip[slotId];
-  if(item){if(!p.inventory)p.inventory=[];const ex=p.inventory.find(i=>i.name===item.name);if(ex)ex.qty++;else p.inventory.push({name:item.name,qty:1,desc:item.desc||'',magic:item.magic,linkedTo:item.linkedTo});}
+  if(item)_returnEquippedToInventory(p,item);
   // Retirer les bonus liés à ce slot
   if(p.statuses)p.statuses=p.statuses.filter(s=>s.source!=='equip_'+slotId);
   delete p.equip[slotId];
   if(slotId==='chest'||slotId==='offhand'){const newCA=_calcArmorCA(p);p.ac=newCA;showToast('🛡 CA recalculée : '+newCA);}
-  render();}
+  render();_markUnsaved();}
 function mjToggleWeaponProf(subtype){
   const p=P();if(!p.weaponProfs)p.weaponProfs=[];
   const key=subtype.toLowerCase();

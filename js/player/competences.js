@@ -35,19 +35,48 @@ function tabCompetences(p){
     <div class="panel mb10"><div class="pt" style="display:flex;align-items:center;justify-content:space-between"><span>Capacités & traits</span>${isMJ()?`<button class="btn bsm" onclick="openFeatSearch()">+ Ajouter</button>`:''}</div>
       ${(()=>{
         // Noms de capacités purement de combat (ont un tracker ou charges dans combatFeatures)
-        const combatFeatNames=new Set();
-        (p.classes||[]).forEach(cls=>{const d=SRD.classes.find(c=>c.name===cls.name);if(d&&d.combatFeatures)d.combatFeatures.forEach(f=>combatFeatNames.add(f.name));});
+        const activeCombatFeatNames=new Set();
+        const passiveCombatFeats=[];
+        (p.classes||[]).forEach(cls=>{
+          const d=SRD.classes.find(c=>c.name===cls.name);
+          if(!d||!d.combatFeatures)return;
+          d.combatFeatures.forEach(f=>{
+            if(f.minLevel&&(cls.level||0)<f.minLevel)return;
+            if(f.recovery==='passive'&&f.charges===0){
+              passiveCombatFeats.push({...f,classe:cls.name});
+            }else activeCombatFeatNames.add(f.name);
+          });
+        });
         // Filtrer : afficher seulement les features non-combat, avec description
-        const combatFeatPrefixes=[...combatFeatNames];
+        const combatFeatPrefixes=[...activeCombatFeatNames];
         const chosenArchByClass={};
         (p.classes||[]).forEach(c=>{if((p.archetype||{})[c.name])chosenArchByClass[c.name]=(p.archetype||{})[c.name];});
         const druLvl=((p.classes||[]).find(c=>c.name==='Druide')||{}).level||0;
-        const displayFeats=(p.features||[]).filter(f=>{
+        const storedFeats=(p.features||[]).filter(f=>{
           if(combatFeatPrefixes.some(cn=>f.name===cn||f.name.startsWith(cn+' (')||f.name.startsWith(cn+' :')))return false;
           if(f.name.startsWith('Sorts du cercle')||f.name.startsWith('Capacité du cercle'))return false;
           if(isFeatExcluded(f.name))return false;
           if(f.name.includes('(choix)')&&f.classe&&chosenArchByClass[f.classe])return false;
           if((f.name.startsWith('Forme sauvage')||f.name.startsWith('Forme sauvage améliorée'))&&druLvl<2)return false;
+          return true;
+        });
+        const customPassives=(p.customCombatFeats||[])
+          .filter(f=>f.recovery==='passive'&&f.charges===0)
+          .map(f=>({...f,classe:'Personnalisé'}));
+        const selectedCombatStyle=(()=>{
+          if(!p.combatStyle)return[];
+          for(const cls of (p.classes||[])){
+            const d=SRD.classes.find(c=>c.name===cls.name);
+            const style=(d&&d.combatStyles||[]).find(s=>s.name===p.combatStyle);
+            if(style)return[{name:`Style de combat : ${style.name}`,desc:style.desc||'',icon:'⚔',classe:cls.name}];
+          }
+          return[{name:`Style de combat : ${p.combatStyle}`,desc:'Style choisi lors de la progression du personnage.',icon:'⚔',classe:'Classe'}];
+        })();
+        const seenPassiveNames=new Set();
+        const displayFeats=[...selectedCombatStyle,...storedFeats,...passiveCombatFeats,...customPassives].filter(f=>{
+          const key=`${f.classe||''}:${f.name||''}`;
+          if(seenPassiveNames.has(key))return false;
+          seenPassiveNames.add(key);
           return true;
         });
         if(!displayFeats.length)return`<div style="font-size:13px;color:var(--text3);font-style:italic">Aucune capacité passive.</div>`;

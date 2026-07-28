@@ -1,3 +1,45 @@
+// ═══════════════════════════════════════════════════════════════════════════
+//  GARDE-FOU ANTI-SPAM — demande utilisateur du 2026-07-26
+//  « si on spam le bouton "créer la table" il va en créer plusieurs exemplaires.
+//    Donc faire un antispam généralisé. »
+//
+//  Toute action qui ÉCRIT quelque chose (créer, publier, donner, décider…) passe
+//  par ici. Deux protections d'un seul geste :
+//   • ré-entrée — tant qu'une action portant la même clé n'est pas terminée, les
+//     clics suivants sont ignorés. C'est pendant l'aller-retour réseau que le
+//     double-clic passe : une seconde création partait avant que la première
+//     n'ait répondu, d'où les tables en double ;
+//   • retour visuel — le bouton d'où part le clic est désactivé le temps de
+//     l'action, pour qu'on VOIE que ça travaille au lieu de re-cliquer.
+//
+//  ⚠️ Volontairement NON posé sur la navigation, la lecture, les compteurs (+/-)
+//  et les jets de dés : on y clique vite, et légitimement. Un verrou global sur
+//  tous les boutons casserait ces usages — le garde se met là où une répétition
+//  produit un DOUBLON, pas partout.
+//
+//  Usage :  async function confirmCreateTable(){ return guardAction('createTable', async()=>{ … }); }
+// ═══════════════════════════════════════════════════════════════════════════
+const _guardedActions=new Set();
+async function guardAction(key,fn){
+  if(_guardedActions.has(key))return;
+  _guardedActions.add(key);
+  // window.event : renseigné pendant l'exécution SYNCHRONE d'un handler onclick,
+  // seul moyen de retrouver le bouton sans réécrire chaque appel. Capturé tout de
+  // suite, avant le moindre await — après, il ne vaut plus rien.
+  const btn=(typeof window!=='undefined'&&window.event&&window.event.target&&window.event.target.closest)
+    ?window.event.target.closest('button')
+    :null;
+  if(btn){btn.disabled=true;btn.setAttribute('aria-busy','true');}
+  try{
+    return await fn();
+  }finally{
+    _guardedActions.delete(key);
+    // isConnected : la plupart de ces actions ferment leur modale, donc le bouton
+    // n'existe plus. Le réactiver alors n'aurait aucun sens.
+    if(btn&&btn.isConnected){btn.disabled=false;btn.removeAttribute('aria-busy');}
+  }
+}
+
 let _mjJournal=[];
 let _journalSubTab='mj';
 let _playerJournalSubTab='entries';
@@ -85,9 +127,21 @@ function showAuthScreen(){
 async function joinGroupOnly(tableId,campaignId){
   const tableData=_hubCache&&_hubCache.find(t=>t.id===tableId);
   currentTableId=tableId;currentCampaignId=campaignId;
-  currentTableName=tableData?.name||'';currentTableMjId=tableData?.mjId||null;
+  const campaignData=tableData&&(tableData.campaigns||[]).find(c=>c.id===campaignId);
+  currentTableName=tableData?.name||'';currentCampaignName=campaignData?.name||'';currentTableMjId=tableData?.mjId||null;
+  // Le rôle est propre à la TABLE : il doit être recalculé ici comme dans
+  // enterCampaign (hub.js), sinon il reste celui de la table précédente.
+  // Signalé au test du 25/07 : MJ sur une table, puis « Reprendre » une autre
+  // table en tant que joueur ⇒ le bouton de nav restait « Panneau MJ ».
+  // ⚠️ enterCampaign est le SEUL autre point d'assignation : toute nouvelle
+  // façon d'entrer dans une campagne doit poser ce rôle, sans quoi il traîne.
+  window._currentCampIsMJ=(typeof _hubTableIsMJ==='function')?_hubTableIsMJ(tableData):false;
   _groupOnlyMode=true;
-  saveSessionState({tableId,campaignId,mode:'group'}); // lot 0 : F5 revient en mode groupe, pas au Hub
+  currentCharacterId=(typeof v2CompatService!=='undefined'&&currentUser)
+    ?await v2CompatService.getCurrentCharacterId(campaignId,currentUser.uid)
+    :null;
+  currentSheetCharacterId=currentCharacterId;
+  saveSessionState({tableId,campaignId,characterId:currentCharacterId,mode:'group'}); // lot 0 : F5 revient en mode groupe, pas au Hub
   stopAllListeners();
   _groupData=[];_activeCombatState=null;_combatListenerInitialized=false;_prevCombatTurnUid=null;
   _groupHudOpen=false; // ne PAS ouvrir le panneau : juste afficher le bouton 👥 (l'utilisateur l'ouvre quand il veut)
@@ -105,8 +159,25 @@ async function joinGroupOnly(tableId,campaignId){
   if(typeof startWhisperListener==='function'&&currentUser)startWhisperListener(tableId,currentUser.uid);
   // Charge SA fiche pour que le lanceur de dé propose les jets du personnage (pas le panneau générique)
   try{
-    const _cdoc=await fbDb.collection('characters').doc(currentUser.uid+'_'+campaignId).get();
-    if(_cdoc.exists&&_cdoc.data().characterData){state.players=[migratePlayer(_cdoc.data().characterData)];state.activeIdx=0;}
+    // ⚠️ Même règle que dans enterCampaign (hub.js) : en V2, le document
+    // characters/{uid}_{campagne} n'existe pas — l'interroger ne peut rien trouver.
+    // Et sans personnage engagé, state.players DOIT être vidé : sinon on garde en
+    // mémoire la fiche de la campagne précédente, que le bouton « Personnage »
+    // afficherait comme étant celle de la campagne qu'on vient de rejoindre.
+    if(typeof v2CompatService!=='undefined'&&v2CompatService.isEnabled()){
+      if(currentCharacterId){
+        const sheet=await v2DataService.loadCharacterSheet(currentCharacterId);
+        if(sheet){state.players=[migratePlayer(sheet)];state.activeIdx=0;}
+        else{state.players=[];state.activeIdx=0;}
+      }else{
+        // MJ, ou joueur sans personnage ici : on suit le groupe sans fiche. Le bouton
+        // « Personnage » ouvre alors la liste des personnages du compte.
+        state.players=[];state.activeIdx=0;
+      }
+    }else{
+      const _cdoc=await fbDb.collection('characters').doc(currentUser.uid+'_'+campaignId).get();
+      if(_cdoc.exists&&_cdoc.data().characterData){state.players=[migratePlayer(_cdoc.data().characterData)];state.activeIdx=0;}
+    }
   }catch(e){}
   // Animation éclair sur le bouton HUD
   const hudBtn=document.getElementById('partyHudBtn');
@@ -116,6 +187,7 @@ async function joinGroupOnly(tableId,campaignId){
   if(typeof _refreshModeNav==='function')_refreshModeNav();
 }
 function showHub(){
+  if(typeof _dsCloseCharacterPage==='function')_dsCloseCharacterPage();
   stopAllListeners();
   _groupData=[];_activeCombatState=null;_combatListenerInitialized=false;_prevCombatTurnUid=null;_groupHudOpen=false;_groupOnlyMode=false;_hideHudDetail();
   const vEl=document.getElementById('hubVersion');if(vEl&&typeof APP_VERSION!=='undefined')vEl.textContent='v'+APP_VERSION;
@@ -143,6 +215,7 @@ function showHub(){
   return _rh;
 }
 function showApp(){
+  if(typeof _dsCloseCharacterPage==='function')_dsCloseCharacterPage();
   document.getElementById('authScreen').style.display='none';
   document.getElementById('hubScreen').style.display='none';
   document.getElementById('app').style.display='block';

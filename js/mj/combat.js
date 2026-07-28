@@ -13,9 +13,16 @@ function mjTabCombat(){
     const ds=c.deathSaves||{success:0,fail:0};
     const dsaveHtml=isDead&&c.isPlayer?`<div style="margin-top:4px;display:flex;gap:4px;align-items:center;flex-wrap:wrap"><span style="font-size:12px;color:var(--text3)">JS mort :</span><span style="color:var(--good);font-size:13px">${Array.from({length:3},(_,i)=>`<span style="opacity:${ds.success>i?1:0.3}">●</span>`).join('')}</span><span style="color:var(--danger);font-size:13px">${Array.from({length:3},(_,i)=>`<span style="opacity:${ds.fail>i?1:0.3}">●</span>`).join('')}</span><button class="btn bsm" style="font-size:13px;padding:1px 4px;color:var(--good);border-color:var(--good)" onclick="mjDsave(${realIdx},'success')">✓</button><button class="btn bsm" style="font-size:13px;padding:1px 4px;color:var(--danger);border-color:var(--danger)" onclick="mjDsave(${realIdx},'fail')">✕</button><button class="btn bsm" style="font-size:13px;padding:1px 4px" onclick="mjDsave(${realIdx},'reset')">↺</button></div>`:'';
     const isSurprised=!!c.surprised;
+    const endRequested=!!(
+      c.isPlayer&&
+      (_mjPlayersData.find(player=>player.uid===c.uid)||{}).turnDone
+    );
     const surprisedBadge=isSurprised?`<span style="font-size:12px;background:rgba(229,57,53,.15);color:var(--danger);border:1px solid rgba(229,57,53,.4);border-radius:2px;padding:1px 6px;margin-left:4px;vertical-align:middle">😵 SURPRIS</span>`:'';
     return`<div class="combat-row${isActive?' active-turn':''}${isDead?' dead':''}" style="${isSurprised?'border-left:3px solid var(--danger);padding-left:6px;':''}">
-      ${_mjCombatStarted?`<div style="width:34px;text-align:center;cursor:pointer" title="Cliquer pour modifier" onclick="mjEditInitiative(${realIdx})"><span style="font-family:var(--F);font-size:14px;color:var(--cp);border-bottom:1px dashed rgba(200,168,75,.4)">${c.initiative||0}</span></div>`:''}
+      ${_mjCombatStarted?`<div style="width:42px;text-align:center">
+        <span style="font-family:var(--F);font-size:14px;color:var(--cp);border-bottom:1px dashed rgba(200,168,75,.4);cursor:pointer" title="Modifier l’initiative" onclick="mjEditInitiative(${realIdx})">${c.initiative||0}</span>
+        ${!isActive?`<button class="btn bsm" style="padding:0 3px;margin-left:2px;font-size:10px" title="Donner immédiatement le tour à ce combattant" onclick="mjSelectCombatantTurn(${realIdx})">▶</button>`:''}
+      </div>`:''}
       <div style="width:26px;text-align:center;font-size:18px">${c.isPlayer?(c.avatar||'⚔'):'👾'}</div>
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:600;color:${isActive?'var(--cp)':'var(--text)'}">${esc(c.name)}${isActive?' ◀':''}${surprisedBadge}</div>
@@ -23,7 +30,7 @@ function mjTabCombat(){
       </div>
       <div class="cbt-actions" style="display:flex;align-items:center;gap:4px">
         <div style="text-align:center;min-width:60px">
-          <div style="font-size:13px;color:${hpColor};font-weight:600">${isDead?'💀 À terre':c.hp+'/'+c.hpMax}</div>
+          <div style="font-size:13px;color:${hpColor};font-weight:600">${isDead?`💀 ${esc(c.defeatState||'À terre')}`:c.hp+'/'+c.hpMax}</div>
           <div class="hp-bar" style="width:60px"><div class="hp-fill" style="width:${hpPct}%;background:${hpColor}"></div></div>
         </div>
         <button class="btn bsm" style="padding:2px 7px;font-size:14px" onclick="mjHpChange(${realIdx},-1)">−</button>
@@ -33,7 +40,7 @@ function mjTabCombat(){
         <button class="btn bsm" style="font-size:12px;padding:2px 6px${isSurprised?';background:rgba(229,57,53,.15);border-color:var(--danger);color:var(--danger)':''}" onclick="mjToggleSurprise(${realIdx})" title="Basculer état : Surpris">😵</button>
         <button class="btn bsm" style="font-size:12px;padding:2px 6px;border-color:var(--cp);color:var(--cp)" onclick="mjOpenCombatDice(${realIdx})">🎲</button>
         <button class="btn bsm" style="font-size:12px;padding:2px 6px;color:var(--danger);border-color:var(--danger)" onclick="mjRemoveCombatant(${realIdx})">✕</button>
-        ${isActive?`<button class="btn bsm" style="font-size:12px;padding:2px 8px;border-color:#7c3aed;color:var(--arcane);font-weight:600" onclick="mjNextTurn()">⏩</button>`:''}
+        ${isActive?`<button class="btn bsm" style="font-size:12px;padding:2px 8px;border-color:${endRequested?'var(--good)':'#7c3aed'};color:${endRequested?'var(--good)':'var(--arcane)'};font-weight:600" onclick="mjNextTurn()" title="${endRequested?'Le joueur a terminé — valider et passer au suivant':'Passer au combattant suivant'}">${endRequested?'✓ Valider la fin':'⏩'}</button>`:''}
       </div>
       <div style="width:36px;text-align:center;font-size:13px;color:var(--text3)">CA ${c.ac||0}</div>
     </div>`;
@@ -47,7 +54,8 @@ function mjTabCombat(){
       <button class="btn bsm bprimary" onclick="mjAddAllToCombat()">⚔ Ajouter joueurs</button>
       <button class="btn bsm bprimary" onclick="mjOpenAddMonster()">🐉 Ajouter monstre</button>
       ${!_mjCombatStarted&&_mjCombatants.length?`<button class="btn bsm" style="border-color:var(--cp);color:var(--cp)" onclick="mjStartCombat()">✨ Lancer l'initiative</button>`:''}
-      ${_mjCombatStarted?`<button class="btn bsm" style="border-color:var(--cp);color:var(--cp)" onclick="mjNextTurn()">▶ Tour suivant</button>
+      ${_mjCombatStarted?`<button class="btn bsm" onclick="mjPreviousTurn()">◀ Tour précédent</button>
+        <button class="btn bsm" style="border-color:var(--cp);color:var(--cp)" onclick="mjNextTurn()">▶ Tour suivant</button>
         <button class="btn bsm" style="border-color:var(--good);color:var(--good)" onclick="mjEndCombat()">🏁 Fin du combat</button>
         <div class="g-sub" style="display:flex;align-items:center;gap:6px;padding:4px 10px;font-size:13px">
           🔄 Round <strong style="color:var(--cp)">${_mjRound}</strong>
@@ -89,6 +97,21 @@ function _extractPlayerCombatData(p){
   return {attacks,spells,traits};
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+//  COMPOSITION DU COMBAT — point de sortie UNIQUE
+//  `_mjCombatants` ne vit qu'en mémoire. Jusqu'au 2026-07-26, seuls mjStartCombat
+//  et mjNextTurn le sauvegardaient : ajouter des combattants (« ⚡ Tous en combat »,
+//  un PNJ, un familier) ou en retirer ne partait JAMAIS au serveur. Comme revenir au
+//  panneau MJ rejoue enterCampaign, tout le travail de mise en place était perdu —
+//  « le combat en cours disparaît de sa page MJ ».
+//  *Preuve du diagnostic : `campaigns/*/gmData/core` n'existait dans AUCUNE campagne
+//  de la session de test, alors que les règles Firestore autorisaient l'écriture.*
+//  ⇒ Toute fonction qui AJOUTE ou RETIRE un combattant finit par _mjCombatChanged().
+// ═══════════════════════════════════════════════════════════════════════════
+function _mjCombatChanged(){
+  if(typeof _mjPersistCombat==='function')_mjPersistCombat();
+  renderMJContent();
+}
 function mjAddPlayerToCombat(idx){
   const pp=_mjPlayersData[idx];
   if(!pp)return;
@@ -96,9 +119,9 @@ function mjAddPlayerToCombat(idx){
   if(_mjCombatants.find(c=>c.uid===pp.uid)){showToast('Déjà dans le combat.');return;}
   const mods=(p.abilities||[0,0,0,0,0,0]).map(v=>Math.floor((v-10)/2));
   const {attacks,spells,traits}=_extractPlayerCombatData(p);
-  _mjCombatants.push({id:'player_'+pp.uid,name:p.charName||pp.playerName||'Joueur',hp:p.hp||p.hpMax||1,hpMax:p.hpMax||1,ac:p.ac||10,speed:(p.speed!=null?p.speed:9)+'m',initiative:0,dexMod:mods[1]||0,conditions:[],deathSaves:p.deathSaves||{success:0,fail:0},surprised:false,isPlayer:true,reflexesVoleur:(p.features||[]).some(f=>f.name==='Réflexes de voleur'),avatar:pp.avatar||'⚔',uid:pp.uid,abilities:p.abilities||[10,10,10,10,10,10],attacks,spells,traits});
+  _mjCombatants.push({id:'player_'+pp.uid,characterId:pp.characterId||pp.docId,name:p.charName||pp.playerName||'Joueur',hp:p.hp||p.hpMax||1,hpMax:p.hpMax||1,ac:p.ac||10,speed:(p.speed!=null?p.speed:9)+'m',initiative:0,dexMod:mods[1]||0,conditions:[],deathSaves:p.deathSaves||{success:0,fail:0},surprised:false,isPlayer:true,reflexesVoleur:(p.features||[]).some(f=>f.name==='Réflexes de voleur'),avatar:pp.avatar||'⚔',uid:pp.uid,abilities:p.abilities||[10,10,10,10,10,10],attacks,spells,traits});
   _mjCombatLog.push(`⚔ ${esc(p.charName||pp.playerName)} ajouté au combat.`);
-  renderMJContent();
+  _mjCombatChanged();
 }
 
 function mjAddFamiliarToCombat(playerIdx){
@@ -116,7 +139,7 @@ function mjAddFamiliarToCombat(playerIdx){
     traits:(fam.traits||[]).map(t=>({name:'Trait',desc:t,uses:0,dice:''})),
   });
   _mjCombatLog.push(`🦉 ${esc(fam.name)} (familier) ajouté au combat.`);
-  renderMJContent();showToast(`🦉 ${fam.name} ajouté au combat !`);
+  _mjCombatChanged();showToast(`🦉 ${fam.name} ajouté au combat !`);
 }
 // ─── AUTO-SYNC DES FAMILIERS AU TRACKER (Fondation 5 — principes 21/28) ───
 // « Familier » = terme générique (tout être vivant contrôlé). Un familier ACTIF apparaît
@@ -167,7 +190,28 @@ function _mjSyncFamiliars(){
   if(changed&&typeof _mjPersistCombat==='function')_mjPersistCombat();
   return changed;
 }
+// §10.1 : « actions groupées protégées par récapitulatif ». Ajouter toute la table
+// au combat d'un seul clic engageait la rencontre sans que le MJ voie QUI part
+// dedans — un joueur absent ou un personnage laissé de côté passait inaperçu.
 function mjAddAllToCombat(){
+  const noms=(_mjPlayersData||[]).map(pp=>pp.charData?.charName||pp.playerName||'Personnage');
+  if(!noms.length){showToast('Aucun joueur à ajouter.');return;}
+  const dejaLa=(_mjCombatants||[]).filter(c=>c.isPlayer).length;
+  openModal(`<div class="pt">⚡ Ajouter au combat</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:10px">
+      ${noms.length} personnage${noms.length>1?'s':''} ${noms.length>1?'vont être ajoutés':'va être ajouté'} à la rencontre :
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">
+      ${noms.map(n=>`<span class="ds-chip">⚔ ${esc(n)}</span>`).join('')}
+    </div>
+    ${dejaLa?`<div class="ds-note" style="margin-bottom:12px">${dejaLa} déjà présent${dejaLa>1?'s':''} dans le combat — ${dejaLa>1?'ils ne seront pas dupliqués':'il ne sera pas dupliqué'}.</div>`:''}
+    <div style="display:flex;gap:8px">
+      <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
+      <button class="btn bac" style="flex:2" onclick="mjConfirmAddAllToCombat()">⚡ Ajouter</button>
+    </div>`);
+}
+function mjConfirmAddAllToCombat(){
+  closeModal();
   _mjPlayersData.forEach((_,i)=>mjAddPlayerToCombat(i));
 }
 
@@ -388,7 +432,7 @@ function mjConfirmAddMonster(){
     _mjCombatants.push({id:'monster_'+Date.now()+'_'+i,name:label,hp,hpMax:hp,ac,initiative:0,dexMod:initBonus,conditions:[],surprised:false,isPlayer:false,abilities:[...abilities],attacks,spells,traits});
   }
   _mjCombatLog.push(`👾 ${qty>1?qty+'× ':''}"${esc(name)}" ajouté(s) au combat.`);
-  closeModal();renderMJContent();
+  closeModal();_mjCombatChanged();
 }
 
 function mjToggleMonsterSubForm(id){
@@ -566,58 +610,28 @@ function mjRecoverTraitCharge(cIdx,traitName,maxUses){
   c.traitUses[traitName]=maxUses;
   mjOpenCombatDice(cIdx);
 }
-function mjGroupRest(type){
-  if(!_mjPlayersData.length){showToast('Aucun joueur dans la campagne.');return;}
-  const label=type==='long'?'🌙 Repos long':'☕ Repos court';
-  const detail=type==='long'
-    ?'PV remis à fond, sorts, capacités et jets de mort réinitialisés.'
-    :'Capacités à repos court récupérées.';
-  openModal(`<div class="pt">${label} — Groupe</div>
-    <p style="font-size:13px;color:var(--text2);margin-bottom:16px">${detail}</p>
-    <div style="display:flex;gap:8px">
-      <button class="btn bsm bac" style="flex:1" onclick="mjGroupRestConfirm('${type}')">✓ Confirmer pour tous</button>
-      <button class="btn bsm bdanger" onclick="closeModal()">Annuler</button>
-    </div>`);
-}
-async function mjGroupRestConfirm(type){
-  closeModal();
-  let count=0;
-  for(const pp of _mjPlayersData){
-    if(!pp.uid||!pp.docId)continue;
-    const p=pp.charData||{};
-    const update={};
-    if(type==='long'){
-      update['characterData.hp']=p.hpMax||p.hp||0;
-      update['characterData.spellSlotsUsed']=[];
-      update['characterData.deathSaves']={success:0,fail:0};
-      update['characterData.conditions']=[];
-      update['characterData.combatCharges']={};
-      pp.charData.hp=p.hpMax||p.hp||0;pp.charData.spellSlotsUsed=[];
-      pp.charData.deathSaves={success:0,fail:0};pp.charData.conditions=[];pp.charData.combatCharges={};
-    } else {
-      const newCharges={...(p.combatCharges||{})};
-      (p.classes||[]).forEach(cls=>{
-        const d=SRD.classes.find(c=>c.name===cls.name);
-        if(d&&d.combatFeatures)d.combatFeatures.forEach(f=>{if(f.recovery==='short')delete newCharges[f.name];});
-      });
-      (p.customCombatFeats||[]).forEach(f=>{if(f.recovery==='short')delete newCharges[f.name];});
-      update['characterData.combatCharges']=newCharges;
-      pp.charData.combatCharges=newCharges;
-    }
-    try{await fbDb.collection('characters').doc(pp.docId).update(update);count++;}
-    catch(e){console.warn('Rest sync error',pp.uid,e);}
-  }
-  showToast(`${type==='long'?'🌙 Repos long':'☕ Repos court'} appliqué à ${count} joueur(s) !`);
-  renderMJContent();
-}
-
+// ── Repos collectif ────────────────────────────────────────────────────────
+// mjGroupRest() et mjGroupRestConfirm() ont été SUPPRIMÉES : plus aucun appelant
+// (vérifié sur tout js/ et index.html — seul le HTML produit par mjGroupRest citait
+// mjGroupRestConfirm, et mjGroupRest n’était elle-même jamais appelée). Les boutons de
+// repos du panneau MJ ont été retirés lors du passage au repos concerté V2, ce qu’un
+// test unitaire verrouille déjà (« le panneau MJ ne duplique plus les boutons de repos »).
+// Le code, lui, était resté sur des écritures V1 characters/{docId} : inopérantes en V2,
+// et prêtes à écraser des PV le jour où on rebrancherait un bouton dessus.
+// Le repos passe désormais par les callables proposeGroupRest / finalizeGroupRest.
 async function _mjSaveCombatState(sorted,turnIdx){
   if(!currentUser||!currentCampaignId)return;
   const cur=sorted[turnIdx%sorted.length];
   const combatState=cur
     ?{active:true,currentTurnUid:cur.uid||null,currentTurnName:cur.name||'?',round:_mjRound,currentTurn:turnIdx,combatants:_mjCombatants}
     :{active:false};
-  try{await fbDb.collection('characters').doc(currentUser.uid+'_'+currentCampaignId+'_mj').update({combatState});}
+  try{
+    if(typeof v2CompatService!=='undefined'&&v2CompatService.isEnabled()){
+      await saveMJData();
+      return;
+    }
+    await fbDb.collection('characters').doc(currentUser.uid+'_'+currentCampaignId+'_mj').update({combatState});
+  }
   catch(e){console.warn('Error saving combat state:',e);}
 }
 let _mjPersistTimer=null;
@@ -655,6 +669,24 @@ function mjToggleSurprise(idx){
 function mjNextTurn(){
   const sorted=[..._mjCombatants].sort((a,b)=>b.initiative-a.initiative);
   if(!sorted.length)return;
+  const previous=sorted[_mjCurrentTurn%sorted.length];
+  if(previous?.isPlayer){
+    const player=(_mjPlayersData||[]).find(entry=>entry.uid===previous.uid);
+    if(player)player.turnDone=false;
+    if(typeof v2CompatService!=='undefined'&&v2CompatService.isEnabled()){
+      const characterId=previous.characterId||player?.characterId;
+      if(characterId){
+        fbDb.collection('campaigns').doc(currentCampaignId)
+          .collection('publicCharacters').doc(characterId)
+          .update({turnDone:firebase.firestore.FieldValue.delete()})
+          .catch(error=>console.warn('Fin de tour non effacée :',error));
+      }
+    }else if(player?.docId){
+      fbDb.collection('characters').doc(player.docId)
+        .update({turnDone:firebase.firestore.FieldValue.delete()})
+        .catch(()=>{});
+    }
+  }
   _mjCurrentTurn++;
   if(_mjCurrentTurn>=sorted.length){
     _mjCurrentTurn=0;_mjRound++;
@@ -701,7 +733,8 @@ function mjEndCombat(){
 function _mjDoEndCombat(){
   _mjCombatants=[];_mjCombatStarted=false;_mjCurrentTurn=0;_mjRound=1;_mjCombatLog=[];
   if(currentUser&&currentCampaignId){
-    fbDb.collection('characters').doc(currentUser.uid+'_'+currentCampaignId+'_mj').update({combatState:{active:false}}).catch(()=>{});
+    if(typeof v2CompatService!=='undefined'&&v2CompatService.isEnabled())saveMJData().catch(()=>{});
+    else fbDb.collection('characters').doc(currentUser.uid+'_'+currentCampaignId+'_mj').update({combatState:{active:false}}).catch(()=>{});
   }
   closeModal();renderMJContent();showToast('🏁 Combat terminé !');
 }
@@ -709,7 +742,8 @@ function mjResetCombat(){
   if(!confirm('Réinitialiser le combat ?'))return;
   _mjCombatants=[];_mjCombatStarted=false;_mjCurrentTurn=0;_mjRound=1;_mjCombatLog=[];
   if(currentUser&&currentCampaignId){
-    fbDb.collection('characters').doc(currentUser.uid+'_'+currentCampaignId+'_mj').update({combatState:{active:false}}).catch(()=>{});
+    if(typeof v2CompatService!=='undefined'&&v2CompatService.isEnabled())saveMJData().catch(()=>{});
+    else fbDb.collection('characters').doc(currentUser.uid+'_'+currentCampaignId+'_mj').update({combatState:{active:false}}).catch(()=>{});
   }
   renderMJContent();
 }
@@ -823,20 +857,62 @@ function mjRollAttack(cIdx,aIdx){
   const total=r+atkBonus;
   const isCrit=r===20;const isFumble=r===1;
   const col=isCrit?'var(--cp)':isFumble?'var(--danger)':'var(--cp)';
-  let dmgHtml='';let logDmg='';
+  let dmgHtml='';let logDmg='';let totalDmg=0;
   if(a.dmgDice){
     const parts=(a.dmgDice+'').toLowerCase().split('d');
     const dq=parseInt(parts[0])||1;const ds=parseInt(parts[1])||6;
     const numDice=isCrit?dq*2:dq;
     const rolls=[];for(let i=0;i<numDice;i++)rolls.push(Math.ceil(Math.random()*ds));
     const dmgBonus=parseInt(a.dmgBonus)||0;
-    const totalDmg=rolls.reduce((s,v)=>s+v,0)+dmgBonus;
+    totalDmg=rolls.reduce((s,v)=>s+v,0)+dmgBonus;
     dmgHtml=`<div style="font-size:13px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">Dégâts : <span style="color:var(--text2)">${rolls.join('+')}${dmgBonus?fmt(dmgBonus):''}</span> = <b style="color:var(--cp);font-size:16px">${totalDmg}</b> <span style="font-size:13px;color:var(--text3)">${esc(a.dmgType||'')}${isCrit?' (critique — dés doublés)':''}</span></div>`;
     logDmg=` / ${totalDmg} dégâts ${a.dmgType||''}${isCrit?' 🎉':''}`;
   }
   const el=document.getElementById('mjDiceResult');
-  if(el){el.style.display='block';el.innerHTML=`<div style="font-size:13px;color:var(--text3);margin-bottom:4px">${esc(c.name)} — ${esc(a.name)}</div><div>d20(${r})${fmt(atkBonus)} = <span style="font-size:16px;color:${col};font-weight:800">${total}</span>${isCrit?' 🎉 CRITIQUE!':isFumble?' 💀 FUMBLE!':''}</div>${dmgHtml}`;}
-  _mjCombatLog.push(`⚔ ${esc(c.name)} — ${esc(a.name)} : att.=${r}${fmt(atkBonus)}=<b>${total}</b>${isCrit?' 🎉':isFumble?' 💀':''}${logDmg}`);
+  if(el){el.style.display='block';el.innerHTML=`<div style="font-size:13px;color:var(--text3);margin-bottom:4px">${esc(c.name)} — ${esc(a.name)}</div><div>d20(${r})${fmt(atkBonus)} = <span style="font-size:16px;color:${col};font-weight:800">${total}</span>${isCrit?' 🎉 CRITIQUE!':isFumble?' 💀 FUMBLE!':''}</div>${dmgHtml}
+    <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border)">
+      <div style="font-size:12px;color:var(--text3);margin-bottom:6px">Décision du MJ — privée</div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <button class="btn bsm" style="color:var(--good);border-color:var(--good)" onclick="mjRetainAttackDecision(${cIdx},${aIdx},true)">✓ Touché</button>
+        <button class="btn bsm" style="color:var(--danger);border-color:var(--danger)" onclick="mjRetainAttackDecision(${cIdx},${aIdx},false)">✕ Raté</button>
+        <input class="fi" id="mjRetainedDamage" type="number" min="0" value="${Math.max(0,totalDmg)}" style="width:92px" aria-label="Dégâts retenus">
+      </div>
+    </div>`;}
+  _mjCombatLog.push(`🎲 Calcul privé — ${esc(c.name)} / ${esc(a.name)} : ${total}${logDmg}`);
+}
+
+function mjPreviousTurn(){
+  const sorted=[..._mjCombatants].sort((a,b)=>b.initiative-a.initiative);
+  if(!sorted.length)return;
+  _mjCurrentTurn=(_mjCurrentTurn-1+sorted.length)%sorted.length;
+  if(_mjCurrentTurn===sorted.length-1)_mjRound=Math.max(1,_mjRound-1);
+  const cur=sorted[_mjCurrentTurn];
+  _mjCombatLog.push(`◀ Retour au tour de ${esc(cur?.name||'?')}`);
+  _mjSaveCombatState(sorted,_mjCurrentTurn);
+  renderMJContent();
+}
+
+function mjSelectCombatantTurn(realIdx){
+  const target=_mjCombatants[realIdx];if(!target)return;
+  const sorted=[..._mjCombatants].sort((a,b)=>b.initiative-a.initiative);
+  const sortedIndex=sorted.indexOf(target);
+  if(sortedIndex<0)return;
+  _mjCurrentTurn=sortedIndex;
+  _mjCombatLog.push(`↪ Tour donné à ${esc(target.name||'?')} par le MJ.`);
+  _mjSaveCombatState(sorted,_mjCurrentTurn);
+  renderMJContent();
+}
+
+function mjRetainAttackDecision(cIdx,aIdx,hit){
+  const c=_mjCombatants[cIdx];if(!c)return;
+  const a=(c.attacks||[])[aIdx];if(!a)return;
+  const damage=Math.max(0,parseInt(document.getElementById('mjRetainedDamage')?.value)||0);
+  _mjCombatLog.push(hit
+    ?`🎭 Décision MJ — ${esc(c.name)} touche avec ${esc(a.name)}${damage?` : ${damage} dégâts`:''}.`
+    :`🎭 Décision MJ — ${esc(c.name)} rate avec ${esc(a.name)}.`);
+  const el=document.getElementById('mjDiceResult');
+  if(el)el.innerHTML+=`<div style="margin-top:7px;font-size:13px;color:${hit?'var(--good)':'var(--danger)'}">Décision retenue : <strong>${hit?'touché':'raté'}</strong>${hit&&damage?` · ${damage} dégâts`:''}</div>`;
+  if(typeof _mjPersistCombat==='function')_mjPersistCombat();
 }
 
 function mjRollSpell(cIdx,sIdx){
@@ -986,7 +1062,7 @@ function mjRemoveCombatant(idx){
   _mjCombatants.splice(idx,1);
   _mjCombatLog.push(`✕ ${esc(name)} retiré du combat.`);
   if(_mjCurrentTurn>=_mjCombatants.length&&_mjCurrentTurn>0)_mjCurrentTurn--;
-  renderMJContent();
+  _mjCombatChanged();
 }
 
 let _mjHpSyncTimers={};
@@ -995,22 +1071,31 @@ function _mjSyncPlayerHp(c){
   clearTimeout(_mjHpSyncTimers[c.uid]);
   _mjHpSyncTimers[c.uid]=setTimeout(async()=>{
     try{
-      const pp=_mjPlayersData.find(p=>p.docId===c.uid+'_'+currentCampaignId||p.charData?.uid===c.uid);
+      const pp=_mjPlayersData.find(p=>p.uid===c.uid);
       const inWs=pp&&pp.charData&&pp.charData.wildshape?.active;
+      const isV2=typeof v2CompatService!=='undefined'&&v2CompatService.isEnabled()
+        &&typeof v2AuthorityService!=='undefined';
+      const characterId=c.characterId||pp?.characterId||pp?.docId;
       if(inWs){
         // Le joueur est en forme animale — syncer les PV de la bête
         const overflow=Math.max(0,c.hp<0?-c.hp:0);
         const beastHp=Math.max(0,c.hp);
         const update={'characterData.wildshape.beast.hpCur':beastHp};
+        const wildshape=JSON.parse(JSON.stringify(pp.charData.wildshape));
+        wildshape.beast.hpCur=beastHp;
+        let v2Patch={wildshape};
         if(beastHp<=0){
           // La bête tombe — déclencher le retour à la forme druide
           const savedHp=Math.max(0,(pp.charData.wildshape.savedHp||0)-overflow);
           Object.assign(update,{'characterData.hp':savedHp,'characterData.wildshape':firebase.firestore.FieldValue.delete()});
+          v2Patch={hp:savedHp,wildshape:null};
         }
-        await fbDb.collection('characters').doc(c.uid+'_'+currentCampaignId).update(update);
+        if(isV2)await v2AuthorityService.updateCharacterVitals(currentCampaignId,characterId,v2Patch);
+        else await fbDb.collection('characters').doc(c.uid+'_'+currentCampaignId).update(update);
         c.hpMax=inWs?pp.charData.wildshape.beast.hpMax:c.hpMax;
       } else {
-        await fbDb.collection('characters').doc(c.uid+'_'+currentCampaignId).update({'characterData.hp':c.hp,'characterData.hpMax':c.hpMax});
+        if(isV2)await v2AuthorityService.updateCharacterVitals(currentCampaignId,characterId,{hp:c.hp,hpMax:c.hpMax});
+        else await fbDb.collection('characters').doc(c.uid+'_'+currentCampaignId).update({'characterData.hp':c.hp,'characterData.hpMax':c.hpMax});
       }
     }
     catch(e){}
@@ -1021,15 +1106,25 @@ function _mjSyncPlayerConditions(c){
   if(!c.isPlayer||!c.uid||!currentCampaignId)return;
   const pp=_mjPlayersData.find(p=>p.uid===c.uid);
   if(!pp?.docId)return;
+  if(typeof v2CompatService!=='undefined'&&v2CompatService.isEnabled()
+    &&typeof v2AuthorityService!=='undefined'){
+    v2AuthorityService.updateCharacterVitals(
+      currentCampaignId,c.characterId||pp.characterId||pp.docId,
+      {conditions:c.conditions||[]}
+    ).catch(()=>{});
+    return;
+  }
   fbDb.collection('characters').doc(pp.docId).update({'characterData.conditions':c.conditions||[]}).catch(()=>{});
 }
 function mjHpChange(idx,dir){
   const c=_mjCombatants[idx];if(!c)return;
+  const wasAboveZero=c.hp>0;
   c.hp=Math.max(0,Math.min(c.hpMax,c.hp+dir));
   if(c.hp===0)_mjCombatLog.push(`💀 ${esc(c.name)} tombe à 0 PV !`);
   _mjSyncPlayerHp(c);
   _mjPersistCombat();
   renderMJContent();
+  if(wasAboveZero&&c.hp===0&&!c.isPlayer)setTimeout(()=>mjOpenZeroHpOutcome(idx),0);
 }
 
 function mjOpenHpModal(idx){
@@ -1052,12 +1147,39 @@ function mjApplyHpModal(idx){
   const heal=parseInt(document.getElementById('hpModal_heal').value)||0;
   const dmg=parseInt(document.getElementById('hpModal_dmg').value)||0;
   const newMax=parseInt(document.getElementById('hpModal_max').value)||c.hpMax;
+  const wasAboveZero=c.hp>0;
   c.hpMax=newMax;
   c.hp=Math.max(0,Math.min(c.hpMax,c.hp+heal-dmg));
   if(heal) _mjCombatLog.push(`💚 ${esc(c.name)} soigné de ${heal} PV (→ ${c.hp}/${c.hpMax})`);
   if(dmg) _mjCombatLog.push(`🗡 ${esc(c.name)} subit ${dmg} dégâts (→ ${c.hp}/${c.hpMax})`);
   if(c.hp===0)_mjCombatLog.push(`💀 ${esc(c.name)} tombe à 0 PV !`);
   _mjSyncPlayerHp(c);
+  _mjPersistCombat();
+  closeModal();renderMJContent();
+  if(wasAboveZero&&c.hp===0&&!c.isPlayer)setTimeout(()=>mjOpenZeroHpOutcome(idx),0);
+}
+
+function mjOpenZeroHpOutcome(idx){
+  const c=_mjCombatants[idx];if(!c||c.isPlayer)return;
+  const choices=['Vaincu','Inconscient','Capturé','En fuite','Encore actif'];
+  openModal(`<div class="pt">À 0 PV — ${esc(c.name)}</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:12px">Le calcul indique 0 PV. Choisis la conséquence narrative retenue.</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+      ${choices.map(choice=>`<button class="btn bsm" onclick="mjChooseZeroHpOutcome(${idx},'${choice}')">${choice}</button>`).join('')}
+    </div>
+    <div class="fl mb6">État personnalisé</div>
+    <div style="display:flex;gap:6px">
+      <input class="fi" id="mjZeroHpCustom" placeholder="Disparu dans les flammes…">
+      <button class="btn bac bsm" onclick="mjChooseZeroHpOutcome(${idx},document.getElementById('mjZeroHpCustom').value)">Appliquer</button>
+    </div>`);
+}
+
+function mjChooseZeroHpOutcome(idx,outcome){
+  const c=_mjCombatants[idx];if(!c)return;
+  const chosen=String(outcome||'').trim();
+  if(!chosen){showToast('❌ Indique un état.');return;}
+  c.defeatState=chosen;
+  _mjCombatLog.push(`🎭 À 0 PV, ${esc(c.name)} est déclaré : ${esc(chosen)}.`);
   _mjPersistCombat();
   closeModal();renderMJContent();
 }
@@ -1171,7 +1293,18 @@ function mjDsave(idx,type){
   }
   if(c.uid&&currentCampaignId){
     const pp=_mjPlayersData.find(p=>p.uid===c.uid);
-    if(pp?.docId)fbDb.collection('characters').doc(pp.docId).update({'characterData.deathSaves':c.deathSaves}).catch(()=>{});
+    if(pp?.docId){
+      if(typeof v2CompatService!=='undefined'&&v2CompatService.isEnabled()
+        &&typeof v2AuthorityService!=='undefined'){
+        v2AuthorityService.updateCharacterVitals(
+          currentCampaignId,c.characterId||pp.characterId||pp.docId,
+          {deathSaves:c.deathSaves}
+        ).catch(()=>{});
+      }else{
+        fbDb.collection('characters').doc(pp.docId)
+          .update({'characterData.deathSaves':c.deathSaves}).catch(()=>{});
+      }
+    }
   }
   renderMJContent();
 }

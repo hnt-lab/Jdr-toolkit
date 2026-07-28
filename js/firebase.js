@@ -1,17 +1,26 @@
 // ═══════════════════════════════════════
 // FIREBASE
 // ═══════════════════════════════════════
-const firebaseConfig={
-  apiKey:"AIzaSyDWP3G8M96ZKYFnmTB5w8uZC26anUyLMgk",
-  authDomain:"jdr-toolkit.firebaseapp.com",
-  projectId:"jdr-toolkit",
-  storageBucket:"jdr-toolkit.firebasestorage.app",
-  messagingSenderId:"783573298968",
-  appId:"1:783573298968:web:69c7768cda01c60667786d"
-};
+const _appEnvironment=globalThis.MJTK_ENVIRONMENT;
+if(!_appEnvironment||!_appEnvironment.configured||!_appEnvironment.firebaseConfig){
+  throw new Error('Configuration MJ Toolkit absente ou incomplète.');
+}
+const _localHost=(location.hostname==='localhost'||location.hostname==='127.0.0.1');
+const _v2LocalEmulatorsRequested=(
+  _appEnvironment.name==='local'
+  &&_localHost
+  &&localStorage.getItem('mjtk_v2_test')==='1'
+);
+const firebaseConfig=_appEnvironment.firebaseConfig;
 firebase.initializeApp(firebaseConfig);
 const fbAuth=firebase.auth();
 const fbDb=firebase.firestore();
+// L'environnement local est toujours isolé dans les émulateurs, même si la V2
+// n'est pas activée. Un serveur localhost ne peut donc jamais atteindre la prod.
+if(_appEnvironment.emulators){
+  fbAuth.useEmulator(_appEnvironment.emulators.auth);
+  fbDb.settings({host:_appEnvironment.emulators.firestore,ssl:false});
+}
 // Persistance HORS-LIGNE (IndexedDB) : lectures servies par le cache + écritures mises en file
 // qui SURVIVENT à un refresh (wifi instable en pleine partie). À appeler avant tout autre accès Firestore.
 // synchronizeTabs : évite l'échec « failed-precondition » quand plusieurs onglets sont ouverts.
@@ -143,6 +152,8 @@ let currentUserData=null;
 let selectedAvatar='⚔';
 let currentTableId=null;
 let currentCampaignId=null;
+let currentCharacterId=null; // V2 : fiche stable de la partie en cours
+let currentSheetCharacterId=null; // fiche actuellement consultée/éditée, sans changer la partie
 let currentTableName='';
 let currentCampaignName='';
 let currentTableMjId=null;
@@ -167,12 +178,24 @@ function saveSessionState(patch){
   const k=_sessionKey();if(!k)return;
   try{
     const cur=loadSessionState()||{};
-    localStorage.setItem(k,JSON.stringify({...cur,...patch,ts:Date.now()}));
+    localStorage.setItem(k,JSON.stringify({
+      ...cur,
+      ...patch,
+      schemaVersion:2,
+      ts:Date.now()
+    }));
   }catch(e){} // quota / mode privé : la mémoire de session est un confort, jamais un bloquant
 }
 function loadSessionState(){
   const k=_sessionKey();if(!k)return null;
-  try{const raw=localStorage.getItem(k);return raw?JSON.parse(raw):null;}catch(e){return null;}
+  try{
+    const raw=localStorage.getItem(k);if(!raw)return null;
+    const value=JSON.parse(raw);
+    if(!value||typeof value!=='object')return null;
+    if(!['hub','play','group','prepare'].includes(value.mode))value.mode='hub';
+    if(value.characterId===undefined)value.characterId=null;
+    return value;
+  }catch(e){return null;}
 }
 function clearSessionState(){
   const k=_sessionKey();if(!k)return;
@@ -209,7 +232,88 @@ async function _getPlayerInfo(uid){
   catch(e){_userInfoCache[uid]={playerName:'Joueur',avatar:'⚔'};}
   return _userInfoCache[uid];
 }
+function _firebaseV2Enabled(){
+  return typeof v2CompatService!=='undefined'&&v2CompatService.isEnabled();
+}
+function _v2PublicToSheet(data){
+  const classes=data.classes?String(data.classes).split(' / ').map(label=>{
+    const match=label.match(/^(.*)\s+(\d+)$/);
+    return match?{name:match[1],level:Number(match[2])}:{name:label,level:1};
+  }):[];
+  return{
+    charName:data.name||'Personnage',
+    portrait:data.portrait||null,
+    race:data.race||null,
+    classes,
+    hp:data.hp||0,
+    hpMax:data.hpMax||1,
+    tempHp:data.temporaryHp||0,
+    conditions:data.conditions||[],
+    concentration:data.concentration||null,
+    inspiration:!!data.inspiration,
+    pendingInitiative:data.pendingInitiative,
+    deathSaves:data.deathSaves||null,
+    actionLog:data.actionLog||[]
+  };
+}
 function startMJPlayersListener(campaignId){
+  if(_firebaseV2Enabled()){
+    const unsub=fbDb.collection('campaigns').doc(campaignId)
+      .collection('publicCharacters')
+      .onSnapshot(async snap=>{
+        let changed=false;
+        for(const change of snap.docChanges()){
+          const pub=change.doc.data()||{};
+          const characterId=pub.characterId||change.doc.id;
+          if(change.type==='removed'){
+            _mjPlayersData=_mjPlayersData.filter(p=>p.docId!==characterId);
+            changed=true;
+            continue;
+          }
+          const info=await _getPlayerInfo(pub.userId);
+          const publicData=_v2PublicToSheet(pub);
+          let charData=publicData;
+          try{
+            const fullData=await v2DataService.loadCharacterSheet(characterId);
+            if(fullData){
+              charData={
+                ...fullData,
+                pendingInitiative:publicData.pendingInitiative,
+                deathSaves:publicData.deathSaves||fullData.deathSaves,
+                actionLog:publicData.actionLog
+              };
+            }
+          }catch(e){}
+          const next={
+            uid:pub.userId,
+            characterId,
+            docId:characterId,
+            playerName:info.playerName,
+            avatar:info.avatar,
+            charData,
+            turnDone:pub.turnDone===true
+          };
+          const index=_mjPlayersData.findIndex(p=>p.docId===characterId);
+          const oldLog=index>=0
+            ?((_mjPlayersData[index].charData||{}).actionLog||[])
+            :[];
+          const seenActions=new Set(oldLog.map(entry=>entry&&entry.id));
+          (charData.actionLog||[]).forEach(entry=>{
+            if(entry&&entry.id&&!seenActions.has(entry.id)){
+              _mjCombatLog.push('📩 '+esc(entry.name||info.playerName||'Joueur')+' '+esc(entry.text||''));
+            }
+          });
+          if(_mjCombatLog.length>80)_mjCombatLog=_mjCombatLog.slice(-80);
+          if(index>=0)_mjPlayersData[index]=next;
+          else _mjPlayersData.push(next);
+          changed=true;
+        }
+        if(typeof _mjSyncFamiliars==='function'&&_mjSyncFamiliars())changed=true;
+        if(changed)_debouncedMJRender();
+      },err=>console.warn('MJ V2 sync error:',err));
+    _unsubscribes.push(unsub);
+    return;
+  }
   const unsub=fbDb.collection('characters').where('campaignId','==',campaignId)
     .onSnapshot(async snap=>{
       let changed=false;
@@ -221,17 +325,21 @@ function startMJPlayersListener(campaignId){
           if(wasPresent){_mjPlayersData=_mjPlayersData.filter(p=>p.docId!==change.doc.id);changed=true;}
           continue;
         }
-        // Joueur a signalé fin de son tour → avancer automatiquement
+        // Le joueur signale sa fin de tour. Le MJ garde le contrôle et
+        // valide explicitement le passage au combattant suivant.
         if(change.type==='modified'&&data.turnDone===true&&!change.doc.metadata.hasPendingWrites){
-          fbDb.collection('characters').doc(change.doc.id).update({turnDone:firebase.firestore.FieldValue.delete()}).catch(()=>{});
-          if(_mjCombatStarted)mjNextTurn();
+          const idx=_mjPlayersData.findIndex(p=>p.docId===change.doc.id);
+          if(idx>=0){
+            _mjPlayersData[idx].turnDone=true;
+            changed=true;
+          }
           continue;
         }
         const uid=data.userId;
         const info=await _getPlayerInfo(uid);
         if(change.type==='added'){
           if(!_mjPlayersData.find(p=>p.docId===change.doc.id)){
-            _mjPlayersData.push({uid,docId:change.doc.id,playerName:info.playerName,avatar:info.avatar,charData:data.characterData||{}});
+            _mjPlayersData.push({uid,docId:change.doc.id,playerName:info.playerName,avatar:info.avatar,charData:data.characterData||{},turnDone:data.turnDone===true});
             changed=true;
           }
         }else if(change.type==='modified'){
@@ -240,6 +348,7 @@ function startMJPlayersListener(campaignId){
             if(idx>=0){
               const _oldLog=(_mjPlayersData[idx].charData&&_mjPlayersData[idx].charData.actionLog)||[];
               _mjPlayersData[idx].charData=data.characterData||{};
+              _mjPlayersData[idx].turnDone=data.turnDone===true;
               // Journal d'actions joueur→MJ (principe 25) — pousse les nouvelles entrées dans le journal de combat (3ᵉ personne)
               const _newLog=(data.characterData&&data.characterData.actionLog)||[];
               if(_newLog.length){
@@ -274,6 +383,34 @@ function startMJPlayersListener(campaignId){
     },err=>console.warn('MJ sync error:',err));
   _unsubscribes.push(unsub);
 }
+function startMJCombatStateListener(campaignId){
+  if(!_firebaseV2Enabled()||!campaignId)return;
+  const unsub=fbDb.collection('campaigns').doc(campaignId)
+    .collection('gmData').doc('core')
+    .onSnapshot(snapshot=>{
+      if(!snapshot.exists||snapshot.metadata.hasPendingWrites)return;
+      const combatState=snapshot.data().combatState;
+      if(!combatState)return;
+      const nextCombatants=Array.isArray(combatState.combatants)
+        ?combatState.combatants
+        :[];
+      const nextStarted=!!combatState.active;
+      const nextTurn=Number(combatState.currentTurn)||0;
+      const nextRound=Math.max(1,Number(combatState.round)||1);
+      if(
+        _mjCombatStarted===nextStarted
+        &&_mjCurrentTurn===nextTurn
+        &&_mjRound===nextRound
+        &&_stableJSON(_mjCombatants)===_stableJSON(nextCombatants)
+      )return;
+      _mjCombatants=nextCombatants;
+      _mjCombatStarted=nextStarted;
+      _mjCurrentTurn=nextTurn;
+      _mjRound=nextRound;
+      _debouncedMJRender();
+    },err=>console.warn('MJ V2 combat sync error:',err));
+  _unsubscribes.push(unsub);
+}
 let _implacableDC=10,_implacableConMod=0;
 function _showRageImplacablePopup(p){
   const uses=(p.combatCharges||{})['RageImplacableUses']||0;
@@ -292,7 +429,58 @@ function _doRageImplacableRoll(){
   rollSave('JS CON',_implacableConMod);
   closeModal();
 }
+let _v2OwnedInventoryItems=[];
+function _mergeV2OwnedInventory(sheet){
+  const migrated=migratePlayer(sheet||{});
+  migrated.inventory=(migrated.inventory||[])
+    .filter(item=>!item||!item._v2InstanceId)
+    .concat(_v2OwnedInventoryItems||[]);
+  return migrated;
+}
 function startPlayerListener(campaignId){
+  if(_firebaseV2Enabled()&&currentCharacterId){
+    _v2OwnedInventoryItems=[];
+    if(currentTableId&&typeof v2ItemService!=='undefined'){
+      const itemUnsub=v2ItemService.listenForCharacter(
+        currentTableId,currentCharacterId,
+        snap=>{
+          _v2OwnedInventoryItems=snap.docs.map(doc=>v2ItemService.toInventoryItem(doc));
+          if(state.players[0]){
+            state.players[0]=_mergeV2OwnedInventory(state.players[0]);
+            _suppressUnsavedMark=true;render();
+          }
+        },
+        err=>console.warn('Player V2 item sync error:',err)
+      );
+      _unsubscribes.push(itemUnsub);
+      const transferUnsub=v2ItemService.listenIncomingTransfers(
+        currentTableId,currentUser.uid,
+        transfers=>{
+          _v2IncomingItemTransfers=transfers;
+          if(state.players[0])render();
+        },
+        err=>console.warn('Player V2 item transfer sync error:',err)
+      );
+      _unsubscribes.push(transferUnsub);
+    }
+    const unsub=fbDb.collection('characters').doc(currentCharacterId)
+      .collection('sheet').doc('current')
+      .onSnapshot(snap=>{
+        if(!snap.exists||snap.metadata.hasPendingWrites)return;
+        if(_ownWritePending>0){_ownWritePending--;return;}
+        const newData=snap.data();
+        const newStr=_stableJSON(newData);
+        if(_ownWriteDataSet.has(newStr)){_ownWriteDataSet.delete(newStr);_ownWriteData=null;return;}
+        if(_ownWriteData&&_ownWriteData===newStr){_ownWriteData=null;return;}
+        _ownWriteData=null;
+        if(_stableJSON(state.players[0])===newStr)return;
+        state.players[0]=_mergeV2OwnedInventory(newData);
+        _suppressUnsavedMark=true;render();
+        _flashSyncDot('playerSyncDot');
+      },err=>console.warn('Player V2 sync error:',err));
+    _unsubscribes.push(unsub);
+    return;
+  }
   const docId=currentUser.uid+'_'+campaignId;
   const unsub=fbDb.collection('characters').doc(docId)
     .onSnapshot(snap=>{
@@ -387,8 +575,72 @@ function _checkIncomingBuffs(oldCD,newCD,isSelf){
 }
 let _groupOnlyMode=false;
 let _currentHudDetailUid=null;
+let _groupSidekicks=[];
 
 function startGroupListener(campaignId){
+  if(_firebaseV2Enabled()){
+    _groupSidekicks=[];
+    const unsub=fbDb.collection('campaigns').doc(campaignId)
+      .collection('publicCharacters')
+      .onSnapshot(async snap=>{
+        let changed=false;
+        for(const change of snap.docChanges()){
+          const pub=change.doc.data()||{};
+          const characterId=pub.characterId||change.doc.id;
+          if(change.type==='removed'){
+            _groupData=_groupData.filter(p=>p.docId!==characterId);
+            changed=true;
+            continue;
+          }
+          const info=await _getPlayerInfo(pub.userId);
+          const charData=_v2PublicToSheet(pub);
+          const next={
+            uid:pub.userId,
+            characterId,
+            docId:characterId,
+            playerName:info.playerName,
+            avatar:info.avatar,
+            charData
+          };
+          const index=_groupData.findIndex(p=>p.docId===characterId);
+          const oldCharData=index>=0?_groupData[index].charData:null;
+          if(index>=0)_groupData[index]=next;
+          else _groupData.push(next);
+          if(!change.doc.metadata.hasPendingWrites){
+            _checkIncomingBuffs(oldCharData,charData,pub.userId===currentUser?.uid);
+          }
+          changed=true;
+        }
+        if(changed)_updatePartyHUD();
+      },err=>console.warn('Group V2 HUD error:',err));
+    _unsubscribes.push(unsub);
+    const sidekickUnsub=fbDb.collection('campaigns').doc(campaignId)
+      .collection('publicState').doc('sidekicks')
+      .onSnapshot(snapshot=>{
+        const sidekicks=snapshot.exists?(snapshot.data().sidekicks||[]):[];
+        _groupSidekicks=sidekicks.map(sidekick=>({
+          uid:`sidekick:${sidekick.id}`,
+          characterId:`sidekick:${sidekick.id}`,
+          docId:`sidekick:${sidekick.id}`,
+          playerName:'Contrôlé par le MJ',
+          avatar:'🤝',
+          isSidekick:true,
+          charData:{
+            charName:sidekick.name,
+            portrait:sidekick.portrait,
+            race:sidekick.race,
+            classes:sidekick.classes?[{name:sidekick.classes,level:''}]:[],
+            hp:sidekick.hp,
+            hpMax:sidekick.hpMax,
+            tempHp:sidekick.temporaryHp,
+            conditions:sidekick.conditions||[]
+          }
+        }));
+        _updatePartyHUD();
+      },err=>console.warn('Group sidekicks sync error:',err));
+    _unsubscribes.push(sidekickUnsub);
+    return;
+  }
   const unsub=fbDb.collection('characters').where('campaignId','==',campaignId)
     .onSnapshot(async snap=>{
       let changed=false;
@@ -434,6 +686,15 @@ function startGroupListener(campaignId){
 }
 
 function startCombatListener(campaignId,mjUid){
+  if(_firebaseV2Enabled()){
+    const unsub=fbDb.collection('campaigns').doc(campaignId)
+      .collection('publicState').doc('combat')
+      .onSnapshot(snap=>{
+        _updateCombatNotification(snap.exists?snap.data():null);
+      },err=>console.warn('Combat V2 listener error:',err));
+    _unsubscribes.push(unsub);
+    return;
+  }
   const unsub=fbDb.collection('characters').doc(mjUid+'_'+campaignId+'_mj')
     .onSnapshot(snap=>{
       if(!snap.exists)return;
@@ -479,9 +740,21 @@ async function _rollMyInitiative(){
   const total=d20+dexMod;
   const sub=document.getElementById('combatPopupSub');
   if(sub)sub.innerHTML=`<div style="font-size:52px;font-weight:800;color:var(--cp);font-family:var(--F);line-height:1">${total}</div><div style="font-size:13px;color:var(--text3);margin-top:4px">d20(${hasAdv?d20a+','+d20b+'→'+d20:d20}) ${dexMod>=0?'+':''}${dexMod} DEX${hasAdv?' 🦅':''}</div>`;
-  try{await fbDb.collection('characters').doc(currentUser.uid+'_'+currentCampaignId).update({'characterData.pendingInitiative':total});}catch(e){}
+  try{await _saveMyInitiative(total);}catch(e){}
   const popup=document.getElementById('combatPopup');
   if(popup){clearTimeout(popup._timer);popup._timer=setTimeout(()=>{popup.className='';},3000);}
+}
+async function _saveMyInitiative(total){
+  if(_firebaseV2Enabled()&&currentCharacterId){
+    return fbDb.collection('campaigns').doc(currentCampaignId)
+      .collection('publicCharacters').doc(currentCharacterId)
+      .update({
+        pendingInitiative:total,
+        updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+      });
+  }
+  return fbDb.collection('characters').doc(currentUser.uid+'_'+currentCampaignId)
+    .update({'characterData.pendingInitiative':total});
 }
 async function _rollMyInitiativeIRL(){
   const p=P();if(!p||!currentUser||!currentCampaignId)return;
@@ -497,7 +770,7 @@ async function _rollMyInitiativeIRL(){
     <div style="font-size:13px;color:var(--text3);margin-bottom:12px">+${dexMod>=0?'+':''}${dexMod} DEX sera ajouté automatiquement</div>
     <div style="display:flex;gap:8px;justify-content:center">
       <button class="btn" onclick="closeModal()">Annuler</button>
-      <button class="btn bac" onclick="(async()=>{const v=parseInt(document.getElementById('initIRLInput')?.value)||0;if(v<1||v>20){showToast('❌ Invalide (1-20)');return;}const tot=v+${dexMod};const sub=document.getElementById('combatPopupSub');if(sub)sub.innerHTML='<div style=\"font-size:52px;font-weight:800;color:var(--cp);\">'+tot+'</div><div style=\"font-size:13px;color:var(--text3);margin-top:4px\">d20('+v+') ${dexMod>=0?'+':''}${dexMod} DEX</div>';closeModal();try{await fbDb.collection('characters').doc(currentUser.uid+'_'+currentCampaignId).update({'characterData.pendingInitiative':tot});}catch(e){}const popup=document.getElementById('combatPopup');if(popup){clearTimeout(popup._timer);popup._timer=setTimeout(()=>{popup.className='';},3000);}})()">Valider</button>
+      <button class="btn bac" onclick="(async()=>{const v=parseInt(document.getElementById('initIRLInput')?.value)||0;if(v<1||v>20){showToast('❌ Invalide (1-20)');return;}const tot=v+${dexMod};const sub=document.getElementById('combatPopupSub');if(sub)sub.innerHTML='<div style=\"font-size:52px;font-weight:800;color:var(--cp);\">'+tot+'</div><div style=\"font-size:13px;color:var(--text3);margin-top:4px\">d20('+v+') ${dexMod>=0?'+':''}${dexMod} DEX</div>';closeModal();try{await _saveMyInitiative(tot);}catch(e){}const popup=document.getElementById('combatPopup');if(popup){clearTimeout(popup._timer);popup._timer=setTimeout(()=>{popup.className='';},3000);}})()">Valider</button>
     </div>
   </div>`);
 }
@@ -538,7 +811,19 @@ function _updateCombatNotification(combatState){
 async function playerEndTurn(){
   if(!currentUser||!currentCampaignId)return;
   try{
-    await fbDb.collection('characters').doc(currentUser.uid+'_'+currentCampaignId).update({turnDone:true});
+    if(_firebaseV2Enabled()&&currentCharacterId){
+      await fbDb.collection('campaigns').doc(currentCampaignId)
+        .collection('publicCharacters').doc(currentCharacterId)
+        .set({
+          schemaVersion:2,
+          characterId:currentCharacterId,
+          userId:currentUser.uid,
+          turnDone:true,
+          updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+        },{merge:true});
+    }else{
+      await fbDb.collection('characters').doc(currentUser.uid+'_'+currentCampaignId).update({turnDone:true});
+    }
     const banner=document.getElementById('combatTurnBanner');
     if(banner)banner.style.display='none';
     showToast('⏩ Fin de tour signalée. <button onclick="_undoEndTurn()" style="margin-left:8px;padding:3px 10px;border:1px solid var(--cp);border-radius:2px;background:transparent;color:var(--cp);cursor:pointer;font-size:13px">Annuler</button>',6000);
@@ -547,7 +832,19 @@ async function playerEndTurn(){
 async function _undoEndTurn(){
   if(!currentUser||!currentCampaignId)return;
   try{
-    await fbDb.collection('characters').doc(currentUser.uid+'_'+currentCampaignId).update({turnDone:false});
+    if(_firebaseV2Enabled()&&currentCharacterId){
+      await fbDb.collection('campaigns').doc(currentCampaignId)
+        .collection('publicCharacters').doc(currentCharacterId)
+        .set({
+          schemaVersion:2,
+          characterId:currentCharacterId,
+          userId:currentUser.uid,
+          turnDone:false,
+          updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+        },{merge:true});
+    }else{
+      await fbDb.collection('characters').doc(currentUser.uid+'_'+currentCampaignId).update({turnDone:false});
+    }
     const t=document.getElementById('toast');if(t)t.style.display='none';
     showToast('↩ Tour annulé.');
   }catch(e){}
@@ -600,7 +897,9 @@ function openPlayerReadonlySheet(pp){
   openPlayerReadonlySheetFull(p,p.privacy||{},{playerName:pp.playerName,avatar:pp.avatar},false);
 }
 function openPlayerReadonlySheetFull(p,priv,playerInfo,isMJ){
-  const isPublic=tab=>isMJ||priv[tab]!==false;
+  // PV, CA et conditions décrivent l'état observable du personnage et ne sont
+  // jamais masqués, même si une ancienne fiche contient privacy.combat=false.
+  const isPublic=tab=>tab==='combat'||isMJ||priv[tab]!==false;
   const portrait=p.portrait||p.equipPortrait;
   const abilities=p.abilities||[10,10,10,10,10,10];
   const lvl=(p.classes||[]).reduce((s,c)=>s+(c.level||1),0)||1;
@@ -713,6 +1012,7 @@ function openPlayerReadonlySheetFull(p,priv,playerInfo,isMJ){
       </div>
       <button onclick="document.getElementById('roSheetOverlay')?.remove()" style="background:none;border:1px solid var(--border);color:var(--text3);border-radius:2px;padding:4px 10px;cursor:pointer;font-size:13px;flex-shrink:0">✕</button>
     </div>
+    ${playerInfo?.archived?`<div style="padding:8px 16px;background:var(--surface2);border-bottom:3px double var(--border);font-size:12px;color:var(--text2)">📦 Photographie de la fiche au moment de l’archivage. La fiche vivante peut avoir évolué depuis.</div>`:''}
     <div style="display:flex;overflow-x:auto;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface)">
       ${tabs.map(t=>`<button id="rotab_${t.id}" onclick="_roTab('${t.id}')" style="flex:1;min-width:52px;padding:9px 5px;border:none;background:none;font-size:13px;cursor:pointer;border-bottom:2px solid ${t.id===first?'var(--cp)':'transparent'};color:${t.id===first?'var(--cp)':'var(--text3)'};font-weight:${t.id===first?'700':'400'};white-space:nowrap">${t.l}</button>`).join('')}
     </div>
@@ -728,12 +1028,13 @@ function _roTab(tabId){
   document.querySelectorAll('[id^="rotab_"]').forEach(b=>{const t=b.id.replace('rotab_','');b.style.borderBottomColor=t===tabId?'var(--cp)':'transparent';b.style.color=t===tabId?'var(--cp)':'var(--text3)';b.style.fontWeight=t===tabId?'700':'400';});
   document.querySelectorAll('[id^="rocontent_"]').forEach(c=>{c.style.display=c.id.replace('rocontent_','')===tabId?'block':'none';});
 }
-function openHubPlayerSheet(uid,campId){
+function openHubPlayerSheet(uid,campId,characterId){
   let pp=null;
-  if(_hubCache){for(const t of _hubCache){if(t._campParticipants){for(const [cid,parts] of Object.entries(t._campParticipants)){if(cid===campId){pp=parts.find(x=>x.uid===uid);break;}}}if(pp)break;}}
+  if(_hubCache){for(const t of _hubCache){if(t._campParticipants){for(const [cid,parts] of Object.entries(t._campParticipants)){if(cid===campId){pp=parts.find(x=>characterId?x.characterId===characterId:x.uid===uid);break;}}}if(pp)break;}}
   if(!pp){showToast('❌ Données introuvables.');return;}
-  const isMJ=!!(currentUser&&_hubCache&&(_hubCache.find(t=>t.campaigns&&t.campaigns.some(c=>c.id===campId))?.mjId===currentUser.uid));
-  openPlayerReadonlySheetFull(pp.fullData||{},pp.priv||{},{playerName:pp.playerName,avatar:pp.avatar},isMJ);
+  const table=_hubCache&&_hubCache.find(t=>t.campaigns&&t.campaigns.some(c=>c.id===campId));
+  const isMJ=!!(currentUser&&table&&_hubTableIsMJ(table,currentUser.uid));
+  openPlayerReadonlySheetFull(pp.fullData||{},pp.priv||{},{playerName:pp.playerName,avatar:pp.avatar,archived:!!pp.archivedSnapshot},isMJ);
 }
 
 // ─── CHUCHOTEMENTS ───
@@ -783,6 +1084,7 @@ function startWhisperListener(tableId,uid){
 
 async function sendWhisperMsg(toUid,toName,message){
   if(!currentUser||!currentTableId||!message.trim())return;
+  return guardAction('sendWhisper',async()=>{
   try{
     const fromName=currentUserData?.displayName||currentUserData?.playerName||'Joueur';
     await fbDb.collection('tables').doc(currentTableId).collection('whispers').add({
@@ -795,6 +1097,7 @@ async function sendWhisperMsg(toUid,toName,message){
       campaignId:currentCampaignId||null
     });
   }catch(e){if(typeof showToast==='function')showToast('❌ Erreur envoi : '+e.message);}
+  });
 }
 
 
@@ -815,7 +1118,8 @@ function _showRestInvite(ri){
 function _acceptRestInvite(type){
   const el=document.getElementById('restInvitePop');if(el)el.remove();
   if(typeof P!=='function'||!P()){showToast('Ouvre ta fiche pour pouvoir te reposer.');return;}
-  window._restNoPropagate=true;
-  try{if(type==='long'){if(typeof doLongRest==='function')doLongRest();}else{if(typeof doShortRest==='function')doShortRest();}}
-  finally{window._restNoPropagate=false;}
+  const p=P();
+  p.restResponse={t:Date.now(),type:type==='long'?'long':'short',participates:true};
+  if(typeof saveAll==='function')saveAll(true);
+  showToast('✅ Participation enregistrée. Le repos attend la décision du MJ.');
 }

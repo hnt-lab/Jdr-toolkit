@@ -38,41 +38,50 @@
    · Cible tactile ≥ 40px (rail : 42×44, actif 53).                        */
 
 /* ── 02 · BOUTONS & CHAMPS ───────────────────────────────────────────── */
-.ds-btn{font-family:var(--ds-body);font-size:15px;padding:9px 14px;min-height:40px;
+.ds-btn{font-family:var(--ds-body);font-size:calc(15px * var(--text-scale));padding:calc(9px * var(--text-scale)) calc(14px * var(--text-scale));min-height:calc(40px * var(--text-scale));
   background:var(--ds-card2);border:1px solid var(--ds-acc);color:var(--ds-ink);cursor:pointer;border-radius:0}
 .ds-btn:hover{filter:brightness(1.05)}
 .ds-btn:active{transform:translateY(1px)}
 .ds-btn.primary{background:var(--ds-acc);color:var(--ds-card);font-weight:700;border-color:var(--ds-acc-strong)}
 .ds-btn.danger{background:var(--ds-seal);color:#f4ead0;border-color:var(--ds-seal);font-weight:600}
 .ds-btn.quiet{background:var(--ds-card2);border-color:var(--ds-line)} /* secondaire — JAMAIS transparent */
-.ds-btn.big{min-height:46px;font-size:16px}
+.ds-btn.big{min-height:calc(46px * var(--text-scale));font-size:calc(16px * var(--text-scale))}
 .ds-btn:disabled{opacity:.45;cursor:default}
 .ds-btn:focus-visible{outline:2px solid var(--ds-acc-strong);outline-offset:1px}
 
 /* ── 03 · CARTES, TITRES, CHIPS, BANNIÈRES ───────────────────────────── */
 .ds-card{background:var(--ds-card);border:1px solid var(--ds-acc);color:var(--ds-ink);padding:12px 14px;
-  box-shadow:inset 0 0 0 2px var(--ds-card),inset 0 0 0 3px var(--ds-line)}
+  box-shadow:var(--frame-shadow)}
+.ds-card .ds-card{border-color:var(--ds-line);box-shadow:var(--panel-shadow)}
+/* Trois niveaux réutilisables : objet relié, panneau posé, surface creusée. */
+.ds-frame,.g-frame{background:var(--ds-card);border:1px solid var(--ds-acc);box-shadow:var(--frame-shadow)}
+.ds-panel,.g-panel{background:var(--ds-card);border:1px solid var(--ds-line);box-shadow:var(--panel-shadow)}
+.ds-inset,.g-inset{background:var(--ds-card2);border:1px solid var(--ds-line);box-shadow:var(--inset-shadow)}
 .ds-title{font-family:var(--ds-disp);font-variant:small-caps;letter-spacing:.08em;color:var(--ds-acc-strong);
-  font-size:16px;border-bottom:2px solid var(--ds-acc);padding-bottom:5px;margin-bottom:9px;
+  font-size:calc(16px * var(--text-scale));border-bottom:2px solid var(--ds-acc);padding-bottom:calc(5px * var(--text-scale));margin-bottom:calc(9px * var(--text-scale));
   display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .ds-title .r{font-family:var(--ds-body);font-variant:normal;letter-spacing:0;color:var(--ds-soft);font-size:13px}
-.ds-note{font-size:13.5px;color:var(--ds-soft)}
-.ds-chip{display:inline-flex;align-items:center;gap:5px;font-size:13px;border:1px solid var(--ds-line);
-  color:var(--ds-soft);padding:3px 9px;background:var(--ds-card2);white-space:nowrap}
+.ds-note{font-size:calc(13.5px * var(--text-scale));color:var(--ds-soft)}
+.ds-chip{display:inline-flex;align-items:center;gap:calc(5px * var(--text-scale));font-size:calc(13px * var(--text-scale));border:1px solid var(--ds-line);
+  color:var(--ds-soft);padding:calc(3px * var(--text-scale)) calc(9px * var(--text-scale));background:var(--ds-card2);white-space:nowrap}
 .ds-chip.warn{color:var(--ds-warn);border-color:var(--ds-warn)}
 .ds-chip.seal{color:var(--ds-seal);border-color:var(--ds-seal)}
 .ds-chip.good{color:var(--ds-good);border-color:var(--ds-good)}
 .ds-banner{border:1px solid var(--ds-acc);background:linear-gradient(180deg,var(--ds-glow),transparent);
-  padding:9px 12px;font-size:14px;color:var(--ds-ink);display:flex;gap:9px;align-items:center}
+  padding:calc(9px * var(--text-scale)) calc(12px * var(--text-scale));font-size:calc(14px * var(--text-scale));color:var(--ds-ink);display:flex;gap:calc(9px * var(--text-scale));align-items:center}
 .ds-banner b{color:var(--ds-acc-strong)}
-.ds-seclbl{font-family:var(--ds-mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;
-  color:var(--ds-acc-strong);border-bottom:1px solid var(--ds-line);padding-bottom:3px}
+.ds-seclbl{font-family:var(--ds-mono);font-size:calc(11px * var(--text-scale));letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ds-acc-strong);border-bottom:1px solid var(--ds-line);padding-bottom:calc(3px * var(--text-scale))}
 .ds-seclbl.mj{color:var(--ds-good);border-color:var(--ds-good)}
 
 /* ── 04 · JAUGES VITRÉES (liquide centré, reflet, lueur, pouls) ──────── */
 .ds-hp{position:relative;height:16px;border:1px solid var(--ds-acc-strong);background:var(--ds-card2);
   box-shadow:inset 0 0 5px rgba(0,0,0,.28), 0 0 10px var(--ds-glow)}
-.ds-hp>i{position:absolute;inset:3px auto 3px 3px;width:72%;overflow:hidden;
+/* Le remplissage est inséré à 3px de chaque bord, mais le JS lui donne une
+   largeur en % du conteneur ENTIER (shell.js) : à 100% de PV il déborderait de
+   6px et écraserait le texte. Même contrainte que son jumeau .g-hp>i
+   (maquette.css:45) — la page Groupe utilise .ds-hp, la fiche utilise .g-hp. */
+.ds-hp>i{position:absolute;inset:3px auto 3px 3px;width:72%;max-width:calc(100% - 6px);overflow:hidden;
   background:linear-gradient(180deg,color-mix(in srgb,var(--ds-good) 62%,white) 0%,var(--ds-good) 42%,color-mix(in srgb,var(--ds-good) 55%,black))}
 .ds-hp>i::before{content:"";position:absolute;top:1px;left:2px;right:2px;height:2px;background:rgba(255,255,255,.3);z-index:2}
 .ds-hp>i::after{content:"";position:absolute;top:0;bottom:0;left:-30px;width:26px;
@@ -188,12 +197,38 @@
   top:-1px;left:-1px;border-top:2px solid;border-left:2px solid}
 .ds-mix1 #app .panel::after,.ds-mix1 #app .g-card::after{
   bottom:-1px;right:-1px;border-bottom:2px solid;border-right:2px solid}
-.ds-mix2 #app .panel,.ds-mix2 #app .g-card{border-top:2px solid var(--cls,var(--cp))}
+.ds-mix2 #app .panel,.ds-mix2 #app .g-card{position:relative}
+.ds-mix2 #app .panel::before,.ds-mix2 #app .g-card::before{
+  content:'';position:absolute;z-index:1;left:-1px;right:22%;top:-1px;height:2px;
+  pointer-events:none;
+  background:linear-gradient(90deg,
+    color-mix(in srgb,var(--cls,var(--cp)) 92%,transparent) 0%,
+    color-mix(in srgb,var(--cls,var(--cp)) 76%,transparent) 48%,
+    transparent 100%)}
 /* Le bandeau de la fiche et le signet de l'onglet ouvert portent aussi la couleur de
    classe : sans eux l'identité se limitait aux encarts et se voyait à peine. */
-.ds-mix1 #charRail .norg-head,.ds-mix2 #charRail .norg-head{border-bottom-color:var(--cls,var(--brass-trim))!important}
-.ds-mix1 #tabBar button.on::before,.ds-mix2 #tabBar button.on::before{background:var(--cls,var(--acc-strong))}
-.ds-mix1 #app .pt,.ds-mix2 #app .pt{border-left:3px solid var(--cls,var(--cp));padding-left:7px}
+.ds-mix1 #charRail .norg-head,.ds-mix2 #charRail .norg-head{
+  border-bottom-color:transparent!important;
+  border-image:linear-gradient(90deg,
+    var(--cls,var(--brass-trim)) 0%,
+    color-mix(in srgb,var(--cls,var(--brass-trim)) 72%,transparent) 58%,
+    transparent 100%) 1!important}
+.ds-mix1 #tabBar button.on::before,.ds-mix2 #tabBar button.on::before{
+  background:linear-gradient(90deg,
+    color-mix(in srgb,var(--cls,var(--acc-strong)) 88%,transparent) 0%,
+    var(--cls,var(--acc-strong)) 28%,
+    color-mix(in srgb,var(--cls,var(--acc-strong)) 60%,transparent) 72%,
+    transparent 100%)}
+.ds-mix1 #app .pt,.ds-mix2 #app .pt{
+  position:relative;border-left:none;padding-left:10px}
+.ds-mix1 #app .pt::before,.ds-mix2 #app .pt::before{
+  content:'';position:absolute;left:0;top:2px;bottom:2px;width:3px;pointer-events:none;
+  background:linear-gradient(180deg,
+    transparent 0%,
+    color-mix(in srgb,var(--cls,var(--cp)) 78%,transparent) 18%,
+    var(--cls,var(--cp)) 48%,
+    color-mix(in srgb,var(--cls,var(--cp)) 66%,transparent) 76%,
+    transparent 100%)}
 /* Le portrait porte la couleur de classe dans les deux styles (touche commune).
    `.eq-portrait` est la classe réellement émise par le JS — `.rail-portrait`
    n'existe que dans une règle CSS orpheline, ne pas s'y accrocher. */
@@ -212,6 +247,15 @@
 /* ── 17 · PAGE TABLES (hub) — migration P1 ───────────────────────────── */
 #hubContent{background:var(--ds-page);color:var(--ds-ink)}
 .ds-hub-hero{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px;padding:48px 20px;min-height:55vh}
+
+.ds-discovery-media{width:76px;height:62px;flex:none;padding:3px;margin:0 9px 4px 0;background:#17130e;border:2px solid var(--ds-acc);box-shadow:inset 0 0 0 1px #342b1c,0 3px 8px rgba(0,0,0,.42);cursor:zoom-in}
+.ds-discovery-media.indice{float:left;border-color:#a98748}
+.ds-discovery-media.artefact{border-color:#9b78bd}
+.ds-discovery-media.quete{border-color:#b89138}
+.ds-discovery-media img{display:block;width:100%;height:100%;object-fit:cover;background:var(--ds-card2)}
+.ds-discovery-media.load-failed::after{content:'Image indisponible';font-size:9px;color:var(--ds-muted)}
+.ds-discovery-full{display:block;max-width:100%;max-height:72vh;width:auto;height:auto;margin:8px auto 12px;object-fit:contain;border:1px solid var(--ds-acc);background:#0e0c09;box-shadow:0 8px 30px rgba(0,0,0,.55)}
+.ds-discovery-description{white-space:pre-wrap;line-height:1.55;color:var(--ds-ink);padding:10px;border-left:2px solid var(--ds-acc);background:var(--ds-card2)}
 .ds-hub-hero .ey{font-family:var(--ds-mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--ds-acc-strong)}
 .ds-hub-hero h2{font-family:var(--ds-disp);font-size:30px;color:var(--ds-ink);margin:0;line-height:1.2}
 .ds-hub-hero .ds-btn{width:min(340px,92%);min-height:48px;font-size:16px}
@@ -288,8 +332,8 @@ body.ds-lefty #mjScreen{padding-right:10px!important;padding-left:58px!important
 .rail-caracs{gap:5px!important}
 
 /* ── 20 · PAGE GROUPE (overlay P3) ───────────────────────────────────── */
-#dsGroupPage{position:fixed;left:0;right:0;bottom:0;top:var(--chrome-h);z-index:840;display:none;background:var(--ds-page)}
-@media(min-width:641px){#dsGroupPage{top:64px}}
+#dsGroupPage,#dsCharacterPage{position:fixed;left:0;right:0;bottom:0;top:var(--chrome-h);z-index:840;display:none;background:var(--ds-page)}
+@media(min-width:641px){#dsGroupPage,#dsCharacterPage{top:64px}}
 .ds-grouppage{height:100%;display:flex;flex-direction:column}
 .ds-grouppage .gp-body{flex:1;overflow-y:auto;padding:12px;max-width:900px;margin:0 auto;width:100%}
 .ds-grouppage .ds-chrome.top .opt{cursor:pointer}
@@ -341,7 +385,7 @@ body.ds-lefty #diceFloat{right:auto!important;left:13px!important}
 @media(max-width:899px){
   .nav-avatar{width:30px!important;height:30px!important;font-size:15px!important}
   #hubScreen{padding-top:48px!important}
-  #diceFloat{width:56px!important;height:56px!important;font-size:25px!important}
+  #diceFloat{width:63px!important;height:63px!important;font-size:28px!important}
 }
 
 /* ── IDENTITÉ DE CLASSE sur la fiche (--cls posé par #app.th-<Classe>) ──
@@ -356,3 +400,21 @@ body.ds-lefty #diceFloat{right:auto!important;left:13px!important}
   .ds-hp.low,.g-hp.low,.ds-nav .it .bdg.turn,.ds-turnbar,.norg-rail button.lvlup,.norg-head .pp.lvlup{animation:none!important}
   #diceFloat{transition:none}
 }
+
+/* Reprise : le détail mobile remplace le rail desktop, donc il porte l'action uniquement
+   quand ce rail est masqué. Sur grand écran, un seul bouton suffit : celui de la carte table. */
+.ds-resume-mobile{display:none}
+@media(max-width:899px){.ds-resume-mobile{display:block}}
+.ds-in-game{display:flex!important;align-items:center;justify-content:center;gap:7px;opacity:1!important;cursor:default!important;color:var(--ds-acc-strong)!important;border-color:var(--ds-acc-strong)!important}
+.ds-livedot{width:8px;height:8px;border-radius:50%;background:var(--ds-seal);flex:none;animation:dsLivePulse 1.35s ease-in-out infinite}
+@keyframes dsLivePulse{0%,100%{transform:scale(.82);box-shadow:0 0 0 0 color-mix(in srgb,var(--ds-seal) 56%,transparent)}50%{transform:scale(1.12);box-shadow:0 0 0 7px color-mix(in srgb,var(--ds-seal) 0%,transparent)}}
+@media(prefers-reduced-motion:reduce){.ds-livedot{animation:none}}
+
+/* Le Hub comporte quelques tailles héritées de son HTML. Elles suivent la même échelle
+   que les composants ds-* sans écraser la hiérarchie éditoriale de chaque carte. */
+#hubScreen [style*="font-size:11px"]{font-size:calc(11px * var(--text-scale))!important}
+#hubScreen [style*="font-size:12px"]{font-size:calc(12px * var(--text-scale))!important}
+#hubScreen [style*="font-size:13px"]{font-size:calc(13px * var(--text-scale))!important}
+#hubScreen [style*="font-size:14px"]{font-size:calc(14px * var(--text-scale))!important}
+#hubScreen [style*="font-size:15.5px"]{font-size:calc(15.5px * var(--text-scale))!important}
+#hubScreen [style*="font-size:18px"]{font-size:calc(18px * var(--text-scale))!important}

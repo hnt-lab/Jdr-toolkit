@@ -1498,6 +1498,14 @@ const _ARCHETYPE_LEVEL_FEATS={
 function applyLevelUp(){
   const p=P();const mc=mainClass(p);
   const isMulti=LU.choice==='multiclass';
+  const v2Progression=typeof v2CompatService!=='undefined'
+    &&v2CompatService.isEnabled()
+    &&typeof v2ProgressionService!=='undefined'
+    &&currentCampaignId
+    &&(currentSheetCharacterId||currentCharacterId);
+  const beforeProgression=v2Progression
+    ?JSON.parse(JSON.stringify(p))
+    :null;
 
   if(isMulti&&LU.mcTarget){
     const ex=p.classes.find(c=>c.name===LU.mcTarget);
@@ -1679,6 +1687,36 @@ function applyLevelUp(){
     if(_luBarbLvl>=20){delete p.combatCharges['RageCharges'];}
     else{p.combatCharges['RageCharges']=_luRageMax;}
   }
+  if(v2Progression){
+    const proposedSheet=JSON.parse(JSON.stringify(p));
+    proposedSheet.pendingLevelUp=false;
+    proposedSheet.inventory=Array.isArray(proposedSheet.inventory)
+      ?proposedSheet.inventory.filter(item=>!item||!item._v2InstanceId)
+      :[];
+    Object.keys(p).forEach(key=>delete p[key]);
+    Object.assign(p,beforeProgression);
+    p.pendingLevelUp=true;
+    const characterId=currentSheetCharacterId||currentCharacterId;
+    const nextClasses=(proposedSheet.classes||[]).map(entry=>`${entry.name} ${entry.level}`).join(' / ');
+    resetLU();
+    setTab('perso');
+    showToast('⏳ Montée de niveau envoyée au MJ pour validation.');
+    v2ProgressionService.requestCorrection(currentCampaignId,{
+      kind:'progression',
+      characterId,
+      ownerId:currentUser.uid,
+      requestedBy:currentUser.uid,
+      reason:`Montée proposée : ${nextClasses}`,
+      patch:{
+        classes:proposedSheet.classes||[],
+        level:(proposedSheet.classes||[]).reduce((sum,entry)=>sum+(Number(entry.level)||0),0)
+      },
+      proposedSheet
+    }).catch(error=>{
+      showToast('❌ Demande de progression impossible : '+(error.message||error));
+    });
+    return;
+  }
   p.pendingLevelUp=false;
   resetLU();
   saveAll();
@@ -1694,4 +1732,3 @@ function searchClasse(q){const drop=document.getElementById('classeDrop');if(!dr
 function addClassEntry(name){const p=P();if(!p.classes)p.classes=[];if(!p.classes.find(c=>c.name===name))p.classes.push({name,level:1});const inp=document.getElementById('classeInput');if(inp)inp.value='';const drop=document.getElementById('classeDrop');if(drop)drop.style.display='none';render();}
 function searchBgPerso(q){const drop=document.getElementById('bgDropPerso');if(!drop)return;upd('background',q);if(!q){drop.style.display='none';return;}const res=BACKGROUNDS.filter(b=>b.name.toLowerCase().includes(q.toLowerCase()));if(!res.length){drop.style.display='none';return;}drop.style.display='block';drop.innerHTML=res.map(b=>`<div class="aci" onmousedown="event.preventDefault();selectBgPerso('${jsq(b.name)}')"><div class="ain">${esc(b.name)}</div><div class="ais">${esc(b.skills.join(', '))} — ${esc(b.desc)}</div></div>`).join('');}
 function selectBgPerso(name){upd('background',name);const inp=document.getElementById('bgInputPerso');if(inp)inp.value=name;const drop=document.getElementById('bgDropPerso');if(drop)drop.style.display='none';}
-

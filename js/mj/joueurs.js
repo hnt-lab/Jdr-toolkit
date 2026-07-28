@@ -1,23 +1,77 @@
+function _mjProgressionRequestsHTML(){
+  if(!(_mjProgressionRequests||[]).length)return'';
+  return`<div class="panel mb10" style="border-color:var(--cp)">
+    <div class="pt">⬆ Montées de niveau à valider</div>
+    ${_mjProgressionRequests.map(request=>{
+      const sheet=request.proposedSheet||{};
+      const classes=(sheet.classes||[]).map(entry=>`${entry.name} ${entry.level}`).join(' / ')||'Progression';
+      return`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
+        <div style="flex:1;min-width:0"><b>${esc(sheet.charName||'Personnage')}</b>
+          <div class="ds-note">${esc(classes)}${request.reason?' · '+esc(request.reason):''}</div>
+        </div>
+        <button class="btn bsm bac" onclick="mjReviewProgression('${request.id}')">Examiner</button>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+function mjReviewProgression(requestId){
+  const request=(_mjProgressionRequests||[]).find(entry=>entry.id===requestId);if(!request)return;
+  const sheet=request.proposedSheet||{};
+  const classes=(sheet.classes||[]).map(entry=>`${entry.name} ${entry.level}`).join(' / ')||'?';
+  const abilities=(sheet.abilities||[]).map((value,index)=>`${['FOR','DEX','CON','INT','SAG','CHA'][index]} ${value}`).join(' · ');
+  openModal(`<div class="pt">Valider la montée de niveau ?</div>
+    <div style="padding:10px;background:var(--surface2);border:1px solid var(--border);margin-bottom:12px">
+      <div style="font-size:15px;font-weight:700">${esc(sheet.charName||'Personnage')}</div>
+      <div style="color:var(--cp);margin-top:3px">${esc(classes)}</div>
+      <div class="ds-note" style="margin-top:5px">PV ${Number(sheet.hp)||0}/${Number(sheet.hpMax)||0}</div>
+      <div class="ds-note">${esc(abilities)}</div>
+      ${request.reason?`<div style="font-size:13px;margin-top:8px">${esc(request.reason)}</div>`:''}
+    </div>
+    <div class="ds-note" style="margin-bottom:12px">La validation appliquera la fiche proposée et ajoutera une entrée immuable dans Parcours.</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn" style="flex:1;color:var(--danger)" onclick="mjDecideProgression('${request.id}',false)">Refuser</button>
+      <button class="btn bac" style="flex:2" onclick="mjDecideProgression('${request.id}',true)">✓ Valider</button>
+    </div>`);
+}
+async function mjDecideProgression(requestId,accepted){
+  if(!accepted&&!confirm('Refuser cette montée de niveau ?'))return;
+  try{
+    if(accepted)await v2ProgressionService.apply(currentCampaignId,requestId);
+    else await v2ProgressionService.reject(currentCampaignId,requestId);
+    closeModal();
+    showToast(accepted?'✅ Montée de niveau validée.':'↩ Montée de niveau refusée.');
+  }catch(error){showToast('❌ Décision impossible : '+(error.message||error));}
+}
+
 function mjTabJoueurs(){
-  if(!_mjPlayersData.length) return`<div style="text-align:center;padding:32px;color:var(--text3);font-style:italic">
+  const progressionHTML=_mjProgressionRequestsHTML();
+  // §10.1 « repos collectifs » : les demandes s'affichaient uniquement sur la page
+  // Groupe, ce qui obligeait le MJ à quitter son panneau en pleine session pour
+  // autoriser un repos. Même rendu que là-bas (_dsRestBlockHTML), boutons adaptés
+  // au rôle. Le bloc disparaît de lui-même quand il n'y a aucune demande.
+  const reposHTML=typeof _dsRestBlockHTML==='function'?_dsRestBlockHTML():'';
+  if(!_mjPlayersData.length) return`${progressionHTML}${reposHTML}<div style="text-align:center;padding:32px;color:var(--text3);font-style:italic">
     <div style="font-size:32px;margin-bottom:12px">⚔</div>
     Aucun joueur n'a encore créé de personnage dans cette campagne.
     <div style="margin-top:12px"><button class="btn bsm bprimary" onclick="renderMJContent()">🔄 Actualiser</button></div>
   </div>`;
   return`<div>
+    ${progressionHTML}${reposHTML}
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
       <div style="font-family:var(--F);font-size:13px;color:var(--cp);white-space:nowrap">${_mjPlayersData.length} joueur(s) <span style="font-size:12px;color:var(--text3);margin-left:4px">● Live</span></div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
         <button class="btn bsm" onclick="renderMJContent()">🔄 Actualiser</button>
         <button class="btn bsm" onclick="mjOpenCompendium()">📚 Compendium</button>
-        <button class="btn bsm" style="border-color:#7986cb;color:#7986cb" onclick="mjGroupRest('short')">☕ Repos court</button>
-        <button class="btn bsm" style="border-color:#5c6bc0;color:#5c6bc0" onclick="mjGroupRest('long')">🌙 Repos long</button>
+        <button class="btn bsm" style="color:var(--cp);border-color:rgba(200,168,75,.45)" onclick="mjGrantMilestone()" title="Progression par jalons : faire monter TOUT le groupe d'un niveau sans compter les XP">🏅 Jalon du groupe</button>
         <button class="btn bsm bprimary" onclick="mjAddAllToCombat()">⚡ Tous en combat</button>
       </div>
     </div>
     <div class="mj-players-grid">${_mjPlayersData.map((pp,i)=>{
       const p=pp.charData||{};
       const hp=p.hp||0;const hpMax=p.hpMax||1;
+      // §10.1 du cahier des charges : « PV, PV temporaires et conditions ». Les PV
+      // temporaires manquaient à l'appel — or ils changent la lecture d'un combat.
+      const tempHp=p.tempHp||p.temporaryHp||0;
       const hpPct=Math.max(0,Math.min(100,hpMax?hp/hpMax*100:0));
       const hpColor=hpPct>50?'var(--good)':hpPct>25?'var(--warn)':'var(--danger)';
       const cls=(p.classes||[]).map(c=>c.name+' '+c.level).join(' / ')||'?';
@@ -34,6 +88,7 @@ function mjTabJoueurs(){
           </div>
           <button class="btn bsm" onclick="mjShowPlayerDetail(${i})">📋 Fiche</button>
           <button class="btn bsm" onclick="mjEditPlayerSheet(${i})">✏ Modifier</button>
+          <button class="btn bsm" style="color:var(--cp);border-color:rgba(200,168,75,.45)" onclick="mjTogglePlayerInspiration(${i})">${p.inspiration?'✦ Retirer inspiration':'✧ Accorder inspiration'}</button>
           <button class="btn bsm bprimary" onclick="mjAddPlayerToCombat(${i})">⚡ Combat</button>
           <button class="btn bsm" style="color:var(--warn);border-color:rgba(255,152,0,.3)" onclick="mjRespecPlayer(${i})" title="Réinitialiser les niveaux">↩ Respec</button>
           <button class="btn bsm" style="color:var(--arcane);border-color:rgba(156,39,176,.3)" onclick="mjWhisperPlayer(${i})" title="Chuchoter à ce joueur">🤫</button>
@@ -44,7 +99,7 @@ function mjTabJoueurs(){
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:8px">
           <div style="background:var(--surface2);border-radius:2px;padding:8px;text-align:center">
             <div style="font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px">PV</div>
-            <div style="font-size:${hp<=0?'11':'17'}px;font-weight:600;color:${hpColor}">${hp<=0?'💀 À terre':hp+'/'+hpMax}</div>
+            <div style="font-size:${hp<=0?'11':'17'}px;font-weight:600;color:${hpColor}">${hp<=0?'💀 À terre':hp+'/'+hpMax}${tempHp>0?`<span style="font-size:12px;color:var(--cp);margin-left:4px" title="Points de vie temporaires">+${tempHp}</span>`:''}</div>
             <div class="hp-bar"><div class="hp-fill" style="width:${hpPct}%;background:${hpColor}"></div></div>
           </div>
           <div style="background:var(--surface2);border-radius:2px;padding:8px;text-align:center">
@@ -647,6 +702,26 @@ function _mjSnapshotEditData(){
   ['languages','proficiencies','traits','ideals','bonds','flaws','backstory','secrets'].forEach(k=>{if(document.getElementById('mje_'+k))p[k]=getVal('mje_'+k);});
   const xpAdd=parseInt(document.getElementById('mje_xp_add')?.value)||0;if(xpAdd>0){p.xp=(p.xp||0)+xpAdd;const el=document.getElementById('mje_xp_add');if(el)el.value='';}
 }
+// Jalon d'un SEUL personnage. Il vit dans le module d'expérience de l'éditeur de
+// fiche, à côté du don d'XP au détail : c'est le même geste (« je récompense CE
+// personnage »), au même endroit — demande du 26/07.
+// Il se comporte comme les autres boutons du module : il modifie le brouillon
+// d'édition, et c'est « 💾 Sauvegarder » qui engage. Pas de confirmation propre :
+// l'acte volontaire, c'est la sauvegarde, et _mjSnapshotEditData permet d'annuler.
+function mjEditGrantMilestone(){
+  if(!_mjEditData)return;
+  const p=_mjEditData.p;
+  const lvl=(p.classes||[]).reduce((s,c)=>s+(c.level||0),0)||1;
+  if(lvl>=20||typeof XP_LEVELS==='undefined'||lvl>=XP_LEVELS.length){
+    showToast('Niveau maximum atteint.');return;
+  }
+  const seuil=XP_LEVELS[lvl];
+  if((p.xp||0)>=seuil){showToast('✨ Déjà prêt pour le niveau '+(lvl+1)+'.');return;}
+  _mjSnapshotEditData();
+  p.xp=seuil;
+  mjEditPlayerSheet(_mjEditData.idx);
+  showToast('🏅 Jalon — prêt pour le niveau '+(lvl+1)+'. Pense à sauvegarder.');
+}
 function mjEditAddQuickXP(amount){
   if(!_mjEditData||amount<=0)return;
   _mjSnapshotEditData();
@@ -721,7 +796,7 @@ function mjEditPlayerSheet(idx){
       </select>
     </div>`:''}
     ${sec('Expérience')}
-    ${(()=>{const _xpLvl=classes.reduce((s,c)=>s+(c.level||0),0);const _xpCur=p.xp||0;const _xpCurT=XP_LEVELS[_xpLvl-1]||0;const _xpNextT=XP_LEVELS[_xpLvl]||XP_LEVELS[19];const _xpPct=Math.min(100,Math.round(((_xpCur-_xpCurT)/Math.max(1,_xpNextT-_xpCurT))*100));const _xpToNext=Math.max(0,_xpNextT-_xpCur);return`<div style="margin-bottom:12px"><div style="display:flex;align-items:baseline;gap:6px;margin-bottom:4px"><span style="font-size:15px;font-weight:700;color:var(--cp)">${_xpCur.toLocaleString()}</span><span style="font-size:13px;color:var(--text3)">XP actuels • Niv. ${_xpLvl}</span></div><div class="xp-bar-wrap"><div class="xp-bar-fill" style="width:${_xpPct}%"></div></div><div style="font-size:13px;color:var(--text3);margin-bottom:8px">${_xpToNext>0?`${_xpToNext.toLocaleString()} XP jusqu'au niveau ${_xpLvl+1}`:`✨ Prêt pour le niveau ${_xpLvl+1} !`}</div><div style="display:flex;gap:6px;margin-bottom:6px"><input id="mje_xp_add" type="number" min="0" placeholder="XP à ajouter..." class="fi" style="flex:1;font-size:13px"><button class="btn bsm bac" onclick="mjEditAddQuickXP(parseInt(document.getElementById('mje_xp_add').value)||0)" style="white-space:nowrap">+ Ajouter</button></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">${[[25,'Gobelin tué'],[50,'Rencontre facile'],[100,'Rencontre moyenne'],[200,'Rencontre difficile'],[450,'Boss tué'],[1000,'Jalon narratif']].map(([xp,lbl])=>`<div class="xp-reward" onclick="mjEditAddQuickXP(${xp})">+${xp} XP — ${lbl}</div>`).join('')}</div></div>`;})()}
+    ${(()=>{const _xpLvl=classes.reduce((s,c)=>s+(c.level||0),0);const _xpCur=p.xp||0;const _xpCurT=XP_LEVELS[_xpLvl-1]||0;const _xpNextT=XP_LEVELS[_xpLvl]||XP_LEVELS[19];const _xpPct=Math.min(100,Math.round(((_xpCur-_xpCurT)/Math.max(1,_xpNextT-_xpCurT))*100));const _xpToNext=Math.max(0,_xpNextT-_xpCur);return`<div style="margin-bottom:12px"><div style="display:flex;align-items:baseline;gap:6px;margin-bottom:4px"><span style="font-size:15px;font-weight:700;color:var(--cp)">${_xpCur.toLocaleString()}</span><span style="font-size:13px;color:var(--text3)">XP actuels • Niv. ${_xpLvl}</span></div><div class="xp-bar-wrap"><div class="xp-bar-fill" style="width:${_xpPct}%"></div></div><div style="font-size:13px;color:var(--text3);margin-bottom:8px">${_xpToNext>0?`${_xpToNext.toLocaleString()} XP jusqu'au niveau ${_xpLvl+1}`:`✨ Prêt pour le niveau ${_xpLvl+1} !`}</div><div style="display:flex;gap:6px;margin-bottom:6px"><input id="mje_xp_add" type="number" min="0" placeholder="XP à ajouter..." class="fi" style="flex:1;font-size:13px"><button class="btn bsm bac" onclick="mjEditAddQuickXP(parseInt(document.getElementById('mje_xp_add').value)||0)" style="white-space:nowrap">+ Ajouter</button></div><button class="btn bsm" style="width:100%;margin-bottom:6px;color:var(--cp);border-color:rgba(200,168,75,.45)" ${(_xpToNext>0&&_xpLvl<20)?'':'disabled'} onclick="mjEditGrantMilestone()" title="Amener directement ce personnage au seuil du niveau suivant, sans compter les XP">🏅 Jalon — passer au niveau ${_xpLvl+1}</button><div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">${[[25,'Gobelin tué'],[50,'Rencontre facile'],[100,'Rencontre moyenne'],[200,'Rencontre difficile'],[450,'Boss tué'],[1000,'Jalon narratif']].map(([xp,lbl])=>`<div class="xp-reward" onclick="mjEditAddQuickXP(${xp})">+${xp} XP — ${lbl}</div>`).join('')}</div></div>`;})()}
     ${sec('Stats de combat')}
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px">
       ${[['PV','hp',p.hp||0],['PV max','hpMax',p.hpMax||1],['CA','ac',p.ac||10],['Vit. (m)','speed',p.speed||9]].map(([label,id,val])=>`<div style="background:var(--surface2);border-radius:2px;padding:6px;text-align:center"><div style="font-size:13px;color:var(--text3);text-transform:uppercase;margin-bottom:3px">${label}</div><input id="mje_${id}" type="number" value="${val}" style="width:100%;text-align:center;background:transparent;border:none;color:var(--text);font-size:15px;font-weight:700;outline:none"></div>`).join('')}
@@ -779,22 +854,138 @@ function mjEditPlayerSheet(idx){
   </div>`);
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+//  PROGRESSION PAR JALONS (§10.1 : « XP, jalons et montées en attente »)
+//
+//  En D&D 5e, beaucoup de tables ne comptent pas les XP : le MJ décide qu'un
+//  moment de l'histoire fait monter le groupe. L'application ne savait faire que
+//  le compteur d'XP. (À ne pas confondre avec le bouton « Jalon narratif » de
+//  l'éditeur de fiche, qui n'est qu'une récompense de +1000 XP.)
+//
+//  CHOIX D'IMPLÉMENTATION, à connaître avant de le « corriger » : un jalon AMÈNE
+//  chaque personnage au seuil d'XP du niveau suivant, au lieu d'introduire un
+//  second système de progression en parallèle. Conséquence voulue : tout
+//  l'existant continue de fonctionner sans modification — le joueur voit « Prêt
+//  pour le niveau X », fait SES choix de montée, et la validation par le MJ reste
+//  celle du bloc « Montées de niveau à valider ». Le MJ n'a jamais à choisir les
+//  sorts ou les dons à la place du joueur.
+// ═══════════════════════════════════════════════════════════════════════════
+// Jalon de GROUPE. Le jalon d'un seul personnage n'est pas ici : il vit dans le
+// module d'expérience de l'éditeur de fiche (mjEditGrantMilestone), auprès du don
+// d'XP au détail — même geste, même endroit.
+function _mjMilestoneTargets(){
+  return (_mjPlayersData||[]).map((pp,i)=>{
+    const p=pp.charData||{};
+    const lvl=(p.classes||[]).reduce((s,c)=>s+(c.level||0),0)||1;
+    return {
+      i,
+      nom:p.charName||pp.playerName||'Personnage',
+      lvl,
+      xp:p.xp||0,
+      // XP_LEVELS[L] = seuil pour atteindre le niveau L+1 (config.js).
+      seuil:(typeof XP_LEVELS!=='undefined'&&lvl<XP_LEVELS.length)?XP_LEVELS[lvl]:null
+    };
+  });
+}
+function mjGrantMilestone(){
+  const cibles=_mjMilestoneTargets();
+  if(!cibles.length){showToast('Aucun joueur dans la campagne.');return;}
+  const aMonter=cibles.filter(c=>c.seuil!=null&&c.xp<c.seuil);
+  const dejaPrets=cibles.filter(c=>c.seuil!=null&&c.xp>=c.seuil);
+  const auMax=cibles.filter(c=>c.seuil==null);
+  // §10.1 : action groupée ⇒ récapitulatif avant d'agir.
+  openModal(`<div class="pt">🏅 Jalon franchi</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:12px">
+      Chaque personnage reçoit l'expérience nécessaire pour atteindre son niveau suivant.
+      <b>Ce sont les joueurs qui feront leurs choix de montée</b> ; tu les valideras comme d'habitude.
+    </div>
+    ${aMonter.length?`<div style="margin-bottom:10px">
+      ${aMonter.map(c=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:5px 8px;background:var(--surface2);border-radius:2px;margin-bottom:4px">
+        <span>⚔ ${esc(c.nom)}</span>
+        <span style="color:var(--cp)">niv. ${c.lvl} → <b>${c.lvl+1}</b></span>
+      </div>`).join('')}
+    </div>`:'<div class="ds-note" style="margin-bottom:10px">Personne à faire monter.</div>'}
+    ${dejaPrets.length?`<div class="ds-note" style="margin-bottom:8px">Déjà prêt${dejaPrets.length>1?'s':''} pour le niveau suivant : ${esc(dejaPrets.map(c=>c.nom).join(', '))} — inchangé${dejaPrets.length>1?'s':''}.</div>`:''}
+    ${auMax.length?`<div class="ds-note" style="margin-bottom:8px">Au niveau maximum : ${esc(auMax.map(c=>c.nom).join(', '))}.</div>`:''}
+    <div style="display:flex;gap:8px;margin-top:6px">
+      <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
+      <button class="btn bac" style="flex:2" ${aMonter.length?'':'disabled'} onclick="mjConfirmMilestone()">🏅 Accorder le jalon</button>
+    </div>`);
+}
+async function mjConfirmMilestone(){
+  closeModal();
+  const aMonter=_mjMilestoneTargets().filter(c=>c.seuil!=null&&c.xp<c.seuil);
+  let ok=0;
+  for(const c of aMonter){
+    const pp=_mjPlayersData[c.i];
+    if(!pp)continue;
+    const fiche={...(pp.charData||{}),xp:c.seuil};
+    try{
+      if(typeof v2CompatService!=='undefined'&&v2CompatService.isEnabled()){
+        // Le MJ n'écrit JAMAIS en direct dans la fiche d'un joueur : les règles
+        // l'interdisent, l'autorité passe par le serveur.
+        await v2AuthorityService.updateCharacterSheet(
+          currentCampaignId,pp.characterId||pp.docId,fiche
+        );
+      }else{
+        await fbDb.collection('characters').doc(pp.docId).update({'characterData.xp':c.seuil});
+      }
+      pp.charData=fiche;
+      ok++;
+    }catch(e){}
+  }
+  showToast(ok?`🏅 Jalon accordé — ${ok} personnage(s) prêt(s) à monter de niveau.`
+    :'❌ Aucun personnage n\'a pu être mis à jour.');
+  renderMJContent();
+}
+
 async function mjSavePlayerSheet(idx){
   if(!_mjEditData)return;
   const pp=_mjPlayersData[idx];if(!pp)return;
   _mjSnapshotEditData();
   const p=_mjEditData.p;
   try{
-    await fbDb.collection('characters').doc(pp.docId).update({
-      characterData:p,
-      updatedAt:firebase.firestore.FieldValue.serverTimestamp()
-    });
+    if(typeof v2CompatService!=='undefined'&&v2CompatService.isEnabled()){
+      await v2AuthorityService.updateCharacterSheet(
+        currentCampaignId,
+        pp.characterId||pp.docId,
+        p
+      );
+    }else{
+      await fbDb.collection('characters').doc(pp.docId).update({
+        characterData:p,
+        updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
     pp.charData=p;
     _mjEditData=null;
     closeModal();
     showToast('✅ Fiche de '+esc(pp.playerName||'joueur')+' mise à jour !');
     renderMJContent();
   }catch(e){showToast('❌ Une erreur est survenue, réessaie.');}
+}
+
+async function mjTogglePlayerInspiration(idx){
+  const pp=_mjPlayersData[idx];if(!pp)return;
+  const p=JSON.parse(JSON.stringify(pp.charData||{}));
+  p.inspiration=!p.inspiration;
+  try{
+    if(typeof v2CompatService!=='undefined'&&v2CompatService.isEnabled()){
+      await v2AuthorityService.updateCharacterSheet(
+        currentCampaignId,
+        pp.characterId||pp.docId,
+        p
+      );
+    }else{
+      await fbDb.collection('characters').doc(pp.docId).update({
+        characterData:p,
+        updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+    pp.charData=p;
+    showToast(p.inspiration?'✦ Inspiration accordée.':'Inspiration retirée.');
+    renderMJContent();
+  }catch(e){showToast('❌ Modification impossible : '+(e.message||e));}
 }
 
 function mjWhisperPlayer(idx){
@@ -868,7 +1059,18 @@ async function mjRespecConfirm(idx){
   p.metamagicOptions=[];
   p.pendingLevelUp=true;
   try{
-    await fbDb.collection('characters').doc(pp.docId).update({characterData:p,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+    if(typeof v2CompatService!=='undefined'&&v2CompatService.isEnabled()){
+      await v2AuthorityService.updateCharacterSheet(
+        currentCampaignId,
+        pp.characterId||pp.docId,
+        p
+      );
+    }else{
+      await fbDb.collection('characters').doc(pp.docId).update({
+        characterData:p,
+        updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
     pp.charData=p;
     closeModal();
     showToast('↩ '+esc(p.charName||'Personnage')+' réinitialisé au niveau 1');
@@ -911,7 +1113,14 @@ async function mjKickCharacter(idx){
   const charName=pp.charData&&pp.charData.charName||'?';
   closeModal();
   try{
-    await fbDb.collection('characters').doc(pp.docId).update({ejectedFromCampaign:true});
+    if(typeof v2CompatService!=='undefined'&&v2CompatService.isEnabled()){
+      await v2AuthorityService.removeCharacterFromCampaign(
+        currentCampaignId,
+        pp.characterId||pp.docId
+      );
+    }else{
+      await fbDb.collection('characters').doc(pp.docId).update({ejectedFromCampaign:true});
+    }
     showToast('✅ '+(pp.playerName||'Joueur')+' retiré de la campagne. Son personnage reste dans sa bibliothèque.');
     // Le listener onSnapshot va détecter ejectedFromCampaign et mettre à jour _mjPlayersData automatiquement
   }catch(e){showToast('❌ Une erreur est survenue, réessaie.');}

@@ -489,6 +489,16 @@ function migratePlayer(p){
 function totalLevel(p){return(p.classes||[]).reduce((s,c)=>s+c.level,0)||1;}
 function pb(lvl){return Math.ceil(lvl/4)+1;}
 function mod(s){return Math.floor((s-10)/2);}
+// PV temporaires effectifs d'un personnage : champ `hpTemp` de la fiche + statuts
+// qui en accordent (`stat==='hp'`). Le calcul lui-même vit dans le contrat de données
+// (js/services/data-contracts.js), partagé avec la projection publique lue par le MJ —
+// c'est ce partage qui empêche la fiche et le panneau MJ d'afficher deux chiffres
+// différents. Le repli sert aux contextes où le contrat n'est pas chargé (tests).
+function _hpTempOf(p){
+  if(typeof DataContracts!=='undefined'&&DataContracts.temporaryHpOf)return DataContracts.temporaryHpOf(p);
+  return Math.max(0,(parseInt(p&&p.hpTemp,10)||0)
+    +((p&&p.statuses||[]).filter(s=>s&&s.stat==='hp').reduce((a,s)=>a+(parseInt(s.value,10)||0),0)));
+}
 function fmt(n){return n>=0?'+'+n:''+n;}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 // Échappement pour insérer une valeur dans une chaîne JS à l'intérieur d'un onclick="..." (apostrophes FR : « Nuée d'insectes »).
@@ -563,12 +573,27 @@ function _clearUnsaved(){_unsaved=false;const b=document.getElementById('saveBtn
 async function saveAll(silent=false){
   clearTimeout(_saveDebounce);
   _clearUnsaved();
-  if(currentUser&&currentCampaignId&&state.players[0]){
+  if(currentUser&&(currentCampaignId||currentSheetCharacterId)&&state.players[0]){
     try{
       _ownWritePending++;
       _ownWriteData=_stableJSON(state.players[0]);
       _ownWriteDataSet.add(_ownWriteData);
       const p=state.players[0];
+      const _saveV2=typeof v2CompatService!=='undefined'
+        &&v2CompatService.isEnabled()
+        &&typeof v2DataService!=='undefined'
+        &&(currentSheetCharacterId||currentCharacterId);
+      if(_saveV2){
+        const targetCharacterId=currentSheetCharacterId||currentCharacterId;
+        const projectionCampaignId=targetCharacterId===currentCharacterId
+          ?currentCampaignId
+          :null;
+        await v2DataService.saveCharacterSheet(
+          projectionCampaignId,targetCharacterId,currentUser.uid,p
+        );
+        window._saveFailNotified=false;
+        return;
+      }
       // 🔴 CORRECTIF 2026-07-22 — SUPPRIMER UN CHAMP NE SE PROPAGEAIT JAMAIS AU SERVEUR.
       // L'écriture était un set(..., {merge:true}). Firestore fusionne les maps champ par
       // champ : une clé retirée de l'objet local (`delete p.wildshape`, `delete
@@ -628,18 +653,48 @@ function autoGrowAll(){document.querySelectorAll('textarea.fi').forEach(autoGrow
 // Réorganisation des panneaux par glisser-déposer — GÉNÉRIQUE, scopé par conteneur (data-csgroup).
 // Combat (#combatContainer) et chaque colonne de la fiche Perso ont leur propre ordre (mémoire de session).
 // Drop interdit entre deux conteneurs différents (pas de passage d'une colonne à l'autre).
-let _sectionOrders={};        // { groupKey: [csid,...] }
+let _sectionOrders=(function(){try{return JSON.parse(localStorage.getItem('sectionOrdersV2'))||{};}catch(e){return{};}})();
+let _sectionPlacements=(function(){try{return JSON.parse(localStorage.getItem('sectionPlacementsV2'))||{};}catch(e){return{};}})();
 let _combatSectionOrder=[];   // (compat — plus utilisé directement)
 let _combatDragId=null;
 let _combatDragGroup=null;    // conteneur d'origine du panneau tiré
 function _csGroupKey(c){return (c&&c.dataset)?(c.dataset.csgroup||c.id||'default'):'default';}
+function _saveSectionLayout(){
+  try{
+    localStorage.setItem('sectionOrdersV2',JSON.stringify(_sectionOrders));
+    localStorage.setItem('sectionPlacementsV2',JSON.stringify(_sectionPlacements));
+  }catch(e){}
+}
+function resetAllBlockLayouts(){
+  if(!confirm('Réinitialiser l’ordre et l’état replié de tous les blocs ?'))return;
+  _sectionOrders={};
+  _sectionPlacements={};
+  try{
+    localStorage.removeItem('sectionOrdersV2');
+    localStorage.removeItem('sectionPlacementsV2');
+    localStorage.removeItem('mj_rules_order');
+    localStorage.removeItem('mj_rules_collapsed');
+    Object.keys(localStorage)
+      .filter(key=>key.startsWith('panelCollapsedV2_'))
+      .forEach(key=>localStorage.removeItem(key));
+  }catch(e){}
+  if(typeof _rulesCollapsed!=='undefined')_rulesCollapsed={};
+  if(typeof closeModal==='function')closeModal();
+  const mjScreen=document.getElementById('mjScreen');
+  if(mjScreen&&getComputedStyle(mjScreen).display!=='none'&&typeof renderMJContent==='function'){
+    renderMJContent();
+  }else if(typeof render==='function'){
+    render();
+  }
+  if(typeof showToast==='function')showToast('✅ Disposition réinitialisée.');
+}
 function combatDragStart(e,id,el){if(e&&e.target&&/^(INPUT|TEXTAREA|SELECT|BUTTON|OPTION|A)$/.test(e.target.tagName)){if(e.preventDefault)e.preventDefault();return;}_combatDragId=id;_combatDragGroup=el.parentElement;setTimeout(()=>el.classList.add('mj-dragging'),0);}
 function combatDragEnd(el){el.classList.remove('mj-dragging');_combatDragGroup=null;document.querySelectorAll('.mj-drop-before,.mj-drop-after').forEach(x=>x.classList.remove('mj-drop-before','mj-drop-after'));}
 function _qcsid(id){try{return (window.CSS&&CSS.escape)?CSS.escape(id):id;}catch(e){return id;}}
 function combatDragOver(e,el){if(!_combatDragId||el.dataset.csid===_combatDragId)return;e.preventDefault();document.querySelectorAll('.mj-drop-before,.mj-drop-after').forEach(x=>x.classList.remove('mj-drop-before','mj-drop-after'));const r=el.getBoundingClientRect();el.classList.add(e.clientY<r.top+r.height/2?'mj-drop-before':'mj-drop-after');}
-function combatDrop(e,targetId){e.preventDefault();if(!_combatDragId||_combatDragId===targetId)return;const root=document;const target=root.querySelector('[data-csid="'+_qcsid(targetId)+'"]');const dragged=root.querySelector('[data-csid="'+_qcsid(_combatDragId)+'"]');document.querySelectorAll('.mj-drop-before,.mj-drop-after').forEach(x=>x.classList.remove('mj-drop-before','mj-drop-after'));if(!target||!dragged){_combatDragId=null;return;}const c=target.parentElement,fromC=dragged.parentElement;if(target.classList.contains('mj-drop-before'))c.insertBefore(dragged,target);else c.insertBefore(dragged,target.nextSibling);_combatDragId=null;_sectionOrders[_csGroupKey(c)]=[...c.querySelectorAll(':scope>[data-csid]')].map(x=>x.dataset.csid);if(fromC&&fromC!==c)_sectionOrders[_csGroupKey(fromC)]=[...fromC.querySelectorAll(':scope>[data-csid]')].map(x=>x.dataset.csid);}
+function combatDrop(e,targetId){e.preventDefault();if(!_combatDragId||_combatDragId===targetId)return;const root=document;const target=root.querySelector('[data-csid="'+_qcsid(targetId)+'"]');const dragged=root.querySelector('[data-csid="'+_qcsid(_combatDragId)+'"]');document.querySelectorAll('.mj-drop-before,.mj-drop-after').forEach(x=>x.classList.remove('mj-drop-before','mj-drop-after'));if(!target||!dragged){_combatDragId=null;return;}const c=target.parentElement,fromC=dragged.parentElement;if(target.classList.contains('mj-drop-before'))c.insertBefore(dragged,target);else c.insertBefore(dragged,target.nextSibling);_sectionPlacements[_combatDragId]=_csGroupKey(c);_combatDragId=null;_sectionOrders[_csGroupKey(c)]=[...c.querySelectorAll(':scope>[data-csid]')].map(x=>x.dataset.csid);if(fromC&&fromC!==c)_sectionOrders[_csGroupKey(fromC)]=[...fromC.querySelectorAll(':scope>[data-csid]')].map(x=>x.dataset.csid);_saveSectionLayout();}
 // Applique l'ordre ET la colonne sauvegardés (un panneau peut avoir été déplacé d'une colonne à l'autre).
-function applyAllSectionOrders(rootId){const root=document.getElementById(rootId||'tabContent');if(!root)return;root.querySelectorAll('[data-csgroup]').forEach(c=>{const order=_sectionOrders[_csGroupKey(c)];if(!order||!order.length)return;order.forEach(id=>{const el=root.querySelector('[data-csid="'+_qcsid(id)+'"]');if(el)c.appendChild(el);});});}
+function applyAllSectionOrders(rootId){const root=document.getElementById(rootId||'tabContent');if(!root)return;const groups=[...root.querySelectorAll('[data-csgroup]')];Object.entries(_sectionPlacements).forEach(([id,groupKey])=>{const el=root.querySelector('[data-csid="'+_qcsid(id)+'"]');const group=groups.find(c=>_csGroupKey(c)===groupKey);if(el&&group)group.appendChild(el);});groups.forEach(c=>{const order=_sectionOrders[_csGroupKey(c)];if(!order||!order.length)return;order.forEach(id=>{const el=root.querySelector('[data-csid="'+_qcsid(id)+'"]');if(el&&el.parentElement===c)c.appendChild(el);});});}
 function applyCombatOrder(){applyAllSectionOrders();} // compat (appelé depuis renderTab)
 // Rend déplaçables TOUS les .panel de l'onglet courant (sauf Combat, déjà géré par cs()). Idempotent.
 function _enableTabDrag(rootId){
@@ -674,7 +729,30 @@ function _enableTabDrag(rootId){
       _wrapped++;
     });
   }catch(e){_err=e&&e.stack?e.stack.split('\n').slice(0,2).join(' | '):String(e);}
+  _enablePanelCollapse(root);
   if(window._DRAG_DIAG&&typeof showToast==='function')showToast('🔧 vus:'+_seen+' env:'+_wrapped+' | p0par:['+_p0par+']'+(_err?(' | ERR: '+_err):' | sans erreur'),15000);
+}
+function _panelCollapseKey(id){return'panelCollapsedV2_'+id;}
+function _enablePanelCollapse(root){
+  if(!root)return;
+  root.querySelectorAll('.mj-rules-section[data-csid]').forEach(section=>{
+    const id=section.dataset.csid;
+    try{if(localStorage.getItem(_panelCollapseKey(id))==='1')section.classList.add('mj-collapsed');}catch(e){}
+    const title=section.querySelector(':scope>.panel>.pt');
+    if(!title||title.querySelector('.mj-collapse-control'))return;
+    const button=document.createElement('button');
+    button.type='button';
+    button.className='mj-collapse-control';
+    button.title='Replier ou déplier';
+    button.setAttribute('aria-label','Replier ou déplier ce bloc');
+    button.textContent='▾';
+    button.addEventListener('click',event=>{
+      event.stopPropagation();
+      section.classList.toggle('mj-collapsed');
+      try{localStorage.setItem(_panelCollapseKey(id),section.classList.contains('mj-collapsed')?'1':'0');}catch(e){}
+    });
+    title.appendChild(button);
+  });
 }
 window._DRAG_DIAG=false; // diagnostic (mettre true pour réafficher le toast)
 function cs(id,html){return`<div class="mj-rules-section" data-csid="${id}" draggable="true" ondragstart="combatDragStart(event,'${id}',this)" ondragend="combatDragEnd(this)" ondragover="combatDragOver(event,this)" ondrop="combatDrop(event,'${id}')">${html}</div>`;}
@@ -739,15 +817,15 @@ function renderTabBar(){
     if(typeof _initTabScrollers==='function')setTimeout(_initTabScrollers,0);
     return;
   }
-  // REFONTE P2 : 6 onglets fusionnés (Personnage=Perso+Compétences · Inventaire=Équip.+Sac · Historique=XP+Historique)
+  // Six destinations métier : la Chronique de groupe reste dans Groupe.
   const _lvlupCls=(()=>{const _lvl=totalLevel(p);const _nxt=XP_LEVELS[_lvl]||XP_LEVELS[19];return(p.xp||0)>=_nxt&&_lvl<20&&!p.pendingLevelUp?'lvlup':''})();
   let TABS=[
     {id:'perso',ico:'👤',txt:'Caractéristiques'}, // renommé 2026-07-22 (rapport user) — l'id reste 'perso' : il sert de clé dans lastTab_/tabOrder
     {id:'combat',ico:'⚔️',txt:'Combat'},
     {id:'sorts',ico:'✨',txt:'Sorts'},
     {id:'equipement',ico:'🎒',txt:'Inventaire'},
-    {id:'historique',ico:'📜',txt:'Historique',cls:_lvlupCls},
-    {id:'journal',ico:'📖',txt:'Journal'},
+    {id:'historique',ico:'📖',txt:'Historique'},
+    {id:'parcours',ico:'🧭',txt:'Parcours',cls:_lvlupCls},
   ];
   if(p.tabOrder&&p.tabOrder.length){
     const ordered=[];
@@ -766,7 +844,7 @@ function renderTabBar(){
   }
   if(p.pendingLevelUp)TABS.unshift({id:'levelup',ico:'⬆',txt:'Niveau +',cls:'lvlup'});
   // Alias des anciens onglets fusionnés (activeTab sauvegardé en 9-onglets)
-  const _alias={competences:'perso',sac:'equipement',xp:'historique'};
+  const _alias={competences:'perso',sac:'equipement',xp:'parcours',journal:'historique'};
   if(_alias[state.activeTab])state.activeTab=_alias[state.activeTab];
   bar.innerHTML=TABS.map(t=>`<button class="tab${state.activeTab===t.id?' on':''}${t.cls?' '+t.cls:''}" onclick="setTab('${t.id}')"><span class="ti">${t.ico||''}</span><span class="tl">${t.txt||t.label||''}</span></button>`).join('')
     +`<button class="tab tab-foot" onclick="openPrivacySettings()" title="Confidentialité"><span class="ti">🔒</span></button>`
@@ -776,8 +854,8 @@ function renderTabBar(){
 
 function openTabOrderSettings(){
   const p=P();
-  const BASE_IDS=['perso','combat','sorts','equipement','historique','journal'];
-  const LABELS={perso:'👤 Caractéristiques',combat:'⚔️ Combat',sorts:'✨ Sorts',equipement:'🎒 Inventaire',historique:'📜 Historique',journal:'📖 Journal'};
+  const BASE_IDS=['perso','combat','sorts','equipement','historique','parcours'];
+  const LABELS={perso:'👤 Caractéristiques',combat:'⚔️ Combat',sorts:'✨ Sorts',equipement:'🎒 Inventaire',historique:'📖 Historique',parcours:'🧭 Parcours'};
   if(!p.tabOrder||p.tabOrder.length<BASE_IDS.length)p.tabOrder=[...BASE_IDS];
   window._tabOrderMove=(id,dir)=>{
     const order=p.tabOrder;const i=order.indexOf(id);const j=i+dir;
@@ -805,9 +883,21 @@ function openTabOrderSettings(){
 }
 
 // Table des rendus d'onglet — SOURCE UNIQUE (setTab et renderTab s'y réfèrent tous les deux)
-function _tabRenderers(){return{perso:tabPerso,competences:tabCompetences,combat:tabCombat,equipement:tabEquipement,sac:tabSac,historique:tabHistorique,xp:tabXP,sorts:tabSorts,levelup:tabLevelUp,journal:tabJournal};}
+function _tabRenderers(){return{perso:tabPerso,competences:tabCompetences,combat:tabCombat,equipement:tabEquipement,sac:tabSac,historique:tabHistorique,xp:tabXP,parcours:tabXP,sorts:tabSorts,levelup:tabLevelUp,journal:tabJournal};}
 // Onglets fusionnés (REFONTE P2) : l'ancien id retombe sur l'onglet qui l'absorbe
-const TAB_ALIAS={competences:'perso',sac:'equipement',xp:'historique'};
+const TAB_ALIAS={competences:'perso',sac:'equipement',xp:'parcours',journal:'historique'};
+
+// Les jauges restent consultables et dépensables dans Combat/Sorts, mais leur
+// récupération passe exclusivement par les deux propositions de repos de
+// Caractéristiques. Les capacités qui récupèrent une ressource par leur propre
+// action (par ex. Maître de l'occulte) ne correspondent pas à ces libellés.
+function _removeIndividualRestControls(root){
+  if(!root||!['combat','sorts'].includes(state.activeTab))return;
+  const recoveryLabel=/^↺(?:$|.*\b(?:repos|récupérer)\b)/i;
+  root.querySelectorAll('button').forEach(button=>{
+    if(recoveryLabel.test((button.textContent||'').trim()))button.remove();
+  });
+}
 
 function setTab(id){
   id=TAB_ALIAS[id]||id; // fusion : on mémorise et on surligne l'onglet PARENT
@@ -833,10 +923,9 @@ function renderTab(){
   if(TAB_ALIAS[state.activeTab])state.activeTab=TAB_ALIAS[state.activeTab];
   const FUSED={perso:[['perso','👤 Identité & caractéristiques'],['competences','🎯 Compétences']],
     equipement:[['equipement','🛡 Équipement'],['sac','🎒 Sac & encombrement']],
-    historique:[['historique','⭐ Progression & XP'],['xp','📖 Montée de niveau']]};
-  // NB : l'ordre Historique = progression d'abord (tabHistorique = historique du perso, tabXP = XP/LU)
+    historique:[['historique','📖 Histoire du personnage'],['journal','📝 Notes et entrées personnelles']]};
   if(FUSED[state.activeTab]){
-    const parts=state.activeTab==='historique'?[['xp','⭐ Progression & XP'],['historique','📖 Historique du personnage']]:FUSED[state.activeTab];
+    const parts=FUSED[state.activeTab];
     const _fc=id=>{try{return localStorage.getItem('fold_'+id)==='1'}catch(e){return false}}; // état plié MÉMORISÉ
     el.innerHTML='<div class="norg-panel">'+parts.map(([id,lbl])=>`<div class="g-fold${_fc(id)?' closed':''}" data-fuse="${id}">
       <div class="fh" onclick="this.parentElement.classList.toggle('closed');try{localStorage.setItem('fold_'+this.parentElement.dataset.fuse,this.parentElement.classList.contains('closed')?'1':'0')}catch(e){}"><span class="grip">⠿</span>${lbl}<span class="chev">▼</span></div>
@@ -845,6 +934,7 @@ function renderTab(){
   }else{
     el.innerHTML='<div class="norg-panel">'+(map[state.activeTab]||tabPerso)(p)+'</div>';
   }
+  _removeIndividualRestControls(el);
   if(state.activeTab==='levelup'&&typeof _ctaScrollGlow==='function')setTimeout(_ctaScrollGlow,40); // scroll+glow bouton continuer au LU
   _enableTabDrag();applyAllSectionOrders(); // synchrone : pas de fenêtre où les attributs de drag manquent
   setTimeout(autoGrowAll,0);
@@ -1234,6 +1324,10 @@ function confirmCreation(){
   p.dmgImmunities=p.dmgImmunities||[];p.condImmunities=p.condImmunities||[];
   p.combatCharges={};
   p.xp=0;p.created=true;state.activeTab='perso';resetCS();render();
+  // La validation de l'assistant est l'unique finalisation structurelle
+  // autorisée au joueur en V2 : elle doit être enregistrée immédiatement.
+  _markUnsaved();
+  saveAll(true);
   showToast(`🎉 ${p.charName} est prêt à l'aventure !`);
   if(!localStorage.getItem('tuto_fiche_done')) setTimeout(()=>startTutorial('fiche'),1200);
 }

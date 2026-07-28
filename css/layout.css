@@ -17,7 +17,8 @@
 .tab.lvlup{border-color:var(--brass-hi);color:var(--cp);animation:pulse 1.5s infinite}
 @keyframes pulse{0%,100%{box-shadow:0 0 6px var(--cglow)}50%{box-shadow:0 0 14px var(--cglow)}}
 /* CARTE — double-filet signature de la maquette (angles nets) */
-.panel{background:var(--surface);border:1px solid var(--cp);box-shadow:inset 0 0 0 2px var(--surface),inset 0 0 0 3px var(--border);border-radius:0;padding:11px 12px;margin-bottom:10px;color:var(--text)}
+.panel{background:var(--surface);border:1px solid var(--cp);box-shadow:var(--frame-shadow);border-radius:0;padding:11px 12px;margin-bottom:10px;color:var(--text)}
+.panel .panel{border-color:var(--border);box-shadow:var(--panel-shadow)}
 /* TITRE de carte — petites capitales gravées, souligné laiton */
 .pt{font-family:var(--F);font-variant:small-caps;font-size:15px;color:var(--cp2);letter-spacing:.07em;margin-bottom:9px;padding-bottom:5px;border-bottom:2px solid var(--cp)}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -38,9 +39,9 @@
 .auth-title{font-family:var(--F);font-size:22px;color:var(--cp);text-align:center;margin-bottom:4px;letter-spacing:.08em}
 .auth-sub{font-size:18px;color:var(--text3);text-align:center;margin-bottom:22px}
 .auth-tab{display:flex;gap:6px;margin-bottom:20px}
-.auth-tab button{flex:1;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text2);font-family:var(--B);cursor:pointer;transition:all .15s;font-size:18px}
+.auth-tab button{flex:1;padding:8px;border:1px solid var(--border);border-radius:2px;background:var(--surface2);color:var(--text2);font-family:var(--B);cursor:pointer;transition:all .15s;font-size:18px}
 .auth-tab button.on{border-color:var(--cp);color:var(--cp);background:var(--cglow)}
-.auth-error{background:rgba(229,57,53,.12);border:1px solid rgba(229,57,53,.3);border-radius:8px;padding:10px;font-size:17px;color:#e53935;margin-bottom:12px;display:none}
+.auth-error{background:rgba(229,57,53,.12);border:1px solid rgba(229,57,53,.3);border-radius:2px;padding:10px;font-size:17px;color:#e53935;margin-bottom:12px;display:none}
 .auth-spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--cp);border-radius:50%;animation:spin .7s linear infinite;margin-right:6px;vertical-align:middle}
 @keyframes spin{to{transform:rotate(360deg)}}
 /* RESPONSIVE MOBILE */

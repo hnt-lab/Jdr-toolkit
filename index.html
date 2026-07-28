@@ -12,9 +12,22 @@
 <link rel="icon" type="image/png" href="img/logo.png">
 <link rel="apple-touch-icon" href="img/icon-512.png">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<script>
+// Le paramètre n'est honoré qu'en local et avant l'initialisation Firebase.
+// Il permet à la recette manuelle d'utiliser les émulateurs sans passer par
+// la console du navigateur. Il n'a aucun effet sur le site publié.
+(() => {
+  const local = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  if (!local) return;
+  const requested = new URLSearchParams(location.search).get('v2test');
+  if (requested === '1') localStorage.setItem('mjtk_v2_test', '1');
+  if (requested === '0') localStorage.removeItem('mjtk_v2_test');
+})();
+</script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-functions-compat.js"></script>
 <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
@@ -211,6 +224,7 @@
   <button class="mode-btn mode-char" onclick="_navGoChar()" title="Personnage / MJ"><span class="mode-ico mode-char-ico">🧙</span><span class="mode-lbl mode-char-lbl">Personnage</span></button>
 </div>
 
+<script src="environment.js"></script>
 <script src="version.js"></script>
 <script>
 // Cache-bust du favicon + apple-touch-icon : Chrome garde les favicons très longtemps en cache.
@@ -223,6 +237,17 @@
 }catch(e){}})();
 </script>
 <script src="js/firebase.js"></script>
+<script src="js/services/data-contracts.js"></script>
+<script src="js/services/discovery-image-service.js"></script>
+<script src="js/services/v2-authority-service.js"></script>
+<script src="js/services/v2-data-service.js"></script>
+<script src="js/services/v2-group-service.js"></script>
+<script src="js/services/v2-rest-service.js"></script>
+<script src="js/services/v2-progression-service.js"></script>
+<script src="js/services/v2-character-notes-service.js"></script>
+<script src="js/services/v2-item-service.js"></script>
+<script src="js/services/v2-migration-service.js"></script>
+<script src="js/services/v2-compat-service.js"></script>
 <script src="js/services/auth-service.js"></script>
 <script src="js/services/user-service.js"></script>
 <script src="js/services/character-service.js"></script>
@@ -268,7 +293,11 @@
 <script src="js/mj/regles.js"></script>
 <script src="js/ui/shell.js"></script><!-- REFONTE : nav 3 destinations + dé ancrable — EN DERNIER (surcharge core.js/hud.js) -->
 <script>
-if('serviceWorker' in navigator){
+// Le cache hors-ligne (service worker) est réservé au site EN LIGNE : en test local
+// (TESTER-DEV.bat → localhost), il servirait d'anciennes versions en « cache d'abord »
+// et fausserait chaque test. localhost = toujours les fichiers frais du disque.
+const swTest=new URLSearchParams(location.search).has('swtest');
+if('serviceWorker' in navigator && (swTest || (location.hostname!=='localhost' && location.hostname!=='127.0.0.1'))){
   // Détection proactive de MAJ (l'overlay de mise à jour est géré par firebase.js).
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(reg=>{

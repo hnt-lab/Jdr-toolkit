@@ -117,10 +117,16 @@ function tabCombat(p){
     if(d&&d.combatFeatures)d.combatFeatures.forEach(f=>{
       if(excluded.includes(f.name))return;
       if(f.minLevel&&(cls.level||0)<f.minLevel)return;
+      // Les capacités passives appartiennent à « Capacités & traits ».
+      // Combat ne conserve ici que les capacités réellement activables.
+      if(f.recovery==='passive'&&f.charges===0)return;
       allCombatFeats.push({...f,className:cls.name});
     });
   });
-  (p.customCombatFeats||[]).forEach(f=>allCombatFeats.push({...f,className:'Personnalisé'}));
+  (p.customCombatFeats||[]).forEach(f=>{
+    if(f.recovery==='passive'&&f.charges===0)return;
+    allCombatFeats.push({...f,className:'Personnalisé'});
+  });
 
   const _buffBanners=[];
   const _activeInspi=(p.activeBuffs||[]).find(b=>b.name==='InspirationBardique');
@@ -149,7 +155,6 @@ function tabCombat(p){
       <div style="margin-top:10px;display:flex;gap:5px;flex-wrap:wrap">${['d4','d6','d8','d10','d12','d20'].map(d=>`<button class="dice-btn" onclick="rollDie('${d}')">${d}</button>`).join('')}</div>
       <div id="rollResult" style="margin-top:8px;padding:8px;background:var(--surface2);border-radius:2px;display:${_lastRollResultHtml?'block':'none'};font-size:14px;font-weight:600;color:var(--cp);text-align:center">${_lastRollResultHtml}</div>
     </div>`:`<div class="panel mb10"><div class="pt" style="display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>Armes équipées</div>${attackCount>1?`<span style="font-size:12px;font-weight:600;color:var(--cp);border:1px solid rgba(200,168,75,.4);border-radius:2px;padding:2px 8px">⚔ ×${attackCount} attaques</span>`:''}</div>
-      ${availableStyles.length?`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:13px;color:var(--text3)">🗡 Style :</span><select style="font-size:13px;background:var(--surface3,var(--surface2));border:1px solid var(--border);border-radius:2px;padding:3px 6px;color:var(--text)" onchange="P().combatStyle=this.value;P().ac=_calcArmorCA(P());_markUnsaved();render()"><option value="">— Aucun</option>${availableStyles.map(s=>`<option value="${s}"${combatStyle===s?' selected':''}>${s}</option>`).join('')}</select></div>`:''}
       ${(()=>{
         // Fix 7 — Attaque à main nue si aucune arme équipée
         const hasMainhand=!!(p.equip||{}).mainhand?.name;
@@ -640,18 +645,18 @@ function isPrepCaster(p){
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-//  SORTS ARMÉS (A6 — 2026-07-22)
+//  SORTS ÉPINGLÉS (A6 — 2026-07-22)
 //  Combat n'affiche plus la bibliothèque entière : seulement les sorts que le
-//  joueur a lui-même ÉPINGLÉS depuis l'onglet Sorts. Principe acté « armer puis
-//  lancer » : on choisit son arsenal à froid, on ne fouille pas en plein combat.
+//  joueur a lui-même ÉPINGLÉS depuis l'onglet Sorts. Le joueur prépare ainsi ses
+//  raccourcis à froid et ne fouille pas toute sa liste en plein combat.
 //
 //  Trois notions à ne pas confondre :
 //   • CONNU     — le sort est sur la fiche (p.spells)
 //   • PRÉPARÉ   — s.prepared, et seulement pour les classes qui préparent
 //                 (PREP_CASTERS). Barde/Ensorceleur/Occultiste/Rôdeur connaissent
 //                 leurs sorts : ils sont toujours prêts, sans préparation.
-//   • ARMÉ      — p.pinnedSpells, choix d'INTERFACE du joueur. Indépendant du reste.
-//  Un sort armé mais non préparé n'est PAS lançable : il sort de Combat tout seul,
+//   • ÉPINGLÉ   — p.pinnedSpells, choix d'INTERFACE du joueur. Indépendant du reste.
+//  Un sort épinglé mais non préparé n'est PAS lançable : il sort de Combat tout seul,
 //  et son épingle est conservée (le repos long représerve les mêmes sorts).
 // ═══════════════════════════════════════════════════════════════════════════
 const SPELL_DMG_ICON={fire:'🔥',cold:'❄️',lightning:'⚡',thunder:'🌩️',acid:'🧪',poison:'🧪',
@@ -673,11 +678,11 @@ function togglePinSpell(name){
   const p=P();if(!p)return;
   p.pinnedSpells=p.pinnedSpells||[];
   const i=p.pinnedSpells.indexOf(name);
-  if(i>=0){p.pinnedSpells.splice(i,1);showToast('📌 « '+name+' » retiré des sorts armés.');}
-  else{p.pinnedSpells.push(name);showToast('📌 « '+name+' » armé — il apparaît dans Combat.');}
+  if(i>=0){p.pinnedSpells.splice(i,1);showToast('📍 « '+name+' » retiré des sorts épinglés.');}
+  else{p.pinnedSpells.push(name);showToast('📌 « '+name+' » épinglé dans Combat.');}
   saveAll();render();
 }
-// Sorts armés RÉELLEMENT lançables maintenant (l'épingle seule ne suffit pas).
+// Sorts épinglés RÉELLEMENT lançables maintenant (l'épingle seule ne suffit pas).
 function _armedSpells(p){
   const pinned=p.pinnedSpells||[];
   if(!pinned.length)return[];
@@ -732,8 +737,8 @@ function renderArmedSpells(p){
         <button class="btn bac bsm armed-cast" onclick="castSpell('${jsq(s.name)}',${s.lv})">⚡ Lancer</button>
       </div>`;
     }).join('')
-    :`<div class="armed-empty">Aucun sort de combat. Va dans l'onglet <strong>Sorts</strong> et touche 📌 sur ceux que tu veux avoir sous la main en combat.</div>`);
-  return cs('cs-sorts',`<div class="panel"><div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>⚡ Sorts de combat</div>
+    :`<div class="armed-empty">Aucun sort épinglé. Dans l'onglet <strong>Sorts</strong>, utilise 📍 pour ajouter les sorts que tu veux retrouver dans Combat.</div>`);
+  return cs('cs-sorts',`<div class="panel"><div class="pt" style="display:flex;align-items:center;gap:6px"><span class="mj-drag-handle" title="Déplacer">⠿</span>📍 Sorts épinglés</div>
     ${slotRow}
     <div class="armed-stats">Attaque <strong>${fmt(pb(lvl)+spellMod)}</strong> · DD <strong>${spellDC}</strong></div>
     ${rows}
@@ -761,7 +766,7 @@ function renderSpellList(p){
     const data=findSpellData(s.name);
     const lv=data?data.level:(s.level||0);
     // Plus aucun filtrage ici : cette liste est celle de l'onglet Sorts, qui montre TOUT.
-    // Le tri de ce qui est utilisable en combat se fait dans renderArmedSpells (sorts armés).
+    // Le tri de ce qui est utilisable en combat se fait dans renderArmedSpells (sorts épinglés).
     if(!byLvl[lv])byLvl[lv]=[];
     byLvl[lv].push({...s,data,stableId:'spl_'+s.name.replace(/[^a-zA-Z0-9]/g,'_')});
   });
@@ -807,7 +812,7 @@ function renderSpellList(p){
             ${damage?`<span style="font-size:13px;color:var(--cp);margin-right:6px">${esc(damage)}</span>`:''}
             ${isPrepared&&!hasMComponent?`<button class="btn bac bsm" style="flex-shrink:0;margin-right:6px" onclick="event.stopPropagation();castSpell('${jsq(s.name)}',${lvi})">⚡ Lancer</button>`:''}
             ${prepCaster&&lvi>0&&!s.isCircle?`<button class="btn bsm" style="margin-right:6px;${isPrepared?'background:rgba(76,175,80,.15);color:var(--good);border-color:var(--good)':''}" onclick="event.stopPropagation();togglePrepareSpell('${jsq(s.name)}')">${isPrepared?'✓ Prêt':'Préparer'}</button>`:''}
-            <button class="btn bsm sort-pin${pinned?' on':''}" title="${pinned?'Retirer des sorts armés':'Armer : afficher ce sort dans Combat'}" onclick="event.stopPropagation();togglePinSpell('${jsq(s.name)}')">📌</button>
+            <button class="btn bsm sort-pin${pinned?' on':''}" title="${pinned?'Retirer des sorts épinglés':'Épingler dans Combat'}" aria-label="${pinned?'Retirer '+esc(s.name)+' des sorts épinglés':'Épingler '+esc(s.name)+' dans Combat'}" onclick="event.stopPropagation();togglePinSpell('${jsq(s.name)}')">📍</button>
             <span style="color:var(--text3)">▾</span>
           </div>
           <div class="sort-body" id="${s.stableId}">

@@ -7,8 +7,48 @@ function tabJournal(p){
   return isMJ()?tabJournalMJ():tabJournalPlayer(p);
 }
 
-function _journalEntryForm(idPrefix,btnFn){
+let _v2PersonalNotes=null;
+let _v2PersonalNotesCharacterId=null;
+
+async function _loadV2PersonalNotes(){
+  try{
+    const characterId=(typeof currentSheetCharacterId!=='undefined'&&currentSheetCharacterId)
+      ||currentCharacterId
+      ||(currentCampaignId
+        ?await v2CompatService.getCurrentCharacterId(currentCampaignId,currentUser.uid)
+        :null);
+    if(!characterId)throw new Error('Personnage courant introuvable');
+    _v2PersonalNotesCharacterId=characterId;
+    const notes=await v2CharacterNotesService.list(characterId);
+    _v2PersonalNotes=notes.map(note=>({
+      id:note.id,
+      date:note.date||'',
+      // ⚠️ Pas de repli « Sans titre » ICI : c'est un libellé d'AFFICHAGE, que
+      // _journalEntriesList pose déjà. Le stocker dans la donnée le faisait
+      // ressortir ailleurs — une note sans titre publiée dans la Chronique
+      // s'y intitulait littéralement « Sans titre — … » (constaté le 25/07).
+      sessionTitle:note.title||'',
+      content:note.content||'',
+      isPublic:false,
+      sharedWithGm:note.visibility==='gm',
+      _v2Visibility:note.visibility
+    }));
+    renderTab();
+  }catch(e){
+    _v2PersonalNotes=[];
+    showToast('❌ Chargement des notes impossible : '+e.message);
+    renderTab();
+  }
+}
+
+// idPrefix préfixe TOUS les identifiants du formulaire, et il est transmis à la
+// fonction d'ajout. C'est ce qui permet d'afficher ce même formulaire dans une
+// modale ('qn') pendant qu'il est déjà présent dans la page ('j' ou 'mj') :
+// sans préfixe distinct, getElementById lirait les champs de la page cachée
+// derrière la modale, et le joueur enverrait un texte qu'il ne voit pas.
+function _journalEntryForm(idPrefix,btnFn,roleMJ){
   const today=new Date().toISOString().slice(0,10);
+  const isPlayerEntry=roleMJ===undefined?idPrefix==='j':!roleMJ;
   return`<div class="panel mb10">
     <div class="pt">📓 Nouvelle entrée</div>
     <div class="g2" style="gap:8px;margin-bottom:8px">
@@ -18,28 +58,82 @@ function _journalEntryForm(idPrefix,btnFn){
     <div class="fl mb6">Notes${_journalDraft.content?'<span style="font-size:12px;color:var(--cp);margin-left:8px">● brouillon</span>':''}</div>
     <textarea class="fi mb6" id="${idPrefix}Content" rows="5" placeholder="Ce qui s'est passé ce soir..." style="resize:vertical" oninput="_journalDraft.content=this.value">${esc(_journalDraft.content||'')}</textarea>
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-      <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2);cursor:pointer">
-        <input type="checkbox" id="${idPrefix}Public" style="accent-color:var(--cp)">
-        <span>Visible dans la Chronique</span>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2)">
+        <span>Destination</span>
+        <select class="fi" id="${idPrefix}Visibility" style="width:auto;min-width:180px">
+          <option value="private">${isPlayerEntry?'Moi uniquement':'Journal MJ uniquement'}</option>
+          ${isPlayerEntry?'<option value="gm">Partager au MJ</option>':''}
+          <option value="chronicle">Publier dans la Chronique</option>
+        </select>
       </label>
-      <button class="btn bac bsm" onclick="${btnFn}()">+ Ajouter</button>
+      <button class="btn bac bsm" onclick="${btnFn}('${idPrefix}')">+ Ajouter</button>
     </div>
   </div>`;
 }
 
-function _journalEntriesList(entries, deleteFn){
+// Formulaire de note du MJ (V2). Même rôle que _journalEntryForm côté joueur, et
+// même raison d'être paramétré : il s'affiche dans l'onglet Journal MJ ('mj') ET
+// dans la modale du raccourci 📓 ('qn'), qui peuvent coexister à l'écran.
+function _mjJournalEntryForm(idPrefix){
+  const pf=idPrefix||'mj';
+  return`<div class="panel mb10">
+    <div class="pt">📓 Journal du MJ</div>
+    <div class="ds-note" style="margin-bottom:10px">Privé par défaut : visible des seuls MJ de la table. Une note peut aussi être publiée directement dans la Chronique, lue par tout le groupe.</div>
+    <div class="fl mb6">Titre (facultatif)</div>
+    <input class="fi" id="${pf}Title" placeholder="Ex: Idée pour la prochaine scène" style="margin-bottom:8px">
+    <div class="fl mb6">Note</div>
+    <textarea class="fi" id="${pf}Content" rows="3" placeholder="Note privée rapide…" style="resize:vertical;margin-bottom:8px"></textarea>
+    <div class="g2" style="gap:8px;margin-bottom:8px">
+      <label><span class="fl mb6">Destination</span>
+        <select class="fi" id="${pf}Visibility">
+          <option value="private">🔒 Journal MJ uniquement</option>
+          <option value="chronicle">📜 Publier dans la Chronique</option>
+        </select>
+      </label>
+      <label><span class="fl mb6">Portée</span>
+        <select class="fi" id="${pf}JournalScope">
+          <option value="campaign">Campagne actuelle</option>
+          <option value="table">Toute la table</option>
+        </select>
+      </label>
+      <label><span class="fl mb6">Lien facultatif</span>
+        <select class="fi" id="${pf}JournalLinkType">
+          <option value="">Aucun lien</option>
+          <option value="npc">PNJ</option>
+          <option value="item">Objet</option>
+          <option value="campaign">Campagne</option>
+          <option value="character">Personnage</option>
+        </select>
+      </label>
+    </div>
+    <input class="fi" id="${pf}JournalLinkId" placeholder="Identifiant du lien (facultatif)" style="margin-bottom:8px">
+    <button class="btn bac" style="width:100%" onclick="addMJJournalEntry('${pf}')">+ Ajouter la note</button>
+  </div>`;
+}
+
+// `publishFn` (facultatif) : nom d'une fonction JS recevant l'index de l'entrée.
+// Fourni uniquement pour SES PROPRES notes — cette liste sert aussi à afficher
+// les journaux d'autrui, où publier à leur place n'aurait aucun sens.
+function _journalEntriesList(entries, deleteFn, publishFn){
   if(!entries||!entries.length) return`<div style="text-align:center;padding:24px;color:var(--text3);font-style:italic">Aucune entrée pour l'instant.</div>`;
   return`<div style="display:flex;flex-direction:column;gap:10px;max-height:520px;overflow-y:auto;padding-right:4px">
     ${[...entries].reverse().map((e,ri)=>{
       const realIdx=entries.length-1-ri;
-      return`<div class="journal-entry ${e.isPublic?'public':'private'}">
+      const visibility=e.isPublic?'chronicle':e.sharedWithGm?'gm':'private';
+      const visibilityLabel=visibility==='chronicle'?'✓ Chronique':visibility==='gm'?'🎲 Partagé au MJ':'🔒 Moi uniquement';
+      // Déjà dans la Chronique : plus rien à publier.
+      const publier=publishFn&&visibility!=='chronicle'
+        ?`<button class="btn bsm" style="color:var(--cp);border-color:rgba(200,168,75,.45);padding:1px 6px" onclick="${publishFn}(${realIdx})" title="Rendre cette note publique dans la Chronique">📜 Publier</button>`
+        :'';
+      return`<div class="journal-entry ${visibility==='chronicle'?'public':'private'}">
         <div class="journal-entry-meta">
           <div>
             <span class="journal-session">${esc(e.sessionTitle||'Sans titre')}</span>
             <span class="journal-date" style="margin-left:8px">${esc(e.date||'')}</span>
           </div>
           <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:12px;color:${e.isPublic?'var(--good)':'var(--text3)'}">${e.isPublic?'✓ Chronique':'🔒 Privé'}</span>
+            <span style="font-size:12px;color:${visibility==='chronicle'?'var(--good)':visibility==='gm'?'var(--cp)':'var(--text3)'}">${visibilityLabel}</span>
+            ${publier}
             <button class="btn bsm" style="color:var(--danger);border-color:var(--danger);padding:1px 6px" onclick="${deleteFn}(${realIdx})">✕</button>
           </div>
         </div>
@@ -49,33 +143,184 @@ function _journalEntriesList(entries, deleteFn){
   </div>`;
 }
 
+// Publier une note de personnage DÉJÀ écrite (pendant du bouton MJ, voir mj/journal.js).
+// La note d'origine est conservée : la Chronique reçoit une copie signée du personnage.
+function playerPublishToChronicle(idx){
+  const v2=typeof v2CompatService!=='undefined'&&v2CompatService.isEnabled();
+  const entries=v2?(_v2PersonalNotes||[]):((typeof P==='function'?P().journal:null)||[]);
+  const e=entries[idx];
+  if(!e)return;
+  window._playerPendingChronicle=e;
+  const apercu=(e.content||'').slice(0,160);
+  openModal(`<div class="pt">📜 Publier dans la Chronique</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:12px">
+      Cette entrée deviendra <b>visible par tout le groupe</b>. Elle <b>reste aussi dans ton journal</b>.
+    </div>
+    <div class="journal-content" style="white-space:pre-wrap;margin-bottom:14px;opacity:.85">${esc(apercu)}${(e.content||'').length>160?'…':''}</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
+      <button class="btn bac" style="flex:2" onclick="playerConfirmPublishChronicle()">📜 Publier</button>
+    </div>`);
+}
+async function playerConfirmPublishChronicle(){
+  const e=window._playerPendingChronicle;
+  window._playerPendingChronicle=null;
+  if(!e)return;
+  closeModal();
+  const v2=typeof v2CompatService!=='undefined'&&v2CompatService.isEnabled();
+  try{
+    if(v2){
+      await _journalWriteV2({asMJ:false,title:e.sessionTitle||'',content:e.content||'',visibility:'chronicle'});
+    }else{
+      // Chemin historique : la visibilité vit dans l'entrée elle-même.
+      e.isPublic=true;e.sharedWithGm=false;
+      saveAll();
+    }
+    renderTab();
+    showToast('✅ Entrée publiée dans la Chronique.');
+  }catch(err){showToast('❌ Publication impossible : '+err.message);}
+}
+
 function tabJournalPlayer(p){
   // REFONTE P3 : la Chronique a DÉMÉNAGÉ sur la page Groupe — plus de sous-onglet ici.
   // On garde le rendu chronicle pour l'arrivée via la page Groupe (openCampChronicle), avec un retour.
   if(_playerJournalSubTab==='chronicle'){
     return`<div><button class="ds-btn quiet" style="margin-bottom:10px" onclick="_playerJournalSubTab='entries';renderTab()">← Mes entrées</button>${renderChronicleView()}</div>`;
   }
-  const entries=p.journal||[];
+  const v2NotesEnabled=typeof v2CompatService!=='undefined'&&v2CompatService.isEnabled()
+    &&typeof v2CharacterNotesService!=='undefined';
+  if(v2NotesEnabled&&_v2PersonalNotes===null){
+    setTimeout(_loadV2PersonalNotes,0);
+    return`<div style="text-align:center;padding:24px"><span class="auth-spinner"></span> Chargement des notes personnelles...</div>`;
+  }
+  const entries=v2NotesEnabled?_v2PersonalNotes:(p.journal||[]);
   return`<div>
     ${_journalEntryForm('j','addJournalEntry')}
-    ${_journalEntriesList(entries,'deleteJournalEntry')}
+    ${_journalEntriesList(entries,'deleteJournalEntry','playerPublishToChronicle')}
   </div>`;
 }
 
-function addJournalEntry(){
-  const p=P();
-  if(!p.journal)p.journal=[];
-  const date=document.getElementById('jDate')?.value||'';
-  const title=document.getElementById('jTitle')?.value.trim()||'';
-  const content=document.getElementById('jContent')?.value.trim()||'';
-  const isPublic=document.getElementById('jPublic')?.checked||false;
-  if(!content){showToast('❌ Écris quelque chose avant d\'ajouter.');return;}
-  p.journal.push({id:Date.now(),date,sessionTitle:title,content,isPublic});
-  _journalDraft={title:'',content:''};
-  saveAll();renderTab();showToast('✅ Entrée ajoutée !');
+// ═══════════════════════════════════════════════════════════════════════════
+//  ÉCRITURE V2 D'UNE NOTE — POINT UNIQUE
+//  Trois entrées y mènent : le journal du joueur, le journal du MJ, et la note
+//  rapide du menu du dé. La logique est ici pour qu'elles ne divergent JAMAIS :
+//  une destination ajoutée à cet endroit vaut aussitôt pour les trois.
+//  Renvoie la destination réellement écrite, pour le message de confirmation.
+// ═══════════════════════════════════════════════════════════════════════════
+async function _journalWriteV2({asMJ,title,date,content,visibility,scope,linkType,linkId}){
+  if(visibility==='chronicle'){
+    if(!currentCampaignId)throw new Error('Aucune campagne active pour publier dans une chronique');
+    const campaign=await fbDb.collection('campaigns').doc(currentCampaignId).get();
+    const chronicleId=campaign.exists?campaign.data().chronicleId:null;
+    if(!chronicleId)throw new Error('Chronique introuvable');
+    // La Chronique est signée du PERSONNAGE côté joueur, du compte côté MJ ;
+    // elle n'a pas de champ de titre, d'où le titre préfixé au contenu.
+    const perso=asMJ?null:(typeof P==='function'?P():null);
+    await v2GroupService.addChronicleEntry(chronicleId,{
+      campaignId:currentCampaignId,
+      authorId:currentUser.uid,
+      authorNameSnapshot:(!asMJ&&perso?.charName)||currentUserData?.displayName||(asMJ?'MJ':'Membre'),
+      content:title?title+' — '+content:content
+    });
+    return 'chronicle';
+  }
+  if(asMJ){
+    await v2GroupService.addGmJournalEntry(currentTableId,{
+      campaignId:scope==='table'?null:(currentCampaignId||null),
+      authorId:currentUser.uid,
+      title:title||null,
+      content,
+      state:'notes',
+      linkType:linkType||null,
+      linkId:linkId||null
+    });
+    return 'gm';
+  }
+  const characterId=_v2PersonalNotesCharacterId
+    ||(typeof currentSheetCharacterId!=='undefined'&&currentSheetCharacterId)
+    ||currentCharacterId
+    ||(currentCampaignId
+      ?await v2CompatService.getCurrentCharacterId(currentCampaignId,currentUser.uid)
+      :null);
+  if(!characterId)throw new Error('Personnage introuvable');
+  await v2CharacterNotesService.add(characterId,visibility,{title,date,content,authorId:currentUser.uid});
+  return 'note';
 }
 
-function deleteJournalEntry(idx){
+// ═══════════════════════════════════════════════════════════════════════════
+//  NOTE RAPIDE (bouton 📓 du menu du dé) — écrire SANS quitter l'écran
+//  Demande du 2026-07-25 : le bouton renvoyait vers la page Journal, ce qui
+//  interrompt la partie. Il ouvre désormais cette saisie, disponible pour le
+//  joueur comme pour le MJ, avec le même choix de destination que le journal.
+//  L'écriture passe par _journalWriteV2 : aucune logique dupliquée ici.
+// ═══════════════════════════════════════════════════════════════════════════
+function openQuickNote(){
+  const asMJ=!!window._currentCampIsMJ;
+  if(!currentCampaignId){showToast('Rejoins ton groupe depuis le Hub pour prendre une note.');return;}
+  // On affiche LE formulaire du journal, pas une version allégée : mêmes champs,
+  // mêmes destinations, même fonction d'ajout. Seul le préfixe des identifiants
+  // change ('qn'), ce qui permet la coexistence avec le formulaire de l'onglet.
+  openModal(asMJ
+    ?_mjJournalEntryForm('qn')
+    :_journalEntryForm('qn','addJournalEntry',false));
+  setTimeout(()=>document.getElementById('qnContent')?.focus(),50);
+}
+
+async function addJournalEntry(idPrefix){
+  const pf=idPrefix||'j'; // 'j' = formulaire de l'onglet ; 'qn' = même formulaire en modale
+  const p=P();
+  if(!p.journal)p.journal=[];
+  const date=document.getElementById(pf+'Date')?.value||'';
+  const title=document.getElementById(pf+'Title')?.value.trim()||'';
+  const content=document.getElementById(pf+'Content')?.value.trim()||'';
+  const visibility=document.getElementById(pf+'Visibility')?.value||'private';
+  const isPublic=visibility==='chronicle';
+  const sharedWithGm=visibility==='gm';
+  if(!content){showToast('❌ Écris quelque chose avant d\'ajouter.');return;}
+  return guardAction('addJournalEntry:'+pf,async()=>{
+  const v2NotesEnabled=typeof v2CompatService!=='undefined'&&v2CompatService.isEnabled()
+    &&typeof v2CharacterNotesService!=='undefined';
+  if(v2NotesEnabled){
+    try{
+      await _journalWriteV2({asMJ:false,title,date,content,visibility});
+      _journalDraft={title:'',content:''};
+      _v2PersonalNotes=null;
+      _journalCloseIfModal(pf);
+      renderTab();
+      showToast(visibility==='chronicle'?'✅ Entrée publiée dans la Chronique.':'✅ Note enregistrée.');
+    }catch(e){showToast('❌ Enregistrement impossible : '+e.message);}
+    return;
+  }
+  p.journal.push({id:Date.now(),date,sessionTitle:title,content,isPublic,sharedWithGm});
+  _journalDraft={title:'',content:''};
+  _journalCloseIfModal(pf);
+  saveAll();renderTab();showToast('✅ Entrée ajoutée !');
+  });
+}
+
+// Le formulaire ouvert en modale ('qn') se referme après l'ajout ; celui de
+// l'onglet reste en place. Ainsi une seule fonction d'ajout sert aux deux.
+function _journalCloseIfModal(idPrefix){
+  if(idPrefix==='qn'&&typeof closeModal==='function')closeModal();
+}
+
+async function deleteJournalEntry(idx){
+  const v2NotesEnabled=typeof v2CompatService!=='undefined'&&v2CompatService.isEnabled()
+    &&typeof v2CharacterNotesService!=='undefined';
+  if(v2NotesEnabled){
+    const entry=(_v2PersonalNotes||[])[idx];
+    if(!entry||!entry._v2Visibility)return;
+    try{
+      await v2CharacterNotesService.remove(
+        _v2PersonalNotesCharacterId,
+        entry._v2Visibility,
+        entry.id
+      );
+      _v2PersonalNotes=null;
+      renderTab();
+    }catch(e){showToast('❌ Suppression impossible : '+e.message);}
+    return;
+  }
   const p=P();if(!p.journal)return;
   p.journal.splice(idx,1);saveAll();renderTab();
 }
@@ -88,6 +333,19 @@ function renderCurrentView(){
 
 // ── JOURNAL MJ ──
 function tabJournalMJ(){
+  const v2=typeof v2CompatService!=='undefined'&&v2CompatService.isEnabled();
+  if(v2){
+    const viewButton=(id,label)=>`<button class="btn bsm${_mjJournalView===id?' bprimary':''}" onclick="mjSetJournalView('${id}')">${label}</button>`;
+    return`<div>
+      ${_mjJournalEntryForm('mj')}
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+        ${viewButton('notes','Notes')}
+        ${viewButton('pinned','📌 Épinglées')}
+        ${viewButton('archived','🗄 Archivées')}
+      </div>
+      ${_mjJournalV2List()}
+    </div>`;
+  }
   const subTabs=[
     {id:'mj',label:'📓 Mon journal'},
     {id:'players',label:'📖 Joueurs'},
@@ -112,16 +370,45 @@ function tabJournalMJ(){
   return`<div>${bar}</div>`;
 }
 
-async function addMJJournalEntry(){
-  const date=document.getElementById('mjDate')?.value||'';
-  const title=document.getElementById('mjTitle')?.value.trim()||'';
-  const content=document.getElementById('mjContent')?.value.trim()||'';
-  const isPublic=document.getElementById('mjPublic')?.checked||false;
+async function addMJJournalEntry(idPrefix){
+  const pf=idPrefix||'mj'; // 'mj' = onglet Journal MJ ; 'qn' = même formulaire en modale
+  const date=document.getElementById(pf+'Date')?.value||'';
+  const title=document.getElementById(pf+'Title')?.value.trim()||'';
+  const content=document.getElementById(pf+'Content')?.value.trim()||'';
+  const isPublic=document.getElementById(pf+'Visibility')?.value==='chronicle';
   if(!content){showToast('❌ Écris quelque chose avant d\'ajouter.');return;}
+  return guardAction('addMJJournalEntry:'+pf,async()=>{
+  if(typeof v2CompatService!=='undefined'&&v2CompatService.isEnabled()){
+    try{
+      // Le MJ choisit sa destination comme les joueurs (demande du 25/07) : sans ce
+      // choix, il ne pouvait écrire que dans son espace privé et devait passer par la
+      // page Groupe pour s'adresser à la Chronique.
+      const ou=await _journalWriteV2({
+        asMJ:true,title,date,content,
+        visibility:isPublic?'chronicle':'private',
+        scope:document.getElementById(pf+'JournalScope')?.value,
+        linkType:document.getElementById(pf+'JournalLinkType')?.value||null,
+        linkId:(document.getElementById(pf+'JournalLinkId')?.value||'').trim()||null
+      });
+      _journalCloseIfModal(pf);
+      renderCurrentView();
+      showToast(ou==='chronicle'?'✅ Entrée publiée dans la Chronique.':'✅ Entrée ajoutée !');
+    }catch(e){showToast('❌ Erreur sauvegarde journal : '+e.message);}
+    return;
+  }
   _mjJournal.push({id:Date.now(),date,sessionTitle:title,content,isPublic});
+  _journalCloseIfModal(pf);
   await saveMJJournal();renderCurrentView();showToast('✅ Entrée ajoutée !');
+  });
 }
 async function deleteMJJournalEntry(idx){
+  if(typeof v2CompatService!=='undefined'&&v2CompatService.isEnabled()){
+    const entry=_mjJournal[idx];
+    if(!entry?._v2Id)return;
+    try{await v2GroupService.deleteGmJournalEntry(currentTableId,entry._v2Id);}
+    catch(e){showToast('❌ Suppression impossible : '+e.message);}
+    return;
+  }
   _mjJournal.splice(idx,1);await saveMJJournal();renderCurrentView();
 }
 async function saveMJJournal(){
@@ -155,7 +442,7 @@ function renderPlayersJournalView(){
   </div>`;
 
   if(!selPlayer) return selectorHtml+`<div style="color:var(--text3);font-style:italic">Sélectionnez un joueur.</div>`;
-  const entries=selPlayer.journal||[];
+  const entries=(selPlayer.journal||[]).filter(entry=>entry.sharedWithGm||entry.isPublic);
   return selectorHtml+`<div style="font-size:13px;color:var(--text3);margin-bottom:10px">${esc(selPlayer.charName||'?')} — ${entries.length} entrée(s)</div>`
     +_journalEntriesList(entries,'()=>{}');
 }
@@ -171,7 +458,8 @@ async function loadPlayersJournalData(){
       const char=d.characterData||{};
       let playerName='Joueur';let avatar='⚔';
       try{const u=await fbDb.collection('users').doc(d.userId).get();if(u.exists){playerName=u.data().displayName||'Joueur';avatar=u.data().avatar||'⚔';}}catch(e){}
-      result.push({uid:d.userId,playerName,avatar,charName:char.charName||'?',journal:char.journal||[]});
+      const visibleJournal=(char.journal||[]).filter(entry=>entry.sharedWithGm||entry.isPublic);
+      if(visibleJournal.length)result.push({uid:d.userId,playerName,avatar,charName:char.charName||'?',journal:visibleJournal});
     }
     _playersJournalData=result;
     renderCurrentView();
@@ -363,4 +651,3 @@ async function encDistribute(){
   showToast(`⭐ ${xpPerPlayer.toLocaleString()} XP distribués à ${ok} joueur(s) !`);
   _encMonsters=[];encRenderMonsters();
 }
-

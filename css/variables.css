@@ -6,6 +6,8 @@
    ═══════════════════════════════════════════════════════════════════════ */
 
 :root{
+  /* Échelle de lecture « application » : texte courant d'environ 16 px, sur toutes les surfaces. */
+  --text-scale:1.07;
   /* ── HAUTEURS DE LA COQUE (lot A1, 2026-07-22) ───────────────────────────
      SOURCE UNIQUE des hauteurs de bandeau. Avant : 54px, 56px et 102px écrits
      en dur dans 3 fichiers, censés s'accorder mais que rien ne synchronisait.
@@ -51,6 +53,10 @@
   --leather2:#31200c;
   --brass:#b98f3e;
   --brass-hi:#e9c877;
+  /* Profondeur « grimoire » : cadre relié, panneau posé, zone creusée. */
+  --frame-shadow:inset 0 0 0 2px var(--surface),inset 0 0 0 3px var(--border),0 3px 10px rgba(62,39,10,.14);
+  --panel-shadow:0 1px 3px rgba(62,39,10,.1);
+  --inset-shadow:inset 0 1px 4px rgba(62,39,10,.16);
   /* Couleur d'identité de classe (défaut laiton ; .th-* la repointe) */
   --cls:var(--cp);
   /* Typographie */
@@ -60,6 +66,7 @@
   /* Rayon : angles nets partout (maquette) */
   --r:0px;
 }
+
 
 /* ── VEILLÉE (mode sombre) — mêmes rôles, ardoise + or ── */
 body.ds-dark{
@@ -80,6 +87,9 @@ body.ds-dark{
   --danger:#d0674e;
   --info:#6bb0d0;
   --arcane:#b48ae0;
+  --frame-shadow:inset 0 0 0 2px var(--surface),inset 0 0 0 3px var(--border),0 4px 14px rgba(0,0,0,.32);
+  --panel-shadow:0 2px 5px rgba(0,0,0,.22);
+  --inset-shadow:inset 0 2px 5px rgba(0,0,0,.3);
   /* chrome inchangé (le même livre) */
 }
 

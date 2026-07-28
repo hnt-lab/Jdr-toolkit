@@ -6,11 +6,11 @@
 
 /* --- Largeur : large mais pas pleine page (lisibilité) --- */
 .hub-body{max-width:1700px}
-@media(min-width:860px){ .hub-body{padding-left:28px;padding-right:28px} }
+@media(min-width:900px){ .hub-body{padding-left:28px;padding-right:28px} }
 
 /* --- Conteneur 2 panneaux (rail des tables | détail) --- */
 .hub-2col{display:block}
-@media(min-width:860px){
+@media(min-width:900px){
   .hub-2col{display:grid;grid-template-columns:330px minmax(0,1fr);gap:20px;align-items:start}
   .hub-rail{position:sticky;top:8px}
 }
@@ -145,7 +145,7 @@
 .hub-back{display:none}
 
 /* --- Mobile : liste ↔ détail (on replie « Mes Tables » une fois la table choisie) --- */
-@media(max-width:859px){
+@media(max-width:899px){
   .hub-2col .hub-detail{display:none}
   .hub-2col.show-detail .hub-rail{display:none}
   .hub-2col.show-detail .hub-detail{display:block;margin-top:0}
@@ -197,8 +197,9 @@
         Socket = halo couleur-bandeau (le bouton perce la plaque) → LISERÉ laiton ÉPAIS
         (rebord du trou) → arête sombre (profondeur) ; insets = dôme serti. */
   #diceFloat{
-    bottom:calc(env(safe-area-inset-bottom) + 1px)!important;right:13px!important;z-index:888;
-    width:64px!important;height:64px!important;font-size:29px!important;
+    /* Mobile : 1,2× la taille d'origine, en conservant le sertissage et le chevauchement. */
+    bottom:calc(env(safe-area-inset-bottom) + 3px)!important;right:10px!important;z-index:888;
+    width:63px!important;height:63px!important;font-size:28px!important;
     box-shadow:0 0 0 4px #0b0805,0 0 0 7px var(--cp),0 0 0 9px rgba(0,0,0,.75),inset 0 -3px 7px rgba(0,0,0,.55),inset 0 2px 4px rgba(255,255,255,.22)!important;
   }
   #partyHud{bottom:calc(env(safe-area-inset-bottom) + 1px)!important;left:13px!important;z-index:870}

@@ -26,9 +26,15 @@
 .acd{position:absolute;z-index:100;width:100%;background:var(--surface2);border:1px solid var(--cp);border-radius:0 0 8px 8px;max-height:220px;overflow-y:auto;display:none}
 .aci{padding:8px 12px;cursor:pointer;transition:background .1s}.aci:hover{background:var(--surface3)}
 .ain{font-size:13px;color:var(--text);font-weight:600}.ais{font-size:12px;color:var(--text3);margin-top:2px}
+/* ⚠️ min-width:0 — NE PAS RETIRER. Un élément de grille vaut min-width:auto par défaut :
+   il refuse de devenir plus étroit que son contenu, et déborde du conteneur au lieu de se
+   comprimer. Mesuré le 2026-07-25 à 360px de large : .eq-col et ses .eq-slot dépassaient
+   de 12px à droite (« ANNEAU G », « ÉPAULES » en majuscules espacées ne tenaient pas).
+   C'est la correction à la source ; élargir la grille ou rapetisser la police ne feraient
+   que déplacer le seuil. */
 .eq-layout{display:grid;grid-template-columns:1fr 170px 1fr;gap:8px;margin-bottom:10px}
-.eq-col{display:flex;flex-direction:column;gap:6px}
-.eq-slot{background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:8px;cursor:pointer;transition:all .15s;min-height:50px;display:flex;flex-direction:column;justify-content:center}
+.eq-col{display:flex;flex-direction:column;gap:6px;min-width:0}
+.eq-slot{background:var(--surface2);border:1px solid var(--border);border-radius:2px;padding:8px;cursor:pointer;transition:all .15s;min-height:50px;display:flex;flex-direction:column;justify-content:center;min-width:0;overflow-wrap:anywhere}
 .eq-slot:hover{border-color:var(--cp)}.eq-slot.filled{border-color:var(--cp);background:var(--surface3)}
 .eq-slot-label{font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em}
 .eq-slot-item{font-size:13px;color:var(--cp);font-weight:600;margin-top:2px}
@@ -181,6 +187,11 @@
 .mj-rules-section.mj-drop-after{border-bottom:3px solid var(--cp)!important;margin-bottom:-2px;}
 .mj-drag-handle{cursor:grab;color:var(--text3);font-size:13px;padding:2px 5px;border-radius:2px;user-select:none;flex-shrink:0;}
 .mj-drag-handle:hover{background:rgba(200,168,75,.12);color:var(--cp);}
+.mj-rules-section{resize:none;}
+.mj-collapse-control{margin-left:auto;background:none;border:0;color:var(--text3);cursor:pointer;font-size:14px;line-height:1;padding:4px 6px;transition:transform .18s;}
+.mj-rules-section.mj-collapsed>.panel>:not(.pt){display:none!important;}
+.mj-rules-section.mj-collapsed>.panel>.pt{margin-bottom:0!important;border-bottom:0!important;}
+.mj-rules-section.mj-collapsed .mj-collapse-control{transform:rotate(-90deg);}
 .regles-table td{padding:5px 8px;color:var(--text2);border-bottom:1px solid rgba(46,50,64,.4)}
 .regles-table tr:last-child td{border-bottom:none}
 .regles-table tr:hover td{background:var(--surface2)}
