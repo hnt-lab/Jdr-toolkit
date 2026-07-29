@@ -76,7 +76,7 @@ const v2DataService = {
     const roots = await this._db().collection('characters')
       .where('ownerId', '==', userId)
       .get();
-    return Promise.all(roots.docs.map(async root => ({
+    return Promise.all(roots.docs.filter(root => !root.data().deletedAt).map(async root => ({
       id: root.id,
       ...root.data(),
       sheet: await this.loadCharacterSheet(root.id)

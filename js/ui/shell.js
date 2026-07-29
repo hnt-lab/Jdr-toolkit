@@ -185,6 +185,12 @@ function _dsLoadGroupData(){
                   target.participants=Object.fromEntries(
                     participants.docs.map(doc=>[doc.id,doc.data()])
                   );
+                  if(target.status==='approved'){
+                    const own=target.participants[currentUser?.uid];
+                    if(own?.participates===true&&own.appliedAt==null){
+                      _dsApplyApprovedRest(target.id,true);
+                    }
+                  }
                 }
                 _dsAfterGroupData();
               }
@@ -337,6 +343,23 @@ function _dsRestBlockHTML(){
         (names[uid]||'Membre')+(proposal.type==='short'&&p.healing?` (+${p.healing} PV)`:'')
       );
       const declined=Object.entries(participants).filter(([,p])=>p.participates===false).map(([uid])=>names[uid]||'Membre');
+      if(proposal.status==='approved'){
+        const pending=Object.values(participants).filter(p=>
+          p.participates===true&&p.appliedAt==null
+        ).length;
+        if(!window._currentCampIsMJ&&!(own?.participates===true&&own?.appliedAt==null)){
+          return'';
+        }
+        return`<div class="ds-card" style="padding:10px;margin-bottom:8px">
+          <div style="font-weight:700">✅ ${proposal.type==='long'?'Repos long':'Repos court'} autorisé</div>
+          <div class="ds-note" style="margin:3px 0 9px">${window._currentCampIsMJ
+            ?`${pending} participant(s) doivent encore appliquer leur récupération.`
+            :'Ta récupération doit être appliquée à ta fiche.'}</div>
+          ${!window._currentCampIsMJ
+            ?`<button class="ds-btn primary" style="width:100%" onclick="_dsApplyApprovedRest('${proposal.id}',false)">Appliquer maintenant</button>`
+            :''}
+        </div>`;
+      }
       return`<div class="ds-card" style="padding:10px;margin-bottom:8px">
         <div style="font-weight:700">${proposal.type==='long'?'🌙 Repos long':'☕ Repos court'}</div>
         <div class="ds-note" style="margin:3px 0 9px">Proposé par ${esc(proposal.requestedByName||'un membre')}. Aucun effet avant la décision du MJ.</div>
@@ -350,6 +373,28 @@ function _dsRestBlockHTML(){
         </div>
       </div>`;
     }).join('')}`;
+}
+async function _dsApplyApprovedRest(proposalId,silent){
+  return guardAction('applyRest:'+proposalId,async()=>{
+    try{
+      const result=await v2RestService.applyForSelf(
+        currentCampaignId,proposalId,currentUser.uid
+      );
+      if(result?.applied&&typeof v2DataService!=='undefined'){
+        const sheet=await v2DataService.loadCharacterSheet(result.characterId);
+        if(sheet&&typeof P==='function'){
+          Object.assign(P(),sheet);
+          if(typeof renderCharRail==='function')renderCharRail();
+          if(typeof renderTab==='function')renderTab();
+        }
+      }
+      if(!silent&&result?.applied)showToast('✅ Récupération appliquée à ta fiche.');
+      return result;
+    }catch(e){
+      if(!silent)showToast('❌ Application du repos impossible : '+e.message);
+      return null;
+    }
+  });
 }
 // Après réception de données de groupe : repeindre l'écran qui les montre.
 // La page Groupe n'est pas le seul consommateur depuis que le MJ suit les repos
@@ -368,7 +413,7 @@ async function _dsDecideRest(proposalId,approved){
         currentCampaignId,proposalId,currentUser.uid,approved
       );
       showToast(approved
-        ?'✅ Repos autorisé. Application aux participants en cours.'
+        ?'✅ Repos autorisé. Chaque participant applique maintenant sa récupération.'
         :'Repos refusé.');
     }catch(e){showToast('❌ Décision impossible : '+e.message);}
   });

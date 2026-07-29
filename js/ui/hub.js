@@ -175,7 +175,7 @@ async function renderHub(){
         const tables=snap.docs.map(d=>({id:d.id,...d.data()}));
         return Promise.all(tables.map(async t=>{
           const cs=await fbDb.collection('campaigns').where('tableId','==',t.id).orderBy('createdAt','desc').get();
-          return{...t,campaigns:cs.docs.map(d=>({id:d.id,...d.data()}))};
+          return{...t,campaigns:cs.docs.map(d=>({id:d.id,...d.data()})).filter(c=>!c.deletedAt)};
         }));
       })();
     // Une campagne déjà rejointe ne doit jamais afficher « Créer mon personnage »

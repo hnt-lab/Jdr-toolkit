@@ -1,14 +1,14 @@
 // ═════════════════════════════════════════════════════════════════════════════
-// DOUBLE LECTURE V1/V2
-// Désactivée par défaut. L'activation est limitée à localhost afin qu'une simple
-// clé localStorage ne puisse pas basculer la production avant les règles V2.
+// LECTURE V2 AVEC REPLI V1 POUR LA MIGRATION
 // ═════════════════════════════════════════════════════════════════════════════
 const v2CompatService = {
   isEnabled() {
     const local =
       typeof location !== 'undefined' &&
       (location.hostname === 'localhost' || location.hostname === '127.0.0.1');
-    return local && localStorage.getItem('mjtk_v2_test') === '1';
+    if (local) return localStorage.getItem('mjtk_v2_test') === '1';
+    return globalThis.MJTK_ENVIRONMENT
+      && globalThis.MJTK_ENVIRONMENT.name === 'production';
   },
 
   setEnabledForLocalTest(enabled) {
@@ -120,7 +120,9 @@ const v2CompatService = {
         _schema: 2,
         _role: role,
         _isMJ: role === 'owner' || role === 'gm',
-        campaigns: campaigns.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+        campaigns: campaigns.docs
+          .map(doc => ({ id: doc.id, ...doc.data() }))
+          .filter(campaign => !campaign.deletedAt)
       });
     }
     return result;
