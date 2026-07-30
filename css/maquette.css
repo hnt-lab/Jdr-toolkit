@@ -500,3 +500,17 @@ body.ds-dark #mjScreen select{
   .norg-rail button.on{box-shadow:none}
   body.ds-lefty #diceFloat{left:10px!important}
 }
+
+/* Recette MJ : dernier mot de la cascade, après la coque desktop/mobile. */
+@media(min-width:900px){
+  #mjScreen{font-size:clamp(15px,.88vw,17px)}
+  #mjScreen .btn,#mjScreen .btn.bsm{
+    font-size:clamp(13px,.75vw,15px);min-height:36px;padding:7px 11px
+  }
+  #mjScreen .pt{font-size:clamp(15px,.9vw,17px)}
+  #mjScreen .fl,#mjScreen .ds-note{font-size:clamp(13px,.76vw,15px)}
+}
+@media(max-width:899px){
+  body{font-size:calc(15.5px * var(--text-scale))}
+  #mjScreen .btn,#mjScreen .btn.bsm{font-size:13.5px;min-height:38px}
+}
