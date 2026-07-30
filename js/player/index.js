@@ -13,9 +13,9 @@ function uploadPortrait(input){
 // l'appellent). Carré et laiton depuis le 2026-07-26 : il était rond et gris, seul
 // vestige d'arrondi dans une interface entièrement à angles droits, et il ne portait
 // pas la couleur d'accent de la charte. border-radius:2px = le même que .btn.
-function _modalCloseX(){return`<button onclick="closeModal()" title="Fermer" aria-label="Fermer" style="position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:2px;border:1px solid var(--cp);background:var(--surface2);color:var(--cp);font-size:15px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:3">✕</button>`;}
-function openModal(html){const m=document.getElementById('modal');m.className='open';m.innerHTML=`<div class="modal-box" style="max-width:560px;position:relative;padding-right:18px">${_modalCloseX()}${html}</div>`;}
-function openWideModal(html){const m=document.getElementById('modal');m.className='open';m.innerHTML=`<div class="modal-box" style="max-width:720px;position:relative;padding-right:18px">${_modalCloseX()}${html}</div>`;}
+function _modalCloseX(){return`<button class="modal-close-x" onclick="closeModal()" title="Fermer" aria-label="Fermer">✕</button>`;}
+function openModal(html){const m=document.getElementById('modal');m.className='open';m.innerHTML=`<div class="modal-box" style="max-width:560px;position:relative">${_modalCloseX()}${html}</div>`;}
+function openWideModal(html){const m=document.getElementById('modal');m.className='open';m.innerHTML=`<div class="modal-box" style="max-width:720px;position:relative">${_modalCloseX()}${html}</div>`;}
 function closeModal(){const m=document.getElementById('modal');if(m){m.className='';m.innerHTML='';}if(typeof _tutoRemoveHighlight==='function')_tutoRemoveHighlight();}
 document.addEventListener('click',e=>{
   if(document.getElementById('modal')?.className==='open'&&e.target===document.getElementById('modal'))closeModal();

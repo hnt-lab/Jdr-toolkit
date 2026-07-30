@@ -236,6 +236,43 @@ body.ds-lefty .norg-scroll{border-right:none;border-left:1px solid var(--acc-str
 body.ds-lefty .norg-nav{padding:7px 10px calc(7px + env(safe-area-inset-bottom)) 76px}
 }
 
+/* ══════════ RECETTE MJ EN PARTIE RÉELLE — lisibilité transversale ══════════ */
+.modal-box{padding-right:52px!important}
+.modal-close-x{
+  position:absolute;top:8px;right:8px;z-index:3;
+  width:30px;height:30px;display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--cp2);border-radius:3px;
+  background:var(--cp);color:#171006;font-size:14px;font-weight:800;
+  line-height:1;cursor:pointer;box-shadow:var(--panel-shadow)
+}
+.modal-close-x:hover{background:var(--cp2);color:var(--surface)}
+@media(min-width:900px){
+  #mjScreen{font-size:clamp(15px,.88vw,17px)}
+  #mjScreen .btn,#mjScreen .btn.bsm{
+    font-size:clamp(13px,.75vw,15px);min-height:36px;padding:7px 11px
+  }
+  #mjScreen .pt{font-size:clamp(15px,.9vw,17px)}
+  #mjScreen .fl,#mjScreen .ds-note{font-size:clamp(13px,.76vw,15px)}
+}
+@media(max-width:899px){
+  body{font-size:calc(15.5px * var(--text-scale))}
+  #mjScreen .btn,#mjScreen .btn.bsm{font-size:13.5px;min-height:38px}
+  .modal-box{padding-right:46px!important}
+}
+/* Les anciens aplats codés pour le sombre restent lisibles dans les deux thèmes. */
+#mjScreen .g-sub,#mjScreen .combat-row,#mjScreen .mj-player-card,
+#mjScreen .journal-entry,#mjScreen .pnj-card{
+  background:var(--surface2);border-color:var(--border);color:var(--text)
+}
+body.ds-dark #mjScreen{
+  color:var(--text);
+  background:var(--bg)
+}
+body.ds-dark #mjScreen input,body.ds-dark #mjScreen textarea,
+body.ds-dark #mjScreen select{
+  background:var(--surface2);color:var(--text);border-color:var(--border)
+}
+
 /* Sous-carte (boîtes internes : armes, capacités, encarts) — aspect maquette */
 .g-sub{background:var(--card2);border:1px solid var(--line);border-radius:0;padding:9px 11px;
   margin-bottom:6px;color:var(--ink)}

@@ -79,45 +79,54 @@ function mjTabJoueurs(){
       const conds=p.conditions||[];
       const abilNames=['FOR','DEX','CON','INT','SAG','CHA'];
       const mods=(p.abilities||[0,0,0,0,0,0]).map(v=>Math.floor((v-10)/2));
-      return`<div class="mj-player-card">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
-          <span style="font-size:16px">${pp.avatar||'⚔'}</span>
-          <div style="flex:1;min-width:150px;cursor:pointer" onclick="mjQuickKickConfirm(${i})" title="Cliquer pour exclure ce joueur">
-            <div style="font-size:14px;font-weight:600;color:var(--text)">${esc(p.charName||'?')}</div>
-            <div style="font-size:13px;color:var(--text3)">${esc(cls)} — Niv.${lvl} — ${esc(pp.playerName||'')}</div>
+      const portrait=p.portrait||p.equipPortrait||'';
+      return`<article class="mj-player-card">
+        <div class="mj-player-card-head">
+          <div class="mj-player-identity" onclick="mjQuickKickConfirm(${i})" title="Cliquer pour exclure ce joueur">
+            <div class="mj-player-portrait">
+              ${portrait?`<img src="${esc(portrait)}" alt="Portrait de ${esc(p.charName||'ce personnage')}">`:`<span aria-hidden="true">${pp.avatar||'⚔'}</span>`}
+            </div>
+            <div class="mj-player-copy">
+              <div class="mj-player-name">${esc(p.charName||'?')}</div>
+              <div class="mj-player-meta">${esc(cls)} <span aria-hidden="true">·</span> Niv. ${lvl} <span aria-hidden="true">·</span> ${esc(pp.playerName||'')}</div>
+            </div>
           </div>
+          <div class="mj-player-actions mj-player-actions-main">
           <button class="btn bsm" onclick="mjShowPlayerDetail(${i})">📋 Fiche</button>
           <button class="btn bsm" onclick="mjEditPlayerSheet(${i})">✏ Modifier</button>
-          <button class="btn bsm" style="color:var(--cp);border-color:rgba(200,168,75,.45)" onclick="mjTogglePlayerInspiration(${i})">${p.inspiration?'✦ Retirer inspiration':'✧ Accorder inspiration'}</button>
+          <button class="btn bsm mj-inspiration-btn${p.inspiration?' is-active':''}" onclick="mjTogglePlayerInspiration(${i})">${p.inspiration?'✦ Retirer inspiration':'✧ Accorder inspiration'}</button>
           <button class="btn bsm bprimary" onclick="mjAddPlayerToCombat(${i})">⚡ Combat</button>
+          </div>
+        </div>
+        <div class="mj-player-actions mj-player-actions-secondary">
           <button class="btn bsm" style="color:var(--warn);border-color:rgba(255,152,0,.3)" onclick="mjRespecPlayer(${i})" title="Réinitialiser les niveaux">↩ Respec</button>
           <button class="btn bsm" style="color:var(--arcane);border-color:rgba(156,39,176,.3)" onclick="mjWhisperPlayer(${i})" title="Chuchoter à ce joueur">🤫</button>
           ${(p.features||[]).some(f=>f.name==='Magie sauvage')?`<button class="btn bsm" style="color:var(--arcane);border-color:rgba(206,147,216,.3)" onclick="mjTriggerSurtension(${i})" title="Déclencher une surtension de magie sauvage">🌀 Surtension</button>`:''}
           ${p.familiar?.active?`<button class="btn bsm" style="border-color:rgba(200,168,75,.5);color:var(--cp)" onclick="mjAddFamiliarToCombat(${i})" title="Ajouter le familier au combat">${p.familiar.icon||'🦉'} ${esc(p.familiar.name)}</button>`:''}
           <button class="btn bsm" style="color:var(--danger);border-color:rgba(229,57,53,.3)" onclick="mjModerationModal(${i})" title="Modérer ce joueur">🗑</button>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:8px">
-          <div style="background:var(--surface2);border-radius:2px;padding:8px;text-align:center">
-            <div style="font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px">PV</div>
-            <div style="font-size:${hp<=0?'11':'17'}px;font-weight:600;color:${hpColor}">${hp<=0?'💀 À terre':hp+'/'+hpMax}${tempHp>0?`<span style="font-size:12px;color:var(--cp);margin-left:4px" title="Points de vie temporaires">+${tempHp}</span>`:''}</div>
+        <div class="mj-player-vitals">
+          <div class="mj-player-vital mj-player-vital-hp">
+            <div class="mj-player-vital-label">PV</div>
+            <div class="mj-player-vital-value" style="color:${hpColor}">${hp<=0?'💀 À terre':hp+'/'+hpMax}${tempHp>0?`<span class="mj-player-temp-hp" title="Points de vie temporaires">+${tempHp}</span>`:''}</div>
             <div class="hp-bar"><div class="hp-fill" style="width:${hpPct}%;background:${hpColor}"></div></div>
           </div>
-          <div style="background:var(--surface2);border-radius:2px;padding:8px;text-align:center">
-            <div style="font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px">CA</div>
-            <div style="font-size:17px;font-weight:600">${p.ac||10}</div>
+          <div class="mj-player-vital">
+            <div class="mj-player-vital-label">CA</div>
+            <div class="mj-player-vital-value">${p.ac||10}</div>
           </div>
-          <div style="background:var(--surface2);border-radius:2px;padding:8px;text-align:center">
-            <div style="font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px">Init.</div>
-            <div style="font-size:17px;font-weight:600;color:var(--cp)">${fmt(mods[1])}</div>
+          <div class="mj-player-vital">
+            <div class="mj-player-vital-label">Initiative</div>
+            <div class="mj-player-vital-value mj-player-vital-accent">${fmt(mods[1])}</div>
           </div>
-          <div style="background:var(--surface2);border-radius:2px;padding:8px;text-align:center">
-            <div style="font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px">Niv.</div>
-            <div style="font-size:17px;font-weight:600;color:var(--cp)">${lvl}</div>
+          <div class="mj-player-vital">
+            <div class="mj-player-vital-label">Niveau</div>
+            <div class="mj-player-vital-value mj-player-vital-accent">${lvl}</div>
           </div>
         </div>
         ${conds.length?`<div style="margin-bottom:6px">${conds.map(c=>`<span class="status-badge malus">⚠ ${esc(c)}</span>`).join('')}</div>`:''}
         ${p.secrets?`<div style="padding:8px;background:rgba(200,168,75,.06);border:1px solid rgba(200,168,75,.2);border-radius:2px;font-size:13px;color:var(--text2)"><span style="color:var(--cp);font-size:13px">🔐 Secret :</span> ${esc(p.secrets)}</div>`:''}
-      </div>`;
+      </article>`;
     }).join('')}</div>
   </div>`;
 }

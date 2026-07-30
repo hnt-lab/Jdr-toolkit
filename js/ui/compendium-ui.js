@@ -144,12 +144,14 @@ function compReadTableSelection(){
   });
   return req;
 }
-// requiredPacks d'une table (avec migration douce de l'ancien modèle). Conserve le CONTENU ACTUEL (paquet legacy).
+// requiredPacks d'une table (avec migration douce de l'ancien modèle).
+// Les fichiers legacy ne font plus partie du paquet Web de production : une table
+// ancienne sans sélection explicite doit donc utiliser la base SRD intégrée.
 function compTableRequiredPacks(tableData){
   if(tableData && tableData.requiredPacks && Object.keys(tableData.requiredPacks).length) return tableData.requiredPacks;
   const req = {};
   const std = tableData && tableData.activeStdCompendiums;
-  req['legacy'] = (Array.isArray(std) && std.length) ? std.slice() : COMP.TYPES.slice();
+  req['base-srd'] = (Array.isArray(std) && std.length) ? std.slice() : COMP.TYPES.slice();
   ((tableData && tableData.activeCustomCompendiums) || []).forEach(id => { if(COMP._packs[id]) req[id] = COMP.TYPES.slice(); });
   return req;
 }

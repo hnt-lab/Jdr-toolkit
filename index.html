@@ -208,6 +208,13 @@
     <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:12px">Appuyer pour fermer</div>
   </div>
 </div>
+<!-- Commandes de combat globales : restent accessibles depuis Tables, Groupe,
+     la fiche et le panneau MJ tant qu'un combat est actif. -->
+<div id="globalCombatBar" role="status" aria-live="polite">
+  <button class="global-combat-open" onclick="openActiveCombat()">⚔ Ouvrir Combat</button>
+  <span id="globalCombatTurnLabel">Combat en cours</span>
+  <button id="globalEndTurnBtn" class="global-end-turn" onclick="playerEndTurn()">⏩ Fin de tour</button>
+</div>
 <div id="modal"></div>
 <!-- BARRE DU HAUT — DESKTOP UNIQUEMENT (logo · nav modes · avatar profil).
      La nav (#modeNav) y est déplacée par _placeModeNavDesktop sur desktop ;

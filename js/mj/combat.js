@@ -1,6 +1,7 @@
 function mjTabCombat(){
   const sorted=_mjCombatStarted?[..._mjCombatants].sort((a,b)=>b.initiative-a.initiative):_mjCombatants;
   const currentC=_mjCombatStarted&&sorted.length?sorted[_mjCurrentTurn%sorted.length]:null;
+  const lastReport=_mjLoadLastCombatReport();
 
   const combatantRows=sorted.length?sorted.map((c,i)=>{
     const realIdx=_mjCombatants.indexOf(c);
@@ -18,42 +19,49 @@ function mjTabCombat(){
       (_mjPlayersData.find(player=>player.uid===c.uid)||{}).turnDone
     );
     const surprisedBadge=isSurprised?`<span style="font-size:12px;background:rgba(229,57,53,.15);color:var(--danger);border:1px solid rgba(229,57,53,.4);border-radius:2px;padding:1px 6px;margin-left:4px;vertical-align:middle">😵 SURPRIS</span>`:'';
-    return`<div class="combat-row${isActive?' active-turn':''}${isDead?' dead':''}" style="${isSurprised?'border-left:3px solid var(--danger);padding-left:6px;':''}">
-      ${_mjCombatStarted?`<div style="width:42px;text-align:center">
-        <span style="font-family:var(--F);font-size:14px;color:var(--cp);border-bottom:1px dashed rgba(200,168,75,.4);cursor:pointer" title="Modifier l’initiative" onclick="mjEditInitiative(${realIdx})">${c.initiative||0}</span>
-        ${!isActive?`<button class="btn bsm" style="padding:0 3px;margin-left:2px;font-size:10px" title="Donner immédiatement le tour à ce combattant" onclick="mjSelectCombatantTurn(${realIdx})">▶</button>`:''}
+    return`<div class="combat-row mj-combatant${isActive?' active-turn':''}${isDead?' dead':''}${isSurprised?' is-surprised':''}">
+      ${_mjCombatStarted?`<div class="mj-combatant-init">
+        <span class="mj-combatant-init-value" title="Modifier l’initiative" onclick="mjEditInitiative(${realIdx})">${c.initiative||0}</span>
+        ${!isActive?`<button class="mj-combatant-turn-pick" title="Donner immédiatement le tour à ce combattant" onclick="mjSelectCombatantTurn(${realIdx})">▶</button>`:''}
       </div>`:''}
-      <div style="width:26px;text-align:center;font-size:18px">${c.isPlayer?(c.avatar||'⚔'):'👾'}</div>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:600;color:${isActive?'var(--cp)':'var(--text)'}">${esc(c.name)}${isActive?' ◀':''}${surprisedBadge}</div>
+      <div class="mj-combatant-avatar">${c.isPlayer?(c.avatar||'⚔'):'👾'}</div>
+      <div class="mj-combatant-identity">
+        <div class="mj-combatant-name">${esc(c.name)}${isActive?' <span class="mj-active-label">Tour actif</span>':''}${surprisedBadge}</div>
         ${speedHtml}${condHtml}${dsaveHtml}
       </div>
-      <div class="cbt-actions" style="display:flex;align-items:center;gap:4px">
-        <div style="text-align:center;min-width:60px">
-          <div style="font-size:13px;color:${hpColor};font-weight:600">${isDead?`💀 ${esc(c.defeatState||'À terre')}`:c.hp+'/'+c.hpMax}</div>
-          <div class="hp-bar" style="width:60px"><div class="hp-fill" style="width:${hpPct}%;background:${hpColor}"></div></div>
+      <div class="mj-combatant-vitals">
+        <div class="mj-combatant-hp">
+          <div style="color:${hpColor}">${isDead?`💀 ${esc(c.defeatState||'À terre')}`:c.hp+'/'+c.hpMax+' PV'}</div>
+          <div class="hp-bar"><div class="hp-fill" style="width:${hpPct}%;background:${hpColor}"></div></div>
         </div>
-        <button class="btn bsm" style="padding:2px 7px;font-size:14px" onclick="mjHpChange(${realIdx},-1)">−</button>
-        <button class="btn bsm" style="padding:2px 7px;font-size:14px" onclick="mjHpChange(${realIdx},1)">+</button>
-        <button class="btn bsm" style="font-size:12px;padding:2px 6px" onclick="mjOpenHpModal(${realIdx})">✏</button>
-        <button class="btn bsm" style="font-size:12px;padding:2px 6px" onclick="mjOpenCondModal(${realIdx})">⚠</button>
-        <button class="btn bsm" style="font-size:12px;padding:2px 6px${isSurprised?';background:rgba(229,57,53,.15);border-color:var(--danger);color:var(--danger)':''}" onclick="mjToggleSurprise(${realIdx})" title="Basculer état : Surpris">😵</button>
-        <button class="btn bsm" style="font-size:12px;padding:2px 6px;border-color:var(--cp);color:var(--cp)" onclick="mjOpenCombatDice(${realIdx})">🎲</button>
-        <button class="btn bsm" style="font-size:12px;padding:2px 6px;color:var(--danger);border-color:var(--danger)" onclick="mjRemoveCombatant(${realIdx})">✕</button>
-        ${isActive?`<button class="btn bsm" style="font-size:12px;padding:2px 8px;border-color:${endRequested?'var(--good)':'#7c3aed'};color:${endRequested?'var(--good)':'var(--arcane)'};font-weight:600" onclick="mjNextTurn()" title="${endRequested?'Le joueur a terminé — valider et passer au suivant':'Passer au combattant suivant'}">${endRequested?'✓ Valider la fin':'⏩'}</button>`:''}
+        <div class="mj-combatant-ac">CA <strong>${c.ac||0}</strong></div>
       </div>
-      <div style="width:36px;text-align:center;font-size:13px;color:var(--text3)">CA ${c.ac||0}</div>
+      <div class="cbt-actions mj-combatant-actions">
+        <div class="mj-action-group" aria-label="Points de vie">
+          <button class="btn bsm" onclick="mjHpChange(${realIdx},-1)" title="Retirer 1 PV">−</button>
+          <button class="btn bsm" onclick="mjHpChange(${realIdx},1)" title="Ajouter 1 PV">+</button>
+          <button class="btn bsm" onclick="mjOpenHpModal(${realIdx})" title="Modifier les PV">❤ PV</button>
+        </div>
+        <div class="mj-action-group" aria-label="État et actions">
+          <button class="btn bsm" onclick="mjOpenCondModal(${realIdx})" title="Conditions">⚠ État</button>
+          <button class="btn bsm${isSurprised?' is-on':''}" onclick="mjToggleSurprise(${realIdx})" title="Basculer état : Surpris">😵</button>
+          <button class="btn bsm mj-dice-action" onclick="mjOpenCombatDice(${realIdx})">🎲 Jets</button>
+          <button class="btn bsm mj-remove-action" onclick="mjRemoveCombatant(${realIdx})" title="Retirer du combat">✕</button>
+        </div>
+        ${isActive?`<button class="btn bsm mj-next-action${endRequested?' is-requested':''}" onclick="mjNextTurn()" title="${endRequested?'Le joueur a terminé — valider et passer au suivant':'Passer au combattant suivant'}">${endRequested?'✓ Valider la fin':'⏩ Suivant'}</button>`:''}
+      </div>
     </div>`;
   }).join(''):`<div style="color:var(--text3);font-style:italic;font-size:13px;text-align:center;padding:16px">Aucun combattant. Ajoutez des joueurs ou des monstres.</div>`;
 
-  const logHtml=_mjCombatLog.length?`<div class="pt" style="margin-top:12px">📜 Journal de combat</div>
-    <div class="mj-log">${[..._mjCombatLog].reverse().map(l=>`<div class="mj-log-entry">${l}</div>`).join('')}</div>`:'';
+  const logHtml=_mjCombatLog.length?`<section class="mj-combat-log-panel"><div class="mj-combat-log-title">📜 Journal de combat <span>${_mjCombatLog.length} événements</span></div>
+    <div class="mj-log">${[..._mjCombatLog].reverse().map(l=>`<div class="mj-log-entry">${l}</div>`).join('')}</div></section>`:'';
+  const reportHtml=lastReport&&!_mjCombatStarted?`<button class="btn bsm mj-last-report" onclick="mjOpenLastCombatReport()">📋 Dernier rapport · ${esc(lastReport.endedLabel||'combat terminé')}</button>`:'';
 
-  return`<div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+  return`<div class="mj-combat-tracker">
+    <div class="mj-combat-toolbar">
       <button class="btn bsm bprimary" onclick="mjAddAllToCombat()">⚔ Ajouter joueurs</button>
       <button class="btn bsm bprimary" onclick="mjOpenAddMonster()">🐉 Ajouter monstre</button>
-      ${!_mjCombatStarted&&_mjCombatants.length?`<button class="btn bsm" style="border-color:var(--cp);color:var(--cp)" onclick="mjStartCombat()">✨ Lancer l'initiative</button>`:''}
+      ${!_mjCombatStarted&&_mjCombatants.length?`<button class="btn bsm mj-start-combat" onclick="mjStartCombat()">✨ Lancer l'initiative</button>`:''}
       ${_mjCombatStarted?`<button class="btn bsm" onclick="mjPreviousTurn()">◀ Tour précédent</button>
         <button class="btn bsm" style="border-color:var(--cp);color:var(--cp)" onclick="mjNextTurn()">▶ Tour suivant</button>
         <button class="btn bsm" style="border-color:var(--good);color:var(--good)" onclick="mjEndCombat()">🏁 Fin du combat</button>
@@ -61,7 +69,8 @@ function mjTabCombat(){
           🔄 Round <strong style="color:var(--cp)">${_mjRound}</strong>
           ${currentC?` — Tour de <strong style="color:var(--cp)">${esc(currentC.name)}</strong>`:''}
         </div>`:''}
-      ${_mjCombatants.length?`<button class="btn bsm" style="border-color:var(--danger);color:var(--danger)" onclick="mjResetCombat()">🗑 Réinitialiser</button>`:''}
+      ${_mjCombatants.length?`<button class="btn bsm mj-reset-combat" onclick="mjResetCombat()">🗑 Réinitialiser</button>`:''}
+      ${reportHtml}
     </div>
     ${combatantRows}
     ${logHtml}
@@ -730,7 +739,52 @@ function mjEndCombat(){
       <button class="btn bac" style="flex:2" onclick="_mjDoEndCombat()">🏁 Terminer le combat</button>
     </div>`);
 }
+function _mjCombatReportKey(){
+  return 'mjtk_combat_report_'+(currentCampaignId||'unknown');
+}
+function _mjLoadLastCombatReport(){
+  try{return JSON.parse(localStorage.getItem(_mjCombatReportKey())||'null');}
+  catch(e){return null;}
+}
+function _mjBuildCombatReport(){
+  const endedAt=Date.now();
+  return{
+    schemaVersion:1,
+    campaignId:currentCampaignId||null,
+    endedAt,
+    endedLabel:new Date(endedAt).toLocaleString('fr-FR'),
+    rounds:_mjRound,
+    combatants:_mjCombatants.map(c=>({
+      name:c.name||'?',
+      isPlayer:!!c.isPlayer,
+      avatar:c.avatar||'',
+      hp:Number(c.hp)||0,
+      hpMax:Number(c.hpMax)||0,
+      status:c.hp>0?'debout':(c.defeatState||'hors combat')
+    })),
+    log:[..._mjCombatLog]
+  };
+}
+function _mjSaveCombatReport(){
+  const report=_mjBuildCombatReport();
+  try{localStorage.setItem(_mjCombatReportKey(),JSON.stringify(report));}
+  catch(e){console.warn('Rapport de combat non conservé :',e);}
+  return report;
+}
+function mjOpenLastCombatReport(){
+  const report=_mjLoadLastCombatReport();
+  if(!report){showToast('Aucun rapport de combat conservé.');return;}
+  const survivors=(report.combatants||[]).filter(c=>c.hp>0);
+  const fallen=(report.combatants||[]).filter(c=>c.hp<=0);
+  const rows=list=>list.map(c=>`<div class="mj-report-row"><span>${c.isPlayer?(c.avatar||'⚔'):'👾'} ${esc(c.name)}</span><strong>${c.hp}/${c.hpMax} PV</strong></div>`).join('');
+  openWideModal(`<div class="pt">📋 Rapport de combat</div>
+    <div class="mj-report-meta">${esc(report.endedLabel||'')} · ${report.rounds||0} round${report.rounds>1?'s':''}</div>
+    ${survivors.length?`<div class="fl mb6" style="color:var(--good)">✅ Debout</div>${rows(survivors)}`:''}
+    ${fallen.length?`<div class="fl mb6" style="color:var(--danger);margin-top:12px">💀 Hors combat</div>${rows(fallen)}`:''}
+    ${(report.log||[]).length?`<div class="mj-combat-log-title" style="margin-top:16px">📜 Déroulé</div><div class="mj-log mj-report-log">${report.log.map(l=>`<div class="mj-log-entry">${l}</div>`).join('')}</div>`:''}`);
+}
 function _mjDoEndCombat(){
+  _mjSaveCombatReport();
   _mjCombatants=[];_mjCombatStarted=false;_mjCurrentTurn=0;_mjRound=1;_mjCombatLog=[];
   if(currentUser&&currentCampaignId){
     if(typeof v2CompatService!=='undefined'&&v2CompatService.isEnabled())saveMJData().catch(()=>{});

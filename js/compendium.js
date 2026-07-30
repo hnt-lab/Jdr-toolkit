@@ -91,13 +91,31 @@ const COMP = (() => {
 
   // Assure que toutes les sources actives d'un type sont chargées, puis recompose la globale.
   async function ensureType(type, onDone){
-    const ids = activePacksFor(type);
+    let ids = activePacksFor(type);
+    // Garde-fou de production : si une ancienne préférence ne pointe que vers un
+    // paquet retiré ou vide, la base SRD intégrée reste disponible.
+    if(!ids.length){
+      if(!active['base-srd'])active['base-srd']={};
+      active['base-srd'][type]=true;
+      _saveActive();
+      ids=['base-srd'];
+    }
     let loadedSomething = false, errors = 0;
     for(const id of ids){
       try { if(!Array.isArray(packs[id]._data[type])){ await _loadPackType(packs[id], type); loadedSomething = true; } }
       catch(e){ errors++; }
     }
     _rebuild(type);
+    if(_globalCount(type)===0&&ids.indexOf('base-srd')<0){
+      try{
+        await _loadPackType(packs['base-srd'],type);
+        if(!active['base-srd'])active['base-srd']={};
+        active['base-srd'][type]=true;
+        _saveActive();
+        _rebuild(type);
+        loadedSomething=true;
+      }catch(e){errors++;}
+    }
     if(loadedSomething){
       const arr = _globalCount(type);
       if(typeof showToast==='function') showToast('📚 '+_typeLabel(type)+' : '+arr+' chargé(s)');

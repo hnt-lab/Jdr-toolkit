@@ -205,6 +205,7 @@ function clearSessionState(){
 let _activeCombatState=null;
 let _combatListenerInitialized=false;
 let _prevCombatTurnUid=null;
+let _playerTurnReported=false;
 let _expandedCamp=null;
 // ═══ SYNC TEMPS RÉEL ═══
 let _unsubscribes=[];
@@ -783,6 +784,7 @@ function _updateCombatNotification(combatState){
   _combatListenerInitialized=true;
   _prevCombatTurnUid=newTurnUid;
   _activeCombatState=combatState;
+  if(newTurnUid!==prevTurnUid)_playerTurnReported=false;
   if(!isFirstCall){
     const isMyTurn=isNowActive&&newTurnUid===currentUser?.uid;
     const wasMyTurn=wasActive&&prevTurnUid===currentUser?.uid;
@@ -807,6 +809,28 @@ function _updateCombatNotification(combatState){
     if(isMyTurn){const nm=document.getElementById('combatTurnName');if(nm)nm.textContent='C\'est votre tour !';}
   }
   _updatePartyHUD();
+  if(typeof _refreshModeNav==='function')_refreshModeNav();
+  _syncGlobalCombatControls();
+}
+function _syncGlobalCombatControls(){
+  const bar=document.getElementById('globalCombatBar');
+  if(!bar)return;
+  const mjActive=!!(window._currentCampIsMJ&&typeof _mjCombatStarted!=='undefined'&&_mjCombatStarted);
+  const playerActive=!!(_activeCombatState&&_activeCombatState.active);
+  const active=mjActive||playerActive;
+  bar.style.display=active?'flex':'none';
+  const end=document.getElementById('globalEndTurnBtn');
+  const label=document.getElementById('globalCombatTurnLabel');
+  const myTurn=!window._currentCampIsMJ&&playerActive
+    &&_activeCombatState.currentTurnUid===currentUser?.uid;
+  if(label)label.textContent=myTurn
+    ?(_playerTurnReported?'Fin de tour signalée':'C’est votre tour')
+    :(mjActive?'Combat MJ en cours':'Combat en cours');
+  if(end){
+    end.style.display=myTurn?'':'none';
+    end.disabled=_playerTurnReported;
+    end.textContent=_playerTurnReported?'✓ Tour signalé':'⏩ Fin de tour';
+  }
 }
 async function playerEndTurn(){
   if(!currentUser||!currentCampaignId)return;
@@ -826,6 +850,8 @@ async function playerEndTurn(){
     }
     const banner=document.getElementById('combatTurnBanner');
     if(banner)banner.style.display='none';
+    _playerTurnReported=true;
+    _syncGlobalCombatControls();
     showToast('⏩ Fin de tour signalée. <button onclick="_undoEndTurn()" style="margin-left:8px;padding:3px 10px;border:1px solid var(--cp);border-radius:2px;background:transparent;color:var(--cp);cursor:pointer;font-size:13px">Annuler</button>',6000);
   }catch(e){showToast('❌ Une erreur est survenue, réessaie.');}
 }
@@ -846,6 +872,8 @@ async function _undoEndTurn(){
       await fbDb.collection('characters').doc(currentUser.uid+'_'+currentCampaignId).update({turnDone:false});
     }
     const t=document.getElementById('toast');if(t)t.style.display='none';
+    _playerTurnReported=false;
+    _syncGlobalCombatControls();
     showToast('↩ Tour annulé.');
   }catch(e){}
 }

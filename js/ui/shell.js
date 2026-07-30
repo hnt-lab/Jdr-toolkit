@@ -722,6 +722,39 @@ async function _dsOpenDiscoveryImage(idx){
 // impossible). Preuve : `node -e "let a=1;console.log(globalThis.a)"` → undefined.
 // shell.js étant chargé EN DERNIER (index.html:269), ces variables existent toujours :
 // on les lit DIRECTEMENT. Pour une variable qui pourrait manquer, utiliser typeof, pas window.
+const _DS_GROUP_SECTIONS_KEY='ds_group_sections_v1';
+function _dsGroupSectionState(){
+  const defaults={members:true,discoveries:true,chronicle:true};
+  try{
+    const saved=JSON.parse(localStorage.getItem(_DS_GROUP_SECTIONS_KEY)||'null');
+    return saved&&typeof saved==='object'?{...defaults,...saved}:defaults;
+  }catch(e){return defaults;}
+}
+function _dsToggleGroupSection(section){
+  if(!['members','discoveries','chronicle'].includes(section))return;
+  const state=_dsGroupSectionState();
+  state[section]=!state[section];
+  try{localStorage.setItem(_DS_GROUP_SECTIONS_KEY,JSON.stringify(state));}catch(e){}
+  const panel=document.getElementById('dsGroupSection-'+section);
+  const button=document.querySelector(`[data-ds-group-toggle="${section}"]`);
+  if(panel)panel.hidden=!state[section];
+  if(button){
+    button.setAttribute('aria-expanded',String(state[section]));
+    const chevron=button.querySelector('.ds-group-chevron');
+    if(chevron)chevron.textContent=state[section]?'▾':'▸';
+  }
+}
+function _dsGroupSection(section,title,content,extraClass=''){
+  const open=_dsGroupSectionState()[section]!==false;
+  return`<section class="ds-group-section ${extraClass}">
+    <button type="button" class="ds-group-section-head" data-ds-group-toggle="${section}"
+      aria-expanded="${open}" aria-controls="dsGroupSection-${section}"
+      onclick="_dsToggleGroupSection('${section}')">
+      <span>${title}</span><span class="ds-group-chevron" aria-hidden="true">${open?'▾':'▸'}</span>
+    </button>
+    <div class="ds-group-section-body" id="dsGroupSection-${section}"${open?'':' hidden'}>${content}</div>
+  </section>`;
+}
 function _dsRenderGroup(){
   const el=document.getElementById('dsGroupPage');if(!el||!_dsGroupOpen)return;
   const combat=_activeCombatState&&_activeCombatState.active;
@@ -822,6 +855,18 @@ function _dsRenderGroup(){
         :`<div class="ds-note" style="padding:6px 0">La chronique ne contient encore aucune entrée.</div>`))
     :`<button class="ds-btn" style="width:100%" onclick="_dsCloseGroup();openCampChronicle(currentTableId,currentCampaignId)">📜 Consulter la chronique</button>`;
   const rests=_dsRestBlockHTML();
+  const membersSection=_dsGroupSection('members','🧑‍🤝‍🧑 Membres · '+groupMembers.length,membres,'ds-group-members');
+  const discoveriesSection=_dsGroupSection('discoveries','🔎 Découvertes'+(_dsShares?.length?' · '+_dsShares.length:''),shares,'ds-group-discoveries');
+  const chronicleComposer=_dsV2Enabled()?`<div class="ds-card ds-group-composer">
+    <textarea class="fi" id="dsChronicleInput" rows="3" placeholder="Ajouter une entrée à la chronique…" style="resize:vertical"></textarea>
+    <button class="ds-btn primary" style="width:100%;margin-top:7px" onclick="_dsAddChronicleEntry()">Publier</button>
+  </div>`:'';
+  const chronicleSection=_dsGroupSection(
+    'chronicle',
+    `📜 Chronique${currentCampaignName?' · '+esc(currentCampaignName):''}`,
+    chronicle+chronicleComposer,
+    'ds-group-chronicle'
+  );
   // A5 (2026-07-22) — Groupe = MODE de plein rang, pas une fenêtre : plus de titre de page
   // ni de bouton ✕. On en sort par la nav (Tables · Personnage · Groupe), comme des autres modes.
   // Le nom du groupe se règlera dans les réglages de table (lot B) ; à défaut, aucun titre.
@@ -829,16 +874,13 @@ function _dsRenderGroup(){
     <div class="gp-body">
       ${tour}
       ${rests}
-      <div class="ds-seclbl" style="margin:12px 0 8px">🧑‍🤝‍🧑 Membres</div>
-      ${membres}
-      <div class="ds-seclbl" style="margin:14px 0 8px">🔎 Découvertes</div>
-      ${shares}
-      <div class="ds-seclbl" style="margin:14px 0 8px">📜 Chronique${currentCampaignName?' · '+esc(currentCampaignName):''}</div>
-      ${chronicle}
-      ${_dsV2Enabled()?`<div class="ds-card" style="margin-top:8px;padding:10px">
-        <textarea class="fi" id="dsChronicleInput" rows="3" placeholder="Ajouter une entrée à la chronique…" style="resize:vertical"></textarea>
-        <button class="ds-btn primary" style="width:100%;margin-top:7px" onclick="_dsAddChronicleEntry()">Publier</button>
-      </div>`:''}
+      <div class="ds-group-layout">
+        ${membersSection}
+        <div class="ds-group-main">
+          ${discoveriesSection}
+          ${chronicleSection}
+        </div>
+      </div>
       <div style="height:90px"></div>
     </div>
   </div>`;
@@ -861,10 +903,12 @@ function _dsBuildNav(){
   nav.innerHTML=
     `<button class="flat mode-btn mode-hub" onclick="_dsCloseGroup();_dsCloseCharacterPage();showHub()"><span class="mode-ico">🧭</span><br><span class="mode-lbl">Tables</span></button>`+
     `<button class="flat mode-btn mode-char" onclick="_navGoChar()"><span class="mode-ico mode-char-ico">🧙</span><br><span class="mode-lbl mode-char-lbl">Personnage</span></button>`+
+    `<button class="flat mode-btn mode-combat" onclick="openActiveCombat()" style="display:none;position:relative"><span class="mode-ico">⚔</span><br><span class="mode-lbl">Combat</span><span class="ds-navbdg combat-live">●</span></button>`+
     `<button class="flat mode-btn mode-group" onclick="_dsNavGoGroup()" style="position:relative"><span class="mode-ico">👥</span><br><span class="mode-lbl">Groupe</span>`+
     `<span id="dsNavTurn" class="ds-navbdg" style="display:none;position:absolute;top:2px;right:14px;min-width:16px;height:16px;border-radius:50%;background:var(--arcane);color:#fff;font-size:11px;font-weight:700;display:none;align-items:center;justify-content:center;animation:combatPulse 1.6s ease-in-out infinite">⚡</span>`+
     `<span id="dsNavDanger" style="display:none;position:absolute;top:2px;left:14px;min-width:16px;height:16px;border-radius:50%;background:var(--danger);color:#fff;font-size:10px;font-weight:700;align-items:center;justify-content:center"></span>`+
-    `</button>`;
+    `</button>`+
+    `<button class="flat mode-btn mode-stop" onclick="stopCurrentSession()" title="Arrêter la session sans supprimer les données"><span class="mode-ico">⏹</span><br><span class="mode-lbl">Arrêter</span></button>`;
 }
 // Surcharge de core.js : gère les 3 items + masque Groupe côté MJ.
 function _refreshModeNav(){
@@ -878,6 +922,7 @@ function _refreshModeNav(){
   const noCamp=!currentCampaignId;
   const charButton=nav.querySelector('.mode-char');
   const groupButton=nav.querySelector('.mode-group');
+  const stopButton=nav.querySelector('.mode-stop');
   if(charButton){
     const disabled=noCamp&&!!window._currentCampIsMJ;
     charButton.style.opacity=disabled?'.35':'';
@@ -887,6 +932,7 @@ function _refreshModeNav(){
     groupButton.style.opacity=noCamp?'.35':'';
     groupButton.style.pointerEvents=noCamp?'none':'';
   }
+  if(stopButton)stopButton.style.display=noCamp?'none':'';
   const vis=el=>el&&el.style.display!=='none';
   const onHub=vis(document.getElementById('hubScreen'));
   const onChar=vis(document.getElementById('app'))||vis(document.getElementById('mjScreen'));
@@ -894,12 +940,62 @@ function _refreshModeNav(){
   nav.querySelectorAll('.mode-char-lbl').forEach(el=>el.textContent=mj?'Panneau MJ':'Personnage');
   nav.querySelectorAll('.mode-char-ico').forEach(el=>el.textContent=mj?'👑':'🧙');
   const grp=nav.querySelector('.mode-group');if(grp)grp.style.display='';
+  const combat=nav.querySelector('.mode-combat');
+  const combatActive=!!((_activeCombatState&&_activeCombatState.active)
+    ||(window._currentCampIsMJ&&typeof _mjCombatStarted!=='undefined'&&_mjCombatStarted));
+  if(combat)combat.style.display=combatActive?'':'none';
   const hb=nav.querySelector('.mode-hub'),ch=nav.querySelector('.mode-char');
   const gOpen=typeof _dsGroupOpen!=='undefined'&&_dsGroupOpen;
   if(hb)hb.classList.toggle('on',!!onHub&&!gOpen);
   if(ch)ch.classList.toggle('on',(!!onChar||_dsCharacterPageOpen)&&!gOpen);
   if(grp)grp.classList.toggle('on',gOpen);
   if(typeof _placeModeNavDesktop==='function')_placeModeNavDesktop();
+}
+function openActiveCombat(){
+  if(!currentCampaignId){showToast('Aucune partie en cours.');return;}
+  if(typeof _dsCloseGroup==='function')_dsCloseGroup();
+  if(typeof _dsCloseCharacterPage==='function')_dsCloseCharacterPage();
+  if(window._currentCampIsMJ){
+    showMJScreen();
+    setMJTab('combat');
+    return;
+  }
+  showApp();
+  setTab('combat');
+}
+
+function stopCurrentSession(){
+  if(!currentCampaignId){clearSessionState();showHub();return;}
+  openModal(`<div class="pt">Arrêter la session en cours ?</div>
+    <div style="font-size:14px;color:var(--text2);line-height:1.55;margin-bottom:16px">
+      Tu reviendras à ta bibliothèque de tables et de personnages. La campagne,
+      les fiches et le combat sauvegardés ne seront pas supprimés.
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn" style="flex:1" onclick="closeModal()">Annuler</button>
+      <button class="btn bac" style="flex:2" onclick="_confirmStopCurrentSession()">Arrêter la session</button>
+    </div>`);
+}
+function _confirmStopCurrentSession(){
+  closeModal();
+  stopAllListeners();
+  clearSessionState();
+  currentTableId=null;
+  currentCampaignId=null;
+  currentCharacterId=null;
+  currentSheetCharacterId=null;
+  currentTableName='';
+  currentCampaignName='';
+  currentTableMjId=null;
+  window._currentCampIsMJ=false;
+  _activeCombatState=null;
+  _combatListenerInitialized=false;
+  _prevCombatTurnUid=null;
+  if(typeof _dsCloseGroup==='function')_dsCloseGroup();
+  if(typeof _dsCloseCharacterPage==='function')_dsCloseCharacterPage();
+  _syncGlobalCombatControls();
+  showHub();
+  showToast('Session arrêtée. Tes données restent sauvegardées.');
 }
 // Signaux sur l'item Groupe (appelé par _updatePartyHUD via patch ci-dessous)
 function _dsNavSignals(){
@@ -911,6 +1007,9 @@ function _dsNavSignals(){
   const dCount=(_groupData||[]).filter(pp=>{const p=pp.charData||{};return p.hpMax&&p.hp/p.hpMax<=.25;}).length;
   if(turn)turn.style.display=myTurn?'flex':'none';
   if(dng){dng.style.display=dCount?'flex':'none';dng.textContent=dCount||'';}
+  const combat=document.querySelector('#modeNav .mode-combat');
+  if(combat)combat.style.display=(combatActive||(window._currentCampIsMJ&&typeof _mjCombatStarted!=='undefined'&&_mjCombatStarted))?'':'none';
+  if(typeof _syncGlobalCombatControls==='function')_syncGlobalCombatControls();
 }
 // Patch : chaque rafraîchissement du HUD de groupe met aussi à jour la nav.
 if(typeof _updatePartyHUD==='function'){
